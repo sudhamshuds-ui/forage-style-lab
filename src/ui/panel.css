@@ -1,0 +1,347 @@
+/*
+ * Re-skin of Tweakpane to match references/ui.
+ *
+ * Tweakpane draws its own HTML with class names like .tp-sldv (slider view).
+ * We restyle those here. Every rule starts with .panel so it wins over
+ * Tweakpane's built-in styles.
+ *
+ * Main ideas:
+ *  - quiet white card, one sans-serif font, grey-on-grey controls
+ *  - sliders are full-width pills where the fill itself is the slider,
+ *    with the label inside on the left and the value on the right (ref 02)
+ *  - folders are simple section titles with thin dividers (ref 03)
+ *  - toggles are small pill switches (ref 03)
+ */
+
+.panel {
+  --tp-base-background-color: var(--surface);
+  --tp-base-shadow-color: rgba(40, 32, 20, 0.12);
+  --tp-base-border-radius: 12px;
+  --tp-base-font-family: var(--font);
+  --tp-blade-border-radius: var(--radius-control);
+  --tp-blade-horizontal-padding: 8px;
+  --tp-blade-value-width: 148px;
+  --tp-container-horizontal-padding: 0px;
+  --tp-container-vertical-padding: 6px;
+  --tp-container-unit-size: 28px;
+  --tp-container-unit-spacing: 6px;
+  --tp-container-background-color: transparent;
+  --tp-container-background-color-hover: transparent;
+  --tp-container-background-color-focus: transparent;
+  --tp-container-background-color-active: transparent;
+  --tp-container-foreground-color: var(--ink);
+  --tp-input-background-color: var(--control);
+  --tp-input-background-color-hover: var(--control-hover);
+  --tp-input-background-color-focus: var(--control-hover);
+  --tp-input-background-color-active: var(--control-hover);
+  --tp-input-foreground-color: var(--ink);
+  --tp-label-foreground-color: var(--ink-2);
+  --tp-button-background-color: var(--control);
+  --tp-button-background-color-hover: var(--control-hover);
+  --tp-button-background-color-focus: var(--control-hover);
+  --tp-button-background-color-active: var(--control-fill);
+  --tp-button-foreground-color: var(--ink);
+  --tp-groove-foreground-color: var(--line);
+  --tp-monitor-background-color: var(--control);
+  --tp-monitor-foreground-color: var(--ink-2);
+}
+
+/* Root */
+.panel .tp-rotv {
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+/* Folders: section titles with a divider between them */
+.panel .tp-fldv + .tp-fldv {
+  border-top: 1px solid var(--line);
+}
+.panel .tp-fldv_b {
+  height: 46px;
+  line-height: 46px;
+  padding-left: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.panel .tp-fldv_t {
+  padding-left: 0;
+}
+.panel .tp-fldv_i {
+  display: none;
+}
+.panel .tp-fldv_c {
+  padding-left: 0;
+}
+.panel .tp-fldv.tp-fldv-expanded > .tp-fldv_c {
+  padding-bottom: 14px;
+  padding-top: 0;
+}
+/* Folder arrow: a simple chevron, pointing down when open */
+.panel .tp-fldv_m {
+  width: 7px;
+  height: 7px;
+  right: 10px;
+  margin: auto;
+  background: none;
+  border-radius: 0;
+  border-right: 1.5px solid var(--ink);
+  border-bottom: 1.5px solid var(--ink);
+  opacity: 0.45;
+  transform: translateY(-2px) rotate(-45deg);
+}
+.panel .tp-fldv.tp-fldv-expanded > .tp-fldv_b > .tp-fldv_m {
+  transform: translateY(-2px) rotate(45deg);
+}
+
+/* Rows: label left, control right */
+.panel .tp-lblv {
+  min-height: 28px;
+}
+.panel .tp-lblv_l {
+  padding-left: 4px;
+  padding-right: 12px;
+  color: var(--ink-2);
+}
+
+/* ------------------------------------------------------------------ */
+/* Pill sliders (ref 02): the whole row is the slider                  */
+/* ------------------------------------------------------------------ */
+.panel .tp-lblv:has(.tp-sldtxtv) {
+  position: relative;
+  padding: 0;
+}
+.panel .tp-lblv:has(.tp-sldtxtv) > .tp-lblv_l {
+  position: absolute;
+  inset: 0 auto 0 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  color: var(--ink);
+  font-weight: 500;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.panel .tp-lblv:has(.tp-sldtxtv) > .tp-lblv_v {
+  width: 100%;
+}
+.panel .tp-sldtxtv {
+  position: relative;
+}
+.panel .tp-sldtxtv_s {
+  flex: 1 1 100%;
+}
+.panel .tp-sldv_t {
+  height: 34px;
+  margin: 0;
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+.panel .tp-sldv_t::before {
+  inset: 0;
+  height: auto;
+  margin: 0;
+  border-radius: var(--radius-control);
+  background-color: var(--control);
+  transition: background-color 0.15s ease;
+}
+.panel .tp-sldv_t:hover::before {
+  background-color: var(--control-hover);
+}
+/* The fill */
+.panel .tp-sldv_k::before {
+  inset: 0;
+  height: auto;
+  margin: 0;
+  border-radius: var(--radius-control);
+  background-color: var(--control-fill);
+}
+/* The small white handle bar at the end of the fill */
+.panel .tp-sldv_k::after {
+  right: 7px;
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background-color: #fff;
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.panel .tp-sldv_t:hover .tp-sldv_k::after,
+.panel .tp-sldv_t:focus .tp-sldv_k::after,
+.panel .tp-sldv_t:active .tp-sldv_k::after {
+  background-color: #fff;
+}
+.panel .tp-sldv_t:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+/* The value, sitting inside the pill on the right */
+.panel .tp-sldtxtv_t {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 64px;
+  margin: 0;
+  z-index: 2;
+}
+.panel .tp-sldtxtv_t .tp-txtv_k {
+  display: none;
+}
+.panel .tp-sldtxtv_t .tp-txtv_i {
+  height: 34px;
+  line-height: 34px;
+  padding: 0 12px 0 0;
+  background: transparent;
+  color: var(--ink-2);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.panel .tp-sldtxtv_t .tp-txtv_i:focus {
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------ */
+/* Toggles (ref 03): small pill switches on the right                  */
+/* ------------------------------------------------------------------ */
+.panel .tp-lblv:has(.tp-ckbv) > .tp-lblv_v {
+  width: auto;
+}
+.panel .tp-lblv:has(.tp-ckbv) > .tp-lblv_l {
+  color: var(--ink);
+  font-weight: 500;
+  padding-left: 12px;
+}
+.panel .tp-ckbv_w {
+  width: 36px;
+  height: 22px;
+  border-radius: 11px;
+  background-color: var(--control-fill);
+  transition: background-color 0.15s ease;
+}
+.panel .tp-ckbv_w svg {
+  display: none;
+}
+.panel .tp-ckbv_w::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+.panel .tp-ckbv_i:checked + .tp-ckbv_w {
+  background-color: var(--ink);
+}
+.panel .tp-ckbv_i:checked + .tp-ckbv_w::after {
+  transform: translateX(14px);
+}
+.panel .tp-ckbv_i:focus-visible + .tp-ckbv_w {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Colour rows: label left, swatch + hex code right                    */
+/* ------------------------------------------------------------------ */
+.panel .tp-lblv:has(.tp-colv) > .tp-lblv_l {
+  color: var(--ink);
+  font-weight: 500;
+  padding-left: 12px;
+}
+.panel .tp-colswv {
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.panel .tp-colswv_sw {
+  border-radius: 8px;
+}
+.panel .tp-colv_t {
+  margin-left: 6px;
+}
+.panel .tp-coltxtv_m {
+  display: none;
+}
+.panel .tp-colv .tp-txtv_i {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+/* The colour picker pop-up */
+.panel .tp-colv .tp-popv {
+  left: auto;
+  right: 0;
+  width: 248px;
+  max-width: none;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(40, 32, 20, 0.16);
+}
+.panel .tp-svpv,
+.panel .tp-hplv_c,
+.panel .tp-aplv_b {
+  border-radius: 8px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Light direction pad: label on top, full-width pad below             */
+/* ------------------------------------------------------------------ */
+.panel .tp-lblv:has(.tp-p2dv) {
+  flex-direction: column;
+  align-items: stretch;
+}
+.panel .tp-lblv:has(.tp-p2dv) > .tp-lblv_l {
+  padding: 4px 0 8px 12px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.panel .tp-lblv:has(.tp-p2dv) > .tp-lblv_v {
+  width: 100%;
+}
+.panel .tp-p2dv_b {
+  display: none;
+}
+.panel .tp-p2dv .tp-txtv_i {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.panel .tp-p2dv .tp-txtv_k {
+  display: none;
+}
+.panel .tp-p2dpv {
+  padding-left: 0;
+}
+.panel .tp-p2dpv_p {
+  height: 128px;
+  padding-bottom: 0;
+  border-radius: 10px;
+  background: radial-gradient(circle at 50% 50%, #faf9f6 0%, var(--control) 70%);
+}
+.panel .tp-p2dpv_m {
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 0;
+  background: #f2cdb8;
+  box-shadow: 0 0 0 2px var(--ink), 0 0 0 6px rgba(242, 205, 184, 0.45);
+}
+.panel .tp-p2dpv_p:focus .tp-p2dpv_m {
+  background: #f2cdb8;
+}
+.panel .tp-p2dpv_ax {
+  opacity: 0.25;
+}
+.panel .tp-p2dpv_l {
+  opacity: 0.35;
+}

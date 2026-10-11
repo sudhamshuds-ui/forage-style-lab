@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forage Style Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="app">
+      <header class="brand">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span class="brand-name">Forage</span>
+        <span class="brand-sub">Style Lab</span>
+      </header>
+
+      <main class="stage-area">
+        <div class="card" id="card">
+          <canvas id="canvas" aria-label="3D view of the stylized apple"></canvas>
+        </div>
+        <p class="hint">Drag to rotate. Scroll or pinch to zoom.</p>
+      </main>
+
+      <aside class="panel" aria-label="Parameters">
+        <div class="panel-head">
+          <h2>Apple</h2>
+          <span class="panel-meta">Ingredient</span>
+        </div>
+        <div class="panel-body" id="pane"></div>
+        <div class="panel-foot">
+          <button type="button" class="btn btn-primary" id="btn-randomize">Randomize</button>
+          <button type="button" class="btn" id="btn-reset">Reset</button>
+          <button type="button" class="btn" id="btn-copy">Copy settings</button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
