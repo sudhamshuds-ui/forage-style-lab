@@ -1,6 +1,6 @@
 import { Color, DoubleSide, FrontSide, ShaderMaterial, Vector3, type IUniform } from 'three';
 import type { Settings } from '../params';
-import type { ShaderEffect } from './effect';
+import type { FrameContext, ShaderEffect } from './effect';
 import { colourGLSL } from './chunks/colour.glsl';
 import { noiseGLSL } from './chunks/noise.glsl';
 
@@ -12,7 +12,7 @@ import { noiseGLSL } from './chunks/noise.glsl';
  * each effect's code in order, then output the final colour.
  *
  * All materials made by one StylizedLook share the same light and effect
- * settings, but each has its own palette (base, shadow, highlight), so the
+ * settings, but each has its own palette (base, lit, shadow, highlight), so the
  * apple body, stem and leaf can be coloured separately.
  */
 
@@ -43,6 +43,7 @@ uniform vec3 uLightDir;
 uniform float uSoftness;
 uniform float uPaintEdges;
 uniform vec3 uBaseColour;
+uniform vec3 uLitColour;
 uniform vec3 uShadowColour;
 uniform vec3 uHighlightColour;
 
@@ -68,15 +69,19 @@ void main() {
   if (!gl_FrontFacing) N = -N; // leaves are seen from both sides
   vec3 V = normalize(cameraPosition - vWorldPos);
   vec3 L = normalize(uLightDir);
+  vec3 worldPos = vWorldPos;
   vec3 objectPos = vObjectPos;
   paintNoise = fbm3(objectPos * 2.4) - 0.5;
 
   float tone = 0.5;
+  float highlightMask = 0.0;
   vec3 colour = uBaseColour;
 
 ${bodies}
 
-  gl_FragColor = vec4(colour, 1.0);
+  // Alpha is a label for the paint stroke pass, not transparency:
+  // 0 = backdrop, 0.5 = object, up to 1.0 = crisp highlight on the object.
+  gl_FragColor = vec4(colour, 0.5 + 0.5 * clamp(highlightMask, 0.0, 1.0));
   #include <colorspace_fragment>
 }
 `;
@@ -92,6 +97,7 @@ function indent(text: string, spaces: number): string {
 
 export interface Palette {
   base: string;
+  lit: string;
   shadow: string;
   highlight: string;
 }
@@ -117,6 +123,7 @@ export class StylizedLook {
       uniforms: {
         ...this.shared,
         uBaseColour: { value: new Color() },
+        uLitColour: { value: new Color() },
         uShadowColour: { value: new Color() },
         uHighlightColour: { value: new Color() },
       },
@@ -126,18 +133,19 @@ export class StylizedLook {
     });
   }
 
-  /** Push the latest panel values into the shader. Called every frame. */
-  update(settings: Settings, lightDirection: Vector3): void {
-    (this.shared.uLightDir.value as Vector3).copy(lightDirection);
+  /** Push the latest panel values into the shader. Called before each render. */
+  update(settings: Settings, context: FrameContext): void {
+    (this.shared.uLightDir.value as Vector3).copy(context.lightDirection);
     this.shared.uSoftness.value = settings.light.softness / 100;
     this.shared.uPaintEdges.value = settings.light.paintEdges / 100;
-    for (const effect of this.effects) effect.update(settings);
+    for (const effect of this.effects) effect.update(settings, context);
   }
 }
 
 /** Set one material's palette from hex strings. */
 export function setPalette(material: ShaderMaterial, palette: Palette): void {
   (material.uniforms.uBaseColour.value as Color).set(palette.base);
+  (material.uniforms.uLitColour.value as Color).set(palette.lit);
   (material.uniforms.uShadowColour.value as Color).set(palette.shadow);
   (material.uniforms.uHighlightColour.value as Color).set(palette.highlight);
 }

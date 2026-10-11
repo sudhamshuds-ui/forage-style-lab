@@ -1,21 +1,21 @@
-import type { Pane } from 'tweakpane';
 import { GROUPS, defaultSettings, type Settings } from '../params';
 import { randomSettings } from '../randomize';
+import type { Panel } from './panel';
 
 /**
  * The three buttons under the panel: Randomize, Reset and Copy settings.
  */
-export function setupActions(settings: Settings, pane: Pane, onApplied: () => void): void {
+export function setupActions(settings: Settings, panel: Panel, onApplied: () => void): void {
   const apply = (next: Settings) => {
     applySettings(settings, next);
-    pane.refresh();
+    panel.refresh();
     onApplied();
   };
 
   button('btn-randomize').addEventListener('click', () => apply(randomSettings(settings)));
   button('btn-reset').addEventListener('click', () => apply(defaultSettings()));
   button('btn-copy').addEventListener('click', async () => {
-    const json = JSON.stringify({ ingredient: 'apple', version: 1, ...settings }, null, 2);
+    const json = JSON.stringify({ ingredient: 'apple', version: 2, ...settings }, null, 2);
     const copied = await copyText(json);
     showToast(copied ? 'Settings copied as JSON' : 'Could not copy. Check the browser console.');
     if (!copied) console.log(json);

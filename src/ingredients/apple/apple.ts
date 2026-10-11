@@ -16,6 +16,9 @@ export class Apple {
   readonly group = new Group();
   /** Lowest point of the apple, so the floor (and its shadow) can sit right under it. */
   bottomY = -1;
+  /** Centre and rough radius of the body, used to place the highlight shape. */
+  readonly centre = new Vector3();
+  radius = 1;
 
   private readonly body = new AppleBody();
   private readonly bodyMesh: Mesh;
@@ -49,11 +52,18 @@ export class Apple {
     if (settings.leaf) replaceGeometry(this.leafMesh, buildLeafGeometry(this.anchor, shape));
 
     this.bottomY = this.body.geometry.boundingBox?.min.y ?? -1;
+    const sphere = this.body.geometry.boundingSphere;
+    if (sphere) {
+      this.centre.copy(sphere.center);
+      // The bounding sphere reaches the corners; the planes sit a little further in.
+      this.radius = sphere.radius * 0.88;
+    }
   }
 
   applyColours(colour: Settings['colour']): void {
     setPalette(this.materials.body, {
       base: colour.base,
+      lit: colour.lit,
       shadow: colour.shadow,
       highlight: colour.highlight,
     });
@@ -61,11 +71,13 @@ export class Apple {
     // whole object shares one light, like a painter using one shadow mix.
     setPalette(this.materials.stem, {
       base: colour.stem,
+      lit: mixHex(colour.stem, colour.highlight, 0.3),
       shadow: mixHex(colour.stem, colour.shadow, 0.6),
       highlight: mixHex(colour.stem, colour.highlight, 0.55),
     });
     setPalette(this.materials.leaf, {
       base: colour.leaf,
+      lit: mixHex(colour.leaf, colour.highlight, 0.3),
       shadow: mixHex(colour.leaf, colour.shadow, 0.55),
       highlight: mixHex(colour.leaf, colour.highlight, 0.5),
     });

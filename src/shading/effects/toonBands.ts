@@ -6,9 +6,10 @@ import type { ShaderEffect } from '../effect';
  * 1. Work out how much each point faces the light (0 = away, 1 = straight at it).
  * 2. Cut that smooth value into a few flat bands, like a painter blocking in
  *    values with separate mixes of paint. Each cut is a painted edge.
- * 3. Colour the bands along a ramp: shadow colour, then base colour, then a
- *    warmer, lighter version leaning toward the highlight's hue. The ramp walks
- *    around the hue wheel, so shadows shift hue instead of just turning darker.
+ * 3. Colour the bands along a ramp: shadow colour, then base colour, then the
+ *    lit colour. The ramp walks around the hue wheel, so shadows shift hue
+ *    (red, crimson, wine) instead of just turning darker, and the light side
+ *    warms up (red to orange-red), like the reference.
  */
 const uniforms = {
   uBands: { value: 4 },
@@ -19,23 +20,6 @@ export const toonBands: ShaderEffect = {
   uniforms,
   declarations: /* glsl */ `
 uniform float uBands;
-
-// The lit side of the ramp. Light hitting a red apple turns it orange, not
-// pink: the hue leans strongly toward the highlight colour, lightness rises a
-// little, and saturation stays high. The pale highlight colour itself is
-// saved for the highlight dab.
-vec3 lightRamp(vec3 base, vec3 highlightColour, float t) {
-  vec3 b = linearToOklab(base);
-  vec3 h = linearToOklab(highlightColour);
-  float cb = length(b.yz);
-  float hueB = atan(b.z, b.y);
-  float hueH = length(h.yz) < 0.015 ? hueB : atan(h.z, h.y);
-  float dh = mod(hueH - hueB + LAB_PI, LAB_TAU) - LAB_PI;
-  float hue = hueB + dh * t * 0.7;
-  float L = mix(b.x, h.x, t * 0.3);
-  float c = cb * (1.0 + t * 0.08);
-  return max(oklabToLinear(vec3(L, c * cos(hue), c * sin(hue))), 0.0);
-}
 `,
   body: /* glsl */ `
 // Wrapping (+0.35) lets the light creep a little past the edge of the form,
@@ -50,11 +34,11 @@ for (int i = 1; i < 6; i++) {
 }
 tone = uBands > 1.5 ? steps / (uBands - 1.0) : 0.5;
 
-// Lower half of the ramp: shadow colour to base colour (hue shifts on the way).
-// Upper half: base colour warming toward the highlight's hue.
+// Lower half of the ramp: shadow colour to base colour.
+// Upper half: base colour to the lit colour.
 colour = tone < 0.5
   ? mixOklch(uShadowColour, uBaseColour, tone * 2.0)
-  : lightRamp(uBaseColour, uHighlightColour, (tone - 0.5) * 2.0);
+  : mixOklch(uBaseColour, uLitColour, (tone - 0.5) * 2.0);
 `,
   update(settings) {
     uniforms.uBands.value = settings.light.bands;

@@ -1,11 +1,11 @@
-import { Mesh, PlaneGeometry, ShadowMaterial, Vector3 } from 'three';
+import { CustomBlending, Mesh, OneFactor, OneMinusSrcAlphaFactor, PlaneGeometry, ShadowMaterial, SrcAlphaFactor, Vector3, ZeroFactor } from 'three';
 import type { Settings } from '../params';
 
 /**
  * An invisible floor that only shows the apple's cast shadow.
  *
  * It sits right under the apple and uses a ShadowMaterial: the floor itself is
- * see-through, and only the shadow is drawn, tinted with Shadow colour.
+ * see-through, and only the shadow is drawn, tinted with the shadow colour.
  * When the light drops below the horizon the shadow fades out, since a
  * lamp under the table could not cast it.
  */
@@ -15,7 +15,15 @@ export class Ground {
   constructor() {
     const geometry = new PlaneGeometry(30, 30);
     geometry.rotateX(-Math.PI / 2);
-    this.mesh = new Mesh(geometry, new ShadowMaterial({ transparent: true, depthWrite: false }));
+    const material = new ShadowMaterial({ transparent: true, depthWrite: false });
+    // Darken the colour underneath, but leave its alpha alone: alpha is the
+    // "backdrop or object" label the paint stroke pass reads.
+    material.blending = CustomBlending;
+    material.blendSrc = SrcAlphaFactor;
+    material.blendDst = OneMinusSrcAlphaFactor;
+    material.blendSrcAlpha = ZeroFactor;
+    material.blendDstAlpha = OneFactor;
+    this.mesh = new Mesh(geometry, material);
     this.mesh.receiveShadow = true;
   }
 

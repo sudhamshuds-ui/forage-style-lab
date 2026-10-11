@@ -55,8 +55,8 @@ export function toAppleShape(s: Settings['shape']): AppleShape {
 
 /** How finely the sphere is divided. Higher is smoother but slower to rebuild. */
 const DETAIL = 56;
-/** How soft the edges between facet planes are (a small bevel, like a worn gem). */
-const FACET_EDGE_SOFTNESS = 0.05;
+/** How soft the edges between facet planes are. Small = crisp planar edges, like the reference. */
+const FACET_EDGE_SOFTNESS = 0.025;
 /** Turns the rounded cube a little so its corners do not line up with the cuts. */
 const BOX_TURN = 0.5;
 const BOX_COS = Math.cos(BOX_TURN);

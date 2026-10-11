@@ -13,6 +13,9 @@ import { noiseGLSL } from '../shading/chunks/noise.glsl';
  *
  * It is a single triangle that covers the whole screen, drawn before
  * everything else, so it never moves when you orbit.
+ *
+ * This is only the underpainting: the paint pass (src/painting) repaints it
+ * with big brush slabs.
  */
 const vertexShader = /* glsl */ `
 varying vec2 vUv;
@@ -54,7 +57,8 @@ void main() {
   lab.yz = mat2(cos(turn), sin(turn), -sin(turn), cos(turn)) * lab.yz;
   colour = max(oklabToLinear(lab), 0.0);
 
-  gl_FragColor = vec4(colour, 1.0);
+  // Alpha 0 labels this as "backdrop" for the paint stroke pass.
+  gl_FragColor = vec4(colour, 0.0);
   #include <colorspace_fragment>
 }
 `;

@@ -1,11 +1,11 @@
-import { DirectionalLight, PCFShadowMap, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three';
+import { DirectionalLight, PCFShadowMap, PerspectiveCamera, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { Vec2 } from '../params';
 
 /**
  * The stage: everything needed to show a 3D scene in the card.
  *
- *  - renderer: draws the scene into the <canvas>
+ *  - renderer: draws into the <canvas>
  *  - camera:   our point of view (a narrow lens, so the apple looks less distorted)
  *  - controls: drag to orbit, scroll to zoom, optional idle spin
  *  - keyLight: only used to cast the shadow on the floor. Our stylized shader
@@ -14,6 +14,9 @@ import type { Vec2 } from '../params';
  * The light direction is defined relative to the camera, like a lamp fixed
  * to the painter's easel: as you orbit, the light stays on the same side of
  * the picture, so the composition always reads like the reference.
+ *
+ * Painting every frame is costly, so the stage only redraws when something
+ * changed: the camera moved, the panel changed (invalidate) or the size changed.
  */
 export class Stage {
   readonly renderer: WebGLRenderer;
@@ -25,18 +28,23 @@ export class Stage {
   readonly lightDirection = new Vector3(0, 1, 0);
   /** Canvas size in CSS pixels. */
   readonly size = { width: 1, height: 1 };
+  /** Called with the real pixel size whenever the canvas is resized. */
+  onResize: (width: number, height: number) => void = () => {};
+
+  private needsRender = true;
+  private readonly bufferSize = new Vector2();
 
   constructor(canvas: HTMLCanvasElement, private readonly frame: HTMLElement) {
-    this.renderer = new WebGLRenderer({ canvas, antialias: true });
+    this.renderer = new WebGLRenderer({ canvas, antialias: false });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = PCFShadowMap;
 
     this.camera = new PerspectiveCamera(28, 3 / 4, 0.1, 100);
-    this.camera.position.setFromSphericalCoords(10.5, (76 * Math.PI) / 180, (28 * Math.PI) / 180);
+    this.camera.position.setFromSphericalCoords(10.5, (75 * Math.PI) / 180, (24 * Math.PI) / 180);
 
     this.controls = new OrbitControls(this.camera, canvas);
-    this.controls.target.set(0, 0.15, 0);
+    this.controls.target.set(0, 0.2, 0);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
     this.controls.enablePan = false;
@@ -49,7 +57,7 @@ export class Stage {
     this.keyLight = new DirectionalLight(0xffffff, 1);
     this.keyLight.castShadow = true;
     this.keyLight.shadow.mapSize.set(2048, 2048);
-    this.keyLight.shadow.radius = 3;
+    this.keyLight.shadow.radius = 2;
     this.keyLight.shadow.bias = -0.0004;
     this.keyLight.shadow.normalBias = 0.02;
     const shadowCamera = this.keyLight.shadow.camera;
@@ -62,7 +70,6 @@ export class Stage {
     this.scene.add(this.keyLight, this.keyLight.target);
 
     new ResizeObserver(() => this.resize()).observe(frame);
-    this.resize();
   }
 
   private resize(): void {
@@ -73,10 +80,18 @@ export class Stage {
     this.camera.updateProjectionMatrix();
     this.size.width = width;
     this.size.height = height;
+    this.renderer.getDrawingBufferSize(this.bufferSize);
+    this.onResize(this.bufferSize.x, this.bufferSize.y);
+    this.invalidate();
+  }
+
+  /** Ask for a redraw on the next frame (call after any setting changes). */
+  invalidate(): void {
+    this.needsRender = true;
   }
 
   /**
-   * Turn the panel's light pad (x: left to right, y: down to up) into a world
+   * Turn the light pad (x: left to right, y: down to up) into a world
    * direction, and move the shadow light to match.
    */
   updateLight(pad: Vec2): Vector3 {
@@ -92,15 +107,21 @@ export class Stage {
     this.controls.autoRotateSpeed = (speed / 100) * 4;
   }
 
-  /** Start the render loop. `onFrame` runs once per frame, before drawing. */
-  start(onFrame: (deltaSeconds: number) => void): void {
+  /**
+   * Start the loop. Each frame, if anything changed, `update` copies the
+   * settings into the scene and `draw` paints the picture.
+   */
+  start(update: () => void, draw: () => void): void {
+    this.resize();
     let last = performance.now();
     this.renderer.setAnimationLoop((now) => {
       const delta = Math.min((now - last) / 1000, 0.1);
       last = now;
-      this.controls.update(delta);
-      onFrame(delta);
-      this.renderer.render(this.scene, this.camera);
+      const cameraMoved = this.controls.update(delta);
+      if (!cameraMoved && !this.needsRender) return;
+      this.needsRender = false;
+      update();
+      draw();
     });
   }
 }
