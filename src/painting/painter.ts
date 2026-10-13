@@ -45,10 +45,6 @@ export class Painter {
         tColour: { value: this.sceneTarget.texture },
         uTexel: { value: new Vector2() },
         uRadius: { value: 8 },
-        uAspect: { value: 0.75 },
-        uFalloff: { value: 0.5 },
-        uFrame: { value: 1 },
-        uSeed: { value: 0 },
       },
       vertexShader: flowVertexShader,
       fragmentShader: flowFragmentShader,
@@ -61,10 +57,10 @@ export class Painter {
         tColour: { value: this.sceneTarget.texture },
         tFlow: { value: this.flowTarget.texture },
         uResolution: { value: new Vector2() },
-        uObjectCell: { value: 40 },
-        uBackdropCell: { value: 120 },
+        uCell: { value: 20 },
+        uBackdropCell: { value: 60 },
         uLength: { value: 1.5 },
-        uPainterly: { value: 0.5 },
+        uLoose: { value: 0.6 },
         uVariation: { value: 0.45 },
         uTexture: { value: 0.35 },
         uBrush: { value: 0 },
@@ -72,11 +68,7 @@ export class Painter {
         uPatternAmount: { value: 0.5 },
         uHorizon: { value: 0.36 },
         uFrame: { value: 1 },
-        uAccents: { value: 0 },
-        uFalloff: { value: 0.5 },
-        uCanvasColour: { value: new Color() },
-        uFocus: { value: new Vector2(0.5, 0.5) },
-        uSeed: { value: 0 },
+        uFrameColour: { value: new Color() },
       },
       vertexShader: paintVertexShader,
       fragmentShader: paintFragmentShader,
@@ -95,13 +87,8 @@ export class Painter {
     this.flowTarget.setSize(Math.max(1, Math.ceil(width / 4)), Math.max(1, Math.ceil(height / 4)));
   }
 
-  /**
-   * Paint one picture. `focus` is where small accent strokes gather, in
-   * screen coordinates from 0 to 1 (usually the spot where the highlight sits).
-   */
-  render(renderer: WebGLRenderer, scene: Scene, camera: Camera, settings: Settings, focus: Vector2): void {
+  render(renderer: WebGLRenderer, scene: Scene, camera: Camera, settings: Settings): void {
     this.updateUniforms(settings);
-    this.paintMaterial.uniforms.uFocus.value.copy(focus);
 
     // 1. Underpainting
     renderer.setRenderTarget(this.sceneTarget);
@@ -120,39 +107,27 @@ export class Painter {
 
   private updateUniforms(settings: Settings): void {
     const height = this.size.y;
-    // Sizes of the BIG strokes. Medium and small ones are fractions of these (paintShader.ts).
-    const objectCell = (0.05 + (settings.brush.size / 100) * 0.07) * height;
-    const backdropCell = (0.12 + (settings.scene.backdropStrokes / 100) * 0.14) * height;
-    const falloff = settings.scene.backdropFalloff / 100;
-    const frame = settings.scene.frame ? 1 : 0;
-    // Keep the seed small so the random number maths stays precise.
-    const seed = (settings.paint.seed * 7.31) % 211;
+    const cell = (0.012 + (settings.brush.size / 100) * 0.038) * height;
+    const backdropCell = (0.045 + (settings.scene.backdropStrokes / 100) * 0.085) * height;
 
     const flow = this.flowMaterial.uniforms;
     flow.uTexel.value.set(1 / this.size.x, 1 / this.size.y);
-    flow.uRadius.value = objectCell * 0.25;
-    flow.uAspect.value = this.size.x / this.size.y;
-    flow.uFalloff.value = falloff;
-    flow.uFrame.value = frame;
-    flow.uSeed.value = seed;
+    flow.uRadius.value = cell * 0.5;
 
     const paint = this.paintMaterial.uniforms;
     paint.uResolution.value.copy(this.size);
-    paint.uObjectCell.value = objectCell;
+    paint.uCell.value = cell;
     paint.uBackdropCell.value = backdropCell;
     paint.uLength.value = 0.9 + (settings.brush.length / 100) * 1.1;
-    paint.uPainterly.value = settings.paint.painterly / 100;
+    paint.uLoose.value = settings.paint.painterly / 100;
     paint.uVariation.value = settings.paint.variation / 100;
     paint.uTexture.value = settings.brush.texture / 100;
     paint.uBrush.value = BRUSHES.indexOf(settings.brush.type);
     paint.uPattern.value = PATTERNS.indexOf(settings.brush.pattern);
     paint.uPatternAmount.value = settings.brush.patternAmount / 100;
     paint.uHorizon.value = settings.scene.horizon / 100;
-    paint.uFrame.value = frame;
-    paint.uAccents.value = settings.scene.scratchLines ? 1 : 0;
-    paint.uFalloff.value = falloff;
-    paint.uCanvasColour.value.set(settings.scene.frameColour);
-    paint.uSeed.value = seed;
+    paint.uFrame.value = settings.scene.frame ? 1 : 0;
+    paint.uFrameColour.value.set(settings.scene.frameColour);
   }
 }
 

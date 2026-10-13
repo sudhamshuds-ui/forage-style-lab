@@ -4,12 +4,11 @@ import { PALETTES, applyPalette } from './palettes';
 /**
  * Randomize: new values that still look good.
  *
- * Only visible controls change. Hidden ones (shape, lighting, colours) keep their values.
+ * Only visible controls change. Hidden ones (shape, lighting) keep their values.
  *   - sliders pick from their "nice" range in params.ts
  *   - lists pick any option
  *   - toggles marked `random: true` flip a coin
- *   - the colour combo is one of the presets (only while the combo picker is visible)
- *   - the stroke layout always gets a new seed, so every click repaints the picture
+ *   - the colour combo is one of the presets
  */
 
 const between = (min: number, max: number) => min + Math.random() * (max - min);
@@ -38,7 +37,6 @@ export function randomSettings(current: Settings): Settings {
     }
   }
 
-  if (!GROUPS.find((g) => g.key === 'palette')?.hidden) applyPalette(next, pick(PALETTES));
-  next.paint.seed = 1 + Math.floor(Math.random() * 999);
+  applyPalette(next, pick(PALETTES));
   return next;
 }

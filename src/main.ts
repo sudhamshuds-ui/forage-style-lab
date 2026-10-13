@@ -1,6 +1,6 @@
 import './style.css';
 import './ui/panel.css';
-import { Vector2, Vector3 } from 'three';
+import { Vector3 } from 'three';
 import { defaultSettings } from './params';
 import { Stage } from './scene/stage';
 import { Background } from './scene/background';
@@ -55,12 +55,6 @@ const context: FrameContext = {
   objectRadius: 1,
 };
 
-// The focal point: where the highlight sits, in screen coordinates (0..1).
-// Small accent strokes gather around it.
-const focus = new Vector2(0.5, 0.5);
-const focusPoint = new Vector3();
-const toCamera = new Vector3();
-
 function update(): void {
   if (shapeChanged) {
     apple.rebuild(settings.shape);
@@ -74,17 +68,6 @@ function update(): void {
   context.objectRadius = apple.radius;
 
   look.update(settings, context);
-
-  toCamera.copy(context.cameraPosition).sub(apple.centre).normalize();
-  focusPoint
-    .copy(context.lightDirection)
-    .add(toCamera)
-    .normalize()
-    .multiplyScalar(apple.radius)
-    .add(apple.centre)
-    .project(stage.camera);
-  focus.set(focusPoint.x * 0.5 + 0.5, focusPoint.y * 0.5 + 0.5);
-
   apple.applyColours(settings.colour);
   background.update(settings.scene, stage.size);
   ground.update(settings.scene, context.lightDirection);
@@ -92,7 +75,7 @@ function update(): void {
   stage.setIdleSpin(settings.scene.idleSpin, settings.scene.spinSpeed);
 }
 
-stage.start(update, () => painter.render(stage.renderer, stage.scene, stage.camera, settings, focus));
+stage.start(update, () => painter.render(stage.renderer, stage.scene, stage.camera, settings));
 
 // Handy while developing: type `styleLab.settings` in the browser console to inspect values.
 if (import.meta.env.DEV) {

@@ -5,17 +5,11 @@ import type { AppleShape } from './appleBody';
  * The stem: a thin tube that follows a curve.
  *
  * The curve starts straight up out of the dimple and bends to one side
- * toward the tip (Stem curve). The tube is a little thicker at the base,
- * slims down, then swells into a small knob at the tip, like a real stem.
+ * toward the tip (Stem curve). The tube is a little thicker at the base.
  */
 
 const SEGMENTS = 32;
 const SIDES = 10;
-
-const smoothstep = (a: number, b: number, x: number) => {
-  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
-};
 
 export function buildStemGeometry(anchor: Vector3, shape: AppleShape): BufferGeometry {
   const length = shape.stemLength;
@@ -44,8 +38,7 @@ export function buildStemGeometry(anchor: Vector3, shape: AppleShape): BufferGeo
   for (let i = 0; i <= SEGMENTS; i++) {
     const t = i / SEGMENTS;
     curve.getPointAt(t, point);
-    const knob = smoothstep(0.86, 1.0, t) * 0.35;
-    const radius = shape.stemRadius * (1.3 - 0.45 * t + knob);
+    const radius = shape.stemRadius * (1.25 - 0.4 * t);
     for (let j = 0; j <= SIDES; j++) {
       const angle = (j / SIDES) * Math.PI * 2;
       normal

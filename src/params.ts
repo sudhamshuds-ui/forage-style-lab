@@ -23,7 +23,7 @@ export interface Vec2 {
 }
 
 /** Options for the list controls. The shaders use each option's position in its list. */
-export const BRUSHES = ['flat', 'round', 'knife', 'dry', 'mixed'] as const;
+export const BRUSHES = ['flat', 'round', 'knife', 'dry'] as const;
 export const PATTERNS = ['none', 'lines', 'scribble', 'crosshatch'] as const;
 export const HIGHLIGHT_SHAPES = ['window', 'panes', 'square', 'dashes', 'streak', 'dot', 'none'] as const;
 
@@ -48,8 +48,6 @@ export interface Settings {
     painterly: number;
     variation: number;
     chalk: number;
-    /** Which random stroke layout to use. Randomize picks a new one. */
-    seed: number;
   };
   highlight: {
     shape: HighlightShape;
@@ -57,14 +55,10 @@ export interface Settings {
     rimGlints: boolean;
   };
   scene: {
-    /** 0 = the backdrop is painted as a full box, 100 = a loose abstract shape. */
-    backdropFalloff: number;
     backdropStrokes: number;
     frame: boolean;
     idleSpin: boolean;
     // Hidden below this line
-    /** Thin pale scratch lines along the backdrop's edge. Off: the user found them odd. */
-    scratchLines: boolean;
     frameColour: string;
     backgroundTop: string;
     backgroundBottom: string;
@@ -115,11 +109,11 @@ export type GroupKey = keyof Settings;
 
 /** Panel order and folder titles. Hidden groups are kept but not shown. */
 export const GROUPS: { key: GroupKey; title: string; expanded: boolean; hidden?: boolean }[] = [
+  { key: 'palette', title: 'Colour combo', expanded: true },
+  { key: 'brush', title: 'Brush', expanded: true },
   { key: 'paint', title: 'Paint', expanded: true },
-  { key: 'scene', title: 'Backdrop', expanded: true },
-  { key: 'brush', title: 'Pattern', expanded: true },
-  { key: 'palette', title: 'Colour combo', expanded: true, hidden: true },
-  { key: 'highlight', title: 'Highlights', expanded: true, hidden: true },
+  { key: 'highlight', title: 'Highlights', expanded: true },
+  { key: 'scene', title: 'Scene', expanded: true },
   { key: 'shape', title: 'Shape', expanded: false, hidden: true },
   { key: 'colour', title: 'Colour', expanded: false, hidden: true },
   { key: 'light', title: 'Light', expanded: false, hidden: true },
@@ -131,7 +125,7 @@ export const DEFAULTS: Settings = {
     preset: 'orchard',
   },
   brush: {
-    type: 'mixed',
+    type: 'flat',
     size: 55,
     length: 60,
     texture: 35,
@@ -139,28 +133,25 @@ export const DEFAULTS: Settings = {
     patternAmount: 55,
   },
   paint: {
-    painterly: 50,
+    painterly: 45,
     variation: 45,
     chalk: 8,
-    seed: 1,
   },
   highlight: {
     shape: 'window',
-    size: 36,
+    size: 45,
     rimGlints: true,
   },
   scene: {
-    backdropFalloff: 40,
     backdropStrokes: 72,
     frame: true,
     idleSpin: false,
-    scratchLines: false,
     frameColour: '#857a7a',
     backgroundTop: '#453992',
     backgroundBottom: '#3d8a40',
     horizon: 36,
-    horizonSoftness: 1,
-    variation: 12,
+    horizonSoftness: 4,
+    variation: 45,
     castShadow: true,
     shadowColour: '#0f2418',
     shadowAmount: 80,
@@ -172,12 +163,12 @@ export const DEFAULTS: Settings = {
     topDimple: 42,
     bottomDimple: 20,
     lopsided: 22,
-    facets: 75,
-    stemLength: 66,
-    stemCurve: 48,
-    stemThickness: 34,
-    leaf: true,
-    leafSize: 55,
+    facets: 66,
+    stemLength: 72,
+    stemCurve: 58,
+    stemThickness: 22,
+    leaf: false,
+    leafSize: 50,
   },
   colour: {
     base: '#b8232f',
@@ -189,9 +180,9 @@ export const DEFAULTS: Settings = {
   },
   light: {
     direction: { x: 0.6, y: 0.55 },
-    bands: 5,
-    softness: 6,
-    paintEdges: 8,
+    bands: 4,
+    softness: 10,
+    paintEdges: 20,
     ambient: '#7c74cc',
     ambientAmount: 50,
     bounce: '#3f8f4b',
@@ -257,16 +248,14 @@ export const SPECS: SpecTable = {
         { value: 'round', label: 'Round brush' },
         { value: 'knife', label: 'Palette knife' },
         { value: 'dry', label: 'Dry brush' },
-        { value: 'mixed', label: 'Dry and flat' },
       ],
-      hidden: true,
     },
-    size: pct('Stroke size', [25, 70], hidden),
-    length: pct('Stroke length', [30, 90], hidden),
-    texture: pct('Bristle texture', [10, 70], hidden),
+    size: pct('Stroke size', [25, 70]),
+    length: pct('Stroke length', [30, 90]),
+    texture: pct('Bristle texture', [10, 70]),
     pattern: {
       kind: 'list',
-      label: 'Type',
+      label: 'Pattern',
       random: true,
       options: [
         { value: 'none', label: 'None' },
@@ -275,13 +264,12 @@ export const SPECS: SpecTable = {
         { value: 'crosshatch', label: 'Crosshatch' },
       ],
     },
-    patternAmount: pct('Amount', [30, 80]),
+    patternAmount: pct('Pattern amount', [30, 80]),
   },
   paint: {
-    painterly: pct('Painterly', [25, 85]),
-    variation: pct('Colour variation', [25, 75], hidden),
-    chalk: pct('Chalkiness', [0, 35], hidden),
-    seed: { kind: 'slider', label: 'Stroke layout', min: 1, max: 999, step: 1, nice: [1, 999], unit: 'count', hidden: true },
+    painterly: pct('Painterly', [35, 90]),
+    variation: pct('Colour variation', [25, 75]),
+    chalk: pct('Chalkiness', [0, 35]),
   },
   highlight: {
     shape: {
@@ -302,11 +290,9 @@ export const SPECS: SpecTable = {
     rimGlints: { kind: 'toggle', label: 'Rim glints', random: true },
   },
   scene: {
-    backdropFalloff: pct('Falloff', [20, 85]),
-    backdropStrokes: pct('Backdrop strokes', [35, 85], hidden),
-    frame: { kind: 'toggle', label: 'Frame', ...hidden },
-    idleSpin: { kind: 'toggle', label: 'Idle spin', ...hidden },
-    scratchLines: { kind: 'toggle', label: 'Scratch lines', ...hidden },
+    backdropStrokes: pct('Backdrop strokes', [35, 85]),
+    frame: { kind: 'toggle', label: 'Frame' },
+    idleSpin: { kind: 'toggle', label: 'Idle spin' },
     frameColour: { kind: 'colour', label: 'Frame colour', ...hidden },
     backgroundTop: { kind: 'colour', label: 'Top colour', ...hidden },
     backgroundBottom: { kind: 'colour', label: 'Bottom colour', ...hidden },

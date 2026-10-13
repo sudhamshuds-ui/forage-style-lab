@@ -9,9 +9,9 @@ import type { ShaderEffect } from '../effect';
  *
  *  1. A shape (window, panes, square, dashes, streak or dot) painted onto the
  *     surface around the spot that mirrors the light. We work out that spot
- *     in JavaScript (the "anchor"), then lay the shape on like a decal, facing
- *     the light, so it stays one clean shape even where it crosses from one
- *     plane onto the next. It only shows on planes that roughly face the light.
+ *     in JavaScript (the "anchor"), then draw the shape flat on whichever
+ *     plane of the apple is there, so it sits in perspective on that plane.
+ *     It only shows on planes that roughly face the light.
  *
  *  2. Rim glints: thin broken lines where tightly curved edges (the bevels
  *     between planes, the stem) catch the light.
@@ -90,24 +90,21 @@ float highlightShape(vec2 q, float shape, float aa) {
 vec3 H = normalize(L + V);
 float facingLight = dot(N, H);
 
-// 1. The shape, laid on like a decal around the anchor spot. The decal faces
-// the halfway direction H, so it does not shear where planes change.
+// 1. The shape, drawn flat on this plane around the anchor spot.
 vec3 offset = worldPos - uHighlightAnchor;
-vec3 axisX = uCameraRight - H * dot(uCameraRight, H);
+vec3 axisX = uCameraRight - N * dot(uCameraRight, N);
 axisX /= max(length(axisX), 1e-4);
-vec3 axisY = cross(H, axisX);
+vec3 axisY = cross(N, axisX);
 vec2 q = vec2(dot(offset, axisX), dot(offset, axisY)) / uHighlightSize;
 // A tiny wobble so the edges look hand painted, not vector-perfect.
 q += (vec2(valueNoise3(objectPos * 18.0), valueNoise3(objectPos * 18.0 + 7.1)) - 0.5) * 0.06;
 float aa = max(length(fwidth(q)) * 0.75, 0.001);
-float shapeMask = highlightShape(q, uHighlightShape, aa) * smoothstep(0.15, 0.3, facingLight);
+float shapeMask = highlightShape(q, uHighlightShape, aa) * smoothstep(0.55, 0.75, facingLight);
 
 // 2. Rim glints on tightly curved edges, broken into dashes.
 float curvature = length(fwidth(N)) / max(length(fwidth(worldPos)), 1e-5);
 float glint = smoothstep(0.93, 0.95, facingLight) * smoothstep(3.0, 8.0, curvature);
 glint *= smoothstep(0.4, 0.48, valueNoise3(objectPos * 11.0)) * uRimGlints;
-// Keep glints clear of the main shape, so the window reads cleanly (like the reference).
-glint *= smoothstep(1.0, 1.5, length(q));
 
 highlightMask = max(shapeMask, glint);
 colour = mix(colour, uHighlightColour, highlightMask);

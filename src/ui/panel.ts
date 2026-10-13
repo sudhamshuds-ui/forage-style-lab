@@ -23,12 +23,7 @@ export function createPanel(
   settings: Settings,
   onChange: (group: GroupKey) => void,
 ): Panel {
-  // The colour combo picker is our own component, shown only while its group is visible.
-  const paletteVisible = !GROUPS.find((g) => g.key === 'palette')?.hidden;
-  const palettePicker = paletteVisible
-    ? createPalettePicker(paletteContainer, settings, () => onChange('palette'))
-    : { refresh: () => {} };
-  paletteContainer.hidden = !paletteVisible;
+  const palettePicker = createPalettePicker(paletteContainer, settings, () => onChange('palette'));
   const pane = new Pane({ container: paneContainer });
 
   for (const group of GROUPS) {
