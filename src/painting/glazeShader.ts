@@ -15,7 +15,8 @@ import { frameGLSL } from './frame.glsl';
  *      here it is painted as one clear shape: crisp edged, darkest and
  *      richest where the apple touches the table, lighter and bluer further
  *      away. Near the apple it picks up the apple's own colour in soft
- *      patches, like light passing through and bouncing off the fruit.
+ *      patches, like light passing through and bouncing off the fruit, plus
+ *      soft teal and lavender patches (iridescent, like the lemon painting).
  *      (Shadow colour)
  *   1. Lost edges: on the shadow side, the apple's outline melts into what is
  *      behind it. The lit side stays crisp. (Edge softness)
@@ -112,6 +113,15 @@ vec4 shadowPaint(vec2 uv, float contact) {
   vec3 accent = linearToOklab(uShadowAccent);
   vec3 accentLab = vec3(lab.x, accent.yz * 0.8);
   lab = mix(lab, accentLab, patches * 0.6 * uShadowMix * (1.0 - far));
+
+  // Iridescent mixing, like the dish shadow in the lemon painting: soft patches
+  // of teal-green and lavender-pink at the shadow's own lightness.
+  float tealPatch = smoothstep(0.42, 0.66, fbm3(vec3(p * 4.5, 11.0)));
+  float lilacPatch = smoothstep(0.46, 0.7, fbm3(vec3(p * 5.0, 17.0)));
+  vec3 teal = vec3(lab.x + 0.04, 0.1 * cos(3.32), 0.1 * sin(3.32));   // hue 190 degrees
+  vec3 lilac = vec3(lab.x + 0.03, 0.1 * cos(5.59), 0.1 * sin(5.59));  // hue 320 degrees
+  lab = mix(lab, teal, tealPatch * 0.75 * uShadowMix);
+  lab = mix(lab, lilac, lilacPatch * 0.6 * uShadowMix);
 
   // Where the apple meets the table: darker and richer, never grey.
   lab.x -= 0.08 * contact;

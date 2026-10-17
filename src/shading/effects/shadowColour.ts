@@ -11,6 +11,9 @@ import type { ShaderEffect } from '../effect';
  *    table.
  *  - Contact: where the apple sits on the table it gets darker and richer,
  *    never grey.
+ *  - Mixed colours: soft patches drift through the shadow, some turning
+ *    violet, some pink, with a hint of the room's cool colour toward the
+ *    edges, like the purple and pink mixed into the lemon wedges' shadows.
  *
  * Light > Shadow colour sets how strong the mix is. At 0 the shadow is just
  * the combo's own shadow ramp (already a hue shift, red to wine to plum).
@@ -49,6 +52,17 @@ vec3 bounce = linearToOklab(uShadowBounce);
 float warm = facesDown * shade * 0.5 * uShadowMix;
 lab = turnHueToward(lab, bounce, warm);
 lab.x = mix(lab.x, max(lab.x, bounce.x * 0.7), warm * 0.5);
+
+// Mixed colours: big soft patches (stuck to the surface) turn the shadow
+// violet in some places and pink in others; the edges pick up the room's hue.
+float violetPatch = smoothstep(0.45, 0.72, fbm3(objectPos * 1.3 + vec3(2.0, 5.0, 1.0)));
+float pinkPatch = smoothstep(0.48, 0.75, fbm3(objectPos * 1.7 + vec3(8.0, 1.0, 4.0)));
+float mixAmount = (1.0 - tone) * uShadowMix;
+float spin = (-0.75 * violetPatch + 0.35 * pinkPatch) * mixAmount;
+lab.yz = mat2(cos(spin), sin(spin), -sin(spin), cos(spin)) * lab.yz;
+lab.yz *= 1.0 + 0.2 * (violetPatch + pinkPatch) * mixAmount;
+float edge = pow(1.0 - max(dot(N, V), 0.0), 2.0);
+lab = turnHueTowardCool(lab, linearToOklab(uShadowAmbient), edge * mixAmount * 0.5);
 
 // Contact: darker and richer right where the apple meets the table.
 float nearTable = 1.0 - smoothstep(0.0, 0.25 * uObjectSize, worldPos.y - uGroundY);

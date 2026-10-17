@@ -18,7 +18,8 @@ import { backdropLayout } from './backdropLayout';
  *    soft patches of the room's ambient colour, like the references
  *  - calm brush slabs, laid out on the surface itself (Paint > Brushiness)
  *  - one soft, organic patch of light around the apple, stretched along the
- *    light's direction (no window panes)
+ *    light's direction (no window panes), with a faint pastel rainbow at its
+ *    edge (Light > Glow)
  *  - a soft, deep contact shadow right under the apple
  *
  * The Backdrop slider picks the arrangement (backdropLayout.ts).
@@ -72,6 +73,7 @@ uniform float uPatchOffset;
 uniform float uPatchLength;
 uniform float uPatchWidth;
 uniform float uPatchTurn;
+uniform float uPrism;
 varying vec3 vWorld;
 
 ${colourGLSL}
@@ -168,6 +170,14 @@ void main() {
     vec3 lit = mix(lab, linearToOklab(uLight), 0.5);
     lit.x += 0.05;
     lab = mix(lab, lit, pool * 0.85);
+
+    // A faint pastel rainbow along the edge of the light, like light split by
+    // glass (the streaks beside the dish in the lemon painting). Light > Glow.
+    float fringe = smoothstep(0.8, 0.9, shape) * (1.0 - smoothstep(0.95, 1.08, shape)) * above;
+    fringe *= smoothstep(0.35, 0.6, fbm3(vec3(floorPos * 0.6, seed + 12.0)));
+    float hue = (shape - 0.8) * 22.0 + dot(floorPos, vec2(0.3, 0.2));
+    vec3 rainbow = vec3(lab.x + 0.02, 0.07 * cos(hue), 0.07 * sin(hue));
+    lab = mix(lab, rainbow, fringe * 0.6 * uPrism);
   }
 
   lab = slabs(lab, p);
@@ -211,6 +221,7 @@ export class Background {
           uPatchLength: { value: 3.5 },
           uPatchWidth: { value: 2 },
           uPatchTurn: { value: 0 },
+          uPrism: { value: 0.5 },
         },
         vertexShader,
         fragmentShader,
@@ -247,5 +258,6 @@ export class Background {
     u.uPatchLength.value = layout.patchLength;
     u.uPatchWidth.value = layout.patchWidth;
     u.uPatchTurn.value = layout.patchTurn;
+    u.uPrism.value = settings.lighting.glow / 100;
   }
 }
