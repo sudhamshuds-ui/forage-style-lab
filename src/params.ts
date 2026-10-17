@@ -134,10 +134,10 @@ export const GROUPS: { key: GroupKey; title: string; expanded: boolean; hidden?:
   { key: 'light', title: 'Light', expanded: false, hidden: true },
 ];
 
-/** Defaults are tuned to match references/apple/00-source-of-truth.webp. */
+/** Defaults are tuned to match references/painterly/00 and 01 (the source of truth). */
 export const DEFAULTS: Settings = {
   palette: {
-    preset: 'orchard',
+    preset: 'linen',
   },
   brush: {
     classic: false,
@@ -171,14 +171,14 @@ export const DEFAULTS: Settings = {
     idleSpin: false,
     backdropStrokes: 72,
     frame: false,
-    frameColour: '#857a7a',
-    backgroundTop: '#453992',
-    backgroundBottom: '#3d8a40',
+    frameColour: '#877e77',
+    backgroundTop: '#adc1cf',
+    backgroundBottom: '#bcafa0',
     horizon: 36,
     horizonSoftness: 4,
     variation: 45,
     castShadow: true,
-    shadowColour: '#0f2418',
+    shadowColour: '#5e6886',
     shadowAmount: 80,
     spinSpeed: 25,
   },
@@ -196,22 +196,22 @@ export const DEFAULTS: Settings = {
     leafSize: 50,
   },
   colour: {
-    base: '#b8232f',
-    lit: '#e0502a',
-    shadow: '#5a1636',
-    highlight: '#f2c6c4',
-    glow: '#e0502a',
-    stem: '#24803c',
-    leaf: '#3e9b45',
+    base: '#c43f3e',
+    lit: '#e97c48',
+    shadow: '#73294b',
+    highlight: '#f5e5d3',
+    glow: '#e04f1a',
+    stem: '#5d6a33',
+    leaf: '#6c8c4a',
   },
   light: {
     direction: { x: 0.6, y: 0.55 },
     bands: 4,
     softness: 10,
     paintEdges: 20,
-    ambient: '#7c74cc',
+    ambient: '#a1bbcf',
     ambientAmount: 50,
-    bounce: '#3f8f4b',
+    bounce: '#cca17e',
     bounceAmount: 45,
   },
 };
