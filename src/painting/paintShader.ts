@@ -200,7 +200,14 @@ vec3 strokeLab(vec3 picked, vec4 rnd, float onObject) {
 //   area: 0 = anywhere, 1 = backdrop only, 2 = object only
 //   coverage: chance that a cell has a stroke at all
 // ---------------------------------------------------------------------------
-vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelOnObject, float area, float coverage) {
+// Which area a pixel belongs to, from the alpha label: 0 = lit backdrop,
+// 1 = backdrop in the cast shadow, 2 = the object. Strokes stay inside their
+// own area, so the cast shadow keeps a clean shape instead of being chopped up.
+float regionOf(float a) {
+  return a >= 0.25 ? 2.0 : (a > 0.06 ? 1.0 : 0.0);
+}
+
+vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelRegion, float area, float coverage) {
   vec2 offset = vec2(0.37, 0.71) * layer;
   vec2 grid = px / cell + offset;
   vec2 base = floor(grid);
@@ -228,7 +235,7 @@ vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelOnObje
       vec4 picked = texture2D(tColour, clamp(pickUv, vec2(0.001), vec2(0.999)));
       float onObject = step(0.25, picked.a);
 
-      if (abs(onObject - pixelOnObject) > 0.5) continue; // paint inside the lines
+      if (abs(regionOf(picked.a) - pixelRegion) > 0.5) continue; // paint inside the lines
       if (area > 0.5 && area < 1.5 && onObject > 0.5) continue;
       if (area > 1.5 && onObject < 0.5) continue;
       if (picked.a > 0.75) continue; // never smear the crisp highlights
@@ -277,25 +284,27 @@ vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelOnObje
 void main() {
   vec2 px = vUv * uResolution;
   vec4 under = texture2D(tColour, vUv);
-  float onObject = step(0.25, under.a);
+  float region = regionOf(under.a);
   vec3 colour = under.rgb;
 
   // 1. Backdrop: big slabs, then a second, smaller pass of slabs.
-  colour = paintLayer(colour, px, uBackdropCell, 1.0, onObject, 1.0, 1.0);
-  colour = paintLayer(colour, px, uBackdropCell * 0.8, 2.0, onObject, 1.0, 0.55);
+  colour = paintLayer(colour, px, uBackdropCell, 1.0, region, 1.0, 1.0);
+  colour = paintLayer(colour, px, uBackdropCell * 0.8, 2.0, region, 1.0, 0.55);
 
   // 2. The object: two passes of strokes at the main size.
-  colour = paintLayer(colour, px, uCell, 3.0, onObject, 2.0, 1.0);
-  colour = paintLayer(colour, px, uCell * 0.8, 4.0, onObject, 2.0, 0.85);
+  colour = paintLayer(colour, px, uCell, 3.0, region, 2.0, 1.0);
+  colour = paintLayer(colour, px, uCell * 0.8, 4.0, region, 2.0, 0.85);
 
   // 3. Small detail strokes where edges need defining (plane edges, horizon, outline).
   float edges = smoothstep(0.03, 0.1, texture2D(tFlow, vUv).b);
   if (edges > 0.0) {
-    colour = mix(colour, paintLayer(colour, px, uCell * 0.5, 5.0, onObject, 0.0, 1.0), edges);
+    colour = mix(colour, paintLayer(colour, px, uCell * 0.5, 5.0, region, 0.0, 1.0), edges);
   }
 
   // 4. Right on the object's outline, use the clean render so the silhouette stays smooth.
-  float outline = 1.0 - smoothstep(0.15, 0.22, abs(under.a - 0.25));
+  // (Labels between the shadow's 0.2 and the object's 0.5 only happen where the
+  // outline blends the two, so shadow pixels never count as outline.)
+  float outline = smoothstep(0.205, 0.23, under.a) * (1.0 - smoothstep(0.42, 0.48, under.a));
   colour = mix(colour, under.rgb, outline);
 
   // 5. Crisp highlights on top.

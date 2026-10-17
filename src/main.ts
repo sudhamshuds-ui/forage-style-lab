@@ -98,7 +98,8 @@ function update(): void {
   look.update(settings, context);
   apple.applyColours(settings.colour);
   background.update(settings, context);
-  ground.update(settings.scene, context.lightDirection, !settings.brush.classic);
+  // Label mode in both styles: the playful strokes repaint the glazed painting.
+  ground.update(settings.scene, context.lightDirection, true);
   stage.keyLight.castShadow = settings.scene.castShadow;
   stage.setIdleSpin(settings.scene.idleSpin, settings.scene.spinSpeed);
   updatePaintFrame();

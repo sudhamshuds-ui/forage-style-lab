@@ -38,7 +38,10 @@ export interface Settings {
     preset: string;
   };
   brush: {
-    /** Use the old "strokes everywhere" paint pass instead of the glaze pass. */
+    /**
+     * Playful strokes: repaint the finished, refined painting with bold brush
+     * strokes (like a kid's painting). Off: the refined, glazed look.
+     */
     classic: boolean;
     type: Brush;
     size: number;
@@ -128,13 +131,14 @@ export type GroupKey = keyof Settings;
 /** Panel order and folder titles. Hidden groups are kept but not shown. */
 export const GROUPS: { key: GroupKey; title: string; expanded: boolean; hidden?: boolean }[] = [
   { key: 'palette', title: 'Colour combo', expanded: true },
+  // Only the Playful strokes switch is shown; the detailed brush controls stay hidden.
+  { key: 'brush', title: 'Style', expanded: true },
   { key: 'paint', title: 'Paint', expanded: true },
   { key: 'lighting', title: 'Light', expanded: true },
   { key: 'highlight', title: 'Highlights', expanded: true },
   // Only the Faceted switch is shown; the detailed shape sliders stay hidden.
   { key: 'shape', title: 'Form', expanded: true },
   { key: 'scene', title: 'Scene', expanded: true },
-  { key: 'brush', title: 'Brush', expanded: false, hidden: true },
   { key: 'colour', title: 'Colour', expanded: false, hidden: true },
   { key: 'light', title: 'Light', expanded: false, hidden: true },
 ];
@@ -278,11 +282,12 @@ export const SPECS: SpecTable = {
     preset: { kind: 'palette', label: 'Colour combo' },
   },
   brush: {
-    classic: { kind: 'toggle', label: 'Classic strokes' },
+    classic: { kind: 'toggle', label: 'Playful strokes' },
     type: {
       kind: 'list',
       label: 'Brush',
       random: true,
+      hidden: true,
       options: [
         { value: 'flat', label: 'Flat brush' },
         { value: 'round', label: 'Round brush' },
@@ -290,13 +295,14 @@ export const SPECS: SpecTable = {
         { value: 'dry', label: 'Dry brush' },
       ],
     },
-    size: pct('Stroke size', [25, 70]),
-    length: pct('Stroke length', [30, 90]),
-    texture: pct('Bristle texture', [10, 70]),
+    size: pct('Stroke size', [25, 70], hidden),
+    length: pct('Stroke length', [30, 90], hidden),
+    texture: pct('Bristle texture', [10, 70], hidden),
     pattern: {
       kind: 'list',
       label: 'Pattern',
       random: true,
+      hidden: true,
       options: [
         { value: 'none', label: 'None' },
         { value: 'lines', label: 'Lines' },
@@ -304,7 +310,7 @@ export const SPECS: SpecTable = {
         { value: 'crosshatch', label: 'Crosshatch' },
       ],
     },
-    patternAmount: pct('Pattern amount', [30, 80]),
+    patternAmount: pct('Pattern amount', [30, 80], hidden),
   },
   paint: {
     brushiness: pct('Brushiness', [15, 70]),

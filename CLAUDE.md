@@ -19,7 +19,7 @@ keep code readable with friendly comments.
   muted (not candy) surroundings. `02` and `03` support them; `90-avoid-stroke-clutter.png`
   shows what must never happen. `references/apple` is the old direction (kept for history);
   `references/ui` is the tool's look. Design: `docs/superpowers/specs/2026-10-17-painterly-design.md`.
-- The panel shows **stylization only**: Colour combo; Paint (Brushiness, Wash bleed,
+- The panel shows **stylization only**: Colour combo; Style (Playful strokes); Paint (Brushiness, Wash bleed,
   Edge softness, Texture); Light (Glow, Shadow colour); Highlights (Shape, Size, Rim
   glints); Form (Faceted); Scene (Backdrop, Idle spin). The apple's shape, the lighting, the individual
   colour pickers, the old brush controls and the frame are **hidden, not deleted**: they
@@ -76,8 +76,11 @@ keep code readable with friendly comments.
    label, loses the shadow-side edges, pools pigment at wash edges, adds paper grain
    (lighter on the apple), then puts the highlights back. Every step comes from the
    image itself, so nothing re-forms when the camera moves.
-   The older **classic** pass (`paintShader.ts`, strokes everywhere) is still there behind
-   the hidden `brush.classic` toggle; in classic mode the floor darkens the colour instead.
+4. **Playful strokes** (Style switch, `brush.classic`): the glazed painting is kept in a
+   hidden image (alpha label preserved) and the stroke pass (`paintShader.ts`) repaints it
+   with bold strokes, so the playful look keeps every refined treatment underneath. Strokes
+   stay inside their area: object, cast shadow, or lit backdrop. The detailed brush
+   controls (type, size, length, bristles, pattern) are hidden.
    The frame (`frame.glsl.ts`) is shared by both and hidden by default.
 - The stage only redraws when something changes (`stage.invalidate()`), or while the
   camera moves.
@@ -129,7 +132,8 @@ Painterly iteration 2 (user feedback): light fixed in the room, 3D studio sweep 
 that turns with the view, soft light pool, shadow seam/halo fixes, room-only combos (apple
 keeps its colours, soft + vivid rooms complementing it), Randomize leaves colours alone,
 soft sheen and dry speckle highlights, facets back, facet shards and granular fill instead
-of dabs.
+of dabs. Style switch: Playful strokes repaints the refined look with bold strokes (a
+kid's painting) while keeping all of it underneath.
 
 ## Planned for later sessions (not built yet)
 Importing 3D files (tool 01), patterns inside highlights and shadows, sparkles, soft body

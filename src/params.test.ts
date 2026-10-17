@@ -11,6 +11,7 @@ describe('panel', () => {
   it('shows exactly the stylization controls', () => {
     expect(visibleLabels()).toEqual([
       'Colour combo',
+      'Playful strokes',
       'Brushiness',
       'Wash bleed',
       'Edge softness',
@@ -30,6 +31,17 @@ describe('panel', () => {
     expect(DEFAULTS.scene.frame).toBe(false);
     expect(DEFAULTS.scene.idleSpin).toBe(false);
     expect(DEFAULTS.brush.classic).toBe(false);
+  });
+});
+
+describe('style', () => {
+  it('starts refined, and Randomize never switches the style', () => {
+    expect(DEFAULTS.brush.classic).toBe(false);
+    for (let i = 0; i < 50; i++) {
+      const start = structuredClone(DEFAULTS);
+      start.brush.classic = true;
+      expect(randomSettings(start).brush.classic).toBe(true);
+    }
   });
 });
 

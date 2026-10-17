@@ -32,11 +32,12 @@ export interface PaintFrame {
  *   1. Underpainting: render the 3D scene (calm tone shapes, glow, marks,
  *      crisp highlights) into a hidden image instead of the screen.
  *   2. Flow: measure which way the edges run in that image (flowShader.ts).
- *   3. Paint, onto the screen, with one of two passes:
- *        - glaze (default, glazeShader.ts): cast shadow, lost edges,
- *          pigment pooling, paper grain
- *        - classic (hidden, Brush > Classic strokes, paintShader.ts): the
- *          older look that repaints everything with brush strokes
+ *   3. Glaze (glazeShader.ts): cast shadow, lost edges, pigment pooling,
+ *      paper grain. This is the refined look, painted straight to the screen.
+ *   4. Only with Style > Playful strokes: the glazed painting goes into one
+ *      more hidden image, and the stroke pass (paintShader.ts) repaints it
+ *      with bold brush strokes. Like putting an effect on top of a finished
+ *      pre-comp: everything the refined look does is still underneath.
  *
  * Think of it as a pre-comp in After Effects: the 3D scene is the source
  * layer, and the paint pass is an effect that works on the flattened result.
@@ -44,6 +45,8 @@ export interface PaintFrame {
 export class Painter {
   private readonly sceneTarget: WebGLRenderTarget;
   private readonly flowTarget: WebGLRenderTarget;
+  /** The finished refined painting, kept so the playful strokes can repaint it. */
+  private readonly glazeTarget: WebGLRenderTarget;
   private readonly flowScene = new Scene();
   private readonly paintScene = new Scene();
   private readonly flowMaterial: ShaderMaterial;
@@ -56,6 +59,7 @@ export class Painter {
     // Half-float colours keep smooth dark tones without banding. 4x anti-aliasing keeps edges clean.
     this.sceneTarget = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
     this.flowTarget = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false });
+    this.glazeTarget = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false });
 
     this.flowMaterial = new ShaderMaterial({
       uniforms: {
@@ -71,7 +75,7 @@ export class Painter {
 
     this.paintMaterial = new ShaderMaterial({
       uniforms: {
-        tColour: { value: this.sceneTarget.texture },
+        tColour: { value: this.glazeTarget.texture },
         tFlow: { value: this.flowTarget.texture },
         uResolution: { value: new Vector2() },
         uCell: { value: 20 },
@@ -110,6 +114,7 @@ export class Painter {
         uShadowMix: { value: 0.6 },
         uFrame: { value: 0 },
         uFrameColour: { value: new Color() },
+        uKeepLabel: { value: 0 },
       },
       vertexShader: glazeVertexShader,
       fragmentShader: glazeFragmentShader,
@@ -126,13 +131,14 @@ export class Painter {
   setSize(width: number, height: number): void {
     this.size.set(width, height);
     this.sceneTarget.setSize(width, height);
+    this.glazeTarget.setSize(width, height);
     this.flowTarget.setSize(Math.max(1, Math.ceil(width / 4)), Math.max(1, Math.ceil(height / 4)));
   }
 
   render(renderer: WebGLRenderer, scene: Scene, camera: Camera, settings: Settings, frame: PaintFrame): void {
     this.updateUniforms(settings);
     this.updateGlaze(settings, frame);
-    this.paintMesh.material = settings.brush.classic ? this.paintMaterial : this.glazeMaterial;
+    const playful = settings.brush.classic;
 
     // 1. Underpainting
     renderer.setRenderTarget(this.sceneTarget);
@@ -144,9 +150,20 @@ export class Painter {
     renderer.setRenderTarget(this.flowTarget);
     renderer.render(this.flowScene, camera);
 
-    // 3. Paint, onto the screen
-    renderer.setRenderTarget(null);
+    // 3. Glaze: straight to the screen, or into a hidden image for the strokes.
+    this.paintMesh.material = this.glazeMaterial;
+    const glaze = this.glazeMaterial.uniforms;
+    glaze.uKeepLabel.value = playful ? 1 : 0;
+    if (playful) glaze.uFrame.value = 0; // the strokes draw the frame
+    renderer.setRenderTarget(playful ? this.glazeTarget : null);
     renderer.render(this.paintScene, camera);
+
+    // 4. Playful strokes on top of the finished painting.
+    if (playful) {
+      this.paintMesh.material = this.paintMaterial;
+      renderer.setRenderTarget(null);
+      renderer.render(this.paintScene, camera);
+    }
   }
 
   private updateUniforms(settings: Settings): void {

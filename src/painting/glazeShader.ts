@@ -57,6 +57,8 @@ uniform float uShadowAmount;
 uniform float uShadowMix;
 uniform float uFrame;
 uniform vec3 uFrameColour;
+// 1 when the playful strokes repaint this image next: keep the object/backdrop label in alpha.
+uniform float uKeepLabel;
 varying vec2 vUv;
 
 ${colourGLSL}
@@ -268,7 +270,7 @@ void main() {
 
   if (uFrame > 0.5) colour = applyFrame(colour, vUv, uResolution, uFrameColour);
 
-  gl_FragColor = vec4(colour, 1.0);
+  gl_FragColor = vec4(colour, uKeepLabel > 0.5 ? under.a : 1.0);
   #include <colorspace_fragment>
 }
 `;
