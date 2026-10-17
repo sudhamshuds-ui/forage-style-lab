@@ -37,6 +37,8 @@ export interface Settings {
     preset: string;
   };
   brush: {
+    /** Use the old "strokes everywhere" paint pass instead of the glaze pass. */
+    classic: boolean;
     type: Brush;
     size: number;
     length: number;
@@ -45,9 +47,18 @@ export interface Settings {
     patternAmount: number;
   };
   paint: {
+    brushiness: number;
+    washBleed: number;
+    edgeSoftness: number;
+    texture: number;
+    // Hidden below this line (used by the classic stroke pass and the matte layer)
     painterly: number;
     variation: number;
     chalk: number;
+  };
+  lighting: {
+    glow: number;
+    shadowColour: number;
   };
   highlight: {
     shape: HighlightShape;
@@ -55,10 +66,11 @@ export interface Settings {
     rimGlints: boolean;
   };
   scene: {
-    backdropStrokes: number;
-    frame: boolean;
+    backdrop: number;
     idleSpin: boolean;
     // Hidden below this line
+    backdropStrokes: number;
+    frame: boolean;
     frameColour: string;
     backgroundTop: string;
     backgroundBottom: string;
@@ -90,6 +102,8 @@ export interface Settings {
     lit: string;
     shadow: string;
     highlight: string;
+    /** Warm, saturated colour for the subsurface glow at edges and the light-to-shadow line. */
+    glow: string;
     stem: string;
     leaf: string;
   };
@@ -110,10 +124,11 @@ export type GroupKey = keyof Settings;
 /** Panel order and folder titles. Hidden groups are kept but not shown. */
 export const GROUPS: { key: GroupKey; title: string; expanded: boolean; hidden?: boolean }[] = [
   { key: 'palette', title: 'Colour combo', expanded: true },
-  { key: 'brush', title: 'Brush', expanded: true },
   { key: 'paint', title: 'Paint', expanded: true },
+  { key: 'lighting', title: 'Light', expanded: true },
   { key: 'highlight', title: 'Highlights', expanded: true },
   { key: 'scene', title: 'Scene', expanded: true },
+  { key: 'brush', title: 'Brush', expanded: false, hidden: true },
   { key: 'shape', title: 'Shape', expanded: false, hidden: true },
   { key: 'colour', title: 'Colour', expanded: false, hidden: true },
   { key: 'light', title: 'Light', expanded: false, hidden: true },
@@ -125,6 +140,7 @@ export const DEFAULTS: Settings = {
     preset: 'orchard',
   },
   brush: {
+    classic: false,
     type: 'flat',
     size: 55,
     length: 60,
@@ -133,9 +149,17 @@ export const DEFAULTS: Settings = {
     patternAmount: 55,
   },
   paint: {
+    brushiness: 35,
+    washBleed: 55,
+    edgeSoftness: 50,
+    texture: 30,
     painterly: 45,
     variation: 45,
     chalk: 8,
+  },
+  lighting: {
+    glow: 55,
+    shadowColour: 60,
   },
   highlight: {
     shape: 'window',
@@ -143,9 +167,10 @@ export const DEFAULTS: Settings = {
     rimGlints: true,
   },
   scene: {
-    backdropStrokes: 72,
-    frame: true,
+    backdrop: 40,
     idleSpin: false,
+    backdropStrokes: 72,
+    frame: false,
     frameColour: '#857a7a',
     backgroundTop: '#453992',
     backgroundBottom: '#3d8a40',
@@ -175,6 +200,7 @@ export const DEFAULTS: Settings = {
     lit: '#e0502a',
     shadow: '#5a1636',
     highlight: '#f2c6c4',
+    glow: '#e0502a',
     stem: '#24803c',
     leaf: '#3e9b45',
   },
@@ -239,6 +265,7 @@ export const SPECS: SpecTable = {
     preset: { kind: 'palette', label: 'Colour combo' },
   },
   brush: {
+    classic: { kind: 'toggle', label: 'Classic strokes' },
     type: {
       kind: 'list',
       label: 'Brush',
@@ -267,9 +294,17 @@ export const SPECS: SpecTable = {
     patternAmount: pct('Pattern amount', [30, 80]),
   },
   paint: {
-    painterly: pct('Painterly', [35, 90]),
-    variation: pct('Colour variation', [25, 75]),
-    chalk: pct('Chalkiness', [0, 35]),
+    brushiness: pct('Brushiness', [15, 70]),
+    washBleed: pct('Wash bleed', [25, 80]),
+    edgeSoftness: pct('Edge softness', [20, 75]),
+    texture: pct('Texture', [10, 60]),
+    painterly: pct('Painterly', [35, 90], hidden),
+    variation: pct('Colour variation', [25, 75], hidden),
+    chalk: pct('Chalkiness', [0, 35], hidden),
+  },
+  lighting: {
+    glow: pct('Glow', [25, 80]),
+    shadowColour: pct('Shadow colour', [30, 85]),
   },
   highlight: {
     shape: {
@@ -290,9 +325,10 @@ export const SPECS: SpecTable = {
     rimGlints: { kind: 'toggle', label: 'Rim glints', random: true },
   },
   scene: {
-    backdropStrokes: pct('Backdrop strokes', [35, 85]),
-    frame: { kind: 'toggle', label: 'Frame' },
+    backdrop: pct('Backdrop', [0, 100]),
     idleSpin: { kind: 'toggle', label: 'Idle spin' },
+    backdropStrokes: pct('Backdrop strokes', [35, 85], hidden),
+    frame: { kind: 'toggle', label: 'Frame', ...hidden },
     frameColour: { kind: 'colour', label: 'Frame colour', ...hidden },
     backgroundTop: { kind: 'colour', label: 'Top colour', ...hidden },
     backgroundBottom: { kind: 'colour', label: 'Bottom colour', ...hidden },
@@ -322,6 +358,7 @@ export const SPECS: SpecTable = {
     lit: { kind: 'colour', label: 'Lit' },
     shadow: { kind: 'colour', label: 'Shadow' },
     highlight: { kind: 'colour', label: 'Highlight' },
+    glow: { kind: 'colour', label: 'Glow' },
     stem: { kind: 'colour', label: 'Stem' },
     leaf: { kind: 'colour', label: 'Leaf' },
   },
