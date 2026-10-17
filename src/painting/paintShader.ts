@@ -1,8 +1,9 @@
 import { colourGLSL } from '../shading/chunks/colour.glsl';
 import { noiseGLSL } from '../shading/chunks/noise.glsl';
+import { frameGLSL } from './frame.glsl';
 
 /**
- * Paint pass: repaints the underpainting with real brush strokes.
+ * Classic paint pass (hidden behind Brush > Classic strokes): repaints the underpainting with real brush strokes.
  *
  * The screen is covered by a grid of cells. Each cell holds one stroke with
  * its own random position, size, paint order and colour shift. For every
@@ -50,6 +51,7 @@ varying vec2 vUv;
 
 ${colourGLSL}
 ${noiseGLSL}
+${frameGLSL}
 
 vec4 hash42(vec2 p) {
   vec4 p4 = fract(vec4(p.xyxy) * vec4(0.1031, 0.1030, 0.0973, 0.1099));
@@ -300,23 +302,8 @@ void main() {
   float highlight = clamp((under.a - 0.5) * 2.0, 0.0, 1.0);
   colour = mix(colour, under.rgb, highlight);
 
-  // 6. Frame: a plain border with a ragged edge, where strokes stop at slightly different places.
-  if (uFrame > 0.5) {
-    float aspect = uResolution.x / uResolution.y;
-    vec2 margin = vec2(0.045 / aspect, 0.045);
-    vec2 inside = min(vUv, 1.0 - vUv) / margin;
-    // Fine streaks (bristle ends) plus a gentle long wave.
-    float nx = noise1(vUv.y * 160.0) * 0.55 + noise1(vUv.y * 5.0 + 3.0) * 0.45;
-    float ny = noise1(vUv.x * 120.0 + 11.0) * 0.55 + noise1(vUv.x * 4.0 + 5.0) * 0.45;
-    float edgeX = 1.0 + (nx - 0.5) * 0.35;
-    float edgeY = 1.0 + (ny - 0.5) * 0.35;
-    float aaX = 1.5 / (margin.x * uResolution.x);
-    float aaY = 1.5 / (margin.y * uResolution.y);
-    float painted = smoothstep(edgeX - aaX, edgeX + aaX, inside.x) * smoothstep(edgeY - aaY, edgeY + aaY, inside.y);
-    vec3 frameLab = linearToOklab(uFrameColour);
-    frameLab.x += (fbm3(vec3(vUv * vec2(aspect, 1.0) * 6.0, 1.0)) - 0.5) * 0.03;
-    colour = mix(max(oklabToLinear(frameLab), 0.0), colour, painted);
-  }
+  // 6. Frame (shared with the glaze pass, see frame.glsl.ts).
+  if (uFrame > 0.5) colour = applyFrame(colour, vUv, uResolution, uFrameColour);
 
   gl_FragColor = vec4(colour, 1.0);
   #include <colorspace_fragment>

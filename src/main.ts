@@ -1,6 +1,6 @@
 import './style.css';
 import './ui/panel.css';
-import { Vector3 } from 'three';
+import { Vector2, Vector3 } from 'three';
 import { defaultSettings } from './params';
 import { Stage } from './scene/stage';
 import { Background } from './scene/background';
@@ -9,7 +9,7 @@ import { StylizedLook } from './shading/stylizedMaterial';
 import { EFFECT_STACK } from './shading/effects';
 import type { FrameContext } from './shading/effect';
 import { Apple } from './ingredients/apple/apple';
-import { Painter } from './painting/painter';
+import { Painter, type PaintFrame } from './painting/painter';
 import { createPanel } from './ui/panel';
 import { setupActions } from './ui/actions';
 
@@ -55,6 +55,29 @@ const context: FrameContext = {
   objectRadius: 1,
 };
 
+const paintFrame: PaintFrame = {
+  lightScreen: new Vector2(0, 1),
+  objectUv: new Vector2(0.5, 0.5),
+  objectRadius: 0.2,
+};
+const projected = new Vector3();
+const projectedTop = new Vector3();
+
+/** Where the apple sits on screen, and which way the light comes from, for the glaze pass. */
+function updatePaintFrame(): void {
+  const pad = settings.light.direction;
+  // The light is fixed to the camera, so its screen direction is simply the pad direction.
+  paintFrame.lightScreen.set(pad.x, pad.y);
+  if (paintFrame.lightScreen.lengthSq() < 1e-6) paintFrame.lightScreen.set(0, 1);
+  paintFrame.lightScreen.normalize();
+
+  projected.copy(apple.centre).project(stage.camera);
+  projectedTop.copy(apple.centre).addScaledVector(stage.camera.up, apple.radius).project(stage.camera);
+  paintFrame.objectUv.set(projected.x * 0.5 + 0.5, projected.y * 0.5 + 0.5);
+  // In screen heights: the NDC y range is 2 units tall.
+  paintFrame.objectRadius = Math.abs(projectedTop.y - projected.y) * 0.5;
+}
+
 function update(): void {
   if (shapeChanged) {
     apple.rebuild(settings.shape);
@@ -73,11 +96,24 @@ function update(): void {
   ground.update(settings.scene, context.lightDirection);
   stage.keyLight.castShadow = settings.scene.castShadow;
   stage.setIdleSpin(settings.scene.idleSpin, settings.scene.spinSpeed);
+  updatePaintFrame();
 }
 
-stage.start(update, () => painter.render(stage.renderer, stage.scene, stage.camera, settings));
+stage.start(update, () => painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame));
 
 // Handy while developing: type `styleLab.settings` in the browser console to inspect values.
 if (import.meta.env.DEV) {
-  Object.assign(window, { styleLab: { settings, stage, redraw: () => onSettingsChanged() } });
+  Object.assign(window, {
+    styleLab: {
+      settings,
+      stage,
+      redraw: () => onSettingsChanged(),
+      /** Paint one frame right now and return it as an image URL (for comparing looks). */
+      snapshot: () => {
+        update();
+        painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame);
+        return stage.renderer.domElement.toDataURL('image/png');
+      },
+    },
+  });
 }
