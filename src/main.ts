@@ -63,16 +63,19 @@ const paintFrame: PaintFrame = {
 };
 const projected = new Vector3();
 const projectedTop = new Vector3();
+const projectedLight = new Vector3();
 
 /** Where the apple sits on screen, and which way the light comes from, for the glaze pass. */
 function updatePaintFrame(): void {
-  const pad = settings.light.direction;
-  // The light is fixed to the camera, so its screen direction is simply the pad direction.
-  paintFrame.lightScreen.set(pad.x, pad.y);
+  projected.copy(apple.centre).project(stage.camera);
+  // Which way the light comes from on screen: project a point a little toward the light.
+  projectedLight.copy(apple.centre).addScaledVector(context.lightDirection, apple.radius).project(stage.camera);
+  const aspect = stage.camera.aspect;
+  paintFrame.lightScreen.set((projectedLight.x - projected.x) * aspect, projectedLight.y - projected.y);
+  // Light straight toward or away from the camera has no clear screen direction: assume from above.
   if (paintFrame.lightScreen.lengthSq() < 1e-6) paintFrame.lightScreen.set(0, 1);
   paintFrame.lightScreen.normalize();
 
-  projected.copy(apple.centre).project(stage.camera);
   projectedTop.copy(apple.centre).addScaledVector(stage.camera.up, apple.radius).project(stage.camera);
   paintFrame.objectUv.set(projected.x * 0.5 + 0.5, projected.y * 0.5 + 0.5);
   // In screen heights: the NDC y range is 2 units tall.
@@ -94,7 +97,7 @@ function update(): void {
 
   look.update(settings, context);
   apple.applyColours(settings.colour);
-  background.update(settings, stage.size);
+  background.update(settings, context);
   ground.update(settings.scene, context.lightDirection, !settings.brush.classic);
   stage.keyLight.castShadow = settings.scene.castShadow;
   stage.setIdleSpin(settings.scene.idleSpin, settings.scene.spinSpeed);

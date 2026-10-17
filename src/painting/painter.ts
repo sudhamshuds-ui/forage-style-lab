@@ -12,7 +12,6 @@ import {
   type WebGLRenderer,
 } from 'three';
 import { BRUSHES, PATTERNS, type Settings } from '../params';
-import { backdropLayout } from '../scene/backdropLayout';
 import { flowFragmentShader, flowVertexShader } from './flowShader';
 import { glazeFragmentShader, glazeVertexShader } from './glazeShader';
 import { paintFragmentShader, paintVertexShader } from './paintShader';
@@ -34,8 +33,8 @@ export interface PaintFrame {
  *      crisp highlights) into a hidden image instead of the screen.
  *   2. Flow: measure which way the edges run in that image (flowShader.ts).
  *   3. Paint, onto the screen, with one of two passes:
- *        - glaze (default, glazeShader.ts): lost edges, pigment pooling,
- *          calm backdrop slabs, paper grain
+ *        - glaze (default, glazeShader.ts): cast shadow, lost edges,
+ *          pigment pooling, paper grain
  *        - classic (hidden, Brush > Classic strokes, paintShader.ts): the
  *          older look that repaints everything with brush strokes
  *
@@ -102,12 +101,9 @@ export class Painter {
         uLightScreen: { value: new Vector2(0, 1) },
         uObjectUv: { value: new Vector2(0.5, 0.5) },
         uObjectRadius: { value: 0.2 },
-        uBrushiness: { value: 0.35 },
         uWashBleed: { value: 0.55 },
         uEdgeSoftness: { value: 0.5 },
         uTexture: { value: 0.3 },
-        uHorizon: { value: 0.36 },
-        uTilt: { value: 0 },
         uShadowColour: { value: new Color() },
         uShadowAccent: { value: new Color() },
         uShadowAmount: { value: 0.8 },
@@ -179,18 +175,14 @@ export class Painter {
   }
 
   private updateGlaze(settings: Settings, frame: PaintFrame): void {
-    const layout = backdropLayout(settings.scene.backdrop);
     const glaze = this.glazeMaterial.uniforms;
     glaze.uResolution.value.copy(this.size);
     glaze.uLightScreen.value.copy(frame.lightScreen);
     glaze.uObjectUv.value.copy(frame.objectUv);
     glaze.uObjectRadius.value = frame.objectRadius;
-    glaze.uBrushiness.value = settings.paint.brushiness / 100;
     glaze.uWashBleed.value = settings.paint.washBleed / 100;
     glaze.uEdgeSoftness.value = settings.paint.edgeSoftness / 100;
     glaze.uTexture.value = settings.paint.texture / 100;
-    glaze.uHorizon.value = layout.horizon;
-    glaze.uTilt.value = layout.tilt;
     glaze.uShadowColour.value.set(settings.scene.shadowColour);
     // The apple's own colour, reflected into its shadow.
     glaze.uShadowAccent.value.set(settings.colour.base);

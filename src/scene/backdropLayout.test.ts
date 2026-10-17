@@ -2,19 +2,21 @@ import { describe, expect, it } from 'vitest';
 import { backdropLayout } from './backdropLayout';
 
 describe('backdropLayout', () => {
-  it('keeps every arrangement calm and the light patch on the table', () => {
+  it('keeps every arrangement calm, with the window light around the apple', () => {
     for (let v = 0; v <= 100; v++) {
       const b = backdropLayout(v);
-      expect(b.horizon).toBeGreaterThanOrEqual(0.28);
-      expect(b.horizon).toBeLessThanOrEqual(0.48);
-      expect(Math.abs(b.tilt)).toBeLessThanOrEqual(0.12);
-      expect(b.patchCentre.y).toBeLessThan(b.horizon);
-      expect(b.patchCentre.x).toBeGreaterThanOrEqual(0.15);
-      expect(b.patchCentre.x).toBeLessThanOrEqual(0.85);
-      expect(b.patchWidth).toBeGreaterThanOrEqual(0.08);
-      expect(b.patchWidth).toBeLessThanOrEqual(0.22);
+      // Distances are in apple radii, so the patch always reaches the apple and its shadow.
+      expect(b.patchOffset).toBeGreaterThanOrEqual(0.3);
+      expect(b.patchOffset).toBeLessThanOrEqual(1.2);
+      expect(b.patchLength).toBeGreaterThanOrEqual(2.5);
+      expect(b.patchLength).toBeLessThanOrEqual(4.5);
+      expect(b.patchWidth).toBeGreaterThanOrEqual(1.6);
+      expect(b.patchWidth).toBeLessThanOrEqual(2.6);
+      expect(Math.abs(b.patchTurn)).toBeLessThanOrEqual(0.35);
       expect(b.contrast).toBeGreaterThanOrEqual(0);
       expect(b.contrast).toBeLessThanOrEqual(1);
+      expect(b.slabShift).toBeGreaterThanOrEqual(0);
+      expect(b.slabShift).toBeLessThanOrEqual(100);
     }
   });
 

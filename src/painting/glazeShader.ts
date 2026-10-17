@@ -22,11 +22,12 @@ import { frameGLSL } from './frame.glsl';
  *   2. Pigment pooling: watercolour dries a little darker at the rim of each
  *      wash, so the darker side of every colour edge gets a thin, deeper line.
  *      (Wash bleed)
- *   3. Calm slabs on the backdrop: a few big, barely-there brush passes on the
- *      wall and table, so they read as painted. The backdrop never moves when
- *      you orbit, so these stay put too. (Brushiness)
- *   4. Paper grain: a fine tooth fixed to the canvas, like real paper. (Texture)
- *   5. Crisp highlights go back on top, then the (hidden) frame.
+ *   3. Paper grain: a fine tooth fixed to the canvas, like real paper. It is
+ *      lighter on the apple, which has its own grain stuck to its surface.
+ *      (Texture)
+ * The calm brush slabs on the wall and table are painted onto the room
+ * itself (scene/background.ts), so they turn with it.
+ *   4. Crisp highlights go back on top, then the (hidden) frame.
  *
  * Like an adjustment layer stack in After Effects, applied to the pre-comp
  * of the 3D render.
@@ -44,12 +45,9 @@ uniform sampler2D tColour;
 uniform sampler2D tFlow;
 uniform vec2 uResolution;
 uniform vec2 uLightScreen;
-uniform float uBrushiness;
 uniform float uWashBleed;
 uniform float uEdgeSoftness;
 uniform float uTexture;
-uniform float uHorizon;
-uniform float uTilt;
 uniform vec2 uObjectUv;
 uniform float uObjectRadius;
 uniform vec3 uShadowColour;
@@ -79,12 +77,6 @@ vec3 colourAt(vec2 uv) {
   return texture2D(tColour, clamp(uv, vec2(0.001), vec2(0.999))).rgb;
 }
 
-// Is this screen point on the wall (1) or the table (0)? Matches the backdrop's tilted line.
-float onWall(vec2 uv) {
-  float aspect = uResolution.x / uResolution.y;
-  return step(uHorizon + (uv.x - 0.5) * aspect * uTilt, uv.y);
-}
-
 // ---------------------------------------------------------------------------
 // 0. The cast shadow
 // ---------------------------------------------------------------------------
@@ -94,7 +86,8 @@ float onWall(vec2 uv) {
 float shadowMaskAt(vec2 uv) {
   vec2 p = uv * vec2(uResolution.x / uResolution.y, 1.0);
   vec2 wobble = vec2(fbm3(vec3(p * 14.0, 1.0)), fbm3(vec3(p * 14.0, 6.0))) - 0.5;
-  vec4 t = texture2D(tColour, clamp(uv + wobble * 3.0 / uResolution, vec2(0.001), vec2(0.999)));
+  float px = 3.0 * uResolution.y / 900.0; // same wobble at any size
+  vec4 t = texture2D(tColour, clamp(uv + wobble * px / uResolution, vec2(0.001), vec2(0.999)));
   return t.a < 0.25 ? clamp(t.a / 0.2, 0.0, 1.0) : 0.0;
 }
 
@@ -128,16 +121,6 @@ vec4 shadowPaint(vec2 uv, float contact) {
   return vec4(lab, strength);
 }
 
-// 0..1: is there apple just above this pixel? Fills the thin sliver of table
-// right under the apple, where the 3D shadow can miss.
-float gapUnder(vec2 uv) {
-  float reach = 0.012;
-  for (int i = 1; i <= 4; i++) {
-    if (objectAt(uv + vec2(0.0, reach * float(i) / 4.0)) > 0.5) return 1.0 - float(i - 1) / 4.0;
-  }
-  return 0.0;
-}
-
 // 0..1: is the apple right next to this pixel, in the direction of its centre?
 float contactAt(vec2 uv) {
   vec2 toward = uObjectUv - uv;
@@ -154,7 +137,6 @@ float contactAt(vec2 uv) {
 // The backdrop colour with the cast shadow painted in (the cheap version,
 // without the contact darkening, used for blur samples).
 vec3 withShadow(vec3 colour, float mask, vec2 uv) {
-  mask *= 1.0 - onWall(uv);
   if (mask <= 0.0) return colour;
   vec4 paint = shadowPaint(uv, 0.0);
   return mixOklab(colour, max(oklabToLinear(paint.rgb), 0.0), mask * paint.a);
@@ -238,71 +220,16 @@ vec3 poolPigment(vec3 colour, vec2 uv, float highlight) {
 }
 
 // ---------------------------------------------------------------------------
-// 3. Calm slabs on the backdrop
+// 3. Paper grain, fixed to the canvas
 // ---------------------------------------------------------------------------
-vec3 backdropSlabs(vec3 colour, vec2 px) {
-  float cell = 0.12 * uResolution.y;
-  vec2 grid = px / cell;
-  vec2 base = floor(grid);
-  float coverage = 0.2 + 0.6 * uBrushiness;
-  float pixelWall = onWall(px / uResolution);
-
-  float bestKey = -1.0;
-  vec3 bestShift = vec3(0.0);
-  float bestA = 0.0;
-
-  for (int j = -1; j <= 1; j++) {
-    for (int i = -1; i <= 1; i++) {
-      vec2 id = base + vec2(float(i), float(j));
-      vec4 place = hash42(id + 17.3);
-      if (place.x > coverage) continue;
-      vec4 rnd = hash42(id * 1.37 + 5.1);
-
-      vec2 centrePx = (id + 0.2 + 0.6 * place.yz) * cell;
-      vec2 centreUv = centrePx / uResolution;
-      // A slab stays on its own plane: wall slabs never cross onto the table.
-      if (abs(onWall(centreUv) - pixelWall) > 0.5) continue;
-
-      // Wall: broad diagonal passes. Table: long, nearly level sweeps.
-      float angle = pixelWall > 0.5 ? -0.42 + (rnd.w - 0.5) * 0.35 : uTilt + (rnd.w - 0.5) * 0.15;
-      vec2 dir = vec2(cos(angle), sin(angle));
-      vec2 rel = px - centrePx;
-      vec2 local = vec2(dot(rel, dir), dot(rel, vec2(-dir.y, dir.x)));
-      vec2 halfSize = cell * vec2(0.95, pixelWall > 0.5 ? 0.45 : 0.28) * (0.85 + 0.3 * rnd.xy);
-      vec2 d = abs(local) - halfSize;
-      float dist = length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
-      float a = 1.0 - smoothstep(-cell * 0.08, cell * 0.08, dist);
-      if (a < 0.003) continue;
-
-      if (place.w > bestKey) {
-        bestKey = place.w;
-        bestA = a;
-        // A slightly different mix of the same paint: a little lighter or darker, a small hue turn.
-        bestShift = vec3((rnd.y - 0.5) * 0.04, (rnd.z - 0.5) * 0.12, 0.0);
-      }
-    }
-  }
-  if (bestA <= 0.0) return colour;
-
-  vec3 lab = linearToOklab(colour);
-  float strength = mix(0.5, 1.0, uBrushiness);
-  lab.x += bestShift.x * strength;
-  float turn = bestShift.y * strength;
-  lab.yz = mat2(cos(turn), sin(turn), -sin(turn), cos(turn)) * lab.yz;
-  return mix(colour, max(oklabToLinear(lab), 0.0), bestA);
-}
-
-// ---------------------------------------------------------------------------
-// 4. Paper grain, fixed to the canvas
-// ---------------------------------------------------------------------------
-vec3 paperGrain(vec3 colour, vec2 px) {
+vec3 paperGrain(vec3 colour, vec2 px, float amount) {
   float scale = uResolution.y / 900.0; // same look at any size or pixel density
   vec2 p = px / scale;
   float fine = valueNoise3(vec3(p / 2.2, 0.0));
   float tooth = valueNoise3(vec3(p / 7.0, 3.0));
   float grain = fine * 0.6 + tooth * 0.4 - 0.5;
   vec3 lab = linearToOklab(colour);
-  lab.x += grain * 0.05 * uTexture;
+  lab.x += grain * 0.05 * uTexture * amount;
   return max(oklabToLinear(lab), 0.0);
 }
 
@@ -315,18 +242,15 @@ void main() {
 
   if (onObject < 0.5) {
     float mask = shadowMaskAt(vUv);
-    if (vUv.y < uObjectUv.y) mask = max(mask, gapUnder(vUv));
-    // The shadow lies on the table, so it stops at the painted table edge.
-    mask *= 1.0 - onWall(vUv);
-    float contact = mask > 0.0 ? contactAt(vUv) : 0.0;
-    vec4 paint = shadowPaint(vUv, contact);
-    colour = mixOklab(colour, max(oklabToLinear(paint.rgb), 0.0), mask * paint.a);
+    if (mask > 0.0) {
+      vec4 paint = shadowPaint(vUv, contactAt(vUv));
+      colour = mixOklab(colour, max(oklabToLinear(paint.rgb), 0.0), mask * paint.a);
+    }
   }
 
   colour = loseEdges(colour, px, highlight);
   colour = poolPigment(colour, vUv, highlight);
-  if (onObject < 0.5) colour = backdropSlabs(colour, px);
-  colour = paperGrain(colour, px);
+  colour = paperGrain(colour, px, mix(1.0, 0.4, onObject));
 
   // Crisp highlights on top.
   colour = mix(colour, under.rgb, highlight);

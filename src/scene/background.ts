@@ -1,157 +1,250 @@
-import { BufferGeometry, Color, Float32BufferAttribute, Mesh, ShaderMaterial, Vector2 } from 'three';
+import { BackSide, Color, LatheGeometry, Mesh, ShaderMaterial, Vector2, Vector3 } from 'three';
 import type { Settings } from '../params';
-import { backdropLayout } from './backdropLayout';
+import type { FrameContext } from '../shading/effect';
 import { colourGLSL } from '../shading/chunks/colour.glsl';
 import { noiseGLSL } from '../shading/chunks/noise.glsl';
+import { backdropLayout } from './backdropLayout';
 
 /**
- * The painted backdrop behind the apple.
+ * The room around the apple: one seamless surface, like a photo studio sweep.
  *
- * Two big, calm planes, like the wall and table in the reference paintings,
- * meet at a slightly tilted line. A soft patch of window light (two panes)
- * falls across the table. The Backdrop slider picks the arrangement
- * (see backdropLayout.ts): where the line sits, its tilt, where the light falls.
+ * The floor is floorPos around the apple, then curves gently up into a wall, so
+ * there is never a hard line where table meets wall. Because it is a real
+ * object in the 3D scene, it turns with the apple as you orbit.
  *
- * Colour variation adds very large, gentle drifts of lightness and hue, so
- * the planes never read as flat digital fills. Horizon softness still sets
- * how crisp the line between wall and table is.
+ * It is painted, not lit:
+ *  - colours mixed across the surface: the table colour near the apple
+ *    drifting into the wall colour further away and higher up, with big
+ *    soft patches of the room's ambient colour, like the references
+ *  - calm brush slabs, laid out on the surface itself (Paint > Brushiness)
+ *  - one soft, organic patch of light around the apple, stretched along the
+ *    light's direction (no window panes)
+ *  - a soft, deep contact shadow right under the apple
  *
- * It is a single triangle that covers the whole screen, drawn before
- * everything else, so it never moves when you orbit.
- *
- * This is only the underpainting: the glaze pass (src/painting) adds slabs,
- * paper grain and the cast shadow on top.
+ * The Backdrop slider picks the arrangement (backdropLayout.ts).
+ * Alpha 0 labels everything here as "backdrop" for the glaze pass.
  */
+
+/** Flat floor radius, then the curve up into the wall, then the wall height. */
+const FLOOR_RADIUS = 8;
+const CURVE_RADIUS = 6;
+const WALL_HEIGHT = 20;
+/** How far the sweep reaches from the apple. The camera must stay inside it (see stage.ts). */
+export const ROOM_RADIUS = FLOOR_RADIUS + CURVE_RADIUS;
+
+function sweepGeometry(): LatheGeometry {
+  // The profile of the sweep, from the centre outwards, spun around the up axis.
+  const profile: Vector2[] = [];
+  for (let i = 0; i <= 16; i++) profile.push(new Vector2((FLOOR_RADIUS * i) / 16, 0));
+  for (let i = 1; i <= 24; i++) {
+    const a = (i / 24) * (Math.PI / 2);
+    profile.push(new Vector2(FLOOR_RADIUS + CURVE_RADIUS * Math.sin(a), CURVE_RADIUS * (1 - Math.cos(a))));
+  }
+  profile.push(new Vector2(ROOM_RADIUS, CURVE_RADIUS + WALL_HEIGHT));
+  return new LatheGeometry(profile, 128);
+}
+
 const vertexShader = /* glsl */ `
-varying vec2 vUv;
+varying vec3 vWorld;
 void main() {
-  vUv = position.xy * 0.5 + 0.5;
-  gl_Position = vec4(position.xy, 0.0, 1.0);
+  vec4 world = modelMatrix * vec4(position, 1.0);
+  vWorld = world.xyz;
+  gl_Position = projectionMatrix * viewMatrix * world;
 }
 `;
 
 const fragmentShader = /* glsl */ `
-uniform vec3 uWall;
 uniform vec3 uTable;
+uniform vec3 uWall;
+uniform vec3 uAmbient;
 uniform vec3 uLight;
-uniform float uHorizon;
-uniform float uTilt;
-uniform float uSoftness;
-uniform float uVariation;
+uniform vec3 uContact;
+uniform float uFloorY;
 uniform float uContrast;
-uniform vec2 uPatchCentre;
-uniform float uPatchAngle;
+uniform float uVariation;
+uniform float uBrushiness;
+uniform float uSlabShift;
+uniform float uSlabCell;
+uniform vec3 uLightDir;
+uniform vec2 uApple;
+uniform float uAppleRadius;
+uniform float uPatchOffset;
+uniform float uPatchLength;
 uniform float uPatchWidth;
-uniform vec2 uResolution;
-varying vec2 vUv;
+uniform float uPatchTurn;
+varying vec3 vWorld;
 
 ${colourGLSL}
 ${noiseGLSL}
 
-// A rectangle with a gently wobbling, soft edge: 1 inside, 0 outside.
-float softBox(vec2 q, vec2 halfSize, float soft) {
-  vec2 d = abs(q) - halfSize;
-  float dist = length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
-  return 1.0 - smoothstep(-soft, soft, dist);
+vec4 roomHash(vec2 p) {
+  vec4 p4 = fract(vec4(p.xyxy) * vec4(0.1031, 0.1030, 0.0973, 0.1099));
+  p4 += dot(p4, p4.wzxy + 33.33);
+  return fract((p4.xxyz + p4.yzzw) * p4.zywx);
+}
+
+// Calm slabs: a few big, barely-there brush passes, each a slightly different mix.
+vec3 slabs(vec3 lab, vec2 p) {
+  vec2 grid = p / uSlabCell + uSlabShift * 0.137;
+  vec2 base = floor(grid);
+  // Edge softness in grid units, worked out before any branching (derivatives need that).
+  float aa = max(fwidth(grid.x) + fwidth(grid.y), 0.02);
+  float coverage = 0.2 + 0.6 * uBrushiness;
+  float bestKey = -1.0;
+  float bestA = 0.0;
+  vec2 bestShift = vec2(0.0);
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      vec2 id = base + vec2(float(i), float(j));
+      vec4 place = roomHash(id + 17.3);
+      if (place.x > coverage) continue;
+      vec4 rnd = roomHash(id * 1.37 + 5.1);
+      vec2 centre = id + 0.2 + 0.6 * place.yz;
+      float angle = 0.2 + (rnd.w - 0.5) * 0.5;
+      vec2 dir = vec2(cos(angle), sin(angle));
+      vec2 rel = grid - centre;
+      vec2 local = vec2(dot(rel, dir), dot(rel, vec2(-dir.y, dir.x)));
+      vec2 halfSize = vec2(0.95, 0.4) * (0.85 + 0.3 * rnd.xy);
+      vec2 d = abs(local) - halfSize;
+      float dist = length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
+      float a = 1.0 - smoothstep(-0.08 - aa, 0.08 + aa, dist);
+      if (a > 0.003 && place.w > bestKey) {
+        bestKey = place.w;
+        bestA = a;
+        bestShift = vec2((rnd.y - 0.5) * 0.04, (rnd.z - 0.5) * 0.12);
+      }
+    }
+  }
+  float strength = mix(0.5, 1.0, uBrushiness);
+  vec3 shifted = lab;
+  shifted.x += bestShift.x * strength;
+  float turn = bestShift.y * strength;
+  shifted.yz = mat2(cos(turn), sin(turn), -sin(turn), cos(turn)) * shifted.yz;
+  return mix(lab, shifted, bestA);
 }
 
 void main() {
-  float aspect = uResolution.x / uResolution.y;
-  // Positions in "screen heights", centred horizontally, so shapes keep their proportions.
-  vec2 p = vec2((vUv.x - 0.5) * aspect, vUv.y);
+  vec2 floorPos = vWorld.xz;
+  float height = vWorld.y - uFloorY;
+  // A 2D sheet to paint on: floor position, plus height so the curve and wall get their own space.
+  vec2 p = floorPos + normalize(floorPos + 1e-4) * height;
+  float seed = uSlabShift * 0.31;
 
-  // 1. Wall and table, split by a tilted line with a hand-painted wobble.
-  float wobble = (fbm3(vec3(p.x * 3.0, 0.0, 2.0)) - 0.5) * 0.012;
-  float line = uHorizon + p.x * uTilt + wobble;
-  float width = 0.003 + uSoftness * 0.25;
-  float onWall = smoothstep(line - width, line + width, p.y);
+  // 1. Mixed colours: table near the apple drifting into the wall colour further out and up,
+  //    along a wobbling, very soft boundary, with big soft patches of the ambient colour.
+  float reach = (length(floorPos - uApple) / uAppleRadius) * 0.12 + height * 0.08;
+  float warp = (fbm3(vec3(p * 0.08, seed)) - 0.5) * 1.2;
+  float toWall = smoothstep(0.35, 1.25, reach + warp);
+  vec3 lab = mix(linearToOklab(uTable), linearToOklab(uWall), toWall);
+  float ambientPatch = smoothstep(0.5, 0.75, fbm3(vec3(p * 0.06, seed + 3.7)));
+  lab = mix(lab, linearToOklab(uAmbient), ambientPatch * 0.45);
+  lab.x += (toWall - 0.5) * 0.05 * uContrast;
 
-  // Push the two planes apart in lightness, so the table edge reads clearly.
-  vec3 wall = linearToOklab(uWall);
-  vec3 table = linearToOklab(uTable);
-  wall.x += 0.025 * uContrast;
-  table.x -= 0.025 * uContrast;
-  vec3 lab = mix(table, wall, onWall);
-
-  // 2. Window light on the table: two panes, lighter and warmer than the table.
-  vec2 q = p - vec2((uPatchCentre.x - 0.5) * aspect, uPatchCentre.y);
-  float c = cos(uPatchAngle);
-  float s = sin(uPatchAngle);
-  q = mat2(c, -s, s, c) * q;
-  q.x += q.y * 0.35; // lean, like light coming in at an angle
-  q += (vec2(fbm3(vec3(p * 9.0, 4.0)), fbm3(vec3(p * 9.0, 9.0))) - 0.5) * 0.006;
-  vec2 pane = vec2(uPatchWidth * 1.2, uPatchWidth * 0.5);
-  float gap = uPatchWidth * 0.06;
-  float window = max(
-    softBox(q - vec2(-pane.x - gap, 0.0), pane, 0.004),
-    softBox(q - vec2(pane.x + gap, 0.0), pane, 0.004)
-  );
-  window *= 1.0 - onWall;
-  vec3 lit = mix(lab, linearToOklab(uLight), 0.4);
-  lit.x += 0.04;
-  lab = mix(lab, lit, window * 0.85);
-
-  // 3. Gentle drifts of lightness and hue across each plane.
-  float drift = fbm3(vec3(p * vec2(1.2, 2.2), 0.0)) - 0.5;
-  float turn = (fbm3(vec3(p * vec2(1.6, 2.6), 7.3)) - 0.5) * 0.5 * uVariation;
-  lab.x += drift * 0.05 * uVariation;
+  // Gentle drifts of lightness and hue.
+  float light = fbm3(vec3(p * 0.12, seed + 1.0)) - 0.5;
+  float turn = (fbm3(vec3(p * 0.09, seed + 7.3)) - 0.5) * 0.5 * uVariation;
+  lab.x += light * 0.05 * uVariation;
   lab.yz = mat2(cos(turn), sin(turn), -sin(turn), cos(turn)) * lab.yz;
-  vec3 colour = max(oklabToLinear(lab), 0.0);
 
-  // Alpha 0 labels this as "backdrop" for the paint pass.
-  gl_FragColor = vec4(colour, 0.0);
+  // 2. One soft patch of light around the apple, stretched along the light's
+  //    direction, with an organic, wobbling edge. Only when the light is above the floor.
+  vec2 toLight = uLightDir.xz;
+  float above = smoothstep(0.05, 0.3, uLightDir.y);
+  if (length(toLight) > 0.05 && above > 0.0) {
+    vec2 along = normalize(toLight);
+    float c = cos(uPatchTurn);
+    float s = sin(uPatchTurn);
+    along = vec2(c * along.x - s * along.y, s * along.x + c * along.y);
+    vec2 across = vec2(-along.y, along.x);
+    // Reaches out toward the light from just behind the apple, so the apple sits in the pool.
+    vec2 centre = uApple + along * uPatchOffset * uAppleRadius;
+    vec2 rel = floorPos - centre;
+    vec2 q = vec2(dot(rel, along) / uPatchLength, dot(rel, across) / uPatchWidth) / uAppleRadius;
+    // A rounded, slightly squarish pool (between an oval and a rectangle) with a loose edge.
+    float edgeWobble = (fbm3(vec3(floorPos * 0.45, seed + 4.0)) - 0.5) * 0.45;
+    vec2 aq = abs(q);
+    float shape = pow(pow(aq.x, 3.0) + pow(aq.y, 3.0), 1.0 / 3.0) + edgeWobble;
+    float pool = (1.0 - smoothstep(0.85, 1.0, shape)) * above;
+    vec3 lit = mix(lab, linearToOklab(uLight), 0.5);
+    lit.x += 0.05;
+    lab = mix(lab, lit, pool * 0.85);
+  }
+
+  lab = slabs(lab, p);
+
+  // 3. A soft, deep contact shadow right under the apple, in the shadow's own hue.
+  float d = length(floorPos - uApple) / uAppleRadius;
+  float contact = (1.0 - smoothstep(0.35, 1.0, d)) * (1.0 - smoothstep(0.0, 0.2, height));
+  vec3 contactLab = linearToOklab(uContact);
+  contactLab.x -= 0.08;
+  lab = mix(lab, contactLab, contact * 0.55);
+
+  gl_FragColor = vec4(max(oklabToLinear(lab), 0.0), 0.0);
   #include <colorspace_fragment>
 }
 `;
 
 export class Background {
-  readonly mesh: Mesh;
-  private readonly uniforms = {
-    uWall: { value: new Color() },
-    uTable: { value: new Color() },
-    uLight: { value: new Color() },
-    uHorizon: { value: 0.4 },
-    uTilt: { value: 0 },
-    uSoftness: { value: 0.04 },
-    uVariation: { value: 0.35 },
-    uContrast: { value: 0.5 },
-    uPatchCentre: { value: new Vector2(0.5, 0.2) },
-    uPatchAngle: { value: -0.5 },
-    uPatchWidth: { value: 0.15 },
-    uResolution: { value: new Vector2(1, 1) },
-  };
+  readonly mesh: Mesh<LatheGeometry, ShaderMaterial>;
 
   constructor() {
-    const geometry = new BufferGeometry();
-    geometry.setAttribute('position', new Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
-    const material = new ShaderMaterial({
-      uniforms: this.uniforms,
-      vertexShader,
-      fragmentShader,
-      depthTest: false,
-      depthWrite: false,
-    });
-    this.mesh = new Mesh(geometry, material);
-    this.mesh.frustumCulled = false;
-    this.mesh.renderOrder = -1000;
+    this.mesh = new Mesh(
+      sweepGeometry(),
+      new ShaderMaterial({
+        uniforms: {
+          uTable: { value: new Color() },
+          uWall: { value: new Color() },
+          uAmbient: { value: new Color() },
+          uLight: { value: new Color() },
+          uContact: { value: new Color() },
+          uFloorY: { value: 0 },
+          uContrast: { value: 0.5 },
+          uVariation: { value: 0.45 },
+          uBrushiness: { value: 0.35 },
+          uSlabShift: { value: 0 },
+          uSlabCell: { value: 2 },
+          uLightDir: { value: new Vector3(0, 1, 0) },
+          uApple: { value: new Vector2() },
+          uAppleRadius: { value: 1 },
+          uPatchOffset: { value: 0.6 },
+          uPatchLength: { value: 3.5 },
+          uPatchWidth: { value: 2 },
+          uPatchTurn: { value: 0 },
+        },
+        vertexShader,
+        fragmentShader,
+        // We look at the inside of the sweep.
+        side: BackSide,
+      }),
+    );
   }
 
-  update(settings: Settings, size: { width: number; height: number }): void {
+  update(settings: Settings, context: FrameContext): void {
     const { scene } = settings;
     const layout = backdropLayout(scene.backdrop);
-    const u = this.uniforms;
-    u.uWall.value.set(scene.backgroundTop);
+    const r = context.objectRadius;
+    const u = this.mesh.material.uniforms;
+
+    this.mesh.position.y = context.groundY;
     u.uTable.value.set(scene.backgroundBottom);
-    // The window light borrows the pale, warm highlight colour of the combo.
+    u.uWall.value.set(scene.backgroundTop);
+    u.uAmbient.value.set(settings.light.ambient);
+    // The light patch borrows the pale, warm highlight colour of the combo.
     u.uLight.value.set(settings.colour.highlight);
-    u.uHorizon.value = layout.horizon;
-    u.uTilt.value = layout.tilt;
-    u.uSoftness.value = scene.horizonSoftness / 100;
-    u.uVariation.value = scene.variation / 100;
+    u.uContact.value.set(scene.shadowColour);
+    u.uFloorY.value = context.groundY;
     u.uContrast.value = layout.contrast;
-    u.uPatchCentre.value.set(layout.patchCentre.x, layout.patchCentre.y);
-    u.uPatchAngle.value = layout.patchAngle;
+    u.uVariation.value = scene.variation / 100;
+    u.uBrushiness.value = settings.paint.brushiness / 100;
+    u.uSlabShift.value = layout.slabShift;
+    // Big slabs, sized to the apple: about two apple-widths long.
+    u.uSlabCell.value = r * 2.2;
+    u.uLightDir.value.copy(context.lightDirection);
+    u.uApple.value.set(context.objectCentre.x, context.objectCentre.z);
+    u.uAppleRadius.value = r;
+    u.uPatchOffset.value = layout.patchOffset;
+    u.uPatchLength.value = layout.patchLength;
     u.uPatchWidth.value = layout.patchWidth;
-    u.uResolution.value.set(size.width, size.height);
+    u.uPatchTurn.value = layout.patchTurn;
   }
 }
