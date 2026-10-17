@@ -20,6 +20,7 @@ describe('panel', () => {
       'Shape',
       'Size',
       'Rim glints',
+      'Faceted',
       'Backdrop',
       'Idle spin',
     ]);
@@ -29,6 +30,17 @@ describe('panel', () => {
     expect(DEFAULTS.scene.frame).toBe(false);
     expect(DEFAULTS.scene.idleSpin).toBe(false);
     expect(DEFAULTS.brush.classic).toBe(false);
+  });
+});
+
+describe('form', () => {
+  it('starts faceted, and Randomize never changes it', () => {
+    expect(DEFAULTS.shape.faceted).toBe(true);
+    for (let i = 0; i < 50; i++) {
+      const start = structuredClone(DEFAULTS);
+      start.shape.faceted = false;
+      expect(randomSettings(start).shape.faceted).toBe(false);
+    }
   });
 });
 

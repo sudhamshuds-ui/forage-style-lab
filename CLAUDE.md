@@ -21,7 +21,7 @@ keep code readable with friendly comments.
   `references/ui` is the tool's look. Design: `docs/superpowers/specs/2026-10-17-painterly-design.md`.
 - The panel shows **stylization only**: Colour combo; Paint (Brushiness, Wash bleed,
   Edge softness, Texture); Light (Glow, Shadow colour); Highlights (Shape, Size, Rim
-  glints); Scene (Backdrop, Idle spin). The apple's shape, the lighting, the individual
+  glints); Form (Faceted); Scene (Backdrop, Idle spin). The apple's shape, the lighting, the individual
   colour pickers, the old brush controls and the frame are **hidden, not deleted**: they
   stay in `src/params.ts` with `hidden: true` (or a hidden group). Never delete hidden
   controls; to bring one back, remove its `hidden` flag.
@@ -29,7 +29,8 @@ keep code readable with friendly comments.
   The user picks a **room combo** (wall, table, ambient and bounce light, cast shadow), not
   individual colours. Randomize never changes colours.
 - Idle spin is off by default.
-- The apple keeps its **facets** (poly edges). No stamped dabs on the apple. Highlights are
+- The apple keeps its **facets** (poly edges) by default; Form > Faceted switches to the soft,
+  rounded apple. No stamped dabs on the apple. Highlights are
   soft and believable (Soft sheen, Dry speckle); the hard window shapes are kept but not
   the default and never picked by Randomize.
 - Style direction: **digital gouache with watercolour glazes, softly lit**. Shapes first

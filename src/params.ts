@@ -85,6 +85,9 @@ export interface Settings {
   };
   // Hidden groups: the apple's shape, its individual colours (set by the palette) and the lighting.
   shape: {
+    /** On: the apple shows its flat planes (poly edges). Off: the soft, rounded apple. */
+    faceted: boolean;
+    // Hidden below this line
     roundness: number;
     height: number;
     topDimple: number;
@@ -128,9 +131,10 @@ export const GROUPS: { key: GroupKey; title: string; expanded: boolean; hidden?:
   { key: 'paint', title: 'Paint', expanded: true },
   { key: 'lighting', title: 'Light', expanded: true },
   { key: 'highlight', title: 'Highlights', expanded: true },
+  // Only the Faceted switch is shown; the detailed shape sliders stay hidden.
+  { key: 'shape', title: 'Form', expanded: true },
   { key: 'scene', title: 'Scene', expanded: true },
   { key: 'brush', title: 'Brush', expanded: false, hidden: true },
-  { key: 'shape', title: 'Shape', expanded: false, hidden: true },
   { key: 'colour', title: 'Colour', expanded: false, hidden: true },
   { key: 'light', title: 'Light', expanded: false, hidden: true },
 ];
@@ -184,6 +188,7 @@ export const DEFAULTS: Settings = {
     spinSpeed: 25,
   },
   shape: {
+    faceted: true,
     roundness: 58,
     height: 56,
     topDimple: 42,
@@ -353,17 +358,18 @@ export const SPECS: SpecTable = {
     spinSpeed: pct('Spin speed', [10, 40], { random: false, hidden: true }),
   },
   shape: {
-    roundness: pct('Roundness', [25, 85]),
-    height: pct('Height', [30, 70]),
-    topDimple: pct('Top dimple', [15, 65]),
-    bottomDimple: pct('Bottom dimple', [0, 50]),
-    lopsided: pct('Lopsided', [0, 60]),
-    facets: pct('Facets', [35, 90]),
-    stemLength: pct('Stem length', [30, 85]),
-    stemCurve: pct('Stem curve', [10, 75]),
-    stemThickness: pct('Stem thickness', [20, 60]),
-    leaf: { kind: 'toggle', label: 'Leaf', random: true },
-    leafSize: pct('Leaf size', [30, 80]),
+    faceted: { kind: 'toggle', label: 'Faceted' },
+    roundness: pct('Roundness', [25, 85], hidden),
+    height: pct('Height', [30, 70], hidden),
+    topDimple: pct('Top dimple', [15, 65], hidden),
+    bottomDimple: pct('Bottom dimple', [0, 50], hidden),
+    lopsided: pct('Lopsided', [0, 60], hidden),
+    facets: pct('Facets', [35, 90], hidden),
+    stemLength: pct('Stem length', [30, 85], hidden),
+    stemCurve: pct('Stem curve', [10, 75], hidden),
+    stemThickness: pct('Stem thickness', [20, 60], hidden),
+    leaf: { kind: 'toggle', label: 'Leaf', random: true, ...hidden },
+    leafSize: pct('Leaf size', [30, 80], hidden),
   },
   colour: {
     base: { kind: 'colour', label: 'Base' },
