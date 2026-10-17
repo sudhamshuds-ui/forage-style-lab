@@ -11,6 +11,12 @@ import { frameGLSL } from './frame.glsl';
  * step is worked out from the image itself, never from random screen
  * positions, so nothing boils or re-forms when the camera moves:
  *
+ *   0. Cast shadow: the floor only marks where the shadow falls (alpha 0..0.2);
+ *      here it is painted as one clear shape: crisp edged, darkest and
+ *      richest where the apple touches the table, lighter and bluer further
+ *      away. Near the apple it picks up the apple's own colour in soft
+ *      patches, like light passing through and bouncing off the fruit.
+ *      (Shadow colour)
  *   1. Lost edges: on the shadow side, the apple's outline melts into what is
  *      behind it. The lit side stays crisp. (Edge softness)
  *   2. Pigment pooling: watercolour dries a little darker at the rim of each
@@ -44,6 +50,12 @@ uniform float uEdgeSoftness;
 uniform float uTexture;
 uniform float uHorizon;
 uniform float uTilt;
+uniform vec2 uObjectUv;
+uniform float uObjectRadius;
+uniform vec3 uShadowColour;
+uniform vec3 uShadowAccent;
+uniform float uShadowAmount;
+uniform float uShadowMix;
 uniform float uFrame;
 uniform vec3 uFrameColour;
 varying vec2 vUv;
@@ -74,6 +86,81 @@ float onWall(vec2 uv) {
 }
 
 // ---------------------------------------------------------------------------
+// 0. The cast shadow
+// ---------------------------------------------------------------------------
+
+// How much shadow the floor marked here, 0..1. Read through a gentle wobble,
+// so the edge looks hand painted but never jagged.
+float shadowMaskAt(vec2 uv) {
+  vec2 p = uv * vec2(uResolution.x / uResolution.y, 1.0);
+  vec2 wobble = vec2(fbm3(vec3(p * 14.0, 1.0)), fbm3(vec3(p * 14.0, 6.0))) - 0.5;
+  vec4 t = texture2D(tColour, clamp(uv + wobble * 3.0 / uResolution, vec2(0.001), vec2(0.999)));
+  return t.a < 0.25 ? clamp(t.a / 0.2, 0.0, 1.0) : 0.0;
+}
+
+// The shadow's own colour at this spot (OKLab), and how strongly it covers.
+// contact: 0..1, how close we are to where the apple touches the table.
+vec4 shadowPaint(vec2 uv, float contact) {
+  float aspect = uResolution.x / uResolution.y;
+  float dist = length((uv - uObjectUv) * vec2(aspect, 1.0));
+  float far = smoothstep(uObjectRadius * 0.6, uObjectRadius * 2.2, dist);
+
+  vec3 lab = linearToOklab(uShadowColour);
+  float chroma = length(lab.yz);
+
+  // Further from the apple: lighter and bluer.
+  vec3 blue = vec3(lab.x + 0.06, chroma * cos(4.36), chroma * sin(4.36)); // hue 250 degrees
+  lab = mix(lab, blue, far);
+
+  // A second hue near the apple: its own colour, reflected into the shadow,
+  // in soft patches (the magenta inside the blood orange's shadow).
+  vec2 p = uv * vec2(aspect, 1.0);
+  float patches = mix(0.45, 1.0, smoothstep(0.35, 0.65, fbm3(vec3(p * 3.0, 5.0))));
+  vec3 accent = linearToOklab(uShadowAccent);
+  vec3 accentLab = vec3(lab.x, accent.yz * 0.8);
+  lab = mix(lab, accentLab, patches * 0.6 * uShadowMix * (1.0 - far));
+
+  // Where the apple meets the table: darker and richer, never grey.
+  lab.x -= 0.08 * contact;
+  lab.yz *= 1.0 + 0.3 * contact;
+
+  float strength = uShadowAmount * mix(1.0, 0.75, far);
+  return vec4(lab, strength);
+}
+
+// 0..1: is there apple just above this pixel? Fills the thin sliver of table
+// right under the apple, where the 3D shadow can miss.
+float gapUnder(vec2 uv) {
+  float reach = 0.012;
+  for (int i = 1; i <= 4; i++) {
+    if (objectAt(uv + vec2(0.0, reach * float(i) / 4.0)) > 0.5) return 1.0 - float(i - 1) / 4.0;
+  }
+  return 0.0;
+}
+
+// 0..1: is the apple right next to this pixel, in the direction of its centre?
+float contactAt(vec2 uv) {
+  vec2 toward = uObjectUv - uv;
+  float len = length(toward * vec2(uResolution.x / uResolution.y, 1.0));
+  if (len < 1e-4) return 0.0;
+  float maxReach = 0.06;
+  vec2 stepUv = toward / len * maxReach / 6.0;
+  for (int i = 1; i <= 6; i++) {
+    if (objectAt(uv + stepUv * float(i)) > 0.5) return 1.0 - float(i - 1) / 6.0;
+  }
+  return 0.0;
+}
+
+// The backdrop colour with the cast shadow painted in (the cheap version,
+// without the contact darkening, used for blur samples).
+vec3 withShadow(vec3 colour, float mask, vec2 uv) {
+  mask *= 1.0 - onWall(uv);
+  if (mask <= 0.0) return colour;
+  vec4 paint = shadowPaint(uv, 0.0);
+  return mixOklab(colour, max(oklabToLinear(paint.rgb), 0.0), mask * paint.a);
+}
+
+// ---------------------------------------------------------------------------
 // 1. Lost edges
 // ---------------------------------------------------------------------------
 vec3 loseEdges(vec3 colour, vec2 px, float highlight) {
@@ -101,9 +188,11 @@ vec3 loseEdges(vec3 colour, vec2 px, float highlight) {
     float r = sqrt((float(i) + 0.5) / 16.0) * reach;
     float a = float(i) * 2.39996 + spin;
     vec2 offset = vec2(cos(a), sin(a)) * r;
-    vec4 t = texture2D(tColour, clamp(uv + offset * texel, vec2(0.001), vec2(0.999)));
-    vec3 lab = linearToOklab(t.rgb);
+    vec2 q = clamp(uv + offset * texel, vec2(0.001), vec2(0.999));
+    vec4 t = texture2D(tColour, q);
     float o = step(0.25, t.a);
+    // Backdrop samples include the painted cast shadow, so no light halo appears under the apple.
+    vec3 lab = linearToOklab(o > 0.5 ? t.rgb : withShadow(t.rgb, t.a / 0.2, q));
     sum += lab;
     cover += o;
     towardApple += offset * (o - 0.5);
@@ -223,6 +312,16 @@ void main() {
   float onObject = step(0.25, under.a);
   float highlight = clamp((under.a - 0.5) * 2.0, 0.0, 1.0);
   vec3 colour = under.rgb;
+
+  if (onObject < 0.5) {
+    float mask = shadowMaskAt(vUv);
+    if (vUv.y < uObjectUv.y) mask = max(mask, gapUnder(vUv));
+    // The shadow lies on the table, so it stops at the painted table edge.
+    mask *= 1.0 - onWall(vUv);
+    float contact = mask > 0.0 ? contactAt(vUv) : 0.0;
+    vec4 paint = shadowPaint(vUv, contact);
+    colour = mixOklab(colour, max(oklabToLinear(paint.rgb), 0.0), mask * paint.a);
+  }
 
   colour = loseEdges(colour, px, highlight);
   colour = poolPigment(colour, vUv, highlight);

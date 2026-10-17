@@ -192,7 +192,8 @@ export class Painter {
     glaze.uHorizon.value = layout.horizon;
     glaze.uTilt.value = layout.tilt;
     glaze.uShadowColour.value.set(settings.scene.shadowColour);
-    glaze.uShadowAccent.value.set(settings.light.ambient);
+    // The apple's own colour, reflected into its shadow.
+    glaze.uShadowAccent.value.set(settings.colour.base);
     glaze.uShadowAmount.value = settings.scene.shadowAmount / 100;
     glaze.uShadowMix.value = settings.lighting.shadowColour / 100;
     glaze.uFrame.value = settings.scene.frame ? 1 : 0;

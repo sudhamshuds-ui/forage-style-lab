@@ -93,7 +93,7 @@ function update(): void {
   look.update(settings, context);
   apple.applyColours(settings.colour);
   background.update(settings, stage.size);
-  ground.update(settings.scene, context.lightDirection);
+  ground.update(settings.scene, context.lightDirection, !settings.brush.classic);
   stage.keyLight.castShadow = settings.scene.castShadow;
   stage.setIdleSpin(settings.scene.idleSpin, settings.scene.spinSpeed);
   updatePaintFrame();
