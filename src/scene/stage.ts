@@ -41,7 +41,7 @@ export class Stage {
     this.renderer.shadowMap.type = PCFShadowMap;
 
     this.camera = new PerspectiveCamera(28, 3 / 4, 0.1, 100);
-    this.camera.position.setFromSphericalCoords(10.5, (75 * Math.PI) / 180, (24 * Math.PI) / 180);
+    this.camera.position.setFromSphericalCoords(8.6, (75 * Math.PI) / 180, (24 * Math.PI) / 180);
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.target.set(0, 0.2, 0);

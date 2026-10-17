@@ -40,10 +40,15 @@ rim *= mix(0.3, 1.0, smoothstep(0.2, -0.4, dot(N, L)));
 
 float amount = clamp(max(terminator * 0.8, rim), 0.0, 1.0) * uGlow;
 
-// Take the glow colour's hue and saturation; keep the lightness within a small step.
+// Turn toward the glow colour's hue (around the colour wheel, so it never
+// passes through grey), raise saturation toward it, and keep the lightness
+// within a small step.
 vec3 lab = linearToOklab(colour);
 vec3 g = linearToOklab(uGlowColour);
-lab.yz = mix(lab.yz, g.yz, amount);
+lab = turnHueToward(lab, g, amount);
+float chroma = length(lab.yz);
+float richer = mix(chroma, max(chroma, length(g.yz)), amount);
+lab.yz *= richer / max(chroma, 1e-4);
 lab.x = mix(lab.x, clamp(g.x, lab.x - 0.05, lab.x + 0.05), amount);
 colour = max(oklabToLinear(lab), 0.0);
 `,
