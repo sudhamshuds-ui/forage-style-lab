@@ -143,9 +143,9 @@ Importing 3D files (tool 01), patterns inside highlights and shadows, sparkles, 
 wobble. Later tools: cut and cooked forms, vessels, combining, recipe cards.
 
 ## Branches (saved versions)
-`painterly` is the soft-light watercolour + gouache look (this file describes it); merge
-to `main` once approved. `main` is the version from just before Big, Medium, Small
-(restored from Claude Code's file backups). Older attempts are kept on local branches,
+`main` is the soft-light watercolour + gouache look (this file describes it), merged from
+`painterly` once approved. The version from just before Big, Medium, Small is the parent
+of that merge on `main`. Older attempts are kept on local branches,
 newest first:
 `experiment-bad` (noise falloff + reference-scene page), `v4-before-noise` (compact
 Settings card, outside-in mark falloff, glaze shapes, stable apple marks), `first-bms`
