@@ -69,7 +69,7 @@ function update(): void {
 
   look.update(settings, context);
   apple.applyColours(settings.colour);
-  background.update(settings.scene, stage.size);
+  background.update(settings, stage.size);
   ground.update(settings.scene, context.lightDirection);
   stage.keyLight.castShadow = settings.scene.castShadow;
   stage.setIdleSpin(settings.scene.idleSpin, settings.scene.spinSpeed);
