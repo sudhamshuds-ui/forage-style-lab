@@ -1,6 +1,9 @@
 import type { ShaderEffect } from '../effect';
 
 /**
+ * Not in the stack any more: the dabs looked stamped on. surfaceTexture.ts
+ * (shards and granular fill) replaced it. Kept for reference.
+ *
  * Surface marks: a few deliberate brush marks, only where the form turns.
  *
  * In the reference paintings the big shapes stay calm and the visible

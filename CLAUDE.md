@@ -25,8 +25,13 @@ keep code readable with friendly comments.
   colour pickers, the old brush controls and the frame are **hidden, not deleted**: they
   stay in `src/params.ts` with `hidden: true` (or a hidden group). Never delete hidden
   controls; to bring one back, remove its `hidden` flag.
-- The user picks colour **combos** (palettes), not individual colours.
+- The ingredient keeps its **own natural colours** (the apple is red; hidden Colour group).
+  The user picks a **room combo** (wall, table, ambient and bounce light, cast shadow), not
+  individual colours. Randomize never changes colours.
 - Idle spin is off by default.
+- The apple keeps its **facets** (poly edges). No stamped dabs on the apple. Highlights are
+  soft and believable (Soft sheen, Dry speckle); the hard window shapes are kept but not
+  the default and never picked by Randomize.
 - Style direction: **digital gouache with watercolour glazes, softly lit**. Shapes first
   (about 70% calm shapes, 30% marks): each tone area is one calm shape with soft colour
   bleeding inside it; brush marks only where the form turns. Edges crisp on the lit side
@@ -35,8 +40,11 @@ keep code readable with friendly comments.
   black, with warm bounce from below; the cast shadow is a clear shape, darkest at the
   contact, lighter and bluer further away, picking up the fruit's colour near it. A muted,
   light, cool-leaning room (wall, table, a soft patch of window light) around a warm,
-  saturated subject. Crisp pale highlight shapes. No frame. Never: uniform stroke texture,
+  saturated subject. Soft, broken highlights. No frame. Never: uniform stroke texture,
   jagged shadow edges, muddy colour, candy-coloured sun-blasted surroundings.
+- The light **stays in the room** (world-fixed, set on the light pad from the starting view).
+  The backdrop is a real 3D **studio sweep** (floor curving into wall, no horizon line) with
+  mixed colours and one soft pool of light, so everything turns together when orbiting.
 
 ## Tech
 - Vite + TypeScript + Three.js (WebGL, not WebGPU for now). No React.
@@ -52,18 +60,20 @@ keep code readable with friendly comments.
 
 ## How a frame is made (the pipeline)
 1. **Underpainting**: the 3D scene renders into a hidden image (`src/painting/painter.ts`).
-   The backdrop (`src/scene/background.ts`) paints the wall and table planes and the
-   window light patch, arranged by the Backdrop slider (`backdropLayout.ts`). The apple
-   uses the stylized shader stack: tone bands, wash bleed, shadow colour, glow, surface
-   marks, highlights, matte. Everything on the apple is computed on its own surface, so
+   The room (`src/scene/background.ts`) is a 3D studio sweep painted in world space: mixed
+   room colours, calm slabs (Brushiness), a soft light pool and a contact shadow, arranged
+   by the Backdrop slider (`backdropLayout.ts`). The apple uses the stylized shader stack:
+   tone bands, wash bleed, shadow colour, glow, surface texture (facet shards and granular
+   fill), highlights, matte. Everything on the apple is computed on its own surface, so
    it turns with the apple. Alpha is a label, not transparency: 0 = backdrop,
-   0..0.2 = backdrop under the cast shadow (written by the floor, `ground.ts`),
+   0..0.2 = backdrop under the cast shadow (written by the floor, `ground.ts`, which also
+   darkens the colour so the apple's edge never shows a light halo),
    0.5 = object, up to 1.0 = crisp highlight.
 2. **Flow** (`src/painting/flowShader.ts`): measures which way edges run (structure tensor),
    at quarter resolution.
 3. **Glaze** (`src/painting/glazeShader.ts`, the default): paints the cast shadow from the
-   label, loses the shadow-side edges, pools pigment at wash edges, adds calm backdrop
-   slabs and paper grain, then puts the crisp highlights back. Every step comes from the
+   label, loses the shadow-side edges, pools pigment at wash edges, adds paper grain
+   (lighter on the apple), then puts the highlights back. Every step comes from the
    image itself, so nothing re-forms when the camera moves.
    The older **classic** pass (`paintShader.ts`, strokes everywhere) is still there behind
    the hidden `brush.classic` toggle; in classic mode the floor darkens the colour instead.
@@ -76,7 +86,7 @@ keep code readable with friendly comments.
 - `src/params.ts` is the single source of truth for every control:
   `Settings`, `DEFAULTS`, `SPECS` (label, range, Randomize range, `hidden`). The panel is
   generated from `SPECS`.
-- `src/palettes.ts` holds the colour combos and the Shuffle generator.
+- `src/palettes.ts` holds the room combos (soft and vivid families) and the Shuffle generator.
 - `src/randomize.ts` randomizes visible controls only, plus a random combo.
 - `src/ingredients/apple/` builds the procedural apple (body, stem, leaf). No model files.
 - `src/shading/` is the stylized 3D shader, built from a stack of effect modules:
@@ -114,6 +124,11 @@ pass instead of strokes everywhere, soft-light colour combos with a glow colour 
 checked by tests), Backdrop slider with window light, clear multi-coloured cast shadow,
 lost edges, pigment pooling, paper grain, wash bleed, glow, shadow colour, accent marks
 and speckle that stick to the apple, carved (rounder) apple, closer camera, Vitest.
+Painterly iteration 2 (user feedback): light fixed in the room, 3D studio sweep backdrop
+that turns with the view, soft light pool, shadow seam/halo fixes, room-only combos (apple
+keeps its colours, soft + vivid rooms complementing it), Randomize leaves colours alone,
+soft sheen and dry speckle highlights, facets back, facet shards and granular fill instead
+of dabs.
 
 ## Planned for later sessions (not built yet)
 Importing 3D files (tool 01), patterns inside highlights and shadows, sparkles, soft body
