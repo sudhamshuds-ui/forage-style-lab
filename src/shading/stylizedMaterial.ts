@@ -12,7 +12,7 @@ import { noiseGLSL } from './chunks/noise.glsl';
  * each effect's code in order, then output the final colour.
  *
  * All materials made by one StylizedLook share the same light and effect
- * settings, but each has its own palette (base, lit, shadow, highlight), so the
+ * settings, but each has its own palette (base, lit, shadow, highlight, glow), so the
  * apple body, stem and leaf can be coloured separately.
  */
 
@@ -46,6 +46,7 @@ uniform vec3 uBaseColour;
 uniform vec3 uLitColour;
 uniform vec3 uShadowColour;
 uniform vec3 uHighlightColour;
+uniform vec3 uGlowColour;
 
 varying vec3 vWorldNormal;
 varying vec3 vWorldPos;
@@ -100,6 +101,8 @@ export interface Palette {
   lit: string;
   shadow: string;
   highlight: string;
+  /** Warm, saturated colour for light passing through thin edges (see effects/glow.ts). */
+  glow: string;
 }
 
 export class StylizedLook {
@@ -126,6 +129,7 @@ export class StylizedLook {
         uLitColour: { value: new Color() },
         uShadowColour: { value: new Color() },
         uHighlightColour: { value: new Color() },
+        uGlowColour: { value: new Color() },
       },
       vertexShader,
       fragmentShader: this.fragmentShader,
@@ -136,7 +140,10 @@ export class StylizedLook {
   /** Push the latest panel values into the shader. Called before each render. */
   update(settings: Settings, context: FrameContext): void {
     (this.shared.uLightDir.value as Vector3).copy(context.lightDirection);
-    this.shared.uSoftness.value = settings.light.softness / 100;
+    // Wash bleed widens the soft transition between tone bands, like wet paint
+    // running into its neighbour. The hidden Band softness still sets the minimum.
+    const softness = settings.light.softness / 100;
+    this.shared.uSoftness.value = softness + (Math.max(softness, 0.45) - softness) * (settings.paint.washBleed / 100);
     this.shared.uPaintEdges.value = settings.light.paintEdges / 100;
     for (const effect of this.effects) effect.update(settings, context);
   }
@@ -148,4 +155,5 @@ export function setPalette(material: ShaderMaterial, palette: Palette): void {
   (material.uniforms.uLitColour.value as Color).set(palette.lit);
   (material.uniforms.uShadowColour.value as Color).set(palette.shadow);
   (material.uniforms.uHighlightColour.value as Color).set(palette.highlight);
+  (material.uniforms.uGlowColour.value as Color).set(palette.glow);
 }

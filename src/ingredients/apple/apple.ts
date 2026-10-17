@@ -66,6 +66,7 @@ export class Apple {
       lit: colour.lit,
       shadow: colour.shadow,
       highlight: colour.highlight,
+      glow: colour.glow,
     });
     // The stem and leaf borrow the apple's shadow and highlight colours, so the
     // whole object shares one light, like a painter using one shadow mix.
@@ -74,12 +75,14 @@ export class Apple {
       lit: mixHex(colour.stem, colour.highlight, 0.3),
       shadow: mixHex(colour.stem, colour.shadow, 0.6),
       highlight: mixHex(colour.stem, colour.highlight, 0.55),
+      glow: colour.stem,
     });
     setPalette(this.materials.leaf, {
       base: colour.leaf,
       lit: mixHex(colour.leaf, colour.highlight, 0.3),
       shadow: mixHex(colour.leaf, colour.shadow, 0.55),
       highlight: mixHex(colour.leaf, colour.highlight, 0.5),
+      glow: colour.leaf,
     });
   }
 }

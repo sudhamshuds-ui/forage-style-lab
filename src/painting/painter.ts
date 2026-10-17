@@ -13,15 +13,31 @@ import {
 } from 'three';
 import { BRUSHES, PATTERNS, type Settings } from '../params';
 import { flowFragmentShader, flowVertexShader } from './flowShader';
+import { glazeFragmentShader, glazeVertexShader } from './glazeShader';
 import { paintFragmentShader, paintVertexShader } from './paintShader';
+
+/** Things about the current view the glaze pass needs, besides the settings. */
+export interface PaintFrame {
+  /** Screen direction toward the light, from the light pad (camera relative), normalised. */
+  lightScreen: Vector2;
+  /** The apple's centre in 0..1 screen coordinates. */
+  objectUv: Vector2;
+  /** The apple's radius as a fraction of the screen height. */
+  objectRadius: number;
+}
 
 /**
  * The Painter turns the 3D render into a painting, in three steps:
  *
- *   1. Underpainting: render the 3D scene (flat tone bands, crisp highlights)
- *      into a hidden image instead of the screen.
+ *   1. Underpainting: render the 3D scene (calm tone shapes, glow, marks,
+ *      crisp highlights) into a hidden image instead of the screen.
  *   2. Flow: measure which way the edges run in that image (flowShader.ts).
- *   3. Paint: repaint it on screen with brush strokes (paintShader.ts).
+ *   3. Glaze (glazeShader.ts): cast shadow, lost edges, pigment pooling,
+ *      paper grain. This is the refined look, painted straight to the screen.
+ *   4. Only with Style > Playful strokes: the glazed painting goes into one
+ *      more hidden image, and the stroke pass (paintShader.ts) repaints it
+ *      with bold brush strokes. Like putting an effect on top of a finished
+ *      pre-comp: everything the refined look does is still underneath.
  *
  * Think of it as a pre-comp in After Effects: the 3D scene is the source
  * layer, and the paint pass is an effect that works on the flattened result.
@@ -29,16 +45,21 @@ import { paintFragmentShader, paintVertexShader } from './paintShader';
 export class Painter {
   private readonly sceneTarget: WebGLRenderTarget;
   private readonly flowTarget: WebGLRenderTarget;
+  /** The finished refined painting, kept so the playful strokes can repaint it. */
+  private readonly glazeTarget: WebGLRenderTarget;
   private readonly flowScene = new Scene();
   private readonly paintScene = new Scene();
   private readonly flowMaterial: ShaderMaterial;
   private readonly paintMaterial: ShaderMaterial;
+  private readonly glazeMaterial: ShaderMaterial;
+  private readonly paintMesh: Mesh;
   private readonly size = new Vector2(1, 1);
 
   constructor() {
     // Half-float colours keep smooth dark tones without banding. 4x anti-aliasing keeps edges clean.
     this.sceneTarget = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
     this.flowTarget = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false });
+    this.glazeTarget = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false });
 
     this.flowMaterial = new ShaderMaterial({
       uniforms: {
@@ -54,7 +75,7 @@ export class Painter {
 
     this.paintMaterial = new ShaderMaterial({
       uniforms: {
-        tColour: { value: this.sceneTarget.texture },
+        tColour: { value: this.glazeTarget.texture },
         tFlow: { value: this.flowTarget.texture },
         uResolution: { value: new Vector2() },
         uCell: { value: 20 },
@@ -76,19 +97,48 @@ export class Painter {
       depthWrite: false,
     });
 
+    this.glazeMaterial = new ShaderMaterial({
+      uniforms: {
+        tColour: { value: this.sceneTarget.texture },
+        tFlow: { value: this.flowTarget.texture },
+        uResolution: { value: new Vector2() },
+        uLightScreen: { value: new Vector2(0, 1) },
+        uObjectUv: { value: new Vector2(0.5, 0.5) },
+        uObjectRadius: { value: 0.2 },
+        uWashBleed: { value: 0.55 },
+        uEdgeSoftness: { value: 0.5 },
+        uTexture: { value: 0.3 },
+        uShadowColour: { value: new Color() },
+        uShadowAccent: { value: new Color() },
+        uShadowAmount: { value: 0.8 },
+        uShadowMix: { value: 0.6 },
+        uFrame: { value: 0 },
+        uFrameColour: { value: new Color() },
+        uKeepLabel: { value: 0 },
+      },
+      vertexShader: glazeVertexShader,
+      fragmentShader: glazeFragmentShader,
+      depthTest: false,
+      depthWrite: false,
+    });
+
     this.flowScene.add(fullScreenTriangle(this.flowMaterial));
-    this.paintScene.add(fullScreenTriangle(this.paintMaterial));
+    this.paintMesh = fullScreenTriangle(this.glazeMaterial);
+    this.paintScene.add(this.paintMesh);
   }
 
   /** Match the hidden images to the canvas size, in real device pixels. */
   setSize(width: number, height: number): void {
     this.size.set(width, height);
     this.sceneTarget.setSize(width, height);
+    this.glazeTarget.setSize(width, height);
     this.flowTarget.setSize(Math.max(1, Math.ceil(width / 4)), Math.max(1, Math.ceil(height / 4)));
   }
 
-  render(renderer: WebGLRenderer, scene: Scene, camera: Camera, settings: Settings): void {
+  render(renderer: WebGLRenderer, scene: Scene, camera: Camera, settings: Settings, frame: PaintFrame): void {
     this.updateUniforms(settings);
+    this.updateGlaze(settings, frame);
+    const playful = settings.brush.classic;
 
     // 1. Underpainting
     renderer.setRenderTarget(this.sceneTarget);
@@ -100,9 +150,20 @@ export class Painter {
     renderer.setRenderTarget(this.flowTarget);
     renderer.render(this.flowScene, camera);
 
-    // 3. Paint, onto the screen
-    renderer.setRenderTarget(null);
+    // 3. Glaze: straight to the screen, or into a hidden image for the strokes.
+    this.paintMesh.material = this.glazeMaterial;
+    const glaze = this.glazeMaterial.uniforms;
+    glaze.uKeepLabel.value = playful ? 1 : 0;
+    if (playful) glaze.uFrame.value = 0; // the strokes draw the frame
+    renderer.setRenderTarget(playful ? this.glazeTarget : null);
     renderer.render(this.paintScene, camera);
+
+    // 4. Playful strokes on top of the finished painting.
+    if (playful) {
+      this.paintMesh.material = this.paintMaterial;
+      renderer.setRenderTarget(null);
+      renderer.render(this.paintScene, camera);
+    }
   }
 
   private updateUniforms(settings: Settings): void {
@@ -128,6 +189,24 @@ export class Painter {
     paint.uHorizon.value = settings.scene.horizon / 100;
     paint.uFrame.value = settings.scene.frame ? 1 : 0;
     paint.uFrameColour.value.set(settings.scene.frameColour);
+  }
+
+  private updateGlaze(settings: Settings, frame: PaintFrame): void {
+    const glaze = this.glazeMaterial.uniforms;
+    glaze.uResolution.value.copy(this.size);
+    glaze.uLightScreen.value.copy(frame.lightScreen);
+    glaze.uObjectUv.value.copy(frame.objectUv);
+    glaze.uObjectRadius.value = frame.objectRadius;
+    glaze.uWashBleed.value = settings.paint.washBleed / 100;
+    glaze.uEdgeSoftness.value = settings.paint.edgeSoftness / 100;
+    glaze.uTexture.value = settings.paint.texture / 100;
+    glaze.uShadowColour.value.set(settings.scene.shadowColour);
+    // The apple's own colour, reflected into its shadow.
+    glaze.uShadowAccent.value.set(settings.colour.base);
+    glaze.uShadowAmount.value = settings.scene.shadowAmount / 100;
+    glaze.uShadowMix.value = settings.lighting.shadowColour / 100;
+    glaze.uFrame.value = settings.scene.frame ? 1 : 0;
+    glaze.uFrameColour.value.set(settings.scene.frameColour);
   }
 }
 

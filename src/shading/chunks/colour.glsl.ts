@@ -46,6 +46,37 @@ vec3 mixOklab(vec3 a, vec3 b, float t) {
   return max(oklabToLinear(mix(linearToOklab(a), linearToOklab(b), t)), 0.0);
 }
 
+// Turn an OKLab colour's hue toward another colour's hue, keeping its own
+// lightness and saturation. Good for "the shadow borrows the room's hue"
+// without the shadow going pale or grey.
+vec3 turnHueToward(vec3 lab, vec3 targetLab, float t) {
+  float c = length(lab.yz);
+  if (c < 1e-4 || length(targetLab.yz) < 1e-4) return lab;
+  float h = atan(lab.z, lab.y);
+  float ht = atan(targetLab.z, targetLab.y);
+  float dh = mod(ht - h + LAB_PI, LAB_TAU) - LAB_PI;
+  h += dh * t;
+  return vec3(lab.x, c * cos(h), c * sin(h));
+}
+
+// Like turnHueToward, but never travels through yellow: if the short way
+// round would pass yellow (about 90 degrees), it goes the long way, through
+// wine, plum and violet instead. This is how painters cool a shadow: a red
+// apple in a mint room goes plum, not brown.
+vec3 turnHueTowardCool(vec3 lab, vec3 targetLab, float t) {
+  float c = length(lab.yz);
+  if (c < 1e-4 || length(targetLab.yz) < 1e-4) return lab;
+  float h = atan(lab.z, lab.y);
+  float ht = atan(targetLab.z, targetLab.y);
+  float dh = mod(ht - h + LAB_PI, LAB_TAU) - LAB_PI;
+  float yellow = 1.5708;
+  float toYellow = mod(yellow - h + LAB_PI, LAB_TAU) - LAB_PI;
+  // Yellow lies on the way if it is in the same direction and closer than the target.
+  if (toYellow * dh > 0.0 && abs(toYellow) < abs(dh)) dh -= sign(dh) * LAB_TAU;
+  h += dh * t;
+  return vec3(lab.x, c * cos(h), c * sin(h));
+}
+
 // Mix that travels around the hue wheel: good for light-to-shadow ramps.
 vec3 mixOklch(vec3 a, vec3 b, float t) {
   vec3 la = linearToOklab(a);

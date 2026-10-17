@@ -1,4 +1,4 @@
-import { DirectionalLight, PCFShadowMap, PerspectiveCamera, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
+import { DirectionalLight, PCFShadowMap, PerspectiveCamera, Quaternion, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { Vec2 } from '../params';
 
@@ -11,9 +11,10 @@ import type { Vec2 } from '../params';
  *  - keyLight: only used to cast the shadow on the floor. Our stylized shader
  *              does its own lighting from the same direction.
  *
- * The light direction is defined relative to the camera, like a lamp fixed
- * to the painter's easel: as you orbit, the light stays on the same side of
- * the picture, so the composition always reads like the reference.
+ * The light stays in the room, like a window: its direction is set on the
+ * light pad as seen from the starting view, and stays put as you orbit. Walk
+ * round the apple and you see its shadow side, or the light coming from
+ * behind it (backlit), and the shadow and window light stay on the table.
  *
  * Painting every frame is costly, so the stage only redraws when something
  * changed: the camera moved, the panel changed (invalidate) or the size changed.
@@ -32,6 +33,8 @@ export class Stage {
   onResize: (width: number, height: number) => void = () => {};
 
   private needsRender = true;
+  /** The starting view's orientation. The light pad is read in this frame. */
+  private readonly roomFrame = new Quaternion();
   private readonly bufferSize = new Vector2();
 
   constructor(canvas: HTMLCanvasElement, private readonly frame: HTMLElement) {
@@ -40,8 +43,8 @@ export class Stage {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = PCFShadowMap;
 
-    this.camera = new PerspectiveCamera(28, 3 / 4, 0.1, 100);
-    this.camera.position.setFromSphericalCoords(10.5, (75 * Math.PI) / 180, (24 * Math.PI) / 180);
+    this.camera = new PerspectiveCamera(28, 3 / 4, 0.1, 150);
+    this.camera.position.setFromSphericalCoords(8.6, (75 * Math.PI) / 180, (24 * Math.PI) / 180);
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.target.set(0, 0.2, 0);
@@ -49,22 +52,28 @@ export class Stage {
     this.controls.dampingFactor = 0.08;
     this.controls.enablePan = false;
     this.controls.minDistance = 5;
-    this.controls.maxDistance = 18;
+    // Stay inside the room (the sweep reaches 14 units out, see background.ts).
+    this.controls.maxDistance = 11;
     this.controls.minPolarAngle = 0.08 * Math.PI;
-    this.controls.maxPolarAngle = 0.53 * Math.PI;
+    // Stop just above table height, so we never look up through the table.
+    this.controls.maxPolarAngle = 0.49 * Math.PI;
     this.controls.update();
+    this.camera.updateMatrixWorld();
+    this.roomFrame.copy(this.camera.quaternion);
 
     this.keyLight = new DirectionalLight(0xffffff, 1);
     this.keyLight.castShadow = true;
     this.keyLight.shadow.mapSize.set(2048, 2048);
     this.keyLight.shadow.radius = 2;
-    this.keyLight.shadow.bias = -0.0004;
-    this.keyLight.shadow.normalBias = 0.02;
+    this.keyLight.shadow.bias = -0.0002;
+    // Small biases keep the shadow tucked right under the apple (no gap at the contact).
+    this.keyLight.shadow.normalBias = 0.006;
     const shadowCamera = this.keyLight.shadow.camera;
-    shadowCamera.left = -3;
-    shadowCamera.right = 3;
-    shadowCamera.top = 3;
-    shadowCamera.bottom = -3;
+    // Big enough for the long shadows of a low light.
+    shadowCamera.left = -6;
+    shadowCamera.right = 6;
+    shadowCamera.top = 6;
+    shadowCamera.bottom = -6;
     shadowCamera.near = 0.5;
     shadowCamera.far = 20;
     this.scene.add(this.keyLight, this.keyLight.target);
@@ -91,12 +100,12 @@ export class Stage {
   }
 
   /**
-   * Turn the light pad (x: left to right, y: down to up) into a world
-   * direction, and move the shadow light to match.
+   * Turn the light pad (x: left to right, y: down to up, as seen from the
+   * starting view) into a world direction, and move the shadow light to match.
    */
   updateLight(pad: Vec2): Vector3 {
     // 0.5 = how much the light also comes from in front. Lower means more side light.
-    this.lightDirection.set(pad.x, pad.y, 0.5).normalize().applyQuaternion(this.camera.quaternion);
+    this.lightDirection.set(pad.x, pad.y, 0.5).normalize().applyQuaternion(this.roomFrame);
     this.keyLight.position.copy(this.controls.target).addScaledVector(this.lightDirection, 8);
     this.keyLight.target.position.copy(this.controls.target);
     return this.lightDirection;

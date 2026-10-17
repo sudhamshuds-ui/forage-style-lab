@@ -25,7 +25,8 @@ export interface Vec2 {
 /** Options for the list controls. The shaders use each option's position in its list. */
 export const BRUSHES = ['flat', 'round', 'knife', 'dry'] as const;
 export const PATTERNS = ['none', 'lines', 'scribble', 'crosshatch'] as const;
-export const HIGHLIGHT_SHAPES = ['window', 'panes', 'square', 'dashes', 'streak', 'dot', 'none'] as const;
+// New options go at the end: the shader reads each option by its position in this list.
+export const HIGHLIGHT_SHAPES = ['window', 'panes', 'square', 'dashes', 'streak', 'dot', 'none', 'sheen', 'speckle'] as const;
 
 export type Brush = (typeof BRUSHES)[number];
 export type Pattern = (typeof PATTERNS)[number];
@@ -37,6 +38,11 @@ export interface Settings {
     preset: string;
   };
   brush: {
+    /**
+     * Playful strokes: repaint the finished, refined painting with bold brush
+     * strokes (like a kid's painting). Off: the refined, glazed look.
+     */
+    classic: boolean;
     type: Brush;
     size: number;
     length: number;
@@ -45,9 +51,18 @@ export interface Settings {
     patternAmount: number;
   };
   paint: {
+    brushiness: number;
+    washBleed: number;
+    edgeSoftness: number;
+    texture: number;
+    // Hidden below this line (used by the classic stroke pass and the matte layer)
     painterly: number;
     variation: number;
     chalk: number;
+  };
+  lighting: {
+    glow: number;
+    shadowColour: number;
   };
   highlight: {
     shape: HighlightShape;
@@ -55,10 +70,11 @@ export interface Settings {
     rimGlints: boolean;
   };
   scene: {
-    backdropStrokes: number;
-    frame: boolean;
+    backdrop: number;
     idleSpin: boolean;
     // Hidden below this line
+    backdropStrokes: number;
+    frame: boolean;
     frameColour: string;
     backgroundTop: string;
     backgroundBottom: string;
@@ -72,6 +88,9 @@ export interface Settings {
   };
   // Hidden groups: the apple's shape, its individual colours (set by the palette) and the lighting.
   shape: {
+    /** On: the apple shows its flat planes (poly edges). Off: the soft, rounded apple. */
+    faceted: boolean;
+    // Hidden below this line
     roundness: number;
     height: number;
     topDimple: number;
@@ -90,6 +109,8 @@ export interface Settings {
     lit: string;
     shadow: string;
     highlight: string;
+    /** Warm, saturated colour for the subsurface glow at edges and the light-to-shadow line. */
+    glow: string;
     stem: string;
     leaf: string;
   };
@@ -109,22 +130,27 @@ export type GroupKey = keyof Settings;
 
 /** Panel order and folder titles. Hidden groups are kept but not shown. */
 export const GROUPS: { key: GroupKey; title: string; expanded: boolean; hidden?: boolean }[] = [
-  { key: 'palette', title: 'Colour combo', expanded: true },
-  { key: 'brush', title: 'Brush', expanded: true },
+  // Hidden for now, still working: the colour combos, light, highlights and scene.
+  { key: 'palette', title: 'Colour combo', expanded: true, hidden: true },
+  // Only the Playful strokes switch is shown; the detailed brush controls stay hidden.
+  { key: 'brush', title: 'Style', expanded: true },
   { key: 'paint', title: 'Paint', expanded: true },
-  { key: 'highlight', title: 'Highlights', expanded: true },
-  { key: 'scene', title: 'Scene', expanded: true },
-  { key: 'shape', title: 'Shape', expanded: false, hidden: true },
+  { key: 'lighting', title: 'Light', expanded: true, hidden: true },
+  { key: 'highlight', title: 'Highlights', expanded: true, hidden: true },
+  // Only the Faceted switch is shown; the detailed shape sliders stay hidden.
+  { key: 'shape', title: 'Form', expanded: true },
+  { key: 'scene', title: 'Scene', expanded: true, hidden: true },
   { key: 'colour', title: 'Colour', expanded: false, hidden: true },
   { key: 'light', title: 'Light', expanded: false, hidden: true },
 ];
 
-/** Defaults are tuned to match references/apple/00-source-of-truth.webp. */
+/** Defaults are tuned to match references/painterly/00 and 01 (the source of truth). */
 export const DEFAULTS: Settings = {
   palette: {
-    preset: 'orchard',
+    preset: 'linen',
   },
   brush: {
+    classic: false,
     type: 'flat',
     size: 55,
     length: 60,
@@ -133,31 +159,41 @@ export const DEFAULTS: Settings = {
     patternAmount: 55,
   },
   paint: {
+    brushiness: 35,
+    washBleed: 70,
+    edgeSoftness: 50,
+    texture: 40,
     painterly: 45,
     variation: 45,
     chalk: 8,
   },
+  lighting: {
+    glow: 55,
+    shadowColour: 60,
+  },
   highlight: {
-    shape: 'window',
-    size: 45,
+    shape: 'sheen',
+    size: 32,
     rimGlints: true,
   },
   scene: {
-    backdropStrokes: 72,
-    frame: true,
+    backdrop: 40,
     idleSpin: false,
-    frameColour: '#857a7a',
-    backgroundTop: '#453992',
-    backgroundBottom: '#3d8a40',
+    backdropStrokes: 72,
+    frame: false,
+    frameColour: '#877e77',
+    backgroundTop: '#babadd',
+    backgroundBottom: '#e4d4c7',
     horizon: 36,
     horizonSoftness: 4,
     variation: 45,
     castShadow: true,
-    shadowColour: '#0f2418',
+    shadowColour: '#696d9a',
     shadowAmount: 80,
     spinSpeed: 25,
   },
   shape: {
+    faceted: true,
     roundness: 58,
     height: 56,
     topDimple: 42,
@@ -171,21 +207,22 @@ export const DEFAULTS: Settings = {
     leafSize: 50,
   },
   colour: {
-    base: '#b8232f',
-    lit: '#e0502a',
-    shadow: '#5a1636',
-    highlight: '#f2c6c4',
-    stem: '#24803c',
-    leaf: '#3e9b45',
+    base: '#ce5249',
+    lit: '#f78e64',
+    shadow: '#843d56',
+    highlight: '#f5e5d3',
+    glow: '#ed6531',
+    stem: '#5d6a33',
+    leaf: '#6c8c4a',
   },
   light: {
-    direction: { x: 0.6, y: 0.55 },
-    bands: 4,
+    direction: { x: 0.7, y: 0.45 },
+    bands: 3,
     softness: 10,
     paintEdges: 20,
-    ambient: '#7c74cc',
+    ambient: '#b6b3d6',
     ambientAmount: 50,
-    bounce: '#3f8f4b',
+    bounce: '#cca17e',
     bounceAmount: 45,
   },
 };
@@ -208,7 +245,14 @@ export type Spec = (
       /** Set to false to keep Randomize away from this value. */
       random?: boolean;
     }
-  | { kind: 'list'; label: string; options: { value: string; label: string }[]; random?: boolean }
+  | {
+      kind: 'list';
+      label: string;
+      options: { value: string; label: string }[];
+      random?: boolean;
+      /** If set, Randomize only picks from these options. */
+      randomOptions?: string[];
+    }
   | { kind: 'colour'; label: string }
   | { kind: 'toggle'; label: string; random?: boolean }
   | { kind: 'pad'; label: string; nice: { x: [number, number]; y: [number, number] } }
@@ -239,10 +283,12 @@ export const SPECS: SpecTable = {
     preset: { kind: 'palette', label: 'Colour combo' },
   },
   brush: {
+    classic: { kind: 'toggle', label: 'Playful strokes' },
     type: {
       kind: 'list',
       label: 'Brush',
       random: true,
+      hidden: true,
       options: [
         { value: 'flat', label: 'Flat brush' },
         { value: 'round', label: 'Round brush' },
@@ -250,13 +296,14 @@ export const SPECS: SpecTable = {
         { value: 'dry', label: 'Dry brush' },
       ],
     },
-    size: pct('Stroke size', [25, 70]),
-    length: pct('Stroke length', [30, 90]),
-    texture: pct('Bristle texture', [10, 70]),
+    size: pct('Stroke size', [25, 70], hidden),
+    length: pct('Stroke length', [30, 90], hidden),
+    texture: pct('Bristle texture', [10, 70], hidden),
     pattern: {
       kind: 'list',
       label: 'Pattern',
       random: true,
+      hidden: true,
       options: [
         { value: 'none', label: 'None' },
         { value: 'lines', label: 'Lines' },
@@ -264,19 +311,31 @@ export const SPECS: SpecTable = {
         { value: 'crosshatch', label: 'Crosshatch' },
       ],
     },
-    patternAmount: pct('Pattern amount', [30, 80]),
+    patternAmount: pct('Pattern amount', [30, 80], hidden),
   },
   paint: {
-    painterly: pct('Painterly', [35, 90]),
-    variation: pct('Colour variation', [25, 75]),
-    chalk: pct('Chalkiness', [0, 35]),
+    brushiness: pct('Brushiness', [15, 70]),
+    washBleed: pct('Wash bleed', [25, 80]),
+    edgeSoftness: pct('Edge softness', [20, 75]),
+    texture: pct('Texture', [10, 60], hidden),
+    painterly: pct('Painterly', [35, 90], hidden),
+    variation: pct('Colour variation', [25, 75], hidden),
+    chalk: pct('Chalkiness', [0, 35], hidden),
+  },
+  lighting: {
+    glow: pct('Glow', [25, 80]),
+    shadowColour: pct('Shadow colour', [30, 85]),
   },
   highlight: {
     shape: {
       kind: 'list',
       label: 'Shape',
       random: true,
+      // The hard-edged shapes stay available, but Randomize sticks to the soft, believable ones.
+      randomOptions: ['sheen', 'speckle'],
       options: [
+        { value: 'sheen', label: 'Soft sheen' },
+        { value: 'speckle', label: 'Dry speckle' },
         { value: 'window', label: 'Window' },
         { value: 'panes', label: 'Four panes' },
         { value: 'square', label: 'Square fleck' },
@@ -290,9 +349,10 @@ export const SPECS: SpecTable = {
     rimGlints: { kind: 'toggle', label: 'Rim glints', random: true },
   },
   scene: {
-    backdropStrokes: pct('Backdrop strokes', [35, 85]),
-    frame: { kind: 'toggle', label: 'Frame' },
+    backdrop: pct('Backdrop', [0, 100]),
     idleSpin: { kind: 'toggle', label: 'Idle spin' },
+    backdropStrokes: pct('Backdrop strokes', [35, 85], hidden),
+    frame: { kind: 'toggle', label: 'Frame', ...hidden },
     frameColour: { kind: 'colour', label: 'Frame colour', ...hidden },
     backgroundTop: { kind: 'colour', label: 'Top colour', ...hidden },
     backgroundBottom: { kind: 'colour', label: 'Bottom colour', ...hidden },
@@ -305,23 +365,25 @@ export const SPECS: SpecTable = {
     spinSpeed: pct('Spin speed', [10, 40], { random: false, hidden: true }),
   },
   shape: {
-    roundness: pct('Roundness', [25, 85]),
-    height: pct('Height', [30, 70]),
-    topDimple: pct('Top dimple', [15, 65]),
-    bottomDimple: pct('Bottom dimple', [0, 50]),
-    lopsided: pct('Lopsided', [0, 60]),
-    facets: pct('Facets', [35, 90]),
-    stemLength: pct('Stem length', [30, 85]),
-    stemCurve: pct('Stem curve', [10, 75]),
-    stemThickness: pct('Stem thickness', [20, 60]),
-    leaf: { kind: 'toggle', label: 'Leaf', random: true },
-    leafSize: pct('Leaf size', [30, 80]),
+    faceted: { kind: 'toggle', label: 'Faceted' },
+    roundness: pct('Roundness', [25, 85], hidden),
+    height: pct('Height', [30, 70], hidden),
+    topDimple: pct('Top dimple', [15, 65], hidden),
+    bottomDimple: pct('Bottom dimple', [0, 50], hidden),
+    lopsided: pct('Lopsided', [0, 60], hidden),
+    facets: pct('Facets', [35, 90], hidden),
+    stemLength: pct('Stem length', [30, 85], hidden),
+    stemCurve: pct('Stem curve', [10, 75], hidden),
+    stemThickness: pct('Stem thickness', [20, 60], hidden),
+    leaf: { kind: 'toggle', label: 'Leaf', random: true, ...hidden },
+    leafSize: pct('Leaf size', [30, 80], hidden),
   },
   colour: {
     base: { kind: 'colour', label: 'Base' },
     lit: { kind: 'colour', label: 'Lit' },
     shadow: { kind: 'colour', label: 'Shadow' },
     highlight: { kind: 'colour', label: 'Highlight' },
+    glow: { kind: 'colour', label: 'Glow' },
     stem: { kind: 'colour', label: 'Stem' },
     leaf: { kind: 'colour', label: 'Leaf' },
   },

@@ -1,6 +1,6 @@
 import './style.css';
 import './ui/panel.css';
-import { Vector3 } from 'three';
+import { Vector2, Vector3 } from 'three';
 import { defaultSettings } from './params';
 import { Stage } from './scene/stage';
 import { Background } from './scene/background';
@@ -9,7 +9,7 @@ import { StylizedLook } from './shading/stylizedMaterial';
 import { EFFECT_STACK } from './shading/effects';
 import type { FrameContext } from './shading/effect';
 import { Apple } from './ingredients/apple/apple';
-import { Painter } from './painting/painter';
+import { Painter, type PaintFrame } from './painting/painter';
 import { createPanel } from './ui/panel';
 import { setupActions } from './ui/actions';
 
@@ -44,8 +44,9 @@ const pane = createPanel(
   document.getElementById('pane') as HTMLElement,
   settings,
   onSettingsChanged,
+  () => actions.randomize(),
 );
-setupActions(settings, pane, () => onSettingsChanged());
+const actions = setupActions(settings, pane, () => onSettingsChanged());
 
 const context: FrameContext = {
   lightDirection: new Vector3(),
@@ -53,7 +54,34 @@ const context: FrameContext = {
   cameraRight: new Vector3(),
   objectCentre: apple.centre,
   objectRadius: 1,
+  groundY: -1,
 };
+
+const paintFrame: PaintFrame = {
+  lightScreen: new Vector2(0, 1),
+  objectUv: new Vector2(0.5, 0.5),
+  objectRadius: 0.2,
+};
+const projected = new Vector3();
+const projectedTop = new Vector3();
+const projectedLight = new Vector3();
+
+/** Where the apple sits on screen, and which way the light comes from, for the glaze pass. */
+function updatePaintFrame(): void {
+  projected.copy(apple.centre).project(stage.camera);
+  // Which way the light comes from on screen: project a point a little toward the light.
+  projectedLight.copy(apple.centre).addScaledVector(context.lightDirection, apple.radius).project(stage.camera);
+  const aspect = stage.camera.aspect;
+  paintFrame.lightScreen.set((projectedLight.x - projected.x) * aspect, projectedLight.y - projected.y);
+  // Light straight toward or away from the camera has no clear screen direction: assume from above.
+  if (paintFrame.lightScreen.lengthSq() < 1e-6) paintFrame.lightScreen.set(0, 1);
+  paintFrame.lightScreen.normalize();
+
+  projectedTop.copy(apple.centre).addScaledVector(stage.camera.up, apple.radius).project(stage.camera);
+  paintFrame.objectUv.set(projected.x * 0.5 + 0.5, projected.y * 0.5 + 0.5);
+  // In screen heights: the NDC y range is 2 units tall.
+  paintFrame.objectRadius = Math.abs(projectedTop.y - projected.y) * 0.5;
+}
 
 function update(): void {
   if (shapeChanged) {
@@ -66,18 +94,33 @@ function update(): void {
   context.cameraPosition.copy(stage.camera.position);
   context.cameraRight.setFromMatrixColumn(stage.camera.matrixWorld, 0);
   context.objectRadius = apple.radius;
+  context.groundY = apple.bottomY;
 
   look.update(settings, context);
   apple.applyColours(settings.colour);
-  background.update(settings.scene, stage.size);
-  ground.update(settings.scene, context.lightDirection);
+  background.update(settings, context);
+  // Label mode in both styles: the playful strokes repaint the glazed painting.
+  ground.update(settings.scene, context.lightDirection, true);
   stage.keyLight.castShadow = settings.scene.castShadow;
   stage.setIdleSpin(settings.scene.idleSpin, settings.scene.spinSpeed);
+  updatePaintFrame();
 }
 
-stage.start(update, () => painter.render(stage.renderer, stage.scene, stage.camera, settings));
+stage.start(update, () => painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame));
 
 // Handy while developing: type `styleLab.settings` in the browser console to inspect values.
 if (import.meta.env.DEV) {
-  Object.assign(window, { styleLab: { settings, stage, redraw: () => onSettingsChanged() } });
+  Object.assign(window, {
+    styleLab: {
+      settings,
+      stage,
+      redraw: () => onSettingsChanged(),
+      /** Paint one frame right now and return it as an image URL (for comparing looks). */
+      snapshot: () => {
+        update();
+        painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame);
+        return stage.renderer.domElement.toDataURL('image/png');
+      },
+    },
+  });
 }

@@ -88,6 +88,17 @@ export function oklchToHex(l: number, c: number, hDeg: number): string {
   return oklabToHex(lab(lo));
 }
 
+/**
+ * Read a hex colour as OKLCh: lightness (0..1), chroma (how saturated, about
+ * 0..0.3) and hue (degrees, 0..360). Handy for checking palette rules like
+ * "the wall is muted" or "the shadow is cool".
+ */
+export function hexToOklch(hex: string): { l: number; c: number; h: number } {
+  const [l, a, b] = hexToOklab(hex);
+  const h = (Math.atan2(b, a) * 180) / Math.PI;
+  return { l, c: Math.hypot(a, b), h: (h + 360) % 360 };
+}
+
 /** Walk from hue `a` toward hue `b` (degrees) the short way round. */
 export function lerpHue(a: number, b: number, t: number): number {
   const d = ((((b - a) % 360) + 540) % 360) - 180;

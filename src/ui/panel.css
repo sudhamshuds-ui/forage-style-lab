@@ -458,3 +458,16 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/* Randomize sits in the Style section (only while Playful strokes is on),
+   styled like the dark primary button. */
+.randomize-button .tp-btnv_b {
+  height: 36px;
+  border-radius: var(--radius-control);
+  background: var(--ink);
+  color: #fff;
+  font: 500 13px var(--font);
+}
+.randomize-button .tp-btnv_b:hover {
+  background: #36342f;
+}

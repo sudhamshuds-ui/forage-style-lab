@@ -38,7 +38,11 @@ export interface AppleShape {
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-export function toAppleShape(s: Settings['shape']): AppleShape {
+/** The soft, rounded apple (Faceted off): rounder body, knife cuts that barely touch the skin. */
+const SOFT_FORM = { roundness: 72, facets: 28 };
+
+export function toAppleShape(shape: Settings['shape']): AppleShape {
+  const s = shape.faceted ? shape : { ...shape, ...SOFT_FORM };
   return {
     power: lerp(4.2, 2.0, s.roundness / 100),
     heightScale: lerp(0.72, 1.3, s.height / 100),
