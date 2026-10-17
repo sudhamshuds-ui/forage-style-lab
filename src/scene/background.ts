@@ -174,7 +174,8 @@ void main() {
 
   // 3. A soft, deep contact shadow right under the apple, in the shadow's own hue.
   float d = length(floorPos - uApple) / uAppleRadius;
-  float contact = (1.0 - smoothstep(0.35, 1.0, d)) * (1.0 - smoothstep(0.0, 0.2, height));
+  // Reaches a little past the apple's outline, so no lit sliver shows between apple and shadow.
+  float contact = (1.0 - smoothstep(0.6, 1.2, d)) * (1.0 - smoothstep(0.0, 0.2, height));
   vec3 contactLab = linearToOklab(uContact);
   contactLab.x -= 0.08;
   lab = mix(lab, contactLab, contact * 0.55);

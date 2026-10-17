@@ -4,10 +4,10 @@ import type { ShaderEffect } from '../effect';
  * Surface texture: how the paint itself looks on the apple, taken from the
  * reference paintings.
  *
- *  - Shards (the watermelon cubes): each facet of the apple is a slightly
- *    different mix of the same colour, a touch lighter or darker, a small hue
- *    turn, like overlapping flat pieces of paint. This makes the facets read
- *    as painted planes.
+ *  - Shards (the watermelon cubes): the mix of colour drifts with the way the
+ *    surface faces. A flat facet faces one way, so it gets one mix, and the
+ *    facets read as overlapping flat pieces of paint. On the soft, rounded
+ *    apple the same drift is gentle and smooth, with no hard patches.
  *  - Granular fill (the lemons): a fine, sandy grain inside the shapes, like
  *    a sponge brush or salt on wet paint, with a few darker pigment granules.
  *
@@ -27,10 +27,9 @@ uniform float uSurfaceTexture;
   body: /* glsl */ `
 vec3 lab = linearToOklab(colour);
 
-// 1. Shards: one random mix per facet, keyed on which way the facet faces.
-vec3 facetKey = floor(N * 2.5 + 0.5);
-float pickLight = hash13(facetKey * 7.13 + 1.7);
-float pickHue = hash13(facetKey * 3.71 + 9.2);
+// 1. Shards: a smooth field over surface directions, so each flat facet gets one mix.
+float pickLight = valueNoise3(N * 2.2 + vec3(1.7, 4.1, 2.3));
+float pickHue = valueNoise3(N * 2.2 + vec3(9.2, 0.6, 5.8));
 float shard = mix(0.5, 1.0, uSurfaceTexture);
 lab.x += (pickLight - 0.5) * 0.06 * shard;
 float turn = (pickHue - 0.5) * 0.16 * shard;

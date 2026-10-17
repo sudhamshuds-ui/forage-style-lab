@@ -65,8 +65,9 @@ export class Stage {
     this.keyLight.castShadow = true;
     this.keyLight.shadow.mapSize.set(2048, 2048);
     this.keyLight.shadow.radius = 2;
-    this.keyLight.shadow.bias = -0.0004;
-    this.keyLight.shadow.normalBias = 0.02;
+    this.keyLight.shadow.bias = -0.0002;
+    // Small biases keep the shadow tucked right under the apple (no gap at the contact).
+    this.keyLight.shadow.normalBias = 0.006;
     const shadowCamera = this.keyLight.shadow.camera;
     // Big enough for the long shadows of a low light.
     shadowCamera.left = -6;
