@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CLASSIC_PALETTES, PALETTES, applyPalette, shufflePalette, type Palette } from './palettes';
 import { DEFAULTS, defaultSettings } from './params';
-import { randomSettings } from './randomize';
+import { randomStrokes } from './randomize';
 import { hexToOklch } from './utils/colour';
 
 /** Shortest distance between two hues, in degrees. */
@@ -37,7 +37,9 @@ describe('the apple keeps its own colours', () => {
 
   it('is not changed by Randomize, and neither is the room', () => {
     for (let i = 0; i < 50; i++) {
-      const next = randomSettings(defaultSettings());
+      const start = defaultSettings();
+      start.brush.classic = true;
+      const next = randomStrokes(start);
       expect(next.colour).toEqual(DEFAULTS.colour);
       expect(next.palette).toEqual(DEFAULTS.palette);
       expect(next.light.ambient).toBe(DEFAULTS.light.ambient);

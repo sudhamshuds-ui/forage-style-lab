@@ -1,92 +1,65 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULTS, GROUPS, SPECS, isVisible, type GroupKey, type Spec } from './params';
-import { randomSettings } from './randomize';
+import { BRUSHES, DEFAULTS, GROUPS, PATTERNS, SPECS, isVisible, type Spec } from './params';
+import { randomStrokes } from './randomize';
 
 const visibleLabels = () =>
   GROUPS.flatMap(({ key }) =>
     (Object.values(SPECS[key]) as Spec[]).filter((s) => isVisible(key, s)).map((s) => s.label),
   );
 
+const playful = () => {
+  const start = structuredClone(DEFAULTS);
+  start.brush.classic = true;
+  return start;
+};
+
 describe('panel', () => {
-  it('shows exactly the stylization controls', () => {
-    expect(visibleLabels()).toEqual([
-      'Colour combo',
-      'Playful strokes',
-      'Brushiness',
-      'Wash bleed',
-      'Edge softness',
-      'Texture',
-      'Glow',
-      'Shadow colour',
-      'Shape',
-      'Size',
-      'Rim glints',
-      'Faceted',
-      'Backdrop',
-      'Idle spin',
-    ]);
+  it('shows only the style, paint and form controls', () => {
+    expect(visibleLabels()).toEqual(['Playful strokes', 'Brushiness', 'Wash bleed', 'Edge softness', 'Faceted']);
   });
 
-  it('starts with the frame off and idle spin off', () => {
+  it('keeps the colour combos, light, texture, highlights and scene, just hidden', () => {
+    const hiddenGroups = GROUPS.filter((g) => g.hidden).map((g) => g.key);
+    expect(hiddenGroups).toEqual(expect.arrayContaining(['palette', 'lighting', 'highlight', 'scene']));
+    expect(SPECS.paint.texture.hidden).toBe(true);
+  });
+
+  it('starts refined and faceted, with the frame and idle spin off', () => {
+    expect(DEFAULTS.brush.classic).toBe(false);
+    expect(DEFAULTS.shape.faceted).toBe(true);
     expect(DEFAULTS.scene.frame).toBe(false);
     expect(DEFAULTS.scene.idleSpin).toBe(false);
-    expect(DEFAULTS.brush.classic).toBe(false);
-  });
-});
-
-describe('style', () => {
-  it('starts refined, and Randomize never switches the style', () => {
-    expect(DEFAULTS.brush.classic).toBe(false);
-    for (let i = 0; i < 50; i++) {
-      const start = structuredClone(DEFAULTS);
-      start.brush.classic = true;
-      expect(randomSettings(start).brush.classic).toBe(true);
-    }
-  });
-});
-
-describe('form', () => {
-  it('starts faceted, and Randomize never changes it', () => {
-    expect(DEFAULTS.shape.faceted).toBe(true);
-    for (let i = 0; i < 50; i++) {
-      const start = structuredClone(DEFAULTS);
-      start.shape.faceted = false;
-      expect(randomSettings(start).shape.faceted).toBe(false);
-    }
-  });
-});
-
-describe('highlights', () => {
-  it('starts with the soft sheen, not the window shape', () => {
     expect(DEFAULTS.highlight.shape).toBe('sheen');
   });
-
-  it('Randomize only picks the soft highlight styles', () => {
-    for (let i = 0; i < 100; i++) {
-      expect(['sheen', 'speckle']).toContain(randomSettings(structuredClone(DEFAULTS)).highlight.shape);
-    }
-  });
 });
 
-describe('randomize', () => {
-  it('keeps every visible slider inside its nice range and leaves hidden values alone', () => {
-    for (let i = 0; i < 200; i++) {
-      const next = randomSettings(structuredClone(DEFAULTS));
-      for (const { key } of GROUPS) {
-        for (const [name, spec] of Object.entries(SPECS[key as GroupKey]) as [string, Spec][]) {
-          const value = (next[key as GroupKey] as unknown as Record<string, unknown>)[name];
-          const before = (DEFAULTS[key as GroupKey] as unknown as Record<string, unknown>)[name];
-          if (!isVisible(key as GroupKey, spec)) {
-            // Colour, light and scene colours are rewritten by the colour combo.
-            if (key !== 'colour' && key !== 'light' && key !== 'scene') expect(value).toEqual(before);
-          } else if (spec.kind === 'slider' && spec.random !== false) {
-            expect(value as number).toBeGreaterThanOrEqual(spec.nice[0]);
-            expect(value as number).toBeLessThanOrEqual(spec.nice[1]);
-          }
-        }
-      }
-      expect(next.scene.frame).toBe(false);
-      expect(next.brush.classic).toBe(false);
+describe('Randomize (playful strokes only)', () => {
+  it('only changes the stroke settings, and keeps playful on', () => {
+    for (let i = 0; i < 100; i++) {
+      const start = playful();
+      const next = randomStrokes(start);
+      const { brush: _brushBefore, ...restBefore } = start;
+      const { brush: _brushAfter, ...restAfter } = next;
+      expect(restAfter).toEqual(restBefore);
+      expect(next.brush.classic).toBe(true);
     }
+  });
+
+  it('picks strokes and patterns from the lists, and sizes inside their nice ranges', () => {
+    const seenBrushes = new Set<string>();
+    const seenPatterns = new Set<string>();
+    for (let i = 0; i < 300; i++) {
+      const b = randomStrokes(playful()).brush;
+      seenBrushes.add(b.type);
+      seenPatterns.add(b.pattern);
+      for (const key of ['size', 'length', 'texture', 'patternAmount'] as const) {
+        const spec = SPECS.brush[key];
+        if (spec.kind !== 'slider') throw new Error(key);
+        expect(b[key]).toBeGreaterThanOrEqual(spec.nice[0]);
+        expect(b[key]).toBeLessThanOrEqual(spec.nice[1]);
+      }
+    }
+    expect([...seenBrushes].sort()).toEqual([...BRUSHES].sort());
+    expect([...seenPatterns].sort()).toEqual([...PATTERNS].sort());
   });
 });

@@ -1,41 +1,31 @@
-import { GROUPS, SPECS, isVisible, type Settings, type Spec } from './params';
+import { SPECS, type Settings, type Spec } from './params';
 
 /**
- * Randomize: new values that still look good.
+ * Randomize: a fresh set of brush strokes, for the Playful strokes style.
  *
- * Only visible controls change. Hidden ones (shape, lighting) keep their values.
+ * Only the stroke settings change (they live in the Brush group in
+ * params.ts, hidden from the panel): brush type, stroke size and length,
+ * bristle texture, pattern (lines, scribble, crosshatch) and how strong it is.
+ * Everything else stays as it is: the colours, the light, the shape, the
+ * refined paint settings, and the Playful switch itself.
  *   - sliders pick from their "nice" range in params.ts
  *   - lists pick any option (or only from `randomOptions`, when a list has them)
- *   - toggles marked `random: true` flip a coin
- *   - colours are left alone: the ingredient keeps its own colours and the
- *     room keeps its combo (pick or Shuffle one in the Colour combo picker)
  */
 
 const between = (min: number, max: number) => min + Math.random() * (max - min);
 const pick = <T>(items: readonly T[]): T => items[Math.floor(Math.random() * items.length)];
 
-export function randomSettings(current: Settings): Settings {
+export function randomStrokes(current: Settings): Settings {
   const next = structuredClone(current);
+  const brush = next.brush as unknown as Record<string, unknown>;
 
-  for (const { key: group } of GROUPS) {
-    const values = next[group] as unknown as Record<string, unknown>;
-    for (const [key, spec] of Object.entries(SPECS[group]) as [string, Spec][]) {
-      if (!isVisible(group, spec)) continue;
-      if (spec.kind === 'slider' && spec.random !== false) {
-        const raw = between(spec.nice[0], spec.nice[1]);
-        values[key] = Math.round(raw / spec.step) * spec.step;
-      } else if (spec.kind === 'list' && spec.random) {
-        values[key] = spec.randomOptions ? pick(spec.randomOptions) : pick(spec.options).value;
-      } else if (spec.kind === 'toggle' && spec.random) {
-        values[key] = Math.random() < 0.6;
-      } else if (spec.kind === 'pad') {
-        values[key] = {
-          x: Number(between(spec.nice.x[0], spec.nice.x[1]).toFixed(2)),
-          y: Number(between(spec.nice.y[0], spec.nice.y[1]).toFixed(2)),
-        };
-      }
+  for (const [key, spec] of Object.entries(SPECS.brush) as [string, Spec][]) {
+    if (key === 'classic') continue;
+    if (spec.kind === 'slider' && spec.random !== false) {
+      brush[key] = Math.round(between(spec.nice[0], spec.nice[1]) / spec.step) * spec.step;
+    } else if (spec.kind === 'list') {
+      brush[key] = spec.randomOptions ? pick(spec.randomOptions) : pick(spec.options).value;
     }
   }
-
   return next;
 }

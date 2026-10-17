@@ -130,15 +130,16 @@ export type GroupKey = keyof Settings;
 
 /** Panel order and folder titles. Hidden groups are kept but not shown. */
 export const GROUPS: { key: GroupKey; title: string; expanded: boolean; hidden?: boolean }[] = [
-  { key: 'palette', title: 'Colour combo', expanded: true },
+  // Hidden for now, still working: the colour combos, light, highlights and scene.
+  { key: 'palette', title: 'Colour combo', expanded: true, hidden: true },
   // Only the Playful strokes switch is shown; the detailed brush controls stay hidden.
   { key: 'brush', title: 'Style', expanded: true },
   { key: 'paint', title: 'Paint', expanded: true },
-  { key: 'lighting', title: 'Light', expanded: true },
-  { key: 'highlight', title: 'Highlights', expanded: true },
+  { key: 'lighting', title: 'Light', expanded: true, hidden: true },
+  { key: 'highlight', title: 'Highlights', expanded: true, hidden: true },
   // Only the Faceted switch is shown; the detailed shape sliders stay hidden.
   { key: 'shape', title: 'Form', expanded: true },
-  { key: 'scene', title: 'Scene', expanded: true },
+  { key: 'scene', title: 'Scene', expanded: true, hidden: true },
   { key: 'colour', title: 'Colour', expanded: false, hidden: true },
   { key: 'light', title: 'Light', expanded: false, hidden: true },
 ];
@@ -316,7 +317,7 @@ export const SPECS: SpecTable = {
     brushiness: pct('Brushiness', [15, 70]),
     washBleed: pct('Wash bleed', [25, 80]),
     edgeSoftness: pct('Edge softness', [20, 75]),
-    texture: pct('Texture', [10, 60]),
+    texture: pct('Texture', [10, 60], hidden),
     painterly: pct('Painterly', [35, 90], hidden),
     variation: pct('Colour variation', [25, 75], hidden),
     chalk: pct('Chalkiness', [0, 35], hidden),

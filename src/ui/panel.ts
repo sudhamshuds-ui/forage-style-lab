@@ -17,14 +17,27 @@ export interface Panel {
   refresh(): void;
 }
 
+/** The Style section holds Randomize, shown only while Playful strokes is on. */
+const STYLE_GROUP: GroupKey = 'brush';
+
 export function createPanel(
   paletteContainer: HTMLElement,
   paneContainer: HTMLElement,
   settings: Settings,
   onChange: (group: GroupKey) => void,
+  onRandomize: () => void,
 ): Panel {
-  const palettePicker = createPalettePicker(paletteContainer, settings, () => onChange('palette'));
+  // The colour combo picker only appears when its group is not hidden in params.ts.
+  const paletteHidden = GROUPS.find((g) => g.key === 'palette')?.hidden ?? false;
+  const palettePicker = paletteHidden
+    ? { refresh() {} }
+    : createPalettePicker(paletteContainer, settings, () => onChange('palette'));
+  paletteContainer.hidden = paletteHidden;
   const pane = new Pane({ container: paneContainer });
+  let randomizeButton: { hidden: boolean } | undefined;
+  const showRandomize = () => {
+    if (randomizeButton) randomizeButton.hidden = !settings.brush.classic;
+  };
 
   for (const group of GROUPS) {
     if (group.hidden || group.key === 'palette') continue;
@@ -37,11 +50,23 @@ export function createPanel(
     const target = settings[group.key] as unknown as Record<string, unknown>;
     for (const [key, spec] of visibleSpecs) {
       const binding = folder.addBinding(target, key, bindingOptions(spec));
-      binding.on('change', () => onChange(group.key));
+      binding.on('change', () => {
+        showRandomize();
+        onChange(group.key);
+      });
       // Give every input a name, so screen readers say "Stroke size" instead of "45%".
       binding.element.querySelectorAll('input, select, [tabindex]').forEach((el) => {
         el.setAttribute('aria-label', spec.label);
       });
+    }
+
+    if (group.key === STYLE_GROUP) {
+      // Randomize shuffles the playful strokes, so it only makes sense while they are on.
+      const button = folder.addButton({ title: 'Randomize' });
+      button.element.classList.add('randomize-button');
+      button.on('click', onRandomize);
+      randomizeButton = button;
+      showRandomize();
     }
   }
 
@@ -49,6 +74,7 @@ export function createPanel(
     refresh() {
       pane.refresh();
       palettePicker.refresh();
+      showRandomize();
     },
   };
 }

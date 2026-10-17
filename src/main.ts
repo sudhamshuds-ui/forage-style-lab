@@ -44,8 +44,9 @@ const pane = createPanel(
   document.getElementById('pane') as HTMLElement,
   settings,
   onSettingsChanged,
+  () => actions.randomize(),
 );
-setupActions(settings, pane, () => onSettingsChanged());
+const actions = setupActions(settings, pane, () => onSettingsChanged());
 
 const context: FrameContext = {
   lightDirection: new Vector3(),

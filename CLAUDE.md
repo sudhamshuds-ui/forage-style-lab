@@ -19,12 +19,15 @@ keep code readable with friendly comments.
   muted (not candy) surroundings. `02` and `03` support them; `90-avoid-stroke-clutter.png`
   shows what must never happen. `references/apple` is the old direction (kept for history);
   `references/ui` is the tool's look. Design: `docs/superpowers/specs/2026-10-17-painterly-design.md`.
-- The panel shows **stylization only**: Colour combo; Style (Playful strokes); Paint (Brushiness, Wash bleed,
-  Edge softness, Texture); Light (Glow, Shadow colour); Highlights (Shape, Size, Rim
-  glints); Form (Faceted); Scene (Backdrop, Idle spin). The apple's shape, the lighting, the individual
-  colour pickers, the old brush controls and the frame are **hidden, not deleted**: they
-  stay in `src/params.ts` with `hidden: true` (or a hidden group). Never delete hidden
-  controls; to bring one back, remove its `hidden` flag.
+- The panel is deliberately small: Style (Playful strokes, and Randomize only while it is
+  on); Paint (Brushiness, Wash bleed, Edge softness); Form (Faceted); plus Reset and Copy
+  settings. **Hidden, not deleted** (still working, in `src/params.ts`): the colour combo
+  picker, Light, Texture, Highlights, Scene, the detailed brush controls, the apple's
+  shape sliders, the lighting and the individual colours. Never delete hidden controls;
+  to bring one back, remove its `hidden` flag (group or control).
+- **Randomize** (`src/randomize.ts`) only shuffles the playful stroke settings (brush type,
+  stroke size and length, bristles, pattern and its amount). It never touches colours,
+  light, shape or the refined paint sliders.
 - The ingredient keeps its **own natural colours** (the apple is red; hidden Colour group).
   The user picks a **room combo** (wall, table, ambient and bounce light, cast shadow), not
   individual colours. Randomize never changes colours.
