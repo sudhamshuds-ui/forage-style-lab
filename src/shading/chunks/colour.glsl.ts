@@ -46,6 +46,19 @@ vec3 mixOklab(vec3 a, vec3 b, float t) {
   return max(oklabToLinear(mix(linearToOklab(a), linearToOklab(b), t)), 0.0);
 }
 
+// Turn an OKLab colour's hue toward another colour's hue, keeping its own
+// lightness and saturation. Good for "the shadow borrows the room's hue"
+// without the shadow going pale or grey.
+vec3 turnHueToward(vec3 lab, vec3 targetLab, float t) {
+  float c = length(lab.yz);
+  if (c < 1e-4 || length(targetLab.yz) < 1e-4) return lab;
+  float h = atan(lab.z, lab.y);
+  float ht = atan(targetLab.z, targetLab.y);
+  float dh = mod(ht - h + LAB_PI, LAB_TAU) - LAB_PI;
+  h += dh * t;
+  return vec3(lab.x, c * cos(h), c * sin(h));
+}
+
 // Mix that travels around the hue wheel: good for light-to-shadow ramps.
 vec3 mixOklch(vec3 a, vec3 b, float t) {
   vec3 la = linearToOklab(a);

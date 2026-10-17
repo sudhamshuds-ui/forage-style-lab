@@ -53,6 +53,7 @@ const context: FrameContext = {
   cameraRight: new Vector3(),
   objectCentre: apple.centre,
   objectRadius: 1,
+  groundY: -1,
 };
 
 const paintFrame: PaintFrame = {
@@ -89,6 +90,7 @@ function update(): void {
   context.cameraPosition.copy(stage.camera.position);
   context.cameraRight.setFromMatrixColumn(stage.camera.matrixWorld, 0);
   context.objectRadius = apple.radius;
+  context.groundY = apple.bottomY;
 
   look.update(settings, context);
   apple.applyColours(settings.colour);

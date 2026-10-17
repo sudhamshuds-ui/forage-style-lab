@@ -2,6 +2,9 @@ import { Color } from 'three';
 import type { ShaderEffect } from '../effect';
 
 /**
+ * Not in the stack any more: shadowColour.ts replaced it for the painterly
+ * look. Kept for reference (bring it back by adding it to effects/index.ts).
+ *
  * Ambient and bounce light (the lesson from references/apple/03).
  *
  *  - Ambient: planes facing up pick up the colour of the surroundings

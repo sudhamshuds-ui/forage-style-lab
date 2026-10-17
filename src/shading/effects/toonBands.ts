@@ -22,9 +22,10 @@ export const toonBands: ShaderEffect = {
 uniform float uBands;
 `,
   body: /* glsl */ `
-// Wrapping (+0.35) lets the light creep a little past the edge of the form,
-// like a soft studio light, so the shadow side does not swallow the apple.
-float facing = clamp((dot(N, L) + 0.35) / 1.35, 0.0, 1.0);
+// Wrapping (+0.55) lets the light creep well past the edge of the form,
+// like soft window light in a bright room, so the shadow side stays open
+// and luminous instead of swallowing the apple.
+float facing = clamp((dot(N, L) + 0.55) / 1.55, 0.0, 1.0);
 
 // Count how many band edges this point is above.
 float steps = 0.0;

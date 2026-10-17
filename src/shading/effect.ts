@@ -19,7 +19,7 @@ import type { Settings } from '../params';
  *                        pass keeps these pixels sharp instead of repainting them.
  *   vec3  colour         the colour so far: read it, change it, write it back
  *
- *   vec3  uBaseColour, uLitColour, uShadowColour, uHighlightColour   this object's palette
+ *   vec3  uBaseColour, uLitColour, uShadowColour, uHighlightColour, uGlowColour   this object's palette
  *
  *   float paintStep(float edge, float x, float range)
  *     A painted edge: 0 below `edge`, 1 above, with a soft and slightly
@@ -52,4 +52,6 @@ export interface FrameContext {
   /** Centre and rough radius of the ingredient, for placing highlight shapes. */
   objectCentre: Vector3;
   objectRadius: number;
+  /** Height of the table top (the apple's lowest point), for the contact shadow. */
+  groundY: number;
 }
