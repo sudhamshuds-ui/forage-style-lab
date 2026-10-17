@@ -3,6 +3,7 @@ import { toonBands } from './toonBands';
 import { washBleed } from './washBleed';
 import { shadowColour } from './shadowColour';
 import { glow } from './glow';
+import { surfaceMarks } from './surfaceMarks';
 import { highlight } from './highlight';
 import { gouacheMatte } from './gouacheMatte';
 
@@ -18,4 +19,4 @@ import { gouacheMatte } from './gouacheMatte';
  * Tone bands must stay first: it sets `tone`, which later layers read.
  * Glow reads `uBands` from Tone bands to find the light-to-shadow line.
  */
-export const EFFECT_STACK: ShaderEffect[] = [toonBands, washBleed, shadowColour, glow, highlight, gouacheMatte];
+export const EFFECT_STACK: ShaderEffect[] = [toonBands, washBleed, shadowColour, glow, surfaceMarks, highlight, gouacheMatte];
