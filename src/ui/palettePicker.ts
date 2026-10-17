@@ -1,12 +1,12 @@
 import type { Settings } from '../params';
-import { PALETTES, applyPalette, currentColours, shufflePalette, type PaletteColours } from '../palettes';
+import { PALETTES, applyPalette, currentColours, shufflePalette, type RoomColours } from '../palettes';
 
 /**
- * The colour combo picker: a list of ready-made palettes, each with a tiny
- * painting as its swatch (wall, table, the fruit in light and shadow, and a
- * highlight), like the preset list in references/ui/02.
+ * The colour combo picker: a list of ready-made rooms, each with a tiny
+ * painting as its swatch (wall, table, cast shadow, and the fruit in its own
+ * colours), like the preset list in references/ui/02.
  *
- * "Shuffle" invents a new combo that follows the same colour rules.
+ * "Shuffle" invents a new room that follows the same colour rules.
  */
 export function createPalettePicker(container: HTMLElement, settings: Settings, onChange: () => void) {
   container.innerHTML = `
@@ -29,7 +29,7 @@ export function createPalettePicker(container: HTMLElement, settings: Settings, 
         (item) => `
         <button type="button" class="palette-item${item.id === settings.palette.preset ? ' is-active' : ''}"
           role="radio" aria-checked="${item.id === settings.palette.preset}" data-id="${item.id}">
-          ${swatch(item.colours)}
+          ${swatch(item.colours, settings.colour)}
           <span class="palette-name">${item.name}</span>
         </button>`,
       )
@@ -47,7 +47,7 @@ export function createPalettePicker(container: HTMLElement, settings: Settings, 
   });
 
   shuffleButton.addEventListener('click', () => {
-    applyPalette(settings, shufflePalette());
+    applyPalette(settings, shufflePalette(settings.colour.base));
     render();
     onChange();
   });
@@ -57,14 +57,14 @@ export function createPalettePicker(container: HTMLElement, settings: Settings, 
 }
 
 /** A tiny painting: wall, table, an apple with a shadow side, and a highlight. */
-function swatch(c: PaletteColours): string {
+function swatch(c: RoomColours, fruit: Settings['colour']): string {
   return `
     <svg class="palette-swatch" viewBox="0 0 32 32" aria-hidden="true">
       <rect width="32" height="32" fill="${c.wall}" />
       <rect y="21" width="32" height="11" fill="${c.table}" />
       <ellipse cx="13" cy="25.5" rx="9" ry="2.2" fill="${c.castShadow}" opacity="0.7" />
-      <circle cx="16" cy="18" r="8" fill="${c.shadow}" />
-      <circle cx="17.6" cy="16.6" r="6.6" fill="${c.base}" />
-      <rect x="18.5" y="13" width="2.2" height="3.2" rx="0.4" fill="${c.highlight}" />
+      <circle cx="16" cy="18" r="8" fill="${fruit.shadow}" />
+      <circle cx="17.6" cy="16.6" r="6.6" fill="${fruit.base}" />
+      <circle cx="20" cy="14.5" r="1.4" fill="${fruit.highlight}" opacity="0.8" />
     </svg>`;
 }

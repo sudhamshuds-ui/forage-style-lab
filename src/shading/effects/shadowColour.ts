@@ -40,7 +40,7 @@ vec3 lab = linearToOklab(colour);
 
 // Core shadow: turn toward the ambient hue, keeping its richness (a tiny lift only).
 float cool = shade * 0.3 * uShadowMix;
-lab = turnHueToward(lab, linearToOklab(uShadowAmbient), cool);
+lab = turnHueTowardCool(lab, linearToOklab(uShadowAmbient), cool);
 lab.x += 0.02 * cool;
 
 // Warm bounce from the table on planes facing down.

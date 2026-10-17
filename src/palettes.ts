@@ -1,37 +1,34 @@
 import type { Settings } from './params';
-import { hexToOklch, lerpHue, oklchToHex } from './utils/colour';
+import { hexToOklch, oklchToHex } from './utils/colour';
 
 /**
- * Colour combos.
+ * Colour combos: the room around the ingredient.
  *
- * A palette sets every colour in the scene at once: the apple, its lit side,
- * shadow and highlight, stem and leaf, the light bouncing around, the wall, table,
- * cast shadow and frame. Choosing one in the panel copies these colours into
- * the (hidden) colour settings.
+ * The ingredient keeps its own natural colours (an apple is red: see the
+ * hidden Colour group in params.ts). A combo only sets the room and the light
+ * around it: the wall, the table, the ambient light borrowed from the room,
+ * the warm bounce light from below, and the cast shadow. Choosing one copies
+ * these into the (hidden) settings.
  *
- * Each combo follows the same soft-light painting rules (checked by palettes.test.ts):
- *   - the room is light, cool-leaning and muted: wall and table are pale,
- *     greyed colours (dusty blue, sage, stone, mauve), never candy colours
- *   - the fruit is the most saturated thing in the picture
- *   - the lit side is paler and warmer, but not bleached to white
- *   - shadows shift hue (red to wine to plum) and never go near black
- *   - the glow colour is a warmer, juicier version of the fruit colour,
- *     used where light passes through thin edges
- *   - bounce light from below is warm; the cast shadow on the table is cool
+ * Every room follows the painting rules of the reference paintings (checked
+ * by palettes.test.ts):
+ *   - the room complements the fruit: a cool hue, 70 to 150 degrees round the
+ *     colour wheel from it (coral with periwinkle, yellow with mint)
+ *   - the floor near the fruit is pale, where the light falls
+ *   - the ambient light borrows the room's hue; bounce light is warm
+ *   - the cast shadow is a deeper version of the room colour, never grey
+ *
+ * Two families: soft (a light, gently coloured room) and vivid (a saturated
+ * room, like the periwinkle and pink of the blood orange painting).
  */
 
-export interface PaletteColours {
-  base: string;
-  lit: string;
-  shadow: string;
-  highlight: string;
-  glow: string;
-  stem: string;
-  leaf: string;
-  ambient: string;
-  bounce: string;
+export type PaletteFamily = 'soft' | 'vivid';
+
+export interface RoomColours {
   wall: string;
   table: string;
+  ambient: string;
+  bounce: string;
   castShadow: string;
   frame: string;
 }
@@ -39,123 +36,142 @@ export interface PaletteColours {
 export interface Palette {
   id: string;
   name: string;
-  colours: PaletteColours;
+  family: PaletteFamily;
+  colours: RoomColours;
 }
 
-/** The colour combos shown in the picker, made for soft, natural light. */
+/** The old combos also set the fruit's colours. Kept for reference, not shown. */
+export interface ClassicPalette {
+  id: string;
+  name: string;
+  colours: RoomColours & {
+    base: string;
+    lit: string;
+    shadow: string;
+    highlight: string;
+    glow: string;
+    stem: string;
+    leaf: string;
+  };
+}
+
+/** The rooms shown in the picker. */
 export const PALETTES: Palette[] = [
   {
     id: 'linen',
     name: 'Linen',
+    family: 'soft',
     colours: {
-      base: '#ce5249',
-      lit: '#f78e64',
-      shadow: '#843d56',
-      glow: '#ed6531',
-      highlight: '#f5e5d3',
-      stem: '#5d6a33',
-      leaf: '#6c8c4a',
-      ambient: '#a1bbcf',
+      wall: '#babadd',
+      table: '#e4d4c7',
+      ambient: '#b6b3d6',
       bounce: '#cca17e',
-      wall: '#adc1cf',
-      table: '#bcafa0',
-      castShadow: '#5e6886',
+      castShadow: '#696d9a',
       frame: '#877e77',
     },
   },
   {
     id: 'sage-morning',
     name: 'Sage morning',
+    family: 'soft',
     colours: {
-      base: '#cc572a',
-      lit: '#ea9344',
-      shadow: '#793240',
-      glow: '#e36a00',
-      highlight: '#f6e9d5',
-      stem: '#606127',
-      leaf: '#6d853f',
-      ambient: '#a8bfa8',
+      wall: '#a0c8b6',
+      table: '#e0dacc',
+      ambient: '#98c2b2',
       bounce: '#c5a579',
-      wall: '#acbda8',
-      table: '#cac3b6',
-      castShadow: '#4e6e7e',
+      castShadow: '#4a7d6f',
       frame: '#7f8278',
     },
   },
   {
-    id: 'dusty-rose',
-    name: 'Dusty rose',
+    id: 'dusk',
+    name: 'Dusk',
+    family: 'soft',
     colours: {
-      base: '#c8536c',
-      lit: '#ed8d7d',
-      shadow: '#653161',
-      glow: '#e75e70',
-      highlight: '#fbe6df',
-      stem: '#626838',
-      leaf: '#6e8b50',
-      ambient: '#c3b1c1',
+      wall: '#a2b1d2',
+      table: '#e4cfc8',
+      ambient: '#a4b0d2',
       bounce: '#cea48c',
-      wall: '#bdabba',
-      table: '#cdb8b4',
-      castShadow: '#625f7e',
+      castShadow: '#596792',
       frame: '#867d84',
     },
   },
   {
     id: 'overcast',
     name: 'Overcast',
+    family: 'soft',
     colours: {
-      base: '#af2843',
-      lit: '#dc5f4e',
-      shadow: '#5e244d',
-      glow: '#d33a3c',
-      highlight: '#f2e5db',
-      stem: '#4f5f32',
-      leaf: '#5d8049',
-      ambient: '#98adc4',
+      wall: '#95b6ce',
+      table: '#c3d0da',
+      ambient: '#97b5cf',
       bounce: '#bc957b',
-      wall: '#95a7ba',
-      table: '#8b9ba6',
-      castShadow: '#4a5e80',
+      castShadow: '#43668a',
       frame: '#747b83',
     },
   },
   {
-    id: 'pear-light',
-    name: 'Pear light',
+    id: 'seafoam',
+    name: 'Seafoam',
+    family: 'soft',
     colours: {
-      base: '#a8b540',
-      lit: '#d7cf63',
-      shadow: '#286648',
-      glow: '#d0b80e',
-      highlight: '#f4f0d1',
-      stem: '#745837',
-      leaf: '#668e4f',
-      ambient: '#bab3cb',
+      wall: '#a4cfc0',
+      table: '#e3decc',
+      ambient: '#9bc9bf',
       bounce: '#ceaa80',
-      wall: '#bab3c8',
-      table: '#c9bba9',
-      castShadow: '#6e6a8a',
+      castShadow: '#47807f',
+      frame: '#768384',
+    },
+  },
+  {
+    id: 'heather',
+    name: 'Heather',
+    family: 'soft',
+    colours: {
+      wall: '#c5b6d8',
+      table: '#e8dbd1',
+      ambient: '#c1afd0',
+      bounce: '#d0a481',
+      castShadow: '#746b91',
       frame: '#817e88',
     },
   },
   {
-    id: 'honey',
-    name: 'Honey',
+    id: 'periwinkle',
+    name: 'Periwinkle',
+    family: 'vivid',
     colours: {
-      base: '#e19b1b',
-      lit: '#ebc75e',
-      shadow: '#82452f',
-      glow: '#f99603',
-      highlight: '#f7efd1',
-      stem: '#65572f',
-      leaf: '#668644',
-      ambient: '#98b8ba',
-      bounce: '#d0a481',
-      wall: '#92b2b3',
-      table: '#c6bcac',
-      castShadow: '#4a6f80',
-      frame: '#768384',
+      wall: '#a39ef9',
+      table: '#e2d9f5',
+      ambient: '#b191ea',
+      bounce: '#d7a57d',
+      castShadow: '#725ec2',
+      frame: '#7f7f89',
+    },
+  },
+  {
+    id: 'mint-light',
+    name: 'Mint light',
+    family: 'vivid',
+    colours: {
+      wall: '#85e0be',
+      table: '#e2e8d2',
+      ambient: '#78dac0',
+      bounce: '#d6b17d',
+      castShadow: '#209993',
+      frame: '#778380',
+    },
+  },
+  {
+    id: 'lilac',
+    name: 'Lilac',
+    family: 'vivid',
+    colours: {
+      wall: '#c39dee',
+      table: '#e9d7ed',
+      ambient: '#c793df',
+      bounce: '#d39e7a',
+      castShadow: '#7055b0',
+      frame: '#827e88',
     },
   },
 ];
@@ -164,7 +180,7 @@ export const PALETTES: Palette[] = [
  * The first set of combos, made for the old "strong gouache" look (deep walls,
  * saturated tables). Kept for reference and not shown in the picker.
  */
-export const CLASSIC_PALETTES: Palette[] = [
+export const CLASSIC_PALETTES: ClassicPalette[] = [
   {
     id: 'orchard',
     name: 'Orchard',
@@ -320,22 +336,13 @@ export const CLASSIC_PALETTES: Palette[] = [
 ];
 
 export function findPalette(id: string): Palette | undefined {
-  return [...PALETTES, ...CLASSIC_PALETTES].find((p) => p.id === id);
+  return PALETTES.find((p) => p.id === id);
 }
 
-/** Copy a palette's colours into the settings. */
+/** Copy a room's colours into the settings. The fruit's own colours are left alone. */
 export function applyPalette(settings: Settings, palette: Palette): void {
   const c = palette.colours;
   settings.palette.preset = palette.id;
-  Object.assign(settings.colour, {
-    base: c.base,
-    lit: c.lit,
-    shadow: c.shadow,
-    highlight: c.highlight,
-    glow: c.glow,
-    stem: c.stem,
-    leaf: c.leaf,
-  });
   Object.assign(settings.light, { ambient: c.ambient, bounce: c.bounce });
   Object.assign(settings.scene, {
     backgroundTop: c.wall,
@@ -345,83 +352,53 @@ export function applyPalette(settings: Settings, palette: Palette): void {
   });
 }
 
-/** Read the colours currently in the settings back out as a palette (used for "Shuffled"). */
-export function currentColours(settings: Settings): PaletteColours {
+/** Read the room colours currently in the settings (used for "Shuffled"). */
+export function currentColours(settings: Settings): RoomColours {
   return {
-    base: settings.colour.base,
-    lit: settings.colour.lit,
-    shadow: settings.colour.shadow,
-    highlight: settings.colour.highlight,
-    glow: settings.colour.glow,
-    stem: settings.colour.stem,
-    leaf: settings.colour.leaf,
-    ambient: settings.light.ambient,
-    bounce: settings.light.bounce,
     wall: settings.scene.backgroundTop,
     table: settings.scene.backgroundBottom,
+    ambient: settings.light.ambient,
+    bounce: settings.light.bounce,
     castShadow: settings.scene.shadowColour,
     frame: settings.scene.frameColour,
   };
 }
 
 const between = (min: number, max: number) => min + Math.random() * (max - min);
+const wrap = (h: number) => ((h % 360) + 360) % 360;
+const hueGap = (a: number, b: number) => Math.abs(((((a - b) % 360) + 540) % 360) - 180);
 
 /**
- * A brand new combo that follows the same soft-light rules:
- *   - pick a fruit hue (reds, oranges, yellows, greens, pinks) and make it rich
- *   - shadow: darker, and turned 25 to 45 degrees toward violet (cool shadows)
- *   - glow: a little lighter and juicier than the fruit, nudged toward orange
- *   - highlight: very light, low saturation, warm
- *   - wall and table: pale, greyed colours from anywhere on the wheel
- *   - ambient light borrows the wall; bounce light is a warm, soft tan
- *   - cast shadow: a cool blue-violet grey
- *
- * Very saturated colours can fall outside what a screen can show, and then
- * oklchToHex quietly lowers the saturation. If that leaves the fruit or its
- * glow too dull, we simply roll again.
+ * A brand new room around the fruit, following the same rules:
+ *   - the wall: a cool hue (150 to 310 degrees), 80 to 140 degrees round the
+ *     wheel from the fruit, either way
+ *   - ambient light: the wall's hue, a touch lighter
+ *   - table: pale, lightly tinted
+ *   - bounce: a warm, soft tan
+ *   - cast shadow: a deeper version of the wall colour
+ * Vivid rooms are more saturated, but never richer than the fruit.
  */
-export function shufflePalette(): Palette {
-  for (let attempt = 0; attempt < 20; attempt++) {
-    const palette = rollPalette();
-    const base = hexToOklch(palette.colours.base);
-    const glow = hexToOklch(palette.colours.glow);
-    if (base.c >= 0.13 && glow.c >= base.c) return palette;
-  }
-  return { ...PALETTES[0], id: 'shuffled', name: 'Shuffled' };
-}
-
-function rollPalette(): Palette {
-  // Fruit hues from pink-red (330) round through orange and yellow to green (140).
-  const hue = (330 + between(0, 170)) % 360;
-  const yellowish = hue > 60 && hue < 130;
-  const baseL = yellowish ? between(0.72, 0.78) : between(0.52, 0.62);
-  const baseC = between(0.14, 0.17);
-
-  // Turn the shadow toward violet (300), the short way round, by 25 to 45 degrees.
-  const toViolet = ((((300 - hue) % 360) + 540) % 360) - 180;
-  const shadowHue = hue + (toViolet >= 0 ? 1 : -1) * between(25, 45);
-
-  const wallHue = between(0, 360);
-  const tableHue = wallHue + (Math.random() < 0.5 ? -1 : 1) * between(60, 160);
-  const stemHue = between(115, 150);
-
-  return {
-    id: 'shuffled',
-    name: 'Shuffled',
-    colours: {
-      base: oklchToHex(baseL, baseC, hue),
-      lit: oklchToHex(Math.min(baseL + between(0.08, 0.12), 0.85), baseC * 0.9, lerpHue(hue, 65, 0.3)),
-      shadow: oklchToHex(between(0.36, 0.46), between(0.08, 0.11), shadowHue),
-      glow: oklchToHex(baseL + 0.03, baseC + 0.03, lerpHue(hue, 50, 0.2)),
-      highlight: oklchToHex(between(0.92, 0.95), between(0.02, 0.04), lerpHue(hue, 70, 0.6)),
-      stem: oklchToHex(between(0.45, 0.52), between(0.06, 0.09), stemHue),
-      leaf: oklchToHex(between(0.56, 0.62), between(0.08, 0.11), stemHue + between(-10, 10)),
-      ambient: oklchToHex(between(0.74, 0.8), between(0.03, 0.05), wallHue),
+export function shufflePalette(fruitBase: string, family: PaletteFamily = Math.random() < 0.5 ? 'soft' : 'vivid'): Palette {
+  const fruit = hexToOklch(fruitBase);
+  const vivid = family === 'vivid';
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const wallHue = wrap(fruit.h + (Math.random() < 0.5 ? -1 : 1) * between(80, 140));
+    if (wallHue < 155 || wallHue > 305 || hueGap(wallHue, fruit.h) < 75) continue;
+    const wallC = vivid ? between(0.1, Math.min(0.15, fruit.c)) : between(0.04, 0.07);
+    const colours: RoomColours = {
+      wall: oklchToHex(between(0.72, 0.84), wallC, wallHue),
+      table: oklchToHex(between(0.84, 0.92), vivid ? between(0.02, 0.06) : between(0.015, 0.04), Math.random() < 0.5 ? wallHue : between(50, 100)),
+      ambient: oklchToHex(between(0.74, 0.8), wallC, wallHue + between(-15, 15)),
       bounce: oklchToHex(between(0.7, 0.76), between(0.05, 0.09), between(35, 85)),
-      wall: oklchToHex(between(0.7, 0.84), between(0.02, 0.045), wallHue),
-      table: oklchToHex(between(0.72, 0.84), between(0.015, 0.04), tableHue),
-      castShadow: oklchToHex(between(0.44, 0.56), between(0.04, 0.07), between(220, 300)),
+      castShadow: oklchToHex(between(0.48, 0.6), vivid ? between(0.1, 0.15) : between(0.05, 0.08), wallHue + between(-15, 15)),
       frame: oklchToHex(between(0.56, 0.62), between(0.01, 0.025), wallHue),
-    },
-  };
+    };
+    // Very saturated colours can fall outside what a screen shows and lose some
+    // saturation; roll again if a vivid wall ends up too dull.
+    if (vivid && hexToOklch(colours.wall).c < 0.095) continue;
+    if (vivid && hexToOklch(colours.castShadow).c < 0.085) continue;
+    return { id: 'shuffled', name: 'Shuffled', family, colours };
+  }
+  const fallback = PALETTES.find((p) => p.family === family) ?? PALETTES[0];
+  return { ...fallback, id: 'shuffled', name: 'Shuffled' };
 }

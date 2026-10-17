@@ -1,5 +1,4 @@
 import { GROUPS, SPECS, isVisible, type Settings, type Spec } from './params';
-import { PALETTES, applyPalette } from './palettes';
 
 /**
  * Randomize: new values that still look good.
@@ -8,7 +7,8 @@ import { PALETTES, applyPalette } from './palettes';
  *   - sliders pick from their "nice" range in params.ts
  *   - lists pick any option (or only from `randomOptions`, when a list has them)
  *   - toggles marked `random: true` flip a coin
- *   - the colour combo is one of the presets
+ *   - colours are left alone: the ingredient keeps its own colours and the
+ *     room keeps its combo (pick or Shuffle one in the Colour combo picker)
  */
 
 const between = (min: number, max: number) => min + Math.random() * (max - min);
@@ -37,6 +37,5 @@ export function randomSettings(current: Settings): Settings {
     }
   }
 
-  applyPalette(next, pick(PALETTES));
   return next;
 }

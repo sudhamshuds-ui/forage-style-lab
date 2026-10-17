@@ -36,7 +36,7 @@ colour = max(oklabToLinear(lab), 0.0);
 float pull = smoothstep(0.42, 0.72, bloomHue) * 0.35 * uWashBleed;
 colour = mixOklch(colour, uGlowColour, pull * tone);
 // In shadow, only the hue drifts toward the room colour, so it never greys out.
-lab = turnHueToward(linearToOklab(colour), linearToOklab(uWashAmbient), pull * (1.0 - tone) * 0.6);
+lab = turnHueTowardCool(linearToOklab(colour), linearToOklab(uWashAmbient), pull * (1.0 - tone) * 0.6);
 colour = max(oklabToLinear(lab), 0.0);
 `,
   update(settings) {
