@@ -183,9 +183,14 @@ void main() {
   lab = slabs(lab, p);
 
   // 3. A soft, deep contact shadow right under the apple, in the shadow's own hue.
-  float d = length(floorPos - uApple) / uAppleRadius;
-  // Reaches a little past the apple's outline, so no lit sliver shows between apple and shadow.
-  float contact = (1.0 - smoothstep(0.6, 1.2, d)) * (1.0 - smoothstep(0.0, 0.2, height));
+  // Tucked right under the apple, and only on the side away from the light, so
+  // the lit side stays clean (the crisp cast shadow does the rest).
+  vec2 fromApple = floorPos - uApple;
+  float d = length(fromApple) / uAppleRadius;
+  vec2 lightFlat = length(uLightDir.xz) > 0.05 ? normalize(uLightDir.xz) : vec2(0.0);
+  float awayFromLight = smoothstep(-0.2, 0.5, dot(fromApple / max(length(fromApple), 1e-4), -lightFlat));
+  float contactReach = mix(0.45, 1.0, awayFromLight);
+  float contact = (1.0 - smoothstep(contactReach - 0.08, contactReach, d)) * (1.0 - smoothstep(0.0, 0.2, height));
   vec3 contactLab = linearToOklab(uContact);
   contactLab.x -= 0.08;
   lab = mix(lab, contactLab, contact * 0.55);

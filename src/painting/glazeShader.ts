@@ -200,11 +200,12 @@ vec3 loseEdges(vec3 colour, vec2 px, float highlight) {
   // Only the side facing away from the light gets lost.
   float shadowSide = smoothstep(0.15, -0.6, dot(outward, uLightScreen));
 
-  // Edges melt more where the apple and its surroundings are close in value.
   float valueGap = abs(lightIn / cover - lightOut / (16.0 - cover));
-  float similar = 1.0 - smoothstep(0.05, 0.3, valueGap);
+  // Edges only melt into something close in value (like the apple's own cast
+  // shadow), never into bright, lit floor, which would leave a dark smear.
+  float similar = 1.0 - smoothstep(0.06, 0.22, valueGap);
 
-  float amount = uEdgeSoftness * shadowSide * band * mix(0.55, 1.0, similar) * (1.0 - highlight);
+  float amount = uEdgeSoftness * shadowSide * band * similar * (1.0 - highlight);
   return mixOklab(colour, max(oklabToLinear(sum), 0.0), clamp(amount, 0.0, 1.0));
 }
 
