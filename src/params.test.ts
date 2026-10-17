@@ -32,6 +32,18 @@ describe('panel', () => {
   });
 });
 
+describe('highlights', () => {
+  it('starts with the soft sheen, not the window shape', () => {
+    expect(DEFAULTS.highlight.shape).toBe('sheen');
+  });
+
+  it('Randomize only picks the soft highlight styles', () => {
+    for (let i = 0; i < 100; i++) {
+      expect(['sheen', 'speckle']).toContain(randomSettings(structuredClone(DEFAULTS)).highlight.shape);
+    }
+  });
+});
+
 describe('randomize', () => {
   it('keeps every visible slider inside its nice range and leaves hidden values alone', () => {
     for (let i = 0; i < 200; i++) {

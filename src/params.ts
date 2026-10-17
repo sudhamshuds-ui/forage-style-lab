@@ -25,7 +25,8 @@ export interface Vec2 {
 /** Options for the list controls. The shaders use each option's position in its list. */
 export const BRUSHES = ['flat', 'round', 'knife', 'dry'] as const;
 export const PATTERNS = ['none', 'lines', 'scribble', 'crosshatch'] as const;
-export const HIGHLIGHT_SHAPES = ['window', 'panes', 'square', 'dashes', 'streak', 'dot', 'none'] as const;
+// New options go at the end: the shader reads each option by its position in this list.
+export const HIGHLIGHT_SHAPES = ['window', 'panes', 'square', 'dashes', 'streak', 'dot', 'none', 'sheen', 'speckle'] as const;
 
 export type Brush = (typeof BRUSHES)[number];
 export type Pattern = (typeof PATTERNS)[number];
@@ -162,8 +163,8 @@ export const DEFAULTS: Settings = {
     shadowColour: 60,
   },
   highlight: {
-    shape: 'window',
-    size: 45,
+    shape: 'sheen',
+    size: 32,
     rimGlints: true,
   },
   scene: {
@@ -234,7 +235,14 @@ export type Spec = (
       /** Set to false to keep Randomize away from this value. */
       random?: boolean;
     }
-  | { kind: 'list'; label: string; options: { value: string; label: string }[]; random?: boolean }
+  | {
+      kind: 'list';
+      label: string;
+      options: { value: string; label: string }[];
+      random?: boolean;
+      /** If set, Randomize only picks from these options. */
+      randomOptions?: string[];
+    }
   | { kind: 'colour'; label: string }
   | { kind: 'toggle'; label: string; random?: boolean }
   | { kind: 'pad'; label: string; nice: { x: [number, number]; y: [number, number] } }
@@ -311,7 +319,11 @@ export const SPECS: SpecTable = {
       kind: 'list',
       label: 'Shape',
       random: true,
+      // The hard-edged shapes stay available, but Randomize sticks to the soft, believable ones.
+      randomOptions: ['sheen', 'speckle'],
       options: [
+        { value: 'sheen', label: 'Soft sheen' },
+        { value: 'speckle', label: 'Dry speckle' },
         { value: 'window', label: 'Window' },
         { value: 'panes', label: 'Four panes' },
         { value: 'square', label: 'Square fleck' },

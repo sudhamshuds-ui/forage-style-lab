@@ -3,9 +3,16 @@ import { HIGHLIGHT_SHAPES } from '../../params';
 import type { ShaderEffect } from '../effect';
 
 /**
- * Highlights: crisp dabs of pale paint, like the window shapes in the reference.
+ * Highlights: where the surface mirrors the light.
  *
- * Two parts:
+ * The default styles are soft and believable, like the references:
+ *  - Soft sheen: a gentle pale glaze where the surface faces the light, taking
+ *    the shape of whichever facet catches it, with a broken, dry-brush edge.
+ *  - Dry speckle: a lighter sheen plus a scatter of small pale specks, like the
+ *    dry-brush highlight on the strawberry in the cake painting.
+ * Both are painted on the apple's own surface, so they stay put as it turns.
+ *
+ * The older hard-edged shapes are still in the list:
  *
  *  1. A shape (window, panes, square, dashes, streak or dot) painted onto the
  *     surface around the spot that mirrors the light. We work out that spot
@@ -90,6 +97,28 @@ float highlightShape(vec2 q, float shape, float aa) {
 vec3 H = normalize(L + V);
 float facingLight = dot(N, H);
 
+if (uHighlightShape > 6.5) {
+  // Soft sheen / dry speckle. Size sets how broad the sheen is.
+  float start = 0.985 - uHighlightSize * 0.18;
+  float sheen = smoothstep(start, start + 0.035, facingLight);
+  // A broken, dry-brush edge: the glaze thins out unevenly toward its rim.
+  float tooth = valueNoise3(objectPos * 16.0) * 0.6 + valueNoise3(objectPos * 41.0) * 0.4;
+  sheen *= smoothstep(0.25, 0.55, tooth + (sheen - 0.5) * 0.8);
+  float amount = sheen * 0.38;
+  if (uHighlightShape > 7.5) {
+    // Dry speckle: a fainter sheen, plus small pale specks in a wider area around it.
+    float zone = smoothstep(start - 0.05, start + 0.01, facingLight);
+    float specks = step(0.78, valueNoise3(objectPos * 55.0)) * zone;
+    amount = max(sheen * 0.3, specks * 0.85);
+  }
+  // Rim glints still catch the light on tight curves (see below).
+  float curvature = length(fwidth(N)) / max(length(fwidth(worldPos)), 1e-5);
+  float glint = smoothstep(0.93, 0.95, facingLight) * smoothstep(3.0, 8.0, curvature);
+  glint *= smoothstep(0.4, 0.48, valueNoise3(objectPos * 11.0)) * uRimGlints;
+  highlightMask = max(amount, glint);
+  colour = mix(colour, uHighlightColour, highlightMask);
+} else {
+
 // 1. The shape, drawn flat on this plane around the anchor spot.
 vec3 offset = worldPos - uHighlightAnchor;
 vec3 axisX = uCameraRight - N * dot(uCameraRight, N);
@@ -108,6 +137,7 @@ glint *= smoothstep(0.4, 0.48, valueNoise3(objectPos * 11.0)) * uRimGlints;
 
 highlightMask = max(shapeMask, glint);
 colour = mix(colour, uHighlightColour, highlightMask);
+}
 `,
   update(settings, context) {
     // The anchor: the point on a ball around the apple that mirrors the light toward the camera.

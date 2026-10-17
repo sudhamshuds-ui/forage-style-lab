@@ -6,7 +6,7 @@ import { PALETTES, applyPalette } from './palettes';
  *
  * Only visible controls change. Hidden ones (shape, lighting) keep their values.
  *   - sliders pick from their "nice" range in params.ts
- *   - lists pick any option
+ *   - lists pick any option (or only from `randomOptions`, when a list has them)
  *   - toggles marked `random: true` flip a coin
  *   - the colour combo is one of the presets
  */
@@ -25,7 +25,7 @@ export function randomSettings(current: Settings): Settings {
         const raw = between(spec.nice[0], spec.nice[1]);
         values[key] = Math.round(raw / spec.step) * spec.step;
       } else if (spec.kind === 'list' && spec.random) {
-        values[key] = pick(spec.options).value;
+        values[key] = spec.randomOptions ? pick(spec.randomOptions) : pick(spec.options).value;
       } else if (spec.kind === 'toggle' && spec.random) {
         values[key] = Math.random() < 0.6;
       } else if (spec.kind === 'pad') {
