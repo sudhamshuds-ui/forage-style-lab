@@ -77,10 +77,18 @@ float bristles(float v, float seed) {
   return noise1(v * 6.0 + seed * 57.0) * 0.6 + noise1(v * 17.0 + seed * 23.0) * 0.4;
 }
 
+// The angle of a direction. atan(0, 0) has no answer: on plain backdrop the
+// flow pass finds no edge and stores exactly (0, 0), and some GPUs (Macs)
+// return NaN ("not a number") there. NaN spreads through every step after it
+// and paints those pixels black. No direction at all simply counts as 0 here.
+float safeAtan(float y, float x) {
+  return abs(x) + abs(y) < 1e-8 ? 0.0 : atan(y, x);
+}
+
 // Two angles that mean the same line (a and a + 180 degrees) are blended correctly.
 float mixAngle(float a, float b, float t) {
   vec2 m = mix(vec2(cos(2.0 * a), sin(2.0 * a)), vec2(cos(2.0 * b), sin(2.0 * b)), t);
-  return 0.5 * atan(m.y, m.x);
+  return 0.5 * safeAtan(m.y, m.x);
 }
 
 // ---------------------------------------------------------------------------
@@ -113,7 +121,7 @@ float brushShape(vec2 local, float halfLen, float halfWid, vec4 rnd) {
 
   if (uBrush < 1.5) {
     // Round brush: an oval dab with a slightly uneven edge.
-    float edge = 1.0 - 0.1 * noise1(atan(v, u) * 2.0 + rnd.y * 30.0);
+    float edge = 1.0 - 0.1 * noise1(safeAtan(v, u) * 2.0 + rnd.y * 30.0);
     float aaN = aa / min(halfLen, halfWid);
     return 1.0 - smoothstep(edge - aaN, edge + aaN, length(vec2(u, v)));
   }
@@ -165,7 +173,7 @@ float patternMask(vec2 local, float halfWid, vec4 rnd) {
 // ---------------------------------------------------------------------------
 float strokeAngle(vec2 centreUv, float onObject, vec4 rnd) {
   vec4 flow = texture2D(tFlow, centreUv);
-  float edgeAngle = 0.5 * atan(flow.y, flow.x);
+  float edgeAngle = 0.5 * safeAtan(flow.y, flow.x);
   float confidence = clamp(length(flow.xy) * 1.5, 0.0, 1.0);
 
   float fallback;
