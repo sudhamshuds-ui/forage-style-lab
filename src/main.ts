@@ -83,6 +83,7 @@ const paintFrame: PaintFrame = {
   objectUv: new Vector2(0.5, 0.5),
   objectRadius: 0.2,
   objectBase: context.objectColours.base,
+  pieces: [],
 };
 
 /** Switch the room combo to the one the ingredient's colour family suggests (board 04). */
@@ -179,6 +180,13 @@ function updatePaintFrame(): void {
   // In screen heights: the NDC y range is 2 units tall.
   paintFrame.objectRadius = Math.abs(projectedTop.y - projected.y) * 0.5;
   paintFrame.objectBase = context.objectColours.base;
+
+  // Where each piece meets the table, on the card: its contact point and its size on screen.
+  paintFrame.pieces = context.contacts.map((spot) => {
+    const floor = new Vector3(spot.x, context.groundY, spot.y).project(stage.camera);
+    const above = new Vector3(spot.x, context.groundY, spot.y).addScaledVector(stage.camera.up, spot.z).project(stage.camera);
+    return new Vector3(floor.x * 0.5 + 0.5, floor.y * 0.5 + 0.5, Math.abs(above.y - floor.y) * 0.5);
+  });
 }
 
 function update(): void {

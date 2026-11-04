@@ -1,6 +1,7 @@
 import { colourGLSL } from '../shading/chunks/colour.glsl';
 import { noiseGLSL } from '../shading/chunks/noise.glsl';
 import { frameGLSL } from './frame.glsl';
+import { MAX_CONTACTS } from '../scene/background';
 
 /**
  * Glaze pass: the default way the underpainting becomes a painting.
@@ -14,7 +15,14 @@ import { frameGLSL } from './frame.glsl';
  *   0. Cast shadow: the floor only marks where the shadow falls (alpha 0..0.2);
  *      here it is painted as one clear shape: crisp edged, darkest and
  *      richest where the apple touches the table, lighter and bluer further
- *      away. Near the apple it picks up the apple's own colour in soft
+ *      away. With several pieces (a cluster) the rules are:
+ *        - their shadows merge into one shape, never darker where they overlap,
+ *        - each stretch of shadow belongs to the nearest piece: darkness and
+ *          colour are measured from where that piece sits, not from the
+ *          group's middle,
+ *        - the deep contact patch sits only under each piece, on its side
+ *          away from the light (never a rim round the whole outline),
+ *        - where two pieces meet, a soft, slightly darker crevice. Near the apple it picks up the apple's own colour in soft
  *      patches, like light passing through and bouncing off the fruit, plus
  *      soft teal and lavender patches (iridescent, like the lemon painting).
  *      (Shadow colour)
@@ -51,6 +59,10 @@ uniform float uEdgeSoftness;
 uniform float uTexture;
 uniform vec2 uObjectUv;
 uniform float uObjectRadius;
+// Where each piece sits on the card: x, y (0..1) of its contact with the table, and its radius
+// (in screen heights). One for a solo ingredient, one per member of a cluster.
+uniform vec3 uPieces[${MAX_CONTACTS}];
+uniform int uPieceCount;
 uniform vec3 uShadowColour;
 uniform vec3 uShadowAccent;
 uniform float uShadowAmount;
@@ -98,8 +110,13 @@ float shadowMaskAt(vec2 uv) {
 // contact: 0..1, how close we are to where the apple touches the table.
 vec4 shadowPaint(vec2 uv, float contact) {
   float aspect = uResolution.x / uResolution.y;
-  float dist = length((uv - uObjectUv) * vec2(aspect, 1.0));
-  float far = smoothstep(uObjectRadius * 0.6, uObjectRadius * 2.2, dist);
+  // Measured from the nearest piece, so each stretch of shadow belongs to its own caster.
+  float far = 1.0;
+  for (int i = 0; i < ${MAX_CONTACTS}; i++) {
+    if (i >= uPieceCount) break;
+    float dist = length((uv - uPieces[i].xy) * vec2(aspect, 1.0));
+    far = min(far, smoothstep(uPieces[i].z * 0.6, uPieces[i].z * 2.2, dist));
+  }
 
   vec3 lab = linearToOklab(uShadowColour);
   float chroma = length(lab.yz);
@@ -133,17 +150,30 @@ vec4 shadowPaint(vec2 uv, float contact) {
   return vec4(lab, strength);
 }
 
-// 0..1: is the apple right next to this pixel, in the direction of its centre?
+// 0..1: how close this pixel is to where a piece sits on the table. A flat oval round each
+// piece's contact point (the table seen from a low camera), stronger on the side away from
+// the light. Two pieces' patches never add up to more than one, except a little extra where
+// they meet: the crevice between two berries.
 float contactAt(vec2 uv) {
-  vec2 toward = uObjectUv - uv;
-  float len = length(toward * vec2(uResolution.x / uResolution.y, 1.0));
-  if (len < 1e-4) return 0.0;
-  float maxReach = 0.06;
-  vec2 stepUv = toward / len * maxReach / 6.0;
-  for (int i = 1; i <= 6; i++) {
-    if (objectAt(uv + stepUv * float(i)) > 0.5) return 1.0 - float(i - 1) / 6.0;
+  float aspect = uResolution.x / uResolution.y;
+  float best = 0.0;
+  float second = 0.0;
+  for (int i = 0; i < ${MAX_CONTACTS}; i++) {
+    if (i >= uPieceCount) break;
+    vec2 d = (uv - uPieces[i].xy) * vec2(aspect, 1.0);
+    float r = max(uPieces[i].z, 1e-4);
+    float reach = length(vec2(d.x, d.y * 3.0)) / r;
+    float near = 1.0 - smoothstep(0.3, 0.95, reach);
+    float away = smoothstep(-0.3, 0.4, dot(d / max(length(d), 1e-4), -uLightScreen));
+    float c = near * mix(0.35, 1.0, away);
+    if (c > best) {
+      second = best;
+      best = c;
+    } else {
+      second = max(second, c);
+    }
   }
-  return 0.0;
+  return min(1.0, best + 0.5 * second);
 }
 
 // The backdrop colour with the cast shadow painted in (the cheap version,

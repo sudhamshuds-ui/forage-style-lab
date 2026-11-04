@@ -8,10 +8,12 @@ import {
   Scene,
   ShaderMaterial,
   Vector2,
+  Vector3,
   WebGLRenderTarget,
   type WebGLRenderer,
 } from 'three';
 import { BRUSHES, PATTERNS, type Settings } from '../params';
+import { MAX_CONTACTS } from '../scene/background';
 import { flowFragmentShader, flowVertexShader } from './flowShader';
 import { glazeFragmentShader, glazeVertexShader } from './glazeShader';
 import { paintFragmentShader, paintVertexShader } from './paintShader';
@@ -24,6 +26,11 @@ export interface PaintFrame {
   objectUv: Vector2;
   /** The apple's radius as a fraction of the screen height. */
   objectRadius: number;
+  /**
+   * Where each piece sits on the card: x, y (0..1) of its contact with the table and its
+   * radius (screen heights). One for a solo ingredient, one per member of a cluster.
+   */
+  pieces: Vector3[];
   /** The ingredient's base colour, reflected into its cast shadow. */
   objectBase: string;
 }
@@ -107,6 +114,8 @@ export class Painter {
         uLightScreen: { value: new Vector2(0, 1) },
         uObjectUv: { value: new Vector2(0.5, 0.5) },
         uObjectRadius: { value: 0.2 },
+        uPieces: { value: Array.from({ length: MAX_CONTACTS }, () => new Vector3(0.5, 0.3, 0.2)) },
+        uPieceCount: { value: 0 },
         uWashBleed: { value: 0.55 },
         uEdgeSoftness: { value: 0.5 },
         uTexture: { value: 0.3 },
@@ -199,6 +208,9 @@ export class Painter {
     glaze.uLightScreen.value.copy(frame.lightScreen);
     glaze.uObjectUv.value.copy(frame.objectUv);
     glaze.uObjectRadius.value = frame.objectRadius;
+    const pieces = frame.pieces.slice(0, MAX_CONTACTS);
+    pieces.forEach((piece, i) => (glaze.uPieces.value as Vector3[])[i].copy(piece));
+    glaze.uPieceCount.value = pieces.length;
     glaze.uWashBleed.value = settings.paint.washBleed / 100;
     glaze.uEdgeSoftness.value = settings.paint.edgeSoftness / 100;
     glaze.uTexture.value = settings.paint.texture / 100;

@@ -85,7 +85,15 @@ keep code readable with friendly comments.
 - **Cast shadows on the fruit**: ingredient materials read the key light's shadow map
   (`lightMask` in the shader), so sepals, stems and neighbours shade the fruit. A cast shadow
   drops the surface one tone band (to the middle tone, coloured, never grey); it fades out at
-  the light-to-shadow line (no acne), and the shadow map is soft (radius 4), never jagged.
+  the light-to-shadow line (no acne). The shadow map is fine (4096) with a small blur
+  (radius 2): a clean edge, never jagged, never a fuzzy fringe.
+- **Shadow rules for several pieces** (cluster now, dishes later; glaze `uPieces`, backdrop
+  `uContacts`, up to `MAX_CONTACTS` = 4): (1) one shared shadow shape, never darker where
+  shadows overlap; (2) each stretch of shadow belongs to the nearest piece: darkness and
+  colour (lighter and bluer as it travels) are measured from where that piece sits, never
+  from the group's middle; (3) the deep contact patch is a flat oval under each piece, on
+  its side away from the light, never a rim round the outline; (4) a soft, slightly darker
+  crevice where two pieces meet; (5) pieces shade each other with real cast shadows.
 - **Shuffle ingredient** swaps to a random different ingredient with a short fade, frames
   it, paints it with its family and switches the room to the family's suggested room.
   Reset keeps that room. No physics, no multi-ingredient table on this branch.

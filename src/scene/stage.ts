@@ -68,9 +68,11 @@ export class Stage {
 
     this.keyLight = new DirectionalLight(0xffffff, 1);
     this.keyLight.castShadow = true;
-    this.keyLight.shadow.mapSize.set(2048, 2048);
-    // Soft edges: shadows on the fruit (a leaf, a neighbour) must never look jagged.
-    this.keyLight.shadow.radius = 4;
+    // Fine enough that a sepal's shadow on a small berry has a clean, smooth edge.
+    this.keyLight.shadow.mapSize.set(4096, 4096);
+    // A clean edge: the softness of a cast shadow comes from the paint (glaze), not a wide
+    // shadow-map blur, which frays the edge into a fuzzy fringe.
+    this.keyLight.shadow.radius = 2;
     this.keyLight.shadow.bias = -0.0002;
     // Small biases keep the shadow tucked right under the apple (no gap at the contact).
     this.keyLight.shadow.normalBias = 0.006;
