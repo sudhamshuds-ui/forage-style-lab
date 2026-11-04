@@ -3,18 +3,19 @@ import { randomStrokes } from '../randomize';
 import type { Panel } from './panel';
 
 /**
- * The buttons: Reset and Copy settings under the panel, and Randomize (which
- * lives in the Style section and only shows while Playful strokes is on).
- * Returns the Randomize action for the panel's button.
+ * The buttons: Reset under the panel, and Randomize (which lives in the Style
+ * section and only shows while Playful strokes is on). Returns the Randomize
+ * action for the panel's button. (Copy settings was removed at the user's
+ * request, 2026-11-05.)
  *
- * `ingredient` tells the buttons which ingredient is on stage: Copy settings
- * names it, and Reset puts its room back after restoring the default style.
+ * `ingredient.afterReset` puts the ingredient's room back after Reset restores
+ * the default style.
  */
 export function setupActions(
   settings: Settings,
   panel: Panel,
   onApplied: () => void,
-  ingredient: { ingredientId: () => string; afterReset: () => void },
+  ingredient: { afterReset: () => void },
 ): { randomize: () => void } {
   const apply = (next: Settings, after?: () => void) => {
     applySettings(settings, next);
@@ -24,12 +25,6 @@ export function setupActions(
   };
 
   button('btn-reset').addEventListener('click', () => apply(defaultSettings(), ingredient.afterReset));
-  button('btn-copy').addEventListener('click', async () => {
-    const json = JSON.stringify({ ingredient: ingredient.ingredientId(), version: 2, ...settings }, null, 2);
-    const copied = await copyText(json);
-    showToast(copied ? 'Settings copied as JSON' : 'Could not copy. Check the browser console.');
-    if (!copied) console.log(json);
-  });
 
   return { randomize: () => apply(randomStrokes(settings)) };
 }
@@ -45,32 +40,4 @@ function applySettings(target: Settings, source: Settings): void {
 
 function button(id: string): HTMLButtonElement {
   return document.getElementById(id) as HTMLButtonElement;
-}
-
-async function copyText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    // Older fallback for browsers that block the clipboard API.
-    const area = document.createElement('textarea');
-    area.value = text;
-    area.style.position = 'fixed';
-    area.style.opacity = '0';
-    document.body.append(area);
-    area.select();
-    const ok = document.execCommand('copy');
-    area.remove();
-    return ok;
-  }
-}
-
-let toastTimer = 0;
-function showToast(message: string): void {
-  const toast = document.getElementById('toast');
-  if (!toast) return;
-  toast.textContent = message;
-  toast.classList.add('is-visible');
-  window.clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => toast.classList.remove('is-visible'), 1800);
 }

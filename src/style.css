@@ -41,31 +41,6 @@ body {
   min-height: 100svh;
 }
 
-/* Brand mark, top left */
-.brand {
-  position: fixed;
-  top: 20px;
-  left: 24px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 2;
-}
-.brand-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #d96a30, #b8232f 55%, #4e1638);
-}
-.brand-name {
-  font-weight: 600;
-  font-size: 14px;
-}
-.brand-sub {
-  color: var(--ink-3);
-  font-size: 14px;
-}
-
 /* The artwork card */
 .stage-area {
   display: flex;
@@ -155,7 +130,7 @@ body {
 }
 .panel-foot {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
   padding: 12px 14px 14px;
   border-top: 1px solid var(--line);
@@ -190,27 +165,6 @@ body {
 }
 .btn-primary:hover {
   background: #36342f;
-}
-
-/* Small confirmation message */
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 28px;
-  padding: 9px 16px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 500;
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, 8px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-.toast.is-visible {
-  opacity: 1;
-  transform: translate(-50%, 0);
 }
 
 /* Phones and narrow windows: card on top, panel below */

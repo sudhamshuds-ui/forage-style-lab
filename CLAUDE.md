@@ -20,9 +20,10 @@ keep code readable with friendly comments.
   muted (not candy) surroundings. `02` and `03` support them; `90-avoid-stroke-clutter.png`
   shows what must never happen. `references/apple` is the old direction (kept for history);
   `references/ui` is the tool's look. Design: `docs/superpowers/specs/2026-10-17-painterly-design.md`.
+- No brand mark and no toast on the page (removed 2026-11-05): just the card and the panel.
 - The panel is deliberately small: the ingredient's name and Shuffle ingredient in the
   head; Style (Playful strokes, and Randomize only while it is on); Paint (Brushiness, Wash
-  bleed, Edge softness); plus Reset and Copy settings. **Hidden, not deleted** (still
+  bleed, Edge softness); plus Reset (Copy settings was removed, 2026-11-05). **Hidden, not deleted** (still
   working, in `src/params.ts`): the colour combo picker, Light, Texture, Highlights, Scene,
   the detailed brush controls, Form (Faceted, off) and the apple's shape sliders, the
   lighting and the individual colours. Never delete hidden controls;
@@ -33,7 +34,8 @@ keep code readable with friendly comments.
 - The ingredient keeps its **own natural colours** (the apple is red; hidden Colour group).
   The user picks a **room combo** (wall, table, ambient and bounce light, cast shadow), not
   individual colours. Randomize never changes colours.
-- Idle spin is off by default.
+- **Idle spin is on by default**: a slow turntable that pauses while you drag the view and
+  comes back 4 seconds after you let go (`Stage.setIdleSpin`; Scene > Idle spin, hidden).
 - **Facets are retired.** Every form is smooth and rounded, the apple included (the hidden
   Faceted switch is off). No stamped dabs on the apple. Highlights are
   soft and believable (Soft sheen, Dry speckle); the hard window shapes are kept but not

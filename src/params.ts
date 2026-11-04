@@ -184,7 +184,8 @@ export const DEFAULTS: Settings = {
   },
   scene: {
     backdrop: 40,
-    idleSpin: false,
+    // On (the user, 2026-11-05): a slow turntable that pauses while you drag the view.
+    idleSpin: true,
     backdropStrokes: 72,
     frame: false,
     frameColour: '#877e77',

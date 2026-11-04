@@ -29,11 +29,11 @@ describe('panel', () => {
     expect(SPECS.paint.texture.hidden).toBe(true);
   });
 
-  it('starts refined and smooth, with the frame and idle spin off', () => {
+  it('starts refined and smooth, with the frame off and the idle spin on', () => {
     expect(DEFAULTS.brush.classic).toBe(false);
     expect(DEFAULTS.shape.faceted).toBe(false);
     expect(DEFAULTS.scene.frame).toBe(false);
-    expect(DEFAULTS.scene.idleSpin).toBe(false);
+    expect(DEFAULTS.scene.idleSpin).toBe(true);
     expect(DEFAULTS.highlight.shape).toBe('sheen');
   });
 });

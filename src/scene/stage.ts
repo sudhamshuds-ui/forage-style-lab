@@ -19,6 +19,9 @@ import type { Vec2 } from '../params';
  * Painting every frame is costly, so the stage only redraws when something
  * changed: the camera moved, the panel changed (invalidate) or the size changed.
  */
+/** Seconds after you let go of the view before the idle spin comes back. */
+const SPIN_RESUME = 4;
+
 export class Stage {
   readonly renderer: WebGLRenderer;
   readonly scene = new Scene();
@@ -39,6 +42,10 @@ export class Stage {
   private readonly roomFrame = new Quaternion();
   private readonly bufferSize = new Vector2();
   private readonly homeTarget = new Vector3();
+  /** Idle spin: switched on, and seconds left before it may come back after a drag. */
+  private spinWanted = false;
+  private dragging = false;
+  private spinResumeIn = 0;
 
   constructor(canvas: HTMLCanvasElement, private readonly frame: HTMLElement) {
     this.renderer = new WebGLRenderer({ canvas, antialias: false });
@@ -63,6 +70,12 @@ export class Stage {
     this.controls.update();
     this.camera.updateMatrixWorld();
     this.roomFrame.copy(this.camera.quaternion);
+    // Dragging the view pauses the idle spin; it comes back a few seconds after you let go.
+    this.controls.addEventListener('start', () => (this.dragging = true));
+    this.controls.addEventListener('end', () => {
+      this.dragging = false;
+      this.spinResumeIn = SPIN_RESUME;
+    });
     this.homeCamera = this.camera.clone();
     this.homeTarget.copy(this.controls.target);
 
@@ -130,8 +143,12 @@ export class Stage {
     this.invalidate();
   }
 
+  /**
+   * The idle spin: a slow turntable. Switched on or off here (Scene > Idle spin); it
+   * pauses while you drag the view and comes back a few seconds after you let go.
+   */
   setIdleSpin(enabled: boolean, speed: number): void {
-    this.controls.autoRotate = enabled;
+    this.spinWanted = enabled;
     this.controls.autoRotateSpeed = (speed / 100) * 4;
   }
 
@@ -145,6 +162,10 @@ export class Stage {
     this.renderer.setAnimationLoop((now) => {
       const delta = Math.min((now - last) / 1000, 0.1);
       last = now;
+      // The idle spin turns only while switched on, not while you drag, and not until a
+      // few seconds after you let go.
+      this.spinResumeIn = Math.max(0, this.spinResumeIn - delta);
+      this.controls.autoRotate = this.spinWanted && !this.dragging && this.spinResumeIn <= 0;
       const cameraMoved = this.controls.update(delta);
       if (!cameraMoved && !this.needsRender) return;
       this.needsRender = false;

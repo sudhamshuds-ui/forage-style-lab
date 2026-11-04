@@ -59,7 +59,6 @@ const pane = createPanel(
   () => actions.randomize(),
 );
 const actions = setupActions(settings, pane, () => onSettingsChanged(), {
-  ingredientId: () => subject.entry.spec.id,
   // Reset brings back the default style, but the room stays the one that suits this ingredient.
   afterReset: () => applyRoom(subject.entry),
 });
