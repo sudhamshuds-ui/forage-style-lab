@@ -26,6 +26,9 @@ uniform float uBands;
 // like soft window light in a bright room, so the shadow side stays open
 // and luminous instead of swallowing the apple.
 float facing = clamp((dot(N, L) + 0.55) / 1.55, 0.0, 1.0);
+// A cast shadow (a leaf, a neighbour) drops this point one band down, into the middle tone,
+// so a small leaf throws a light, coloured shadow: never grey, never a heavy slab.
+facing = min(facing, mix(0.42, 1.0, lightMask));
 
 // Count how many band edges this point is above.
 float steps = 0.0;

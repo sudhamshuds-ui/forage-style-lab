@@ -3,7 +3,7 @@ import type { Settings } from '../params';
 import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
 import { mixHex } from '../utils/colour';
-import { setSkin } from '../shading/effects/skinTexture';
+import { LEAF_SKIN, setSkin } from '../shading/effects/skinTexture';
 import { FAMILIES } from './families';
 import { seedFromId, seededRandom } from './forms/kit/random';
 import { LAYOUT_COUNT, arrangeCluster } from './layout';
@@ -140,9 +140,13 @@ class FormSubject implements Subject {
         const quiet = index === 0 ? palette : { ...palette, highlight: mixHex(palette.highlight, palette.base, 0.65) };
         this.painted.push({ material, palette: quiet });
         if (index === 0) setSkin(material, entry.skin);
+        // Leaves and sepals (pieces with a leaf map) get the leaf skin: vein, base-to-tip, underside.
+        else if (piece.geometry.getAttribute('uv')) setSkin(material, LEAF_SKIN);
         const mesh = new Mesh(piece.geometry, material);
         mesh.name = piece.role;
         mesh.castShadow = true;
+        // Catch shadows too: sepals on their berry, berries on each other.
+        mesh.receiveShadow = true;
         member.add(mesh);
       });
       members.push(member);

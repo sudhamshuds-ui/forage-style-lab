@@ -16,6 +16,8 @@ import type { Palette } from './stylizedMaterial';
  *   vec3  objectPos      position on the object itself (sticks to the surface)
  *   float paintNoise     soft random blotches, about -0.5..0.5, for wobbly edges
  *   float tone           0 = deepest shadow band, 1 = brightest band (set by Tone bands)
+ *   float lightMask      1 = in the light, 0 = in a cast shadow (a leaf, a neighbour)
+ *   vec2  vSurfaceUv     a leaf's own map: x from stalk (0) to tip (1), y across
  *   float highlightMask  0..1, where a crisp highlight sits. The paint stroke
  *                        pass keeps these pixels sharp instead of repainting them.
  *   vec3  colour         the colour so far: read it, change it, write it back

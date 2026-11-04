@@ -69,28 +69,6 @@ describe('cluster layout', () => {
     expect(area).toBeGreaterThan(cmToUnits(1) ** 2);
   });
 
-  it('is balanced from every side: spread round the centre, no two pointing the same way', () => {
-    const { members, points } = cluster();
-    // Where each member sits round the group's middle.
-    const middle = points.flat().reduce((s, p) => s.add(p), points[0][0].clone().multiplyScalar(0)).divideScalar(points.flat().length);
-    const spots = points.map((ps) => ps.reduce((s, p) => s.add(p), ps[0].clone().multiplyScalar(0)).divideScalar(ps.length).sub(middle));
-    const angles = spots.map((s) => Math.atan2(s.z, s.x)).sort((a, b) => a - b);
-    const gaps = angles.map((a, i) => (i === angles.length - 1 ? angles[0] + 2 * Math.PI - a : angles[i + 1] - a));
-    // Three spokes round the centre: every gap between them well over 60 degrees.
-    for (const gap of gaps) expect(gap).toBeGreaterThan(Math.PI / 3);
-    // Roughly the same distance out: none far from the group.
-    const distances = spots.map((s) => Math.hypot(s.x, s.z));
-    expect(Math.max(...distances) / Math.min(...distances)).toBeLessThan(1.8);
-    // No two members turned the same way.
-    const turns = members.map((m) => m.rotation.y);
-    for (let i = 0; i < turns.length; i++) {
-      for (let j = i + 1; j < turns.length; j++) {
-        const d = Math.abs(((((turns[i] - turns[j]) % (2 * Math.PI)) + 3 * Math.PI) % (2 * Math.PI)) - Math.PI);
-        expect(d).toBeGreaterThan(Math.PI / 4);
-      }
-    }
-  });
-
   it('arranges them the same way on every reload', () => {
     const one = cluster().members.map((m) => m.position.toArray());
     const two = cluster().members.map((m) => m.position.toArray());

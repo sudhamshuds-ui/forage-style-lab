@@ -114,6 +114,7 @@ export function leafPiece(options: LeafOptions): BufferGeometry {
   const cos = Math.cos(options.turn);
   const sin = Math.sin(options.turn);
   const positions: number[] = [];
+  const uvs: number[] = [];
 
   for (let i = 0; i <= rows; i++) {
     const u = i / rows;
@@ -129,6 +130,8 @@ export function leafPiece(options: LeafOptions): BufferGeometry {
       const y = options.lift(d) + Math.abs(v) * halfWidth * fold + across * Math.sin(angle);
       // Turn the leaf to face its direction, then move it to the base.
       positions.push(options.base.x + d * cos - z * sin, options.base.y + y, options.base.z + d * sin + z * cos);
+      // The leaf's own map, for its vein and its base-to-tip shading (skin: leaf).
+      uvs.push(u, j / cols);
     }
   }
 
@@ -147,6 +150,7 @@ export function leafPiece(options: LeafOptions): BufferGeometry {
 
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
   geometry.setIndex(indices);
   return geometry;
 }

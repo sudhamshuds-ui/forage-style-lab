@@ -43,6 +43,7 @@ export class Apple {
     this.leafMesh = new Mesh(new BufferGeometry(), this.materials.leaf);
     for (const mesh of [this.bodyMesh, this.stemMesh, this.leafMesh]) {
       mesh.castShadow = true;
+      mesh.receiveShadow = true;
       this.group.add(mesh);
     }
   }

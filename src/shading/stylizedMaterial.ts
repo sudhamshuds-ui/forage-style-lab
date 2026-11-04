@@ -1,4 +1,4 @@
-import { Color, DoubleSide, FrontSide, ShaderMaterial, Vector3, type IUniform } from 'three';
+import { Color, DoubleSide, FrontSide, ShaderMaterial, UniformsLib, UniformsUtils, Vector3, type IUniform } from 'three';
 import type { Settings } from '../params';
 import { mixHex } from '../utils/colour';
 import type { FrameContext, ShaderEffect } from './effect';
@@ -18,17 +18,32 @@ import { skinUniform } from './effects/skinTexture';
  * apple body, stem and leaf can be coloured separately.
  */
 
+// Three.js's own shadow pieces (the same ones the shadow-catching floor uses) work out
+// where this point sits in the key light's shadow map, so leaves and neighbours can
+// cast real shadows onto the fruit.
 const vertexShader = /* glsl */ `
+#include <common>
+#include <shadowmap_pars_vertex>
+
 varying vec3 vWorldNormal;
 varying vec3 vWorldPos;
 varying vec3 vObjectPos;
+// A leaf's own map: x runs from stalk (0) to tip (1), y across (0.5 is the centre vein).
+varying vec2 vSurfaceUv;
 
 void main() {
+  #include <beginnormal_vertex>
+  #include <defaultnormal_vertex>
+  #include <begin_vertex>
+  #include <project_vertex>
+  #include <worldpos_vertex>
+  #include <shadowmap_vertex>
+
   vObjectPos = position;
+  vSurfaceUv = uv;
   vec4 worldPos = modelMatrix * vec4(position, 1.0);
   vWorldPos = worldPos.xyz;
   vWorldNormal = normalize(mat3(modelMatrix) * normal);
-  gl_Position = projectionMatrix * viewMatrix * worldPos;
 }
 `;
 
@@ -41,6 +56,13 @@ function buildFragmentShader(effects: ShaderEffect[]): string {
     .join('\n\n');
 
   return /* glsl */ `
+#include <common>
+#include <packing>
+#include <bsdfs>
+#include <lights_pars_begin>
+#include <shadowmap_pars_fragment>
+#include <shadowmask_pars_fragment>
+
 uniform vec3 uLightDir;
 uniform float uSoftness;
 uniform float uPaintEdges;
@@ -53,6 +75,7 @@ uniform vec3 uGlowColour;
 varying vec3 vWorldNormal;
 varying vec3 vWorldPos;
 varying vec3 vObjectPos;
+varying vec2 vSurfaceUv;
 
 ${colourGLSL}
 ${noiseGLSL}
@@ -89,6 +112,11 @@ void main() {
   float highlightMask = 0.0;
   vec3 colour = uBaseColour;
 
+  // Cast shadows falling on this surface (a sepal on its berry, one berry on the next):
+  // 1 = in the light, 0 = in a cast shadow. Faded out right at the light-to-shadow line,
+  // where the surface turns away from the light anyway, so smooth forms never get speckled.
+  float lightMask = mix(1.0, getShadowMask(), smoothstep(0.05, 0.3, dot(N, L)));
+
 ${bodies}
 
   // Alpha is a label for the paint stroke pass, not transparency:
@@ -123,6 +151,8 @@ export class StylizedLook {
 
   constructor(private readonly effects: ShaderEffect[]) {
     this.shared = {
+      // The light and shadow-map values three.js fills in each frame (for cast shadows).
+      ...UniformsUtils.clone(UniformsLib.lights),
       uLightDir: { value: new Vector3(0, 1, 0) },
       uSoftness: { value: 0.1 },
       uPaintEdges: { value: 0.3 },
@@ -147,6 +177,8 @@ export class StylizedLook {
       vertexShader,
       fragmentShader: this.fragmentShader,
       side: options.doubleSided ? DoubleSide : FrontSide,
+      // So three.js hands this material the key light's shadow map.
+      lights: true,
     });
   }
 

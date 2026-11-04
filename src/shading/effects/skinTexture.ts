@@ -15,8 +15,13 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  *  - pores (orange): fine pits, a touch darker, with a lit rim.
  *  - streaks (apple): soft vertical flushes of colour and a few pale
  *    freckles (lenticels).
- *  - seeds (strawberry): small pale-gold flecks, evenly spread, each in a
- *    tiny pit of the berry's own deeper shade.
+ *  - seeds (strawberry): pale-gold seeds, evenly spread, each sitting in a
+ *    soft dimple that catches the light on one side and shades on the
+ *    other, which gives the berry its bumpy surface.
+ *  - leaf (sepals and leaves, set automatically): deeper at the stalk and
+ *    lighter toward the tip, a pale centre vein, faint side veins, a slight
+ *    hue drift from leaf to leaf, and a paler, cooler underside. Uses the
+ *    leaf's own map (vSurfaceUv), so it works for any leaf shape.
  *
  * The pattern sticks to the surface (it uses objectPos), so it turns with
  * the ingredient and never swims. It fades in the deepest shadow, where a
@@ -26,7 +31,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -38,6 +43,9 @@ export interface Skin {
 }
 
 export const NO_SKIN: Skin = { kind: 'none', size_mm: 1, amount: 0 };
+
+/** Every leaf and sepal gets this skin automatically (it needs the leaf's own map). */
+export const LEAF_SKIN: Skin = { kind: 'leaf', size_mm: 1, amount: 1 };
 
 /** The per-material value this layer reads. Added to every material by StylizedLook. */
 export function skinUniform(): { value: Vector4 } {
@@ -103,13 +111,38 @@ if (kind > 0 && amount > 0.0) {
     lab.x += freckle * 0.05 * show;
     lab.yz *= 1.0 - freckle * 0.25 * show;
   } else if (kind == 4) {
-    // Seeds: a pale fleck at each cell's centre, sitting in a small pit.
+    // Seeds: each sits in a soft dimple. Compare the dimple a step toward the light with here:
+    // the side of the dimple facing the light is lit, the other side shaded (a small emboss).
     float d = skinCells(p);
-    float seed = 1.0 - smoothstep(0.07, 0.13, d);
-    float pit = (1.0 - smoothstep(0.1, 0.24, d)) * (1.0 - seed);
-    lab = shadeOwn(lab, pit * 0.35 * show);
-    vec3 pale = linearToOklab(mix(uHighlightColour, uGlowColour, 0.55));
-    lab = mix(lab, pale, seed * 0.75 * amount * mix(0.6, 1.0, tone));
+    float dimple = 1.0 - smoothstep(0.0, 0.45, d);
+    float dimpleToward = 1.0 - smoothstep(0.0, 0.45, skinCells(p + L * 0.2));
+    float emboss = (dimple - dimpleToward) * show;
+    lab = emboss > 0.0 ? lab + vec3(emboss * 0.1, 0.0, 0.0) : shadeOwn(lab, -emboss * 0.9);
+    // The seed itself: a clear pale-gold fleck in the dimple.
+    float seed = 1.0 - smoothstep(0.1, 0.16, d);
+    vec3 gold = linearToOklab(mix(uHighlightColour, uGlowColour, 0.5) * vec3(1.0, 0.92, 0.6));
+    lab = mix(lab, gold, seed * 0.95 * amount * mix(0.7, 1.0, tone));
+  } else if (kind == 5) {
+    // Leaf: x runs from the stalk (0) to the tip (1), y across (0.5 is the centre vein).
+    vec2 q = vSurfaceUv;
+    float across = abs(q.y - 0.5) * 2.0;
+    // Deeper toward the stalk, lighter toward the tip.
+    lab = shadeOwn(lab, (1.0 - q.x) * 0.4 * amount);
+    lab.x += q.x * 0.035 * amount;
+    // The centre vein: a thin pale line, fading out toward the tip.
+    float vein = (1.0 - smoothstep(0.04, 0.12, across)) * (1.0 - smoothstep(0.65, 1.0, q.x));
+    lab = mix(lab, linearToOklab(uLitColour), vein * 0.6 * amount);
+    // Faint side veins running out toward the edges.
+    float side = smoothstep(0.82, 1.0, sin((q.x * 7.0 - across * 2.5) * 6.2832)) * (1.0 - across) * step(0.12, across);
+    lab = shadeOwn(lab, side * 0.25 * amount);
+    // Each leaf a touch different in hue.
+    float drift = (valueNoise3(objectPos * 9.0) - 0.5) * 0.35 * amount;
+    lab.yz = mat2(cos(drift), sin(drift), -sin(drift), cos(drift)) * lab.yz;
+    // The underside is paler and cooler.
+    if (!gl_FrontFacing) {
+      lab.x += 0.07 * amount;
+      lab.yz *= 0.75;
+    }
   }
   colour = max(oklabToLinear(lab), 0.0);
 }
