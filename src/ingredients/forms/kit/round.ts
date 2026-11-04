@@ -39,6 +39,12 @@ export interface RoundOptions {
   poleDimple?: { depth: number; width: number; ends?: 'both' | 'end' };
   /** How much (cm) of the underside is gently flattened where it rests. */
   flatBase: number;
+  /**
+   * Optional extra character for the cross-section: a radius multiplier for
+   * each point (`u` from -1 to 1 along the axis, `angle` round it). A
+   * strawberry uses it for its uneven, slightly lobed sides.
+   */
+  crossSection?: (u: number, angle: number) => number;
   /** Mesh density: rings along the axis and points around it. */
   rings: number;
   segments: number;
@@ -68,7 +74,8 @@ export function roundBody(options: RoundOptions): BufferGeometry {
         1 +
         fullerEnd * u +
         oval * Math.cos(2 * (angle - ovalTurn)) +
-        lumps * along * Math.sin(3 * angle + lumpTurn + 2.5 * u);
+        lumps * along * Math.sin(3 * angle + lumpTurn + 2.5 * u) +
+        (options.crossSection ? options.crossSection(u, angle) - 1 : 0);
       p.y *= scale;
       p.z *= scale;
       // A gentle bend of the whole axis, so the poles are not perfectly in line.

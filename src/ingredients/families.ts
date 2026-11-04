@@ -16,7 +16,7 @@ import type { Palette } from '../shading/stylizedMaterial';
  *
  * Colours live here, in data, never in a form.
  */
-export type FamilyId = 'red' | 'orange' | 'yellow' | 'green' | 'cream-crust' | 'pink-raw' | 'stalk';
+export type FamilyId = 'red' | 'crimson' | 'orange' | 'yellow' | 'green' | 'cream-crust' | 'pink-raw' | 'stalk' | 'leaf';
 
 export interface ColourFamily {
   name: string;
@@ -31,6 +31,14 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Red',
     colours: { lit: '#f78e64', base: '#ce5249', shadow: '#843d56', glow: '#ed6531', highlight: '#f5e5d3' },
     rooms: ['linen', 'heather'],
+  },
+  // Not on board 04 yet (added 2026-11-04): a cooler, richer red leaning toward magenta, for
+  // berries (strawberry, later raspberry, cherry), so they never look like the apple.
+  // The lit side stays warm (same light); the shadow goes to plum wine.
+  crimson: {
+    name: 'Crimson',
+    colours: { lit: '#f4766a', base: '#cf2c44', shadow: '#7a1e4b', glow: '#f2544a', highlight: '#fbe1dc' },
+    rooms: ['sage-morning', 'linen'],
   },
   orange: {
     name: 'Orange',
@@ -57,6 +65,13 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   stalk: {
     name: 'Stem and stalk',
     colours: { lit: '#9a9a55', base: '#66693a', shadow: '#4f3d45', glow: '#8f9a45', highlight: '#b9b78f' },
+    rooms: [],
+  },
+  // Not a board 04 family: a deeper, natural leaf green for small leaves and sepals, where the
+  // board's green (for broccoli and herbs) looks pale and papery. The shadow goes teal, never grey.
+  leaf: {
+    name: 'Leaf',
+    colours: { lit: '#8fb35a', base: '#4f8a3c', shadow: '#1f5a57', glow: '#9cc94a', highlight: '#d9e8b0' },
     rooms: [],
   },
   'pink-raw': {

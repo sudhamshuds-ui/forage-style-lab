@@ -8,17 +8,21 @@ import { leafPiece, stemPiece } from './kit/stemLeaf';
 /**
  * Strawberry (archetype: small). Spec: 3.5 cm from calyx to tip, lying on its side.
  *
- * What makes it a strawberry, not a cherry or a tomato: a heart-shaped body,
- * widest just below the shoulders and tapering to a soft, rounded point; a
- * star of thin green sepals spread over the shoulders like a little collar;
- * a short green stem. The seeds are pale flecks painted by the shader (skin:
- * seeds), never geometry.
+ * What makes it a strawberry, not a cherry, a tomato or a red cone:
+ *   - a heart-shaped body, widest just below the shoulders, tapering to a
+ *     soft, rounded point,
+ *   - and never perfectly round: the sides are softly lobed and uneven, one
+ *     shoulder is fuller, and the tip bends a little off centre,
+ *   - a ragged ruff of 8 to 10 narrow sepals over the shoulders, each its own
+ *     length and width, some lying flat, some curling up and out,
+ *   - a thin stem that bends up and away.
+ * The seeds are pale flecks painted by the shader (skin: seeds), never geometry.
  *
  * It is built standing up (calyx on top), where the sepals are easy to lay
  * over the shoulders, then laid down with its calyx lifted to the left
  * (toward the key light) and its tip resting on the table, like the
- * references. Small archetype: the seed gives each berry its own lean and
- * shape, so a cluster of three never looks copy-pasted.
+ * references. Small archetype: the seed gives each berry its own lobes,
+ * sepals and lean, so a cluster of three never looks copy-pasted.
  */
 
 /** Real size (cm): 3.5 long, about 3 wide. */
@@ -30,7 +34,6 @@ const SHOULDER = 0.25;
 const TAPER = 0.55;
 /** How far the calyx end lifts off the table as it lies (radians from flat). */
 const TILT = 0.32;
-const SEPALS = 7;
 
 export const buildStrawberry: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Strawberry: the "${state}" form is not built yet (whole only for now).`);
@@ -50,62 +53,85 @@ export const buildStrawberry: FormBuilder = ({ state, seed }) => {
     return radius * Math.sqrt(1 - (1 - shoulder) ** 2) * (1 - along ** 1.5) ** taper;
   };
 
+  // Uneven sides: three soft lobes that drift round as they run down the berry, a slight
+  // flattening on two sides, and one shoulder fuller than the other (u near 1 is the calyx end).
+  const lobeTurn = random() * Math.PI * 2;
+  const flatTurn = random() * Math.PI;
+  const fullTurn = random() * Math.PI * 2;
+  const crossSection = (u: number, angle: number) =>
+    1 +
+    0.07 * Math.sin(3 * angle + lobeTurn + 1.5 * u) +
+    0.03 * Math.cos(2 * (angle - flatTurn)) +
+    0.06 * Math.cos(angle - fullTurn) * Math.max(0, u);
+
   // Standing up, the lathe runs from the tip (bottom) to the calyx (top).
   const berry = roundBody({
     halfLength: half,
     radius: (x) => profileAt((half - x) / (2 * half)),
     lying: false,
-    lopsided: 0.55,
+    lopsided: 1,
     random,
     poleDimple: { depth: 0.12, width: 0.45, ends: 'end' },
     flatBase: 0,
     rings: 26,
     segments: 36,
+    crossSection,
   });
 
   // The calyx centre: the lathe's end pole, now at the top of the dimple.
   const position = berry.getAttribute('position') as BufferAttribute;
   const top = new Vector3().fromBufferAttribute(position, position.count - 1);
 
-  /** Height of the shoulder at a distance `d` from the axis (the sepals follow it). */
+  /**
+   * Height of the shoulder at a distance `d` from the axis (the sepals follow it).
+   * Past the widest point a sepal stops following the body down, so a long one
+   * reaches out over the side instead of diving to the table.
+   */
   const shoulderHeight = (d: number) => {
+    let widest = { r: 0, t: 0 };
     for (let i = 0; i <= 100; i++) {
       const t = (i / 100) * 0.6;
-      if (profileAt(t) >= d) return half - t * 2 * half;
+      const r = profileAt(t);
+      if (r >= d) return half - t * 2 * half;
+      if (r > widest.r) widest = { r, t };
     }
-    return half - 1.2 * half;
+    return half - widest.t * 2 * half;
   };
 
-  // Sepals: thin pointed leaves radiating from the centre, hugging the shoulders, tips lifting a little.
+  // Sepals: a ragged ruff. Each one has its own size, curl and twist.
+  const count = 8 + Math.floor(random() * 3);
   const sepals = [];
-  for (let i = 0; i < SEPALS; i++) {
-    const turn = (i / SEPALS) * Math.PI * 2 + signed(random) * 0.25;
-    const length = 1.1 + signed(random) * 0.2;
-    const start = 0.12;
+  for (let i = 0; i < count; i++) {
+    const turn = (i / count) * Math.PI * 2 + signed(random) * 0.35;
+    const length = 0.9 + random() * 0.6;
+    const curl = 0.15 + random() * 0.75;
+    const start = 0.1;
     sepals.push(
       leafPiece({
         base: top.clone().add(new Vector3(Math.cos(turn) * start, 0.03, Math.sin(turn) * start)),
         turn,
         length,
-        width: 0.42,
-        lift: (d) => shoulderHeight(start + d) - top.y + 0.04 + 0.25 * (d / length) ** 3,
-        fold: 0.1,
-        twist: signed(random) * 0.3,
-        rows: 6,
-        cols: 3,
+        width: 0.3 + random() * 0.16,
+        // Lie on the shoulder, then curl up and away toward the tip.
+        lift: (d) => shoulderHeight(start + d) - top.y + 0.04 + curl * length * 0.6 * (d / length) ** 2,
+        fold: 0.35,
+        twist: signed(random) * 0.6,
+        rows: 8,
+        cols: 4,
       }),
     );
   }
   const calyx = mergeGeometries(sepals)!;
   for (const sepal of sepals) sepal.dispose();
 
+  // A thin stem, leaning so that once the berry lies down it bends up and away.
   const stem = stemPiece({
     base: top.clone().add(new Vector3(0, -0.04, 0)),
-    height: 0.7,
-    footRadius: 0.11,
-    neckRadius: 0.07,
-    lean: 0.35,
-    leanTurn: random() * Math.PI * 2,
+    height: 0.95,
+    footRadius: 0.1,
+    neckRadius: 0.065,
+    lean: 0.65,
+    leanTurn: signed(random) * 0.3,
     segments: 8,
   });
 

@@ -62,7 +62,9 @@ keep code readable with friendly comments.
   size** in cm (the apple is 8 cm wide): a form file `src/ingredients/forms/{id}.ts` on the
   shared kit `src/ingredients/forms/kit/` (one recipe per archetype), plus one registry
   entry. Forms carry shape only: colours come from the colour families (board 04,
-  `families.ts`), never the form. Fine texture (peel pebbling, seeds) belongs to the
+  `families.ts`), never the form. Off-board additions (to add to board 04): `crimson`
+  (berries, cooler and more magenta than the apple's red), and part-only palettes `leaf`
+  (deeper, natural leaf green for sepals and small leaves) and `stalk` (woody stems). Fine texture (peel pebbling, seeds) belongs to the
   shader (the registry's `skin`, `src/shading/effects/skinTexture.ts`), never geometry. Small
   parts (stem, calyx, leaf) keep a quiet highlight: one main highlight per object.
   Randomness is seeded from the id. Blender only after two honest
