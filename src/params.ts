@@ -140,8 +140,8 @@ export const GROUPS: { key: GroupKey; title: string; expanded: boolean; hidden?:
   { key: 'palette', title: 'Background colour', expanded: true, hidden: true },
   // Only the Playful strokes switch is shown; the detailed brush controls stay hidden.
   { key: 'brush', title: 'Style', expanded: true },
-  // Shown again 2026-11-04 (the user): Direction, Strength and Tone bands, the light
-  // controls that make a clear visible change. The rest of the group stays hidden.
+  // Shown again 2026-11-04 (the user): Strength and Tone bands, light controls that make a
+  // clear visible change. The rest of the group (Direction included) stays hidden.
   { key: 'light', title: 'Light', expanded: true },
   // Hidden 2026-11-04 (the user): Brushiness, Wash bleed and Edge softness made too small a
   // visible change to be worth a slider. They still work at their tuned defaults.
@@ -403,7 +403,8 @@ export const SPECS: SpecTable = {
     leaf: { kind: 'colour', label: 'Leaf' },
   },
   light: {
-    direction: { kind: 'pad', label: 'Direction', nice: { x: [-0.85, 0.85], y: [0.2, 0.85] } },
+    // Hidden again 2026-11-04 (the user): the light stays upper left (board 05).
+    direction: { kind: 'pad', label: 'Direction', nice: { x: [-0.85, 0.85], y: [0.2, 0.85] }, ...hidden },
     strength: pct('Strength', [40, 70]),
     bands: {
       kind: 'slider',

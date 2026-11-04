@@ -15,7 +15,7 @@ const playful = () => {
 
 describe('panel', () => {
   it('shows Playful strokes and the three light controls (Paint and Background colour are hidden, still working)', () => {
-    expect(visibleLabels()).toEqual(['Playful strokes', 'Direction', 'Strength', 'Tone bands']);
+    expect(visibleLabels()).toEqual(['Playful strokes', 'Strength', 'Tone bands']);
   });
 
   it('keeps the Faceted switch, hidden and off: every form is smooth', () => {
@@ -26,7 +26,7 @@ describe('panel', () => {
   it('keeps paint, texture, highlights, scene and the other light controls, just hidden', () => {
     const hiddenGroups = GROUPS.filter((g) => g.hidden).map((g) => g.key);
     expect(hiddenGroups).toEqual(expect.arrayContaining(['palette', 'paint', 'lighting', 'highlight', 'scene']));
-    for (const key of ['softness', 'paintEdges', 'ambient', 'ambientAmount', 'bounce', 'bounceAmount'] as const) {
+    for (const key of ['direction', 'softness', 'paintEdges', 'ambient', 'ambientAmount', 'bounce', 'bounceAmount'] as const) {
       expect(SPECS.light[key].hidden).toBe(true);
     }
     expect(SPECS.paint.texture.hidden).toBe(true);
