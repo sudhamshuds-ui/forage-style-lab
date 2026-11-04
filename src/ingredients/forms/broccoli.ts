@@ -28,8 +28,8 @@ import { cutEnd, sweepGeometry } from './kit/sweep';
 const CROWN_HEIGHT = 9.3;
 const RING_CLUSTERS = 6;
 const RING_DISTANCE = 3.3;
-/** How many lumps cover each cluster. */
-const LUMPS = 9;
+/** How many lumps cover each cluster (the user asked for about 70% more bump than 9). */
+const LUMPS = 15;
 /** Where the stalk forks (cm above the cut). */
 const FORK = 4.6;
 /** How far it tips over as it lies down (radians): a little short of flat, so the cut end lifts. */
@@ -63,7 +63,7 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
     for (let k = 0; k < LUMPS; k++) {
       // A direction within a wide cone round the cluster's outward side.
       const around = (k / LUMPS) * Math.PI * 2 + signed(random) * 0.4;
-      const spread = k === 0 ? 0 : 0.55 + random() * 0.55;
+      const spread = k === 0 ? 0 : 0.35 + random() * 0.85;
       const side = new Vector3().crossVectors(outward, new Vector3(0, 1, 0.01)).normalize();
       const side2 = new Vector3().crossVectors(outward, side).normalize();
       const direction = outward
@@ -71,11 +71,13 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
         .multiplyScalar(Math.cos(spread))
         .addScaledVector(side, Math.sin(spread) * Math.cos(around))
         .addScaledVector(side2, Math.sin(spread) * Math.sin(around));
-      const radius = 0.75 + random() * 0.45;
-      blobs.push({ centre: cluster.centre.clone().addScaledVector(direction, cluster.radius * 0.82), radius });
+      // Smaller lumps, poking further out, so each one reads as its own floret.
+      const radius = 0.6 + random() * 0.35;
+      blobs.push({ centre: cluster.centre.clone().addScaledVector(direction, cluster.radius * 0.95), radius });
     }
   }
-  const crown = crownGeometry({ blobs, centre: middle, softness: 0.45, detail: 21 });
+  // A tight fillet keeps the lumps distinct; a dense mesh keeps them round.
+  const crown = crownGeometry({ blobs, centre: middle, softness: 0.32, detail: 27 });
 
   // 3. The stalk: thick, cut flat at the base, gently curved, up to the fork.
   const lean = new Vector3(signed(random) * 0.3, 0, signed(random) * 0.3);

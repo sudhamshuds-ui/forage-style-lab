@@ -59,8 +59,12 @@ export interface ClusterOptions {
 export function arrangeCluster(members: Group[], options: ClusterOptions): void {
   const { random, gap, heroTurn } = options;
   const stemEnds = options.stemEnds ?? 'out';
-  const bodies = members.map((member) => samplePoints(member, 'body'));
-  const parts = members.map((member) => samplePoints(member, 'parts'));
+  // Dense enough that a lump between two sample points cannot sink into a neighbour.
+  const bodies = members.map((member) => samplePoints(member, 'body', 1500));
+  const parts = members.map((member) => samplePoints(member, 'parts', 800));
+  // Broccoli stalks are solid: they may not pass through each other. Strawberry sepals are
+  // soft and may brush.
+  const solidParts = stemEnds === 'front';
   const placedBodies: Vector3[][] = [];
   const placedParts: Vector3[][] = [];
   const placed = placedBodies;
@@ -93,11 +97,14 @@ export function arrangeCluster(members: Group[], options: ClusterOptions): void 
         const clear = (distance: number) => {
           member.position.copy(direction).multiplyScalar(distance);
           const body = transformed(bodies[index], member);
-          // Bodies just touch. Leaves and sepals may brush each other, but never sink into a body.
+          const own = transformed(parts[index], member);
+          // Bodies just touch. Parts never sink into a body; soft parts (sepals) may brush each
+          // other, solid ones (stalks) may not.
           return (
-            minDistance(body, otherBodies) >= gap &&
-            minDistance(transformed(parts[index], member), otherBodies) >= gap * 0.5 &&
-            minDistance(body, otherParts) >= gap * 0.5
+            !closerThan(body, otherBodies, gap) &&
+            !closerThan(own, otherBodies, gap * 0.5) &&
+            !closerThan(body, otherParts, gap * 0.5) &&
+            !(solidParts && closerThan(own, otherParts, gap * 0.5))
           );
         };
         // Slide in from far away until it just touches: halve the range each step.
@@ -216,6 +223,28 @@ function centroid(points: Vector3[]): Vector3 {
   const sum = new Vector3();
   for (const p of points) sum.add(p);
   return points.length > 0 ? sum.divideScalar(points.length) : sum;
+}
+
+/**
+ * True if any point of `a` comes closer than `limit` to any point of `b`. Fast: only points
+ * of `a` inside `b`'s box (grown by `limit`) are checked, and it stops at the first hit.
+ */
+export function closerThan(a: Vector3[], b: Vector3[], limit: number): boolean {
+  if (a.length === 0 || b.length === 0) return false;
+  const min = new Vector3(Infinity, Infinity, Infinity);
+  const max = new Vector3(-Infinity, -Infinity, -Infinity);
+  for (const q of b) {
+    min.min(q);
+    max.max(q);
+  }
+  min.subScalar(limit);
+  max.addScalar(limit);
+  const limitSq = limit * limit;
+  for (const p of a) {
+    if (p.x < min.x || p.y < min.y || p.z < min.z || p.x > max.x || p.y > max.y || p.z > max.z) continue;
+    for (const q of b) if (p.distanceToSquared(q) < limitSq) return true;
+  }
+  return false;
 }
 
 /** The closest distance between two sets of points. */

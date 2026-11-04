@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Group, Mesh } from 'three';
 import { buildStrawberry } from './forms/strawberry';
 import { seedFromId, seededRandom } from './forms/kit/random';
-import { LAYOUT_COUNT, arrangeCluster, minDistance, samplePoints, transformed } from './layout';
+import { LAYOUT_COUNT, arrangeCluster, closerThan, minDistance, samplePoints, transformed } from './layout';
 import { cmToUnits } from './scale';
 
 /** Three strawberries, each its own seeded variant, arranged as on stage. */
@@ -73,5 +73,22 @@ describe('cluster layout', () => {
     const one = cluster().members.map((m) => m.position.toArray());
     const two = cluster().members.map((m) => m.position.toArray());
     expect(two).toEqual(one);
+  });
+});
+
+describe('broccoli bunch (stem ends to the front)', () => {
+  it('never passes one head through the other: crowns, stalks and leaves all stay apart', async () => {
+    const { buildBroccoli } = await import('./forms/broccoli');
+    const seed = seedFromId('broccoli');
+    const members = [0, 1].map((m) => {
+      const group = new Group();
+      for (const piece of buildBroccoli({ state: 'whole', seed: (seed + m * 7919) >>> 0 })) group.add(new Mesh(piece.geometry));
+      return group;
+    });
+    const gap = cmToUnits(0.03);
+    arrangeCluster(members, { random: seededRandom(seed ^ 0x9e3779b9), gap, heroTurn: 0, stemEnds: 'front' });
+    const [a, b] = members;
+    const all = (m: Group) => [...transformed(samplePoints(m, 'body', 1500), m), ...transformed(samplePoints(m, 'parts', 800), m)];
+    expect(closerThan(all(a), all(b), gap * 0.49)).toBe(false);
   });
 });

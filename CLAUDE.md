@@ -85,7 +85,10 @@ keep code readable with friendly comments.
   spots, `MAX_CONTACTS`). Whole and cut arrives with the cut forms. An entry's `stemEnds`
   picks 'out' (berries, default) or 'front' (broccoli: each stalk's cut end fans diagonally
   toward the camera, choosing the side that fans away from the others, so stalks show and
-  never cross). `matte: true` keeps the body's highlight quiet (broccoli).
+  never cross). `matte: true` keeps the body's highlight quiet (broccoli). Touching is checked
+  on dense samples (1500 per body), and with 'front' the parts are solid (stalks never pass
+  through each other); with 'out' soft parts (sepals) may brush. The branching triangle
+  budget is 18k, not board 07's 12k (a bumpier crown, asked for by the user).
 - **Cast shadows on the fruit**: ingredient materials read the key light's shadow map
   (`lightMask` in the shader), so sepals, stems and neighbours shade the fruit. A cast shadow
   drops the surface one tone band (to the middle tone, coloured, never grey); it fades out at
@@ -216,7 +219,7 @@ Ingredient forms (branch `ingredient-forms`): facets retired (smooth apple), key
 upper left, the registry, colour families, form kit (lathe and round recipe), card
 framing, Shuffle ingredient, soft light (Light strength), skin textures, the lemon, the
 orange (calyx, stem, leaf), the strawberry (a cluster of three) and the cluster layout,
-the broccoli (two heads lying down, crowns of about 70 lumps, ribbed stalks with leaf scars,
+the broccoli (two heads lying down, crowns of about 115 lumps, ribbed stalks with leaf scars,
 a branch per cluster, a leaf; the egg was skipped),
 dev checks. Family rooms may sit 70 to 180
 degrees from the ingredient (board 04's own pairings, kept by choice). Next, one at a

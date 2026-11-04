@@ -14,7 +14,9 @@ export const TRIANGLE_BUDGET = {
   long: [2000, 5000],
   block: [1000, 4000],
   wedge: [2000, 5000],
-  branching: [6000, 12000],
+  // Board 07 says 6k to 12k. Raised to 18k (2026-11-04): the user asked for a much bumpier
+  // broccoli crown, which needs a denser mesh to keep its many lumps round.
+  branching: [6000, 18000],
   leafy: [1000, 3000],
   contained: [0, 1000],
 } as const;
