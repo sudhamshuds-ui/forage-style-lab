@@ -30,8 +30,8 @@ const RING_CLUSTERS = 6;
 const RING_DISTANCE = 3.3;
 /** How many lumps cover each cluster (the user asked for about 70% more bump than 9). */
 const LUMPS = 15;
-/** Where the stalk forks (cm above the cut): low enough that the branches show below the crown. */
-const FORK = 3.7;
+/** Where the stalk forks (cm above the cut): high enough that the finger branches stay short. */
+const FORK = 5.6;
 
 export const buildBroccoli: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Broccoli: the "${state}" form is not built yet (head only for now).`);
@@ -94,7 +94,7 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
   const stalks: FormPiece[] = [{ role: 'stalk', geometry: trunk }];
   for (let k = 0; k < 4; k++) {
     const a = ribTurn + k * 1.7 + signed(random) * 0.4;
-    const height = 0.9 + k * 0.6 + random() * 0.25;
+    const height = 1.0 + k * 1.0 + random() * 0.3;
     const out = new Vector3(Math.cos(a), 0, Math.sin(a));
     const root = new Vector3(0, height, 0).addScaledVector(lean, height / FORK).addScaledVector(out, 0.9);
     const tip = root.clone().addScaledVector(out, 1.1 + random() * 0.4).add(new Vector3(0, 0.9, 0));
@@ -116,7 +116,7 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
   for (const cluster of clusters) {
     const toward = cluster.centre.clone().sub(fork).setY(0);
     const out = toward.lengthSq() > 1e-6 ? toward.normalize() : new Vector3(1, 0, 0);
-    const root = fork.clone().addScaledVector(out, 0.75).add(new Vector3(0, -0.35, 0));
+    const root = fork.clone().addScaledVector(out, 0.55).add(new Vector3(0, -0.35, 0));
     const into = cluster.centre.clone().lerp(middle, 0.15).add(new Vector3(0, -cluster.radius * 0.35, 0));
     // Splay out first, then turn up into the cluster.
     const bend = root.clone().addScaledVector(out, 1.0).add(new Vector3(0, (into.y - root.y) * 0.45, 0));
@@ -124,10 +124,11 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
       role: 'stalk',
       geometry: sweepGeometry({
         points: [root, bend, into],
-        // Slim fingers (the user: thick ones looked too big), tapering into the cluster.
-        radius: (t) => (0.46 - 0.16 * t) * Math.sqrt(Math.min(1, (1 - t) / 0.08 + 0.2)),
+        // Thick fingers, tapering into the cluster (the user liked this thickness; "too big"
+        // meant too long, which the higher fork fixes).
+        radius: (t) => (0.78 - 0.32 * t) * Math.sqrt(Math.min(1, (1 - t) / 0.08 + 0.2)),
         rings: 9,
-        segments: 10,
+        segments: 11,
       }),
     });
   }
