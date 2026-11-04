@@ -136,10 +136,13 @@ export type GroupKey = keyof Settings;
 
 /** Panel order and folder titles. Hidden groups are kept but not shown. */
 export const GROUPS: { key: GroupKey; title: string; expanded: boolean; hidden?: boolean }[] = [
-  // Hidden for now, still working: the colour combos, light, highlights and scene.
-  { key: 'palette', title: 'Colour combo', expanded: true, hidden: true },
+  // Shown again 2026-11-04 (the user): the room combos, as "Background colour".
+  { key: 'palette', title: 'Background colour', expanded: true },
   // Only the Playful strokes switch is shown; the detailed brush controls stay hidden.
   { key: 'brush', title: 'Style', expanded: true },
+  // Shown again 2026-11-04 (the user): Direction, Strength and Tone bands, the light
+  // controls that make a clear visible change. The rest of the group stays hidden.
+  { key: 'light', title: 'Light', expanded: true },
   // Hidden 2026-11-04 (the user): Brushiness, Wash bleed and Edge softness made too small a
   // visible change to be worth a slider. They still work at their tuned defaults.
   { key: 'paint', title: 'Paint', expanded: true, hidden: true },
@@ -149,7 +152,6 @@ export const GROUPS: { key: GroupKey; title: string; expanded: boolean; hidden?:
   { key: 'shape', title: 'Form', expanded: true },
   { key: 'scene', title: 'Scene', expanded: true, hidden: true },
   { key: 'colour', title: 'Colour', expanded: false, hidden: true },
-  { key: 'light', title: 'Light', expanded: false, hidden: true },
 ];
 
 /** Defaults are tuned to match references/painterly/00 and 01 (the source of truth). */
@@ -402,7 +404,7 @@ export const SPECS: SpecTable = {
   },
   light: {
     direction: { kind: 'pad', label: 'Direction', nice: { x: [-0.85, 0.85], y: [0.2, 0.85] } },
-    strength: pct('Light strength', [40, 70]),
+    strength: pct('Strength', [40, 70]),
     bands: {
       kind: 'slider',
       label: 'Tone bands',
@@ -412,12 +414,12 @@ export const SPECS: SpecTable = {
       nice: [2, 5],
       unit: 'count',
     },
-    softness: pct('Band softness', [0, 35]),
-    paintEdges: pct('Painted edges', [15, 60]),
-    ambient: { kind: 'colour', label: 'Ambient colour' },
-    ambientAmount: pct('Ambient amount', [25, 70]),
-    bounce: { kind: 'colour', label: 'Bounce colour' },
-    bounceAmount: pct('Bounce amount', [20, 65]),
+    softness: pct('Band softness', [0, 35], hidden),
+    paintEdges: pct('Painted edges', [15, 60], hidden),
+    ambient: { kind: 'colour', label: 'Ambient colour', ...hidden },
+    ambientAmount: pct('Ambient amount', [25, 70], hidden),
+    bounce: { kind: 'colour', label: 'Bounce colour', ...hidden },
+    bounceAmount: pct('Bounce amount', [20, 65], hidden),
   },
 };
 

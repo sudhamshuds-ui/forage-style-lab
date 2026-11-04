@@ -11,10 +11,10 @@ import { PALETTES, applyPalette, currentColours, shufflePalette, type RoomColour
 export function createPalettePicker(container: HTMLElement, settings: Settings, onChange: () => void) {
   container.innerHTML = `
     <div class="palette-head">
-      <span class="palette-title">Colour combo</span>
+      <span class="palette-title">Background colour</span>
       <button type="button" class="palette-shuffle">Shuffle</button>
     </div>
-    <div class="palette-grid" role="radiogroup" aria-label="Colour combo"></div>
+    <div class="palette-grid" role="radiogroup" aria-label="Background colour"></div>
   `;
   const grid = container.querySelector('.palette-grid') as HTMLElement;
   const shuffleButton = container.querySelector('.palette-shuffle') as HTMLButtonElement;

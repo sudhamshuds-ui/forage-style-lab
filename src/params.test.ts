@@ -14,8 +14,8 @@ const playful = () => {
 };
 
 describe('panel', () => {
-  it('shows only the Playful strokes switch (the Paint sliders are hidden, still working)', () => {
-    expect(visibleLabels()).toEqual(['Playful strokes']);
+  it('shows Background colour, Playful strokes and the three light controls (Paint is hidden, still working)', () => {
+    expect(visibleLabels()).toEqual(['Colour combo', 'Playful strokes', 'Direction', 'Strength', 'Tone bands']);
   });
 
   it('keeps the Faceted switch, hidden and off: every form is smooth', () => {
@@ -23,9 +23,12 @@ describe('panel', () => {
     expect(DEFAULTS.shape.faceted).toBe(false);
   });
 
-  it('keeps the colour combos, light, texture, highlights, scene and shape, just hidden', () => {
+  it('keeps paint, texture, highlights, scene and the other light controls, just hidden', () => {
     const hiddenGroups = GROUPS.filter((g) => g.hidden).map((g) => g.key);
-    expect(hiddenGroups).toEqual(expect.arrayContaining(['palette', 'paint', 'lighting', 'highlight', 'scene']));
+    expect(hiddenGroups).toEqual(expect.arrayContaining(['paint', 'lighting', 'highlight', 'scene']));
+    for (const key of ['softness', 'paintEdges', 'ambient', 'ambientAmount', 'bounce', 'bounceAmount'] as const) {
+      expect(SPECS.light[key].hidden).toBe(true);
+    }
     expect(SPECS.paint.texture.hidden).toBe(true);
   });
 
@@ -72,7 +75,7 @@ describe('Randomize (playful strokes only)', () => {
 describe('soft light', () => {
   it('is shared by every ingredient and starts soft, with more fill', () => {
     expect(DEFAULTS.light.strength).toBe(55);
-    expect(SPECS.light.strength.label).toBe('Light strength');
+    expect(SPECS.light.strength.label).toBe('Strength');
     expect(DEFAULTS.light.softness).toBeGreaterThanOrEqual(30);
   });
 });
