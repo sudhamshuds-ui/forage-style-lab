@@ -75,6 +75,7 @@ const context: FrameContext = {
   objectRadius: 1,
   groundY: -1,
   objectColours: subject.colours(settings),
+  contacts: [],
 };
 
 const paintFrame: PaintFrame = {
@@ -135,7 +136,7 @@ document.getElementById('btn-shuffle-ingredient')?.addEventListener('click', () 
 /** Scale and place the framing layer so the subject fills the card's subject zone. */
 function reframe(): void {
   // The registry's turn is measured from the camera: 0 shows the subject's front.
-  const turn = cameraAzimuth(stage.homeCamera) + (subject.entry.turn * Math.PI) / 180;
+  const turn = cameraAzimuth(stage.homeCamera) + (subject.turn * Math.PI) / 180;
   // Measure the subject at its real size, turned as it will be: undo the rest of the framing first.
   framed.position.set(0, 0, 0);
   framed.rotation.set(0, turn, 0);
@@ -149,6 +150,11 @@ function reframe(): void {
   context.groundY = groundY;
   context.objectCentre.copy(subject.centre).applyMatrix4(framed.matrixWorld);
   context.objectRadius = subject.radius * scale;
+  // Each piece's contact spot on the floor: x, z and its radius, after the framing.
+  context.contacts = subject.contacts.map(({ centre, radius }) => {
+    const spot = centre.clone().applyMatrix4(framed.matrixWorld);
+    return new Vector3(spot.x, spot.z, radius * scale);
+  });
 }
 
 const projected = new Vector3();

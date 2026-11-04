@@ -5,6 +5,9 @@ import { colourGLSL } from '../shading/chunks/colour.glsl';
 import { noiseGLSL } from '../shading/chunks/noise.glsl';
 import { backdropLayout } from './backdropLayout';
 
+/** The most pieces that get their own soft contact shadow (a cluster of 3, or a dish of 4 later). */
+export const MAX_CONTACTS = 4;
+
 /**
  * The room around the apple: one seamless surface, like a photo studio sweep.
  *
@@ -69,6 +72,9 @@ uniform float uSlabCell;
 uniform vec3 uLightDir;
 uniform vec2 uApple;
 uniform float uAppleRadius;
+// One soft contact shadow per piece on the table: x, z and radius.
+uniform vec3 uContacts[${MAX_CONTACTS}];
+uniform int uContactCount;
 uniform float uPatchOffset;
 uniform float uPatchLength;
 uniform float uPatchWidth;
@@ -182,15 +188,21 @@ void main() {
 
   lab = slabs(lab, p);
 
-  // 3. A soft, deep contact shadow right under the apple, in the shadow's own hue.
-  // Tucked right under the apple, and only on the side away from the light, so
-  // the lit side stays clean (the crisp cast shadow does the rest).
-  vec2 fromApple = floorPos - uApple;
-  float d = length(fromApple) / uAppleRadius;
+  // 3. A soft, deep contact shadow right under each piece, in the shadow's own hue.
+  // Tucked right under it, and only on the side away from the light, so the lit
+  // side stays clean (the crisp cast shadow does the rest). A cluster gets one
+  // per member, so the shadows hug each berry instead of making one big blob.
   vec2 lightFlat = length(uLightDir.xz) > 0.05 ? normalize(uLightDir.xz) : vec2(0.0);
-  float awayFromLight = smoothstep(-0.2, 0.5, dot(fromApple / max(length(fromApple), 1e-4), -lightFlat));
-  float contactReach = mix(0.45, 1.0, awayFromLight);
-  float contact = (1.0 - smoothstep(contactReach - 0.08, contactReach, d)) * (1.0 - smoothstep(0.0, 0.2, height));
+  float contact = 0.0;
+  for (int i = 0; i < ${MAX_CONTACTS}; i++) {
+    if (i >= uContactCount) break;
+    vec2 fromPiece = floorPos - uContacts[i].xy;
+    float d = length(fromPiece) / uContacts[i].z;
+    float awayFromLight = smoothstep(-0.2, 0.5, dot(fromPiece / max(length(fromPiece), 1e-4), -lightFlat));
+    float contactReach = mix(0.45, 1.0, awayFromLight);
+    contact = max(contact, 1.0 - smoothstep(contactReach - 0.08, contactReach, d));
+  }
+  contact *= 1.0 - smoothstep(0.0, 0.2, height);
   vec3 contactLab = linearToOklab(uContact);
   contactLab.x -= 0.08;
   lab = mix(lab, contactLab, contact * 0.55);
@@ -222,6 +234,8 @@ export class Background {
           uLightDir: { value: new Vector3(0, 1, 0) },
           uApple: { value: new Vector2() },
           uAppleRadius: { value: 1 },
+          uContacts: { value: Array.from({ length: MAX_CONTACTS }, () => new Vector3(0, 0, 1)) },
+          uContactCount: { value: 0 },
           uPatchOffset: { value: 0.6 },
           uPatchLength: { value: 3.5 },
           uPatchWidth: { value: 2 },
@@ -259,6 +273,9 @@ export class Background {
     u.uLightDir.value.copy(context.lightDirection);
     u.uApple.value.set(context.objectCentre.x, context.objectCentre.z);
     u.uAppleRadius.value = r;
+    const contacts = context.contacts.slice(0, MAX_CONTACTS);
+    contacts.forEach((c, i) => (u.uContacts.value as Vector3[])[i].copy(c));
+    u.uContactCount.value = contacts.length;
     u.uPatchOffset.value = layout.patchOffset;
     u.uPatchLength.value = layout.patchLength;
     u.uPatchWidth.value = layout.patchWidth;

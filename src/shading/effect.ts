@@ -61,4 +61,10 @@ export interface FrameContext {
   groundY: number;
   /** The ingredient's own colours (its family, or the apple's Colour group). */
   objectColours: Palette;
+  /**
+   * Where each piece of the subject touches the table, for its soft contact
+   * shadow: x and z on the floor, and the piece's radius (world units). One
+   * for a solo ingredient, one per member for a cluster (up to MAX_CONTACTS).
+   */
+  contacts: Vector3[];
 }

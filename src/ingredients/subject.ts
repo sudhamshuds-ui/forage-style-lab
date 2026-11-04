@@ -5,7 +5,9 @@ import { Apple } from './apple/apple';
 import { mixHex } from '../utils/colour';
 import { setSkin } from '../shading/effects/skinTexture';
 import { FAMILIES } from './families';
-import { seedFromId } from './forms/kit/random';
+import { seedFromId, seededRandom } from './forms/kit/random';
+import { LAYOUT_COUNT, arrangeCluster } from './layout';
+import { cmToUnits } from './scale';
 import { parsePart, type IngredientEntry } from './registry';
 
 /**
@@ -21,6 +23,14 @@ export interface Subject {
   readonly entry: IngredientEntry;
   /** Real size, bottom centre at the origin. */
   readonly group: Group;
+  /**
+   * How far the stage turns the whole subject (degrees, measured from the camera).
+   * A solo ingredient uses its registry `turn`; a cluster turns its hero instead, so
+   * the triangle itself stays square to the camera.
+   */
+  readonly turn: number;
+  /** Where each piece meets the table (local centre and radius), for its soft contact shadow. */
+  readonly contacts: { centre: Vector3; radius: number }[];
   /** Centre and rough radius of the main body (local), used to place highlights and the room. */
   readonly centre: Vector3;
   radius: number;
@@ -40,6 +50,8 @@ const RADIUS_FACTOR = 0.88;
 
 class AppleSubject implements Subject {
   readonly group = new Group();
+  readonly turn: number;
+  readonly contacts: { centre: Vector3; radius: number }[] = [];
   readonly centre = new Vector3();
   radius = 1;
   private readonly apple: Apple;
@@ -49,6 +61,7 @@ class AppleSubject implements Subject {
     readonly entry: IngredientEntry,
     look: StylizedLook,
   ) {
+    this.turn = entry.turn;
     this.apple = new Apple(look);
     this.group.add(this.apple.group);
     setSkin(this.apple.bodyMaterial, entry.skin);
@@ -71,6 +84,7 @@ class AppleSubject implements Subject {
     this.apple.group.position.set(-(this.box.min.x + this.box.max.x) / 2, -this.box.min.y, -(this.box.min.z + this.box.max.z) / 2);
     this.centre.copy(this.apple.centre).add(this.apple.group.position);
     this.radius = this.apple.radius;
+    this.contacts.splice(0, this.contacts.length, { centre: this.centre.clone(), radius: this.radius });
     return true;
   }
 
@@ -90,6 +104,8 @@ class AppleSubject implements Subject {
 
 class FormSubject implements Subject {
   readonly group = new Group();
+  readonly turn: number;
+  readonly contacts: { centre: Vector3; radius: number }[] = [];
   readonly centre = new Vector3();
   radius = 1;
   private readonly palette: Palette;
@@ -108,24 +124,46 @@ class FormSubject implements Subject {
       return [role, family] as const;
     }));
 
-    const pieces = entry.form({ state: 'whole', seed: seedFromId(spec.id) });
-    pieces.forEach((piece, index) => {
-      const material = look.createMaterial({ doubleSided: piece.doubleSided });
-      // A part can borrow another family (watermelon rind@green); the rest use the ingredient's own.
-      const family = partFamilies.get(piece.role);
-      const palette = family ? FAMILIES[family].colours : this.palette;
-      // One main highlight per object (board 02): small parts keep theirs close to their own colour.
-      const quiet = index === 0 ? palette : { ...palette, highlight: mixHex(palette.highlight, palette.base, 0.65) };
-      this.painted.push({ material, palette: quiet });
-      if (index === 0) setSkin(material, entry.skin);
-      const mesh = new Mesh(piece.geometry, material);
-      mesh.name = piece.role;
-      mesh.castShadow = true;
-      this.group.add(mesh);
-    });
+    // One member for a solo ingredient, two or three for a cluster (strawberries, eggs).
+    // The hero uses the ingredient's own seed; the others get their own, so each is a variant.
+    const seed = seedFromId(spec.id);
+    const members: Group[] = [];
+    for (let m = 0; m < LAYOUT_COUNT[spec.layout]; m++) {
+      const member = new Group();
+      const pieces = entry.form({ state: 'whole', seed: (seed + m * 7919) >>> 0 });
+      pieces.forEach((piece, index) => {
+        const material = look.createMaterial({ doubleSided: piece.doubleSided });
+        // A part can borrow another family (watermelon rind@green); the rest use the ingredient's own.
+        const family = partFamilies.get(piece.role);
+        const palette = family ? FAMILIES[family].colours : this.palette;
+        // One main highlight per object (board 02): small parts keep theirs close to their own colour.
+        const quiet = index === 0 ? palette : { ...palette, highlight: mixHex(palette.highlight, palette.base, 0.65) };
+        this.painted.push({ material, palette: quiet });
+        if (index === 0) setSkin(material, entry.skin);
+        const mesh = new Mesh(piece.geometry, material);
+        mesh.name = piece.role;
+        mesh.castShadow = true;
+        member.add(mesh);
+      });
+      members.push(member);
+      this.group.add(member);
+    }
+    const heroTurn = (entry.turn * Math.PI) / 180;
+    if (members.length > 1) arrangeCluster(members, { random: seededRandom(seed ^ 0x9e3779b9), gap: cmToUnits(0.03), heroTurn });
+    this.turn = members.length > 1 ? 0 : entry.turn;
 
-    // The first piece is the main body: highlights and the room are placed round it.
-    const sphere = pieces[0].geometry.boundingSphere ?? new Sphere();
+    // One contact shadow per member, under its main body.
+    for (const member of members) {
+      member.updateMatrix();
+      const body = (member.children[0] as Mesh).geometry;
+      body.computeBoundingSphere();
+      const sphere = body.boundingSphere!.clone().applyMatrix4(member.matrix);
+      this.contacts.push({ centre: sphere.center, radius: sphere.radius * RADIUS_FACTOR });
+    }
+
+    // Highlights and the room are placed round the whole subject (one body, or the cluster).
+    this.group.updateMatrixWorld(true);
+    const sphere = new Box3().setFromObject(this.group).getBoundingSphere(new Sphere());
     this.centre.copy(sphere.center);
     this.radius = sphere.radius * RADIUS_FACTOR;
   }

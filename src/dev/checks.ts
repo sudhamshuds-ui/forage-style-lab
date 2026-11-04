@@ -21,6 +21,7 @@ import { cmToUnits } from '../ingredients/scale';
 import { formReport, type TRIANGLE_BUDGET } from '../ingredients/forms/kit/checks';
 import type { FormPiece } from '../ingredients/forms/kit/piece';
 import { findIngredient } from '../ingredients/registry';
+import { LAYOUT_COUNT } from '../ingredients/layout';
 import { createSubject, type Subject } from '../ingredients/subject';
 
 /**
@@ -55,7 +56,12 @@ export function devChecks(
   const report = () => {
     const subject = getSubject();
     const { spec } = subject.entry;
-    const text = `${spec.name}\n${formReport(piecesOf(subject), spec as { size_cm: [number, number, number]; archetype: keyof typeof TRIANGLE_BUDGET })}`;
+    // A cluster: report one member (the hero) against the budget, which is per piece of food.
+    const members = LAYOUT_COUNT[spec.layout];
+    const pieces = piecesOf(subject);
+    const hero = pieces.slice(0, pieces.length / members);
+    const note = members > 1 ? `\ncluster     ${members} members (numbers above are the hero's)` : '';
+    const text = `${spec.name}\n${formReport(hero, spec as { size_cm: [number, number, number]; archetype: keyof typeof TRIANGLE_BUDGET })}${note}`;
     console.log(text);
     return text;
   };
@@ -112,7 +118,7 @@ export function devChecks(
     let x = 0;
     const gap = cmToUnits(2);
     for (const subject of subjects) {
-      subject.group.rotation.y = (subject.entry.turn * Math.PI) / 180;
+      subject.group.rotation.y = (subject.turn * Math.PI) / 180;
       subject.group.updateMatrixWorld(true);
       const width = subject.radius * 2.3;
       subject.group.position.x = x + width / 2;

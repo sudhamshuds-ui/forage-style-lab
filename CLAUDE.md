@@ -73,6 +73,13 @@ keep code readable with friendly comments.
   width and touches the floor about 74% down (`src/scene/framing.ts`). It is done by
   scaling the real-size subject on the stage (looks like a camera zoom, keeps the room
   and marks at their tuned scale). Each entry's `turn` is measured from the camera.
+- **Layouts** (`src/ingredients/layout.ts`): `cluster-2` and `cluster-3` show 2 or 3 seeded
+  variants (own seed, size and turn) in an odd triangle, the hero in front (it takes the
+  entry's `turn`; the group itself stays square to the camera), the others behind and to
+  the side, each slid in until its **body** just touches (no visible gap, no overlap;
+  sepals and leaves may brush a neighbour). One shared cast shadow, plus a soft contact
+  shadow under each member (the backdrop takes up to 4 contact spots, `MAX_CONTACTS`).
+  Whole and cut arrives with the cut forms.
 - **Shuffle ingredient** swaps to a random different ingredient with a short fade, frames
   it, paints it with its family and switches the room to the family's suggested room.
   Reset keeps that room. No physics, no multi-ingredient table on this branch.
@@ -85,7 +92,7 @@ keep code readable with friendly comments.
 - Commands: `npm run dev` (dev server, http://localhost:5173), `npm run build`
   (type-check + production build), `npm test` (Vitest: panel, Randomize, palette rules,
   backdrop layout, every registry form's size, contact, normals and triangle budget, the
-  registry and its rooms, card framing).
+  registry and its rooms, card framing, cluster layout, skin texture, soft light).
 - In dev, `styleLab.settings`, `styleLab.redraw()` and `styleLab.snapshot()` (paints one
   frame now and returns it as an image URL, handy for side-by-side comparisons) are
   available in the browser console, plus the ingredient checks from board 09:
@@ -186,14 +193,14 @@ kid's painting) while keeping all of it underneath.
 Ingredient forms (branch `ingredient-forms`): facets retired (smooth apple), key light
 upper left, the registry, colour families, form kit (lathe and round recipe), card
 framing, Shuffle ingredient, soft light (Light strength), skin textures, the lemon, the
-orange (calyx, stem, leaf) and the strawberry (one berry for now; its cluster-3 layout is
-not built yet), dev checks. Family rooms may sit 70 to 180
+orange (calyx, stem, leaf), the strawberry (a cluster of three) and the cluster layout,
+dev checks. Family rooms may sit 70 to 180
 degrees from the ingredient (board 04's own pairings, kept by choice). Next, one at a
 time with feedback: egg, broccoli, bread loaf, cheese wedge, butter, steak,
 chicken drumstick, watermelon wedge (whole forms only; cut forms later).
 
 ## Planned for later sessions (not built yet)
-Cut forms (slice the whole form and cap the cut), the layouts (whole and cut, clusters),
+Cut forms (slice the whole form and cap the cut), the whole-and-cut layout,
 the light cases, patterns inside highlights and shadows, sparkles, soft body
 wobble. Later tools: cut and cooked forms, vessels, combining, recipe cards.
 
