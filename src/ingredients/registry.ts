@@ -3,6 +3,7 @@ import { buildLemon } from './forms/lemon';
 import { buildOrange } from './forms/orange';
 import { buildStrawberry } from './forms/strawberry';
 import { buildBroccoli } from './forms/broccoli';
+import { buildBread } from './forms/bread';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
 import type { Skin } from '../shading/effects/skinTexture';
@@ -73,6 +74,11 @@ export interface IngredientEntry {
   stemEnds?: 'out' | 'front';
   /** A matte surface (broccoli, bread): the body's highlight stays quiet, like a small part's. */
   matte?: boolean;
+  /**
+   * Its own triangle budget, when the archetype's does not fit (a 22 cm loaf is "round" like an
+   * apple, but needs more mesh for its scored crust). Leave it out to use the archetype's.
+   */
+  budget?: [number, number];
 }
 
 export const REGISTRY: IngredientEntry[] = [
@@ -174,6 +180,29 @@ export const REGISTRY: IngredientEntry[] = [
     stemEnds: 'front',
     matte: true,
     skin: { kind: 'florets', size_mm: 4, amount: 0.9 },
+  },
+  {
+    spec: {
+      id: 'bread',
+      name: 'Bread',
+      // The loaf is round; the slice will be block and the baguette long (board 08: variants
+      // pick their own archetype).
+      archetype: 'round',
+      family: 'cream-crust',
+      layout: 'solo',
+      show: 'Round loaf (default), a slice lying flat, a baguette with two cut slices.',
+      forms: ['loaf', 'slice', 'baguette', 'crumbs', 'toast'],
+      scale: 'L',
+      size_cm: [21, 12.5, 19],
+      parts: ['crust', 'crumb'],
+      light_case: 'dark',
+      notes: 'A boule: broad settled base, full dome, a touch oval, a cross scored into the top with raised lips. Crackle and flour dust are a shader texture.',
+    },
+    form: buildBread,
+    turn: 15,
+    skin: { kind: 'crust', size_mm: 14, amount: 0.8 },
+    matte: true,
+    budget: [2000, 9000],
   },
 ];
 

@@ -114,10 +114,11 @@ export function signedVolume(piece: FormPiece): number {
 export function formReport(
   pieces: FormPiece[],
   spec: { size_cm: [number, number, number]; archetype: keyof typeof TRIANGLE_BUDGET },
+  ownBudget?: readonly [number, number],
 ): string {
   const size = sizeInCm(bodyPieces(pieces));
   const whole = sizeInCm(pieces);
-  const budget = TRIANGLE_BUDGET[spec.archetype];
+  const budget = ownBudget ?? TRIANGLE_BUDGET[spec.archetype];
   const box = boundsOf(pieces);
   const f = (v: number) => v.toFixed(2);
   return [

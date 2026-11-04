@@ -22,6 +22,8 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  *    clusters, each bud lit on its side toward the light, the gaps between
  *    them in the crown's own deep shade. Two sizes (clusters and buds), so it
  *    reads as a mass of tiny florets, not a pattern.
+ *  - crust (bread): a fine network of crackle lines in the crust's own darker shade, a few
+ *    soft blisters, and pale, dry flour dust where the crust faces up.
  *  - leaf (sepals and leaves, set automatically): deeper at the stalk and
  *    lighter toward the tip, a pale centre vein, faint side veins, a slight
  *    hue drift from leaf to leaf, and a paler, cooler underside. Uses the
@@ -35,7 +37,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -137,6 +139,21 @@ if (kind > 0 && amount > 0.0) {
     lab = emboss > 0.0 ? lab + vec3(emboss * 0.12, 0.0, 0.0) : shadeOwn(lab, -emboss * 1.1);
     // Gaps between buds: small, deep, in the crown's own colour.
     lab = shadeOwn(lab, (1.0 - bud) * (1.0 - bud) * 0.35 * show);
+  } else if (kind == 7) {
+    // Crust: crackle lines where the baked skin split (thin ridges of a soft noise), in the
+    // crust's own deeper shade, never grey.
+    // Calm: thin, sparse lines (shapes first, few marks).
+    float crackle = 1.0 - smoothstep(0.008, 0.025, abs(valueNoise3(p) - 0.5));
+    crackle *= smoothstep(0.45, 0.65, valueNoise3(p * 0.37 + 7.0));
+    lab = shadeOwn(lab, crackle * 0.35 * show);
+    // A few soft blisters: low domes, lit on their side toward the light.
+    float blister = 1.0 - smoothstep(0.0, 0.7, skinCells(p * 0.6));
+    float blisterToward = 1.0 - smoothstep(0.0, 0.7, skinCells(p * 0.6 + L * 0.15));
+    float emboss = (blisterToward - blister) * show;
+    lab = emboss > 0.0 ? lab + vec3(emboss * 0.06, 0.0, 0.0) : shadeOwn(lab, -emboss * 0.5);
+    // Flour dust: pale, dry patches on the top, where the crust faces up.
+    float flour = smoothstep(0.52, 0.78, fbm3(p * 0.25)) * smoothstep(0.35, 0.85, N.y);
+    lab = mix(lab, linearToOklab(uHighlightColour), flour * 0.6 * amount);
   } else if (kind == 5) {
     // Leaf: x runs from the stalk (0) to the tip (1), y across (0.5 is the centre vein).
     vec2 q = vSurfaceUv;

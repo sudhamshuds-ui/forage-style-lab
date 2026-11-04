@@ -61,7 +61,7 @@ export function devChecks(
     const pieces = piecesOf(subject);
     const hero = pieces.slice(0, pieces.length / members);
     const note = members > 1 ? `\ncluster     ${members} members (numbers above are the hero's)` : '';
-    const text = `${spec.name}\n${formReport(hero, spec as { size_cm: [number, number, number]; archetype: keyof typeof TRIANGLE_BUDGET })}${note}`;
+    const text = `${spec.name}\n${formReport(hero, spec as { size_cm: [number, number, number]; archetype: keyof typeof TRIANGLE_BUDGET }, subject.entry.budget)}${note}`;
     console.log(text);
     return text;
   };

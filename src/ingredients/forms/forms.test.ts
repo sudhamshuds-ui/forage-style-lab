@@ -8,10 +8,10 @@ import { TRIANGLE_BUDGET, allFinite, bodyPieces, boundsOf, outwardFraction, sign
  * "Checks before saving"). A new ingredient is tested as soon as it is added.
  */
 const built = REGISTRY.flatMap((entry) =>
-  typeof entry.form === 'function' ? [{ spec: entry.spec, build: entry.form }] : [],
+  typeof entry.form === 'function' ? [{ spec: entry.spec, build: entry.form, budget: entry.budget }] : [],
 );
 
-describe.each(built)('$spec.name (whole)', ({ spec, build }) => {
+describe.each(built)('$spec.name (whole)', ({ spec, build, budget }) => {
   const pieces = build({ state: 'whole', seed: seedFromId(spec.id) });
 
   it('is its real size, within 10% of size_cm (the body: a leaf or stem may stick out)', () => {
@@ -47,8 +47,8 @@ describe.each(built)('$spec.name (whole)', ({ spec, build }) => {
     }
   });
 
-  it(`stays inside the ${spec.archetype} triangle budget`, () => {
-    const [min, max] = TRIANGLE_BUDGET[spec.archetype];
+  it(`stays inside its triangle budget (${budget ? 'its own' : spec.archetype})`, () => {
+    const [min, max] = budget ?? TRIANGLE_BUDGET[spec.archetype];
     const count = triangleCount(pieces);
     expect(count).toBeGreaterThanOrEqual(min);
     expect(count).toBeLessThanOrEqual(max);
