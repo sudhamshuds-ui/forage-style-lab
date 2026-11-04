@@ -33,8 +33,8 @@ keep code readable with friendly comments.
   to bring one back, remove its `hidden` flag (group or control).
 - **Randomize** (`src/randomize.ts`) picks a **painter** (`src/painters.ts`, always a different
   one from the painter on screen) and rolls each stroke setting inside that painter's ranges,
-  so every roll reads as that painter. The panel shows "After {painter}" and one line about
-  their style under the button. Painters so far (chosen 2026-11-04, iconic names people know
+  so every roll reads as that painter. The painter's name is not shown (the user, 2026-11-04;
+  `SHOW_PAINTER_NAME` in `src/ui/panel.ts` brings back "After {painter}" under the button). Painters so far (chosen 2026-11-04, iconic names people know
   at a glance): Monet (round, broken dabs of colour, shimmering backdrop), Cézanne (flat,
   square-ish patches in parallel diagonals), Sargent (broad strokes that follow the form; the
   default). Each painter sets the brush type, size, length, bristles, pattern, looseness,

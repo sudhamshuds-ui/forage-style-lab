@@ -19,6 +19,12 @@ export interface Panel {
 }
 
 /** The Style section holds Randomize, shown only while Playful strokes is on. */
+
+/**
+ * Show "After Monet" (and one line about the painter) under Randomize.
+ * Off since 2026-11-04 (the user): the painters stay, the names stay hidden.
+ */
+const SHOW_PAINTER_NAME = false;
 const STYLE_GROUP: GroupKey = 'brush';
 
 export function createPanel(
@@ -42,7 +48,7 @@ export function createPanel(
   painterNote.setAttribute('aria-live', 'polite');
   const showRandomize = () => {
     if (randomizeButton) randomizeButton.hidden = !settings.brush.classic;
-    painterNote.hidden = !settings.brush.classic;
+    painterNote.hidden = !SHOW_PAINTER_NAME || !settings.brush.classic;
     const painter = findPainter(settings.brush.painter);
     painterNote.innerHTML = `<span class="painter-name">After ${painter.name}</span><span class="painter-line">${painter.note}</span>`;
   };
