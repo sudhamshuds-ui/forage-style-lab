@@ -137,7 +137,8 @@ class FormSubject implements Subject {
         const family = partFamilies.get(piece.role);
         const palette = family ? FAMILIES[family].colours : this.palette;
         // One main highlight per object (board 02): small parts keep theirs close to their own colour.
-        const quiet = index === 0 ? palette : { ...palette, highlight: mixHex(palette.highlight, palette.base, 0.65) };
+        const loud = index === 0 && !entry.matte;
+        const quiet = loud ? palette : { ...palette, highlight: mixHex(palette.highlight, palette.base, 0.65) };
         this.painted.push({ material, palette: quiet });
         if (index === 0) setSkin(material, entry.skin);
         // Leaves and sepals (pieces with a leaf map) get the leaf skin: vein, base-to-tip, underside.
@@ -153,7 +154,9 @@ class FormSubject implements Subject {
       this.group.add(member);
     }
     const heroTurn = (entry.turn * Math.PI) / 180;
-    if (members.length > 1) arrangeCluster(members, { random: seededRandom(seed ^ 0x9e3779b9), gap: cmToUnits(0.03), heroTurn });
+    if (members.length > 1) {
+      arrangeCluster(members, { random: seededRandom(seed ^ 0x9e3779b9), gap: cmToUnits(0.03), heroTurn, stemEnds: entry.stemEnds });
+    }
     this.turn = members.length > 1 ? 0 : entry.turn;
 
     // One contact shadow per member, under its main body.

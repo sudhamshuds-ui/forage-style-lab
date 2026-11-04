@@ -47,11 +47,18 @@ export interface ClusterOptions {
   gap: number;
   /** The hero's turn (radians): its best side to the camera, like a solo ingredient's `turn`. */
   heroTurn: number;
+  /**
+   * Which way the stem ends point: 'out', away from the group (berries: tips meet in the
+   * middle), or 'front', fanning toward the camera with the heads overlapping behind
+   * (broccoli: the stalks are what make it read).
+   */
+  stemEnds?: 'out' | 'front';
 }
 
 /** Arrange the members (real size, bottom centre at their origin) into a cluster, in place. */
 export function arrangeCluster(members: Group[], options: ClusterOptions): void {
   const { random, gap, heroTurn } = options;
+  const stemEnds = options.stemEnds ?? 'out';
   const bodies = members.map((member) => samplePoints(member, 'body'));
   const parts = members.map((member) => samplePoints(member, 'parts'));
   const placedBodies: Vector3[][] = [];
@@ -62,41 +69,67 @@ export function arrangeCluster(members: Group[], options: ClusterOptions): void 
     const scale = 1 + signed(random) * 0.06;
     member.scale.setScalar(scale);
 
+    // 'front': stem ends fan out diagonally toward the camera (+Z on the table), about 45
+    // degrees off straight-on, so each stalk shows its length and the heads overlap behind.
+    // The hero's goes to one side; each next one picks the side that fans away (below).
+    const frontFacing = Math.PI / 2 - 0.8 + signed(random) * 0.15 - heroTurn;
+    // Which way the stem end points: for 'front' the very end of the stalk (its cut), since a
+    // broccoli's many branches hide under the crown and would pull an average off.
+    const out = stemEnds === 'front' ? stemEndDirection(member) : partsDirection(member);
+
     if (index === 0) {
       // Hero: its designed turn (best side to the camera), give or take.
-      member.rotation.set(0, heroTurn + signed(random) * 0.1, 0);
+      const turn = stemEnds === 'front' && out ? Math.atan2(out.z, out.x) - frontFacing : heroTurn + signed(random) * 0.1;
+      member.rotation.set(0, turn, 0);
       member.position.set(0, 0, 0);
     } else {
       const angle = SPOTS[(index - 1) % SPOTS.length] + signed(random) * 0.25;
       const direction = new Vector3(Math.cos(angle), 0, Math.sin(angle));
-      // Turn it so its stem end (calyx, leaves) faces out, away from the group, give or take:
-      // the berries meet tip and side first, like fruit tumbled into a bowl.
-      const out = partsDirection(member);
-      const turn = out ? Math.atan2(out.z, out.x) - angle + signed(random) * 0.5 : signed(random) * Math.PI;
-      member.rotation.set(0, turn, 0);
       const otherBodies = placedBodies.flat();
       const otherParts = placedParts.flat();
-      const clear = (distance: number) => {
-        member.position.copy(direction).multiplyScalar(distance);
-        const body = transformed(bodies[index], member);
-        // Bodies just touch. Leaves and sepals may brush each other, but never sink into a body.
-        return (
-          minDistance(body, otherBodies) >= gap &&
-          minDistance(transformed(parts[index], member), otherBodies) >= gap * 0.5 &&
-          minDistance(body, otherParts) >= gap * 0.5
-        );
+      // Turn the member to face `facing`, then slide it in until it just touches.
+      const placeFacing = (facing: number) => {
+        member.rotation.set(0, out ? Math.atan2(out.z, out.x) - facing : signed(random) * Math.PI, 0);
+        const clear = (distance: number) => {
+          member.position.copy(direction).multiplyScalar(distance);
+          const body = transformed(bodies[index], member);
+          // Bodies just touch. Leaves and sepals may brush each other, but never sink into a body.
+          return (
+            minDistance(body, otherBodies) >= gap &&
+            minDistance(transformed(parts[index], member), otherBodies) >= gap * 0.5 &&
+            minDistance(body, otherParts) >= gap * 0.5
+          );
+        };
+        // Slide in from far away until it just touches: halve the range each step.
+        let far = 0;
+        for (const points of placed) for (const p of points) far = Math.max(far, p.length());
+        far = far * 2 + 10 * gap + 1;
+        let near = 0;
+        for (let i = 0; i < 30; i++) {
+          const middle = (near + far) / 2;
+          if (clear(middle)) far = middle;
+          else near = middle;
+        }
+        member.position.copy(direction).multiplyScalar(far);
       };
-      // Slide in from far away until it just touches: halve the range each step.
-      let far = 0;
-      for (const points of placed) for (const p of points) far = Math.max(far, p.length());
-      far = far * 2 + 10 * gap + 1;
-      let near = 0;
-      for (let i = 0; i < 30; i++) {
-        const middle = (near + far) / 2;
-        if (clear(middle)) far = middle;
-        else near = middle;
+
+      if (stemEnds === 'front') {
+        // Try the stem end fanning to either side, and keep the one whose stalk ends up
+        // furthest from the stalks already there: they fan apart and never cross.
+        const spread = (facing: number) => {
+          placeFacing(facing);
+          return stemEnd(transformed(parts[index], member), transformed(bodies[index], member)).distanceTo(
+            stemEnd(otherParts, otherBodies),
+          );
+        };
+        const left = Math.PI / 2 + 0.8 - heroTurn + signed(random) * 0.15;
+        const right = Math.PI / 2 - 0.8 - heroTurn + signed(random) * 0.15;
+        placeFacing(spread(left) >= spread(right) ? left : right);
+      } else {
+        // Stem end out, away from the group, give or take: the berries meet tip and side
+        // first, like fruit tumbled into a bowl.
+        placeFacing(angle + signed(random) * 0.5);
       }
-      member.position.copy(direction).multiplyScalar(far);
     }
     placedBodies.push(transformed(bodies[index], member));
     placedParts.push(transformed(parts[index], member));
@@ -152,6 +185,37 @@ function partsDirection(member: Group): Vector3 | null {
 export function transformed(points: Vector3[], member: Group): Vector3[] {
   member.updateMatrix();
   return points.map((p) => p.clone().applyMatrix4(member.matrix));
+}
+
+/** The stem end: the part point furthest from the body's middle (a stalk's cut end). */
+function stemEnd(parts: Vector3[], body: Vector3[]): Vector3 {
+  const middle = centroid(body);
+  let best = middle;
+  let bestDistance = -1;
+  for (const p of parts) {
+    const d = p.distanceToSquared(middle);
+    if (d > bestDistance) {
+      bestDistance = d;
+      best = p;
+    }
+  }
+  return best;
+}
+
+/** Which way (on the table) a member's stem end points from its body, in its own space. */
+function stemEndDirection(member: Group): Vector3 | null {
+  const body = samplePoints(member, 'body', 200);
+  const parts = samplePoints(member, 'parts', 400);
+  if (parts.length === 0) return null;
+  const out = stemEnd(parts, body).clone().sub(centroid(body)).setY(0);
+  return out.lengthSq() > 1e-8 ? out.normalize() : null;
+}
+
+/** The middle of a set of points. */
+function centroid(points: Vector3[]): Vector3 {
+  const sum = new Vector3();
+  for (const p of points) sum.add(p);
+  return points.length > 0 ? sum.divideScalar(points.length) : sum;
 }
 
 /** The closest distance between two sets of points. */

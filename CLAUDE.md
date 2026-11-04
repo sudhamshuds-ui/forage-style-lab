@@ -82,7 +82,10 @@ keep code readable with friendly comments.
   may brush each other but never sink into a neighbour's body). Approved by the user as is
   (2026-11-04); a symmetric pinwheel was tried and rejected as worse. One shared cast
   shadow, plus a soft contact shadow under each member (the backdrop takes up to 4 contact
-  spots, `MAX_CONTACTS`). Whole and cut arrives with the cut forms.
+  spots, `MAX_CONTACTS`). Whole and cut arrives with the cut forms. An entry's `stemEnds`
+  picks 'out' (berries, default) or 'front' (broccoli: each stalk's cut end fans diagonally
+  toward the camera, choosing the side that fans away from the others, so stalks show and
+  never cross). `matte: true` keeps the body's highlight quiet (broccoli).
 - **Cast shadows on the fruit**: ingredient materials read the key light's shadow map
   (`lightMask` in the shader), so sepals, stems and neighbours shade the fruit. A cast shadow
   drops the surface one tone band (to the middle tone, coloured, never grey); it fades out at
@@ -213,7 +216,8 @@ Ingredient forms (branch `ingredient-forms`): facets retired (smooth apple), key
 upper left, the registry, colour families, form kit (lathe and round recipe), card
 framing, Shuffle ingredient, soft light (Light strength), skin textures, the lemon, the
 orange (calyx, stem, leaf), the strawberry (a cluster of three) and the cluster layout,
-the broccoli (branching: blob crown and a forking swept stalk; the egg was skipped),
+the broccoli (two heads lying down, crowns of about 70 lumps, ribbed stalks with leaf scars,
+a branch per cluster, a leaf; the egg was skipped),
 dev checks. Family rooms may sit 70 to 180
 degrees from the ingredient (board 04's own pairings, kept by choice). Next, one at a
 time with feedback: bread loaf, cheese wedge, butter, steak,

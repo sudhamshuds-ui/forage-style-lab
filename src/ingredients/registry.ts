@@ -69,6 +69,10 @@ export interface IngredientEntry {
    * pebbled lemon peel, orange pores, apple streaks. Stems and leaves stay plain.
    */
   skin: Skin;
+  /** For clusters: stem ends pointing 'out' from the group (berries, default) or 'front' (broccoli). */
+  stemEnds?: 'out' | 'front';
+  /** A matte surface (broccoli, bread): the body's highlight stays quiet, like a small part's. */
+  matte?: boolean;
 }
 
 export const REGISTRY: IngredientEntry[] = [
@@ -154,16 +158,19 @@ export const REGISTRY: IngredientEntry[] = [
       name: 'Broccoli',
       archetype: 'branching',
       family: 'green',
-      layout: 'solo',
-      show: 'One head: three or four big floret clusters, a thick branching stalk.',
+      layout: 'cluster-2',
+      show: 'Two heads lying on their sides, overlapping: lumpy crowns of many florets, thick forking stalks, a leaf.',
       forms: ['head', 'floret', 'chopped'],
       scale: 'L',
-      size_cm: [11, 15, 11],
-      parts: ['florets', 'stalk@pale-green'],
-      notes: 'Four big floret masses blended into one lumpy crown, never hundreds of bumps. A pale stalk with a flat cut, showing below the crown. Buds are a shader texture.',
+      // Lying on its side: 15 cm from the cut to the top of the crown, about 10 high and deep.
+      size_cm: [15, 10, 10],
+      parts: ['florets', 'stalk@pale-green', 'leaf@leaf'],
+      notes: 'Lies on its side, never upright like a tree. A crown of many florets: clusters covered in lumps, never a smooth dome (mushroom). Thick pale stalk, flat cut, a branch to every cluster, one leaf. Buds are a shader texture.',
     },
     form: buildBroccoli,
     turn: 0,
+    stemEnds: 'front',
+    matte: true,
     skin: { kind: 'florets', size_mm: 4, amount: 0.9 },
   },
 ];

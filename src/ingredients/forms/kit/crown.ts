@@ -60,10 +60,20 @@ export function crownGeometry(options: CrownOptions): BufferGeometry {
   const position = geometry.getAttribute('position') as BufferAttribute;
   const direction = new Vector3();
   const p = new Vector3();
-  const inside = (t: number) => crownDistance(p.copy(centre).addScaledVector(direction, t), blobs, softness) < 0;
+  const toBlob = new Vector3();
+  // Only the blobs this ray passes near can matter (a big speed-up with many lumps).
+  let near: Blob[] = blobs;
+  const inside = (t: number) => crownDistance(p.copy(centre).addScaledVector(direction, t), near, softness) < 0;
 
   for (let i = 0; i < position.count; i++) {
     direction.fromBufferAttribute(position, i).normalize();
+    near = blobs.filter((blob) => {
+      toBlob.copy(blob.centre).sub(centre);
+      const along = Math.max(0, toBlob.dot(direction));
+      const across = toBlob.addScaledVector(direction, -along).length();
+      return across < blob.radius + softness * 2;
+    });
+    if (near.length === 0) near = blobs;
     // Walk outward and remember the last step where the ray leaves the clay.
     let lastExit = 0;
     let wasInside = inside(0);

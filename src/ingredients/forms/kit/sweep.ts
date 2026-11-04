@@ -18,6 +18,11 @@ export interface SweepOptions {
   /** Rings along the curve, and points round each ring. */
   rings: number;
   segments: number;
+  /**
+   * Optional shape of the cross-section: a radius multiplier at `t` and `angle`
+   * round the tube. Soft ribs on a broccoli stalk, for example.
+   */
+  around?: (t: number, angle: number) => number;
 }
 
 export function sweepGeometry(options: SweepOptions): BufferGeometry {
@@ -42,10 +47,11 @@ export function sweepGeometry(options: SweepOptions): BufferGeometry {
     const r = Math.max(0, options.radius(t));
     for (let j = 0; j < segments; j++) {
       const a = (j / segments) * Math.PI * 2;
+      const rib = options.around ? options.around(t, a) : 1;
       offset
         .copy(frames.normals[frame])
-        .multiplyScalar(Math.cos(a) * r)
-        .addScaledVector(frames.binormals[frame], Math.sin(a) * r);
+        .multiplyScalar(Math.cos(a) * r * rib)
+        .addScaledVector(frames.binormals[frame], Math.sin(a) * r * rib);
       positions.push(point.x + offset.x, point.y + offset.y, point.z + offset.z);
     }
   }
