@@ -92,7 +92,9 @@ keep code readable with friendly comments.
   shadows overlap; (2) each stretch of shadow belongs to the nearest piece: darkness and
   colour (lighter and bluer as it travels) are measured from where that piece sits, never
   from the group's middle; (3) the deep contact patch is a flat oval under each piece, on
-  its side away from the light, never a rim round the outline; (4) a soft, slightly darker
+  its side away from the light, never a rim round the outline, and it never reaches beyond
+  the real cast shadow (the backdrop's own contact core stays within about half a piece's
+  radius, or it shows from above as a second, separate blob); (4) a soft, slightly darker
   crevice where two pieces meet; (5) pieces shade each other with real cast shadows.
 - **Shuffle ingredient** swaps to a random different ingredient with a short fade, frames
   it, paints it with its family and switches the room to the family's suggested room.

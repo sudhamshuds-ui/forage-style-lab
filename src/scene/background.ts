@@ -189,9 +189,10 @@ void main() {
   lab = slabs(lab, p);
 
   // 3. A soft, deep contact shadow right under each piece, in the shadow's own hue.
-  // Tucked right under it, and only on the side away from the light, so the lit
-  // side stays clean (the crisp cast shadow does the rest). A cluster gets one
-  // per member, so the shadows hug each berry instead of making one big blob.
+  // Only a tight core under the piece's footprint, never wider: seen from above, a
+  // wider patch pokes out past the real cast shadow as a second, separate blob. The
+  // glaze pass paints the rest of the contact, inside the cast shadow (glazeShader.ts).
+  // A cluster gets one per member.
   vec2 lightFlat = length(uLightDir.xz) > 0.05 ? normalize(uLightDir.xz) : vec2(0.0);
   float contact = 0.0;
   for (int i = 0; i < ${MAX_CONTACTS}; i++) {
@@ -199,7 +200,7 @@ void main() {
     vec2 fromPiece = floorPos - uContacts[i].xy;
     float d = length(fromPiece) / uContacts[i].z;
     float awayFromLight = smoothstep(-0.2, 0.5, dot(fromPiece / max(length(fromPiece), 1e-4), -lightFlat));
-    float contactReach = mix(0.45, 1.0, awayFromLight);
+    float contactReach = mix(0.25, 0.45, awayFromLight);
     contact = max(contact, 1.0 - smoothstep(contactReach - 0.08, contactReach, d));
   }
   contact *= 1.0 - smoothstep(0.0, 0.2, height);
