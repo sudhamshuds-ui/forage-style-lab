@@ -15,7 +15,12 @@ function cluster() {
   });
   const gap = cmToUnits(0.03);
   arrangeCluster(members, { random: seededRandom(seed ^ 0x9e3779b9), gap, heroTurn: 0 });
-  return { members, gap, points: members.map((m) => transformed(samplePoints(m), m)) };
+  return {
+    members,
+    gap,
+    points: members.map((m) => transformed(samplePoints(m, 'body'), m)),
+    parts: members.map((m) => transformed(samplePoints(m, 'parts'), m)),
+  };
 }
 
 describe('cluster layout', () => {
@@ -33,14 +38,23 @@ describe('cluster layout', () => {
     }
   });
 
+  it('never lets a sepal or stem sink into a neighbouring berry', () => {
+    const { points, parts, gap } = cluster();
+    for (let i = 0; i < points.length; i++) {
+      for (let j = 0; j < points.length; j++) {
+        if (i !== j) expect(minDistance(parts[i], points[j]), `parts of ${i} into ${j}`).toBeGreaterThanOrEqual(gap * 0.49);
+      }
+    }
+  });
+
   it('keeps everyone on the table, the hero in front, and the group centred', () => {
-    const { members, points } = cluster();
+    const { members, points, parts } = cluster();
     for (const m of members) expect(m.position.y).toBe(0);
     // +Z faces the camera: the hero is the frontmost.
     const depth = (ps: typeof points[number]) => ps.reduce((s, p) => s + p.z, 0) / ps.length;
     expect(depth(points[0])).toBeGreaterThan(depth(points[1]));
     expect(depth(points[0])).toBeGreaterThan(depth(points[2]));
-    const all = points.flat();
+    const all = [...points.flat(), ...parts.flat()];
     const xs = all.map((p) => p.x);
     const zs = all.map((p) => p.z);
     expect((Math.min(...xs) + Math.max(...xs)) / 2).toBeCloseTo(0, 5);

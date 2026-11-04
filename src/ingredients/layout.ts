@@ -52,26 +52,39 @@ export interface ClusterOptions {
 /** Arrange the members (real size, bottom centre at their origin) into a cluster, in place. */
 export function arrangeCluster(members: Group[], options: ClusterOptions): void {
   const { random, gap, heroTurn } = options;
-  const local = members.map((member) => samplePoints(member));
-  const placed: Vector3[][] = [];
+  const bodies = members.map((member) => samplePoints(member, 'body'));
+  const parts = members.map((member) => samplePoints(member, 'parts'));
+  const placedBodies: Vector3[][] = [];
+  const placedParts: Vector3[][] = [];
+  const placed = placedBodies;
 
   members.forEach((member, index) => {
-    // Hero: its designed turn, give or take. The others: a clear turn of their own, either way.
-    const side = random() < 0.5 ? -1 : 1;
-    const turn = index === 0 ? heroTurn + signed(random) * 0.1 : heroTurn + side * (0.6 + random() * 0.7);
     const scale = 1 + signed(random) * 0.06;
-    member.rotation.set(0, turn, 0);
     member.scale.setScalar(scale);
 
     if (index === 0) {
+      // Hero: its designed turn (best side to the camera), give or take.
+      member.rotation.set(0, heroTurn + signed(random) * 0.1, 0);
       member.position.set(0, 0, 0);
     } else {
       const angle = SPOTS[(index - 1) % SPOTS.length] + signed(random) * 0.25;
       const direction = new Vector3(Math.cos(angle), 0, Math.sin(angle));
-      const others = placed.flat();
+      // Turn it so its stem end (calyx, leaves) faces out, away from the group, give or take:
+      // the berries meet tip and side first, like fruit tumbled into a bowl.
+      const out = partsDirection(member);
+      const turn = out ? Math.atan2(out.z, out.x) - angle + signed(random) * 0.5 : signed(random) * Math.PI;
+      member.rotation.set(0, turn, 0);
+      const otherBodies = placedBodies.flat();
+      const otherParts = placedParts.flat();
       const clear = (distance: number) => {
         member.position.copy(direction).multiplyScalar(distance);
-        return minDistance(transformed(local[index], member), others) >= gap;
+        const body = transformed(bodies[index], member);
+        // Bodies just touch. Leaves and sepals may brush each other, but never sink into a body.
+        return (
+          minDistance(body, otherBodies) >= gap &&
+          minDistance(transformed(parts[index], member), otherBodies) >= gap * 0.5 &&
+          minDistance(body, otherParts) >= gap * 0.5
+        );
       };
       // Slide in from far away until it just touches: halve the range each step.
       let far = 0;
@@ -85,7 +98,8 @@ export function arrangeCluster(members: Group[], options: ClusterOptions): void 
       }
       member.position.copy(direction).multiplyScalar(far);
     }
-    placed.push(transformed(local[index], member));
+    placedBodies.push(transformed(bodies[index], member));
+    placedParts.push(transformed(parts[index], member));
   });
 
   // Centre the group on its footprint, so the framing sees it as one subject.
@@ -93,7 +107,7 @@ export function arrangeCluster(members: Group[], options: ClusterOptions): void 
   let maxX = -Infinity;
   let minZ = Infinity;
   let maxZ = -Infinity;
-  for (const p of placed.flat()) {
+  for (const p of [...placed.flat(), ...placedParts.flat()]) {
     minX = Math.min(minX, p.x);
     maxX = Math.max(maxX, p.x);
     minZ = Math.min(minZ, p.z);
@@ -106,19 +120,32 @@ export function arrangeCluster(members: Group[], options: ClusterOptions): void 
 }
 
 /**
- * A few hundred points on a member's main body (its first piece), in its own
- * space. Only the body counts for touching: soft parts like sepals and leaves
- * may brush over a neighbour, as they do in a real bowl of berries, instead of
- * holding the bodies apart.
+ * A few hundred points on a member, in its own space: its main body (the
+ * first piece) or its small parts (calyx, stem, leaves). Bodies are what
+ * touch; parts may brush a neighbour's parts but never sink into its body.
  */
-export function samplePoints(member: Group, budget = SAMPLES): Vector3[] {
-  const body = member.children.find((o): o is Mesh => o instanceof Mesh);
-  if (!body) return [];
-  const position = body.geometry.getAttribute('position') as BufferAttribute;
-  const step = Math.max(1, Math.floor(position.count / budget));
+export function samplePoints(member: Group, which: 'body' | 'parts' = 'body', budget = SAMPLES): Vector3[] {
+  const meshes = member.children.filter((o): o is Mesh => o instanceof Mesh);
+  const chosen = which === 'body' ? meshes.slice(0, 1) : meshes.slice(1);
+  let total = 0;
+  for (const mesh of chosen) total += mesh.geometry.getAttribute('position').count;
+  const step = Math.max(1, Math.floor(total / budget));
   const points: Vector3[] = [];
-  for (let i = 0; i < position.count; i += step) points.push(new Vector3().fromBufferAttribute(position, i));
+  for (const mesh of chosen) {
+    const position = mesh.geometry.getAttribute('position') as BufferAttribute;
+    for (let i = 0; i < position.count; i += step) points.push(new Vector3().fromBufferAttribute(position, i));
+  }
   return points;
+}
+
+/** Which way (on the table) a member's small parts sit from its body: its stem end. */
+function partsDirection(member: Group): Vector3 | null {
+  const body = samplePoints(member, 'body', 200);
+  const parts = samplePoints(member, 'parts', 200);
+  if (parts.length === 0) return null;
+  const mean = (ps: Vector3[]) => ps.reduce((s, p) => s.add(p), new Vector3()).divideScalar(ps.length);
+  const out = mean(parts).sub(mean(body)).setY(0);
+  return out.lengthSq() > 1e-8 ? out.normalize() : null;
 }
 
 /** Points moved by a member's turn, size and position (its children have no transforms of their own). */

@@ -76,8 +76,9 @@ keep code readable with friendly comments.
 - **Layouts** (`src/ingredients/layout.ts`): `cluster-2` and `cluster-3` show 2 or 3 seeded
   variants (own seed, size and turn) in an odd triangle, the hero in front (it takes the
   entry's `turn`; the group itself stays square to the camera), the others behind and to
-  the side, each slid in until its **body** just touches (no visible gap, no overlap;
-  sepals and leaves may brush a neighbour). One shared cast shadow, plus a soft contact
+  the side, each turned so its stem end faces out (tip and side meet in the middle) and
+  slid in until its **body** just touches (no visible gap, no overlap; sepals and stems may
+  brush each other but never sink into a neighbour's body). One shared cast shadow, plus a soft contact
   shadow under each member (the backdrop takes up to 4 contact spots, `MAX_CONTACTS`).
   Whole and cut arrives with the cut forms.
 - **Shuffle ingredient** swaps to a random different ingredient with a short fade, frames

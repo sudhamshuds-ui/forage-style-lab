@@ -124,12 +124,12 @@ export const buildStrawberry: FormBuilder = ({ state, seed }) => {
   const calyx = mergeGeometries(sepals)!;
   for (const sepal of sepals) sepal.dispose();
 
-  // A thin stem, leaning so that once the berry lies down it bends up and away.
+  // A thin, wiry stem (never a fat green tube), leaning so that once the berry lies down it bends up and away.
   const stem = stemPiece({
     base: top.clone().add(new Vector3(0, -0.04, 0)),
-    height: 0.95,
-    footRadius: 0.1,
-    neckRadius: 0.065,
+    height: 0.8,
+    footRadius: 0.07,
+    neckRadius: 0.042,
     lean: 0.65,
     leanTurn: signed(random) * 0.3,
     segments: 8,
