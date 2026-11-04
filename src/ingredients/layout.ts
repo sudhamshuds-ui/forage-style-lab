@@ -9,14 +9,18 @@ import type { Layout } from './registry';
  * arranging for clusters: "an odd triangle: one hero in front, one or two
  * behind and to the side, touching. One shared shadow. Never a row."
  *
- * Think of it as placing props on a set:
- *   1. the hero stands at the front centre,
- *   2. each other member gets its own size (a few percent either way) and its
- *      own turn, so no two look copy-pasted,
- *   3. it starts far away, behind and to one side, and slides in toward the
- *      hero until its body just touches what is already there (no gap you
- *      can see, no overlap; sepals and leaves may brush over a neighbour),
- *   4. the whole group is centred on its footprint.
+ * A pinwheel, so the group is balanced from every side as you orbit, not
+ * just from the front:
+ *   1. the members sit on spokes round a shared centre (three at about 120
+ *      degrees, two at about 140), each a little off, so it is never stiff,
+ *   2. the hero's spoke points at the camera (turned by the entry's `turn`),
+ *      so from the front it sits in front with its best side showing,
+ *   3. every member lies along its spoke, stem end (calyx, leaves) pointing
+ *      out and tip toward the middle, with its own size and a little twist,
+ *   4. each slides in along its spoke until its body just touches what is
+ *      already there (no gap you can see, no overlap; sepals and stems may
+ *      brush each other but never sink into a body),
+ *   5. the whole group is centred on its footprint.
  * The shared shadow comes for free: they stand on the same table.
  *
  * Whole and cut (a cut piece in front of the whole) arrives with the cut forms.
@@ -31,11 +35,14 @@ export const LAYOUT_COUNT: Record<Layout, number> = {
 };
 
 /**
- * Where the second and third members go, as directions on the table from
- * the hero (radians, 0 = +X, the right; -PI / 2 = -Z, straight back). +Z faces
- * the camera, so these are behind left and behind right, at different depths.
+ * The spokes, as angles on the table from the hero's spoke (radians). Angles
+ * on the table: 0 = +X (right), PI / 2 = +Z (toward the camera).
  */
-const SPOTS = [Math.atan2(-0.85, -0.5), Math.atan2(-0.9, 0.42)];
+const SPOKES: Record<number, number[]> = {
+  1: [0],
+  2: [0, (140 * Math.PI) / 180],
+  3: [0, (120 * Math.PI) / 180, (240 * Math.PI) / 180],
+};
 
 /** How many surface points stand in for each member when checking for touch. */
 const SAMPLES = 600;
@@ -45,7 +52,7 @@ export interface ClusterOptions {
   random: () => number;
   /** Gap between neighbours, in scene units (they should just touch). */
   gap: number;
-  /** The hero's turn (radians): its best side to the camera, like a solo ingredient's `turn`. */
+  /** Turns the pinwheel (radians): 0 points the hero's stem end straight at the camera. */
   heroTurn: number;
 }
 
@@ -58,22 +65,23 @@ export function arrangeCluster(members: Group[], options: ClusterOptions): void 
   const placedParts: Vector3[][] = [];
   const placed = placedBodies;
 
+  const spokes = SPOKES[Math.min(members.length, 3)] ?? SPOKES[3];
+  const heroSpoke = Math.PI / 2 + heroTurn;
+
   members.forEach((member, index) => {
     const scale = 1 + signed(random) * 0.06;
     member.scale.setScalar(scale);
+    // This member's spoke: evenly round the centre, each a little off (the hero barely).
+    const angle = heroSpoke + spokes[index % spokes.length] + signed(random) * (index === 0 ? 0.05 : 0.2);
+    const direction = new Vector3(Math.cos(angle), 0, Math.sin(angle));
+    // Lie along the spoke, stem end pointing out, with a little twist of its own.
+    const out = partsDirection(member);
+    const turn = out ? Math.atan2(out.z, out.x) - angle + signed(random) * 0.3 : signed(random) * Math.PI;
+    member.rotation.set(0, turn, 0);
 
     if (index === 0) {
-      // Hero: its designed turn (best side to the camera), give or take.
-      member.rotation.set(0, heroTurn + signed(random) * 0.1, 0);
       member.position.set(0, 0, 0);
     } else {
-      const angle = SPOTS[(index - 1) % SPOTS.length] + signed(random) * 0.25;
-      const direction = new Vector3(Math.cos(angle), 0, Math.sin(angle));
-      // Turn it so its stem end (calyx, leaves) faces out, away from the group, give or take:
-      // the berries meet tip and side first, like fruit tumbled into a bowl.
-      const out = partsDirection(member);
-      const turn = out ? Math.atan2(out.z, out.x) - angle + signed(random) * 0.5 : signed(random) * Math.PI;
-      member.rotation.set(0, turn, 0);
       const otherBodies = placedBodies.flat();
       const otherParts = placedParts.flat();
       const clear = (distance: number) => {

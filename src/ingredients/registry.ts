@@ -143,8 +143,8 @@ export const REGISTRY: IngredientEntry[] = [
       notes: 'Heart-shaped and never a perfect cone: lobed, uneven sides, a tip bent off centre. A ragged ruff of sepals, some curling. Crimson, cooler than the apple. Seeds are pale flecks painted by the shader, not geometry.',
     },
     form: buildStrawberry,
-    // Calyx turned toward the camera, so the star of sepals shows.
-    turn: 40,
+    // A cluster: turns the pinwheel. The hero's calyx points at the camera, the other two sit behind.
+    turn: -10,
     skin: { kind: 'seeds', size_mm: 2.4, amount: 0.8 },
   },
 ];

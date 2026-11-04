@@ -74,10 +74,12 @@ keep code readable with friendly comments.
   scaling the real-size subject on the stage (looks like a camera zoom, keeps the room
   and marks at their tuned scale). Each entry's `turn` is measured from the camera.
 - **Layouts** (`src/ingredients/layout.ts`): `cluster-2` and `cluster-3` show 2 or 3 seeded
-  variants (own seed, size and turn) in an odd triangle, the hero in front (it takes the
-  entry's `turn`; the group itself stays square to the camera), the others behind and to
-  the side, each turned so its stem end faces out (tip and side meet in the middle) and
-  slid in until its **body** just touches (no visible gap, no overlap; sepals and stems may
+  variants (own seed, size and twist) as a **pinwheel**, so the group is balanced from every
+  side when orbiting: members on spokes round a shared centre (about 120 degrees apart),
+  stem ends out and tips in. The hero's spoke points at the camera (the entry's `turn`
+  turns the pinwheel), so from the front it is the board's odd triangle: hero in front,
+  two behind. Never two members side by side pointing the same way. Each member slides in
+  along its spoke until its **body** just touches (no visible gap, no overlap; sepals and stems may
   brush each other but never sink into a neighbour's body). One shared cast shadow, plus a soft contact
   shadow under each member (the backdrop takes up to 4 contact spots, `MAX_CONTACTS`).
   Whole and cut arrives with the cut forms.
