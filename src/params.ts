@@ -136,8 +136,8 @@ export type GroupKey = keyof Settings;
 
 /** Panel order and folder titles. Hidden groups are kept but not shown. */
 export const GROUPS: { key: GroupKey; title: string; expanded: boolean; hidden?: boolean }[] = [
-  // Shown again 2026-11-04 (the user): the room combos, as "Background colour".
-  { key: 'palette', title: 'Background colour', expanded: true },
+  // Hidden again 2026-11-04 (the user), still working: the room combos ("Background colour").
+  { key: 'palette', title: 'Background colour', expanded: true, hidden: true },
   // Only the Playful strokes switch is shown; the detailed brush controls stay hidden.
   { key: 'brush', title: 'Style', expanded: true },
   // Shown again 2026-11-04 (the user): Direction, Strength and Tone bands, the light
