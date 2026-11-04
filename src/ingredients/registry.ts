@@ -1,6 +1,7 @@
 import type { FamilyId } from './families';
 import { buildLemon } from './forms/lemon';
 import { buildOrange } from './forms/orange';
+import { buildStrawberry } from './forms/strawberry';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
 import type { Skin } from '../shading/effects/skinTexture';
@@ -125,6 +126,26 @@ export const REGISTRY: IngredientEntry[] = [
     form: buildOrange,
     turn: 0,
     skin: { kind: 'pores', size_mm: 1.8, amount: 0.9 },
+  },
+  {
+    spec: {
+      id: 'strawberry',
+      name: 'Strawberry',
+      archetype: 'small',
+      family: 'red',
+      layout: 'cluster-3',
+      show: 'Three whole berries, leaves on. Optionally the front one halved.',
+      forms: ['whole', 'halved', 'sliced', 'diced'],
+      scale: 'S',
+      size_cm: [3.5, 3, 3],
+      parts: ['berry:glow', 'calyx@green', 'stem@green'],
+      light_case: 'group',
+      notes: 'Heart-shaped, widest below the shoulders, a soft point. A star of sepals over the shoulders. Seeds are pale flecks painted by the shader, not geometry.',
+    },
+    form: buildStrawberry,
+    // Calyx turned toward the camera, so the star of sepals shows.
+    turn: 40,
+    skin: { kind: 'seeds', size_mm: 2.4, amount: 0.8 },
   },
 ];
 

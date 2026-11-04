@@ -98,7 +98,7 @@ keep code readable with friendly comments.
    by the Backdrop slider (`backdropLayout.ts`). Ingredients use the stylized shader stack:
    tone bands, wash bleed, shadow colour, glow, surface texture (shared paint grain), skin
    texture (each ingredient's own peel, from its registry `skin`: pebbled lemon, orange
-   pores, apple streaks and freckles; stems and leaves stay plain), highlights, matte. Everything on the apple is computed on its own surface, so
+   pores, apple streaks and freckles, strawberry seeds; stems and leaves stay plain), highlights, matte. Everything on the apple is computed on its own surface, so
    it turns with the apple. Alpha is a label, not transparency: 0 = backdrop,
    0..0.2 = backdrop under the cast shadow (written by the floor, `ground.ts`, which also
    darkens the colour so the apple's edge never shows a light halo),
@@ -183,10 +183,11 @@ of dabs. Style switch: Playful strokes repaints the refined look with bold strok
 kid's painting) while keeping all of it underneath.
 Ingredient forms (branch `ingredient-forms`): facets retired (smooth apple), key light
 upper left, the registry, colour families, form kit (lathe and round recipe), card
-framing, Shuffle ingredient, soft light (Light strength), the lemon and the orange
-(whole, with stem and leaf from the kit), dev checks. Family rooms may sit 70 to 180
+framing, Shuffle ingredient, soft light (Light strength), skin textures, the lemon, the
+orange (calyx, stem, leaf) and the strawberry (one berry for now; its cluster-3 layout is
+not built yet), dev checks. Family rooms may sit 70 to 180
 degrees from the ingredient (board 04's own pairings, kept by choice). Next, one at a
-time with feedback: strawberry, egg, broccoli, bread loaf, cheese wedge, butter, steak,
+time with feedback: egg, broccoli, bread loaf, cheese wedge, butter, steak,
 chicken drumstick, watermelon wedge (whole forms only; cut forms later).
 
 ## Planned for later sessions (not built yet)

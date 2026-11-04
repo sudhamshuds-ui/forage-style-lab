@@ -32,8 +32,11 @@ export interface RoundOptions {
   lopsided: number;
   /** Seeded dice from the ingredient id. */
   random: () => number;
-  /** Optional soft pits at both poles (cm deep, cm wide). */
-  poleDimple?: { depth: number; width: number };
+  /**
+   * Optional soft pits at the poles (cm deep, cm wide). `ends` picks which:
+   * both (an orange), or only the end pole (a strawberry's calyx end, not its tip).
+   */
+  poleDimple?: { depth: number; width: number; ends?: 'both' | 'end' };
   /** How much (cm) of the underside is gently flattened where it rests. */
   flatBase: number;
   /** Mesh density: rings along the axis and points around it. */
@@ -73,7 +76,7 @@ export function roundBody(options: RoundOptions): BufferGeometry {
       p.y += bendUp * bend;
       p.z += bendSide * bend;
       // Pole dimples: pull the points around each pole in toward the middle.
-      if (options.poleDimple) {
+      if (options.poleDimple && (options.poleDimple.ends !== 'end' || u > 0)) {
         const r = Math.hypot(p.y, p.z);
         const pit = options.poleDimple.depth * Math.exp(-((r / options.poleDimple.width) ** 2));
         p.x -= Math.sign(u) * pit;

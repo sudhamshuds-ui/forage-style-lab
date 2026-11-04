@@ -15,6 +15,8 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  *  - pores (orange): fine pits, a touch darker, with a lit rim.
  *  - streaks (apple): soft vertical flushes of colour and a few pale
  *    freckles (lenticels).
+ *  - seeds (strawberry): small pale-gold flecks, evenly spread, each in a
+ *    tiny pit of the berry's own deeper shade.
  *
  * The pattern sticks to the surface (it uses objectPos), so it turns with
  * the ingredient and never swims. It fades in the deepest shadow, where a
@@ -24,7 +26,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -100,6 +102,14 @@ if (kind > 0 && amount > 0.0) {
     float freckle = 1.0 - smoothstep(0.05, 0.13, skinCells(p * 1.6));
     lab.x += freckle * 0.05 * show;
     lab.yz *= 1.0 - freckle * 0.25 * show;
+  } else if (kind == 4) {
+    // Seeds: a pale fleck at each cell's centre, sitting in a small pit.
+    float d = skinCells(p);
+    float seed = 1.0 - smoothstep(0.07, 0.13, d);
+    float pit = (1.0 - smoothstep(0.1, 0.24, d)) * (1.0 - seed);
+    lab = shadeOwn(lab, pit * 0.35 * show);
+    vec3 pale = linearToOklab(mix(uHighlightColour, uGlowColour, 0.55));
+    lab = mix(lab, pale, seed * 0.75 * amount * mix(0.6, 1.0, tone));
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

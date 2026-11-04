@@ -18,6 +18,8 @@ export interface StemOptions {
   /** How far it leans from upright (radians), and which way (radians round the up axis). */
   lean: number;
   leanTurn: number;
+  /** Points round the stem (default 12). Fewer for tiny stems on small ingredients. */
+  segments?: number;
 }
 
 /** A short stub with a flared foot and a rounded tip, standing up from `base`. */
@@ -25,8 +27,8 @@ export function stemPiece(options: StemOptions): BufferGeometry {
   const { height, footRadius, neckRadius } = options;
   const geometry = latheGeometry({
     halfLength: height / 2,
-    rings: 12,
-    segments: 12,
+    rings: options.segments ?? 12,
+    segments: options.segments ?? 12,
     radius: (x) => {
       const t = (x + height / 2) / height;
       // Flared foot easing into the neck, then rounded off at both ends.
@@ -95,6 +97,9 @@ export interface LeafOptions {
   fold: number;
   /** A slight twist along the length (radians at the tip). */
   twist: number;
+  /** Mesh density along and across (default 14 by 6). Fewer for tiny leaves. */
+  rows?: number;
+  cols?: number;
 }
 
 /**
@@ -103,8 +108,8 @@ export interface LeafOptions {
  * (`doubleSided` on its piece), so it has no thickness to model.
  */
 export function leafPiece(options: LeafOptions): BufferGeometry {
-  const rows = 14;
-  const cols = 6;
+  const rows = options.rows ?? 14;
+  const cols = options.cols ?? 6;
   const { length, width, fold, twist } = options;
   const cos = Math.cos(options.turn);
   const sin = Math.sin(options.turn);
