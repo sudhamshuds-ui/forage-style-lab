@@ -81,12 +81,14 @@ export function formReport(
   pieces: FormPiece[],
   spec: { size_cm: [number, number, number]; archetype: keyof typeof TRIANGLE_BUDGET },
 ): string {
-  const size = sizeInCm(pieces);
+  const size = sizeInCm(pieces.slice(0, 1));
+  const whole = sizeInCm(pieces);
   const budget = TRIANGLE_BUDGET[spec.archetype];
   const box = boundsOf(pieces);
   const f = (v: number) => v.toFixed(2);
   return [
-    `size (cm)   ${size.map(f).join(' x ')}   spec ${spec.size_cm.join(' x ')}`,
+    `size (cm)   ${size.map(f).join(' x ')}   spec ${spec.size_cm.join(' x ')}   (body)`,
+    `with parts  ${whole.map(f).join(' x ')}`,
     `off by      ${size.map((v, i) => `${(((v - spec.size_cm[i]) / spec.size_cm[i]) * 100).toFixed(1)}%`).join(', ')}`,
     `bottom y    ${box.min.y.toFixed(5)}`,
     `triangles   ${triangleCount(pieces)}   budget ${budget[0]} to ${budget[1]}`,

@@ -14,8 +14,8 @@ const built = REGISTRY.flatMap((entry) =>
 describe.each(built)('$spec.name (whole)', ({ spec, build }) => {
   const pieces = build({ state: 'whole', seed: seedFromId(spec.id) });
 
-  it('is its real size, within 10% of size_cm', () => {
-    const size = sizeInCm(pieces);
+  it('is its real size, within 10% of size_cm (the body: a leaf or stem may stick out)', () => {
+    const size = sizeInCm([pieces[0]]);
     size.forEach((cm, i) => {
       expect(Math.abs(cm - spec.size_cm[i]) / spec.size_cm[i], `axis ${'xyz'[i]}: ${cm.toFixed(2)} cm`).toBeLessThan(0.1);
     });
@@ -30,7 +30,18 @@ describe.each(built)('$spec.name (whole)', ({ spec, build }) => {
 
   it('has finite positions and normals, facing outward', () => {
     expect(allFinite(pieces)).toBe(true);
-    for (const piece of pieces) expect(outwardFraction(piece), piece.role).toBeGreaterThan(0.97);
+    // Closed pieces only: an open sheet (a leaf, painted on both sides) has no inside.
+    for (const piece of pieces.filter((p) => !p.doubleSided)) {
+      expect(outwardFraction(piece), piece.role).toBeGreaterThan(0.97);
+    }
+  });
+
+  it('has no floating pieces: every extra piece touches another one (a leaf can hang from its stem)', () => {
+    for (const piece of pieces.slice(1)) {
+      const box = boundsOf([piece]).expandByScalar(0.02);
+      const touches = pieces.some((other) => other !== piece && boundsOf([other]).intersectsBox(box));
+      expect(touches, piece.role).toBe(true);
+    }
   });
 
   it(`stays inside the ${spec.archetype} triangle budget`, () => {

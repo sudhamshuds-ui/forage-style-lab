@@ -126,8 +126,9 @@ keep code readable with friendly comments.
   board 07 spec plus its form builder; the apple is entry 1 and still uses its procedural
   builder and the hidden Shape and Colour groups), `families.ts` (colour families and
   their rooms), `scale.ts` (cm to scene units), `subject.ts` (whichever ingredient is on
-  stage), `forms/kit/` (lathe, round recipe, pieces, seeded random, checks) and
-  `forms/{id}.ts`. `apple/` builds the procedural apple (body, stem, leaf). No model files.
+  stage), `forms/kit/` (lathe, round recipe, stem and leaf, pieces, seeded random, checks) and
+  `forms/{id}.ts`. The size check measures the main body (the first piece): a stem or
+  leaf may stick out. `apple/` builds the procedural apple (body, stem, leaf). No model files.
 - `src/dev/checks.ts` has the dev-only report, silhouette, line-up and check sheet.
 - `src/shading/` is the stylized 3D shader, built from a stack of effect modules:
   `effect.ts` (interface, shared GLSL values, FrameContext), `stylizedMaterial.ts`,
@@ -175,8 +176,10 @@ of dabs. Style switch: Playful strokes repaints the refined look with bold strok
 kid's painting) while keeping all of it underneath.
 Ingredient forms (branch `ingredient-forms`): facets retired (smooth apple), key light
 upper left, the registry, colour families, form kit (lathe and round recipe), card
-framing, Shuffle ingredient, the lemon (whole), dev checks. Next, one at a time with
-feedback: orange, strawberry, egg, broccoli, bread loaf, cheese wedge, butter, steak,
+framing, Shuffle ingredient, soft light (Light strength), the lemon and the orange
+(whole, with stem and leaf from the kit), dev checks. Family rooms may sit 70 to 180
+degrees from the ingredient (board 04's own pairings, kept by choice). Next, one at a
+time with feedback: strawberry, egg, broccoli, bread loaf, cheese wedge, butter, steak,
 chicken drumstick, watermelon wedge (whole forms only; cut forms later).
 
 ## Planned for later sessions (not built yet)

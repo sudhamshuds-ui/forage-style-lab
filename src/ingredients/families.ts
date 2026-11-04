@@ -5,16 +5,16 @@ import type { Palette } from '../shading/stylizedMaterial';
  *
  * A family is five colours that map one to one onto the shader's palette
  * (lit, base, shadow, glow, highlight), plus the rooms that suit it: a muted
- * room 70 to 150 degrees round the colour wheel. The first room is the one
- * the Style Lab picks when the ingredient comes on stage.
+ * room at least 70 degrees round the colour wheel, up to straight opposite
+ * (180). The first room is the one the Style Lab picks when the ingredient
+ * comes on stage.
+ *
+ * Board 04 says 70 to 150 degrees, but its own pairings go further (orange
+ * with Overcast is 172, measured in OKLCh), and on 2026-11-04 we chose to
+ * keep them: a straight complement reads well when the room is muted. So
+ * the rule here is 70 to 180 (checked by registry.test.ts).
  *
  * Colours live here, in data, never in a form.
- *
- * To settle before these families go on stage: board 04 pairs a few rooms
- * that sit outside its own 70 to 150 degree rule (measured in OKLCh):
- * orange with Overcast (172), green with Heather (173) and Linen (153),
- * cream and crust with Overcast (171). The registry test checks every family
- * an ingredient uses, so it will flag these when that ingredient arrives.
  */
 export type FamilyId = 'red' | 'orange' | 'yellow' | 'green' | 'cream-crust' | 'pink-raw';
 

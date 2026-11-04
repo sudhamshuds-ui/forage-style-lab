@@ -1,5 +1,6 @@
 import type { FamilyId } from './families';
 import { buildLemon } from './forms/lemon';
+import { buildOrange } from './forms/orange';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
 
@@ -97,6 +98,24 @@ export const REGISTRY: IngredientEntry[] = [
     },
     form: buildLemon,
     turn: 20,
+  },
+  {
+    spec: {
+      id: 'orange',
+      name: 'Orange',
+      archetype: 'round',
+      family: 'orange',
+      layout: 'whole-and-cut',
+      show: 'One whole orange with a small stem and leaf, one round slice leaning on it.',
+      forms: ['whole', 'half', 'slice', 'segment', 'peel'],
+      scale: 'M',
+      size_cm: [8, 7.5, 8],
+      parts: ['peel', 'stem@green', 'leaf@green', 'flesh:glow', 'pith', 'segments'],
+      light_case: 'whole-next-to-cut',
+      notes: 'Small stem and leaf. Slightly squashed, full shoulders. Slice shows segments as soft wedges. Pores are a shader texture.',
+    },
+    form: buildOrange,
+    turn: 0,
   },
 ];
 

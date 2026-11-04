@@ -8,8 +8,8 @@ import { seededRandom } from './forms/kit/random';
 const hueGap = (a: number, b: number) => Math.abs(((((a - b) % 360) + 540) % 360) - 180);
 
 describe('ingredient registry', () => {
-  it('starts with the apple, then the lemon', () => {
-    expect(REGISTRY.map((e) => e.spec.id).slice(0, 2)).toEqual(['apple', 'lemon']);
+  it('starts with the apple, the lemon and the orange', () => {
+    expect(REGISTRY.map((e) => e.spec.id).slice(0, 3)).toEqual(['apple', 'lemon', 'orange']);
     expect(REGISTRY[0].form).toBe('procedural-apple');
   });
 
@@ -26,17 +26,14 @@ describe('ingredient registry', () => {
     }
   });
 
-  it('suggests real rooms 70 to 150 degrees round the wheel, for every family on stage', () => {
-    // Only families an ingredient uses: board 04 lists a few pairings outside the rule (see families.ts).
-    const used = new Set(REGISTRY.map((e) => e.spec.family));
-    for (const [id, family] of Object.entries(FAMILIES).filter(([id]) => used.has(id as never))) {
+  it('suggests real rooms at least 70 degrees round the wheel (up to straight opposite)', () => {
+    for (const [id, family] of Object.entries(FAMILIES)) {
       const subject = hexToOklch(family.colours.base);
       for (const roomId of family.rooms) {
         const room = findPalette(roomId);
         expect(room, `${id}: ${roomId}`).toBeDefined();
         const gap = hueGap(hexToOklch(room!.colours.wall).h, subject.h);
         expect(gap, `${id} in ${roomId}: ${gap.toFixed(0)} degrees`).toBeGreaterThanOrEqual(70);
-        expect(gap, `${id} in ${roomId}: ${gap.toFixed(0)} degrees`).toBeLessThanOrEqual(150);
       }
     }
   });
