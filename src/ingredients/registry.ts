@@ -119,7 +119,7 @@ export const REGISTRY: IngredientEntry[] = [
       forms: ['whole', 'half', 'slice', 'segment', 'peel'],
       scale: 'M',
       size_cm: [8, 7.5, 8],
-      parts: ['peel', 'calyx@green', 'stem@stalk', 'leaf@green', 'flesh:glow', 'pith', 'segments'],
+      parts: ['peel', 'calyx@leaf', 'stem@stalk', 'leaf@leaf', 'flesh:glow', 'pith', 'segments'],
       light_case: 'whole-next-to-cut',
       notes: 'Small green calyx star, a short stem and one leaf. Slightly squashed, full shoulders. Slice shows segments as soft wedges. Pores are a shader texture.',
     },
