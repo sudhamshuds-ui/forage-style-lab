@@ -163,10 +163,13 @@ keep code readable with friendly comments.
   builder and the hidden Shape and Colour groups), `families.ts` (colour families and
   their rooms), `scale.ts` (cm to scene units), `subject.ts` (whichever ingredient is on
   stage), `forms/kit/` (lathe, round recipe, stem, calyx and leaf, sweep (a tube along a
-  curve, for stalks and the long archetype), crown (blobs blended into one surface, for the
-  branching archetype), pieces, seeded random, checks) and
+  curve, with an optional ribbed cross-section, for stalks and the long archetype), crown
+  (blobs blended into one surface, for the branching archetype), surfaceNets (turns any
+  distance field into a clean mesh: no ledges, however lumpy), pieces, seeded random,
+  checks) and
   `forms/{id}.ts`. The size check measures every piece except small parts (stem, leaf,
-  calyx), which may stick out. `apple/` builds the procedural apple (body, stem, leaf). No model files.
+  calyx), which may stick out. "Faces point outward" is checked by each closed piece's signed
+  volume (positive), which works for bent tubes too. `apple/` builds the procedural apple (body, stem, leaf). No model files.
 - `src/dev/checks.ts` has the dev-only report, silhouette, line-up and check sheet.
 - `src/shading/` is the stylized 3D shader, built from a stack of effect modules:
   `effect.ts` (interface, shared GLSL values, FrameContext), `stylizedMaterial.ts`,
@@ -219,8 +222,9 @@ Ingredient forms (branch `ingredient-forms`): facets retired (smooth apple), key
 upper left, the registry, colour families, form kit (lathe and round recipe), card
 framing, Shuffle ingredient, soft light (Light strength), skin textures, the lemon, the
 orange (calyx, stem, leaf), the strawberry (a cluster of three) and the cluster layout,
-the broccoli (two heads lying down, crowns of about 115 lumps, ribbed stalks with leaf scars,
-a branch per cluster, a leaf; the egg was skipped),
+the broccoli (one head lying down with crown and cut end on the table, a crown of about 115
+lumps meshed with surface nets, a ribbed stalk with leaf scars forking into finger-like
+branches, a leaf resting on the table; the egg was skipped),
 dev checks. Family rooms may sit 70 to 180
 degrees from the ingredient (board 04's own pairings, kept by choice). Next, one at a
 time with feedback: bread loaf, cheese wedge, butter, steak,

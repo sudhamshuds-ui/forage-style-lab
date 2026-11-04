@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { Vector3, type BufferAttribute, type BufferGeometry } from 'three';
 import { crownGeometry, type Blob } from './kit/crown';
 import { finishPieces, type FormBuilder, type FormPiece } from './kit/piece';
 import { seededRandom, signed } from './kit/random';
@@ -25,15 +25,13 @@ import { cutEnd, sweepGeometry } from './kit/sweep';
  */
 
 /** Height of the crown's middle above the cut (cm), and how far its clusters spread. */
-const CROWN_HEIGHT = 9.3;
+const CROWN_HEIGHT = 9.6;
 const RING_CLUSTERS = 6;
 const RING_DISTANCE = 3.3;
 /** How many lumps cover each cluster (the user asked for about 70% more bump than 9). */
 const LUMPS = 15;
-/** Where the stalk forks (cm above the cut). */
-const FORK = 4.6;
-/** How far it tips over as it lies down (radians): a little short of flat, so the cut end lifts. */
-const LIE = (78 * Math.PI) / 180;
+/** Where the stalk forks (cm above the cut): low enough that the branches show below the crown. */
+const FORK = 3.7;
 
 export const buildBroccoli: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Broccoli: the "${state}" form is not built yet (head only for now).`);
@@ -77,7 +75,7 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
     }
   }
   // A tight fillet keeps the lumps distinct; a dense mesh keeps them round.
-  const crown = crownGeometry({ blobs, centre: middle, softness: 0.32, detail: 27 });
+  const crown = crownGeometry({ blobs, softness: 0.32, cell: 0.23 });
 
   // 3. The stalk: thick, cut flat at the base, gently curved, up to the fork.
   const lean = new Vector3(signed(random) * 0.3, 0, signed(random) * 0.3);
@@ -85,7 +83,7 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
   // Soft ribs run up the stalk (strands of the branches inside it), fading out at the cut.
   const ribTurn = random() * Math.PI * 2;
   const trunk = sweepGeometry({
-    points: [new Vector3(0, 0, 0), new Vector3(0, FORK * 0.55, 0).addScaledVector(lean, 0.3), fork.clone().add(new Vector3(0, 0.8, 0))],
+    points: [new Vector3(0, 0, 0), new Vector3(0, FORK * 0.55, 0).addScaledVector(lean, 0.3), fork.clone().add(new Vector3(0, 0.3, 0))],
     radius: (t) => (1.6 - 0.35 * t) * cutEnd(t, 0.025),
     around: (t, a) => 1 + 0.06 * Math.min(1, t * 8) * Math.cos(7 * a + ribTurn + t * 1.5),
     rings: 12,
@@ -96,7 +94,7 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
   const stalks: FormPiece[] = [{ role: 'stalk', geometry: trunk }];
   for (let k = 0; k < 4; k++) {
     const a = ribTurn + k * 1.7 + signed(random) * 0.4;
-    const height = 1.4 + k * 0.85 + random() * 0.3;
+    const height = 0.9 + k * 0.6 + random() * 0.25;
     const out = new Vector3(Math.cos(a), 0, Math.sin(a));
     const root = new Vector3(0, height, 0).addScaledVector(lean, height / FORK).addScaledVector(out, 0.9);
     const tip = root.clone().addScaledVector(out, 1.1 + random() * 0.4).add(new Vector3(0, 0.9, 0));
@@ -112,35 +110,71 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
     });
   }
 
-  // 4. A branch from the fork up into every cluster (they show under the crown).
+  // 4. The fork: thick, finger-like branches grow out of the trunk's top rim and splay apart,
+  // each up into its own cluster (the references: a fan of branches with gaps between them,
+  // never a blocky trunk end). Together they cover the trunk's top.
   for (const cluster of clusters) {
-    const into = cluster.centre.clone().lerp(middle, 0.35);
-    const bend = fork.clone().lerp(into, 0.5).add(new Vector3(0, -0.4, 0));
+    const toward = cluster.centre.clone().sub(fork).setY(0);
+    const out = toward.lengthSq() > 1e-6 ? toward.normalize() : new Vector3(1, 0, 0);
+    const root = fork.clone().addScaledVector(out, 0.55).add(new Vector3(0, -0.35, 0));
+    const into = cluster.centre.clone().lerp(middle, 0.15).add(new Vector3(0, -cluster.radius * 0.35, 0));
+    // Splay out first, then turn up into the cluster.
+    const bend = root.clone().addScaledVector(out, 1.0).add(new Vector3(0, (into.y - root.y) * 0.45, 0));
     stalks.push({
       role: 'stalk',
       geometry: sweepGeometry({
-        points: [fork.clone().add(new Vector3(0, -0.6, 0)), bend, into],
-        radius: (t) => (0.72 - 0.3 * t) * Math.sqrt(Math.min(1, (1 - t) / 0.08 + 0.2)),
-        rings: 8,
-        segments: 10,
+        points: [root, bend, into],
+        radius: (t) => (0.78 - 0.32 * t) * Math.sqrt(Math.min(1, (1 - t) / 0.08 + 0.2)),
+        rings: 9,
+        segments: 11,
       }),
     });
   }
 
   // 5. One leaf curling off the stalk, low down, out and then down.
-  const leafTurn = random() * Math.PI * 2;
+  // It grows from the side that ends up underneath once the head lies down (-X), so it rests
+  // on the table beside the stalk instead of sticking up into the air.
+  const leafTurn = Math.PI + signed(random) * 0.5;
+  // Long and narrow, barely folded, so it reads as a leaf from any side (never an arrowhead).
   const leaf = leafPiece({
-    base: new Vector3(Math.cos(leafTurn) * 1.1, 2.6, Math.sin(leafTurn) * 1.1),
+    base: new Vector3(Math.cos(leafTurn) * 1.1, 2.2, Math.sin(leafTurn) * 1.1),
     turn: leafTurn,
-    length: 5.5,
-    width: 2.2,
-    lift: (d) => 0.9 * d - 0.22 * d * d,
-    fold: 0.35,
-    twist: 0.5,
+    length: 6,
+    width: 1.7,
+    lift: (d) => 0.6 * d - 0.12 * d * d,
+    fold: 0.15,
+    twist: 0.3,
   });
 
-  // 6. Lay it down: tip it over so the crown rests on the table and the cut end lifts.
+  // 6. Lay it down so the crown AND the cut end both rest on the table (never floating):
+  // find the tip-over angle where the lowest point of each is level.
   const pieces: FormPiece[] = [{ role: 'florets', geometry: crown }, ...stalks, { role: 'leaf', geometry: leaf, doubleSided: true }];
-  for (const piece of pieces) piece.geometry.rotateZ(LIE);
+  const lowest = (geometry: BufferGeometry, angle: number) => {
+    const position = geometry.getAttribute('position') as BufferAttribute;
+    const sin = Math.sin(angle);
+    const cos = Math.cos(angle);
+    let low = Infinity;
+    for (let i = 0; i < position.count; i++) low = Math.min(low, position.getX(i) * sin + position.getY(i) * cos);
+    return low;
+  };
+  let flatter = Math.PI / 3;
+  let steeper = Math.PI * 0.62;
+  for (let i = 0; i < 30; i++) {
+    const angle = (flatter + steeper) / 2;
+    // Tipping further lowers the cut end; stop where it meets the table under the crown.
+    if (lowest(trunk, angle) > lowest(crown, angle)) flatter = angle;
+    else steeper = angle;
+  }
+  const lie = (flatter + steeper) / 2;
+  for (const piece of pieces) piece.geometry.rotateZ(lie);
+
+  // Anything small that would dip below the table (the leaf, a leaf scar) lies flat on it instead.
+  const table = Math.min(lowest(crown, 0), lowest(trunk, 0));
+  for (const piece of pieces.slice(1)) {
+    if (piece.geometry === trunk) continue;
+    const position = piece.geometry.getAttribute('position') as BufferAttribute;
+    for (let i = 0; i < position.count; i++) if (position.getY(i) < table) position.setY(i, table);
+    position.needsUpdate = true;
+  }
   return finishPieces(pieces);
 };

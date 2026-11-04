@@ -158,8 +158,9 @@ export const REGISTRY: IngredientEntry[] = [
       name: 'Broccoli',
       archetype: 'branching',
       family: 'green',
-      layout: 'cluster-2',
-      show: 'Two heads lying on their sides, overlapping: lumpy crowns of many florets, thick forking stalks, a leaf.',
+      // One head (the user's call, 2026-11-04). The cluster-2 bunch still works: set layout: 'cluster-2'.
+      layout: 'solo',
+      show: 'One head lying on its side, stalk angled toward the camera: a lumpy crown of many florets, finger-like branches, a leaf.',
       forms: ['head', 'floret', 'chopped'],
       scale: 'L',
       // Lying on its side: 15 cm from the cut to the top of the crown, about 10 high and deep.
@@ -168,7 +169,8 @@ export const REGISTRY: IngredientEntry[] = [
       notes: 'Lies on its side, never upright like a tree. A crown of many florets: clusters covered in lumps, never a smooth dome (mushroom). Thick pale stalk, flat cut, a branch to every cluster, one leaf. Buds are a shader texture.',
     },
     form: buildBroccoli,
-    turn: 0,
+    // The stalk angles toward the camera, down-left, so its length and the fork show.
+    turn: -135,
     stemEnds: 'front',
     matte: true,
     skin: { kind: 'florets', size_mm: 4, amount: 0.9 },

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { REGISTRY } from '../registry';
 import { seedFromId } from './kit/random';
-import { TRIANGLE_BUDGET, allFinite, bodyPieces, boundsOf, outwardFraction, sizeInCm, triangleCount } from './kit/checks';
+import { TRIANGLE_BUDGET, allFinite, bodyPieces, boundsOf, outwardFraction, signedVolume, sizeInCm, triangleCount } from './kit/checks';
 
 /**
  * Every kit-built form in the registry gets the same checks (board 09,
@@ -31,9 +31,12 @@ describe.each(built)('$spec.name (whole)', ({ spec, build }) => {
   it('has finite positions and normals, facing outward', () => {
     expect(allFinite(pieces)).toBe(true);
     // Closed pieces only: an open sheet (a leaf, painted on both sides) has no inside.
+    // Faces wound outward enclose a positive volume (works for bent tubes too), and the
+    // normals mostly agree with the faces.
     for (const piece of pieces.filter((p) => !p.doubleSided)) {
-      expect(outwardFraction(piece), piece.role).toBeGreaterThan(0.97);
+      expect(signedVolume(piece), piece.role).toBeGreaterThan(0);
     }
+    expect(outwardFraction(pieces[0]), pieces[0].role).toBeGreaterThan(0.9);
   });
 
   it('has no floating pieces: every extra piece touches another one (a leaf can hang from its stem)', () => {

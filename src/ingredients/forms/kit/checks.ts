@@ -87,6 +87,29 @@ export function outwardFraction(piece: FormPiece): number {
   return outward / position.count;
 }
 
+/**
+ * The volume a closed piece encloses (scene units cubed), from its faces. If the faces are
+ * wound inside-out (normals pointing in), this comes out negative: a reliable "faces point
+ * outward" check for any shape, bent tubes included.
+ */
+export function signedVolume(piece: FormPiece): number {
+  const { geometry } = piece;
+  const position = geometry.getAttribute('position') as BufferAttribute;
+  const index = geometry.index;
+  const a = new Vector3();
+  const b = new Vector3();
+  const c = new Vector3();
+  let volume = 0;
+  const count = index ? index.count : position.count;
+  for (let i = 0; i < count; i += 3) {
+    a.fromBufferAttribute(position, index ? index.getX(i) : i);
+    b.fromBufferAttribute(position, index ? index.getX(i + 1) : i + 1);
+    c.fromBufferAttribute(position, index ? index.getX(i + 2) : i + 2);
+    volume += a.dot(b.cross(c)) / 6;
+  }
+  return volume;
+}
+
 /** A plain-text summary for the console: size against the spec and the triangle budget. */
 export function formReport(
   pieces: FormPiece[],
