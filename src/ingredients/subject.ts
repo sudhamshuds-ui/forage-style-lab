@@ -1,6 +1,6 @@
 import { Box3, Group, Mesh, Sphere, Vector3, type ShaderMaterial } from 'three';
 import type { Settings } from '../params';
-import { setPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
+import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
 import { FAMILIES } from './families';
 import { seedFromId } from './forms/kit/random';
@@ -52,7 +52,8 @@ class AppleSubject implements Subject {
   }
 
   update(settings: Settings, shapeChanged: boolean): boolean {
-    this.apple.applyColours(settings.colour);
+    // The apple's own colours (hidden Colour group), softened to the shared key light.
+    this.apple.applyColours({ ...settings.colour, ...softenPalette(settings.colour, settings.light.strength) });
     if (!shapeChanged) return false;
     this.apple.rebuild(settings.shape);
     // Sit the apple on the table at y = 0, centred on its footprint (it leans a little).
@@ -89,6 +90,8 @@ class FormSubject implements Subject {
   readonly centre = new Vector3();
   radius = 1;
   private readonly palette: Palette;
+  /** Each piece's material and its family colours, before the light softens them. */
+  private readonly painted: { material: ShaderMaterial; palette: Palette }[] = [];
 
   constructor(
     readonly entry: IngredientEntry,
@@ -107,7 +110,7 @@ class FormSubject implements Subject {
       const material = look.createMaterial({ doubleSided: piece.doubleSided });
       // A part can borrow another family (watermelon rind@green); the rest use the ingredient's own.
       const family = partFamilies.get(piece.role);
-      setPalette(material, family ? FAMILIES[family].colours : this.palette);
+      this.painted.push({ material, palette: family ? FAMILIES[family].colours : this.palette });
       const mesh = new Mesh(piece.geometry, material);
       mesh.name = piece.role;
       mesh.castShadow = true;
@@ -120,7 +123,8 @@ class FormSubject implements Subject {
     this.radius = sphere.radius * RADIUS_FACTOR;
   }
 
-  update(): boolean {
+  update(settings: Settings): boolean {
+    for (const { material, palette } of this.painted) setPalette(material, softenPalette(palette, settings.light.strength));
     return false;
   }
 

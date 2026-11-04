@@ -53,6 +53,9 @@ keep code readable with friendly comments.
   mixed colours and one soft pool of light, so everything turns together when orbiting.
   The key light comes from the **upper left**, slightly in front (about 35 degrees left of
   camera, 40 up, board 05), so the cast shadow falls down and to the right.
+  The light is **soft** for every ingredient: the hidden Light strength (55) pulls each
+  palette's lit and shadow colours toward its base (`softenPalette`, OKLab), with a wider
+  turn into shadow and more fill, so the lit side never bleaches toward white.
 - **Ingredients** follow the Figma "Ingredient guidelines" (file 537QrQ0QsVjcT4u3st7M20,
   node 60:2, boards 00 to 10; 07 and 09 matter most) and the skill
   `docs/ingredients/forage-ingredient/SKILL.md`. Each one is built **in code** at its **real

@@ -68,3 +68,11 @@ describe('Randomize (playful strokes only)', () => {
     expect([...seenPatterns].sort()).toEqual([...PATTERNS].sort());
   });
 });
+
+describe('soft light', () => {
+  it('is shared by every ingredient and starts soft, with more fill', () => {
+    expect(DEFAULTS.light.strength).toBe(55);
+    expect(SPECS.light.strength.label).toBe('Light strength');
+    expect(DEFAULTS.light.softness).toBeGreaterThanOrEqual(30);
+  });
+});

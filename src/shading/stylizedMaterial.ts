@@ -1,5 +1,6 @@
 import { Color, DoubleSide, FrontSide, ShaderMaterial, Vector3, type IUniform } from 'three';
 import type { Settings } from '../params';
+import { mixHex } from '../utils/colour';
 import type { FrameContext, ShaderEffect } from './effect';
 import { colourGLSL } from './chunks/colour.glsl';
 import { noiseGLSL } from './chunks/noise.glsl';
@@ -156,4 +157,22 @@ export function setPalette(material: ShaderMaterial, palette: Palette): void {
   (material.uniforms.uShadowColour.value as Color).set(palette.shadow);
   (material.uniforms.uHighlightColour.value as Color).set(palette.highlight);
   (material.uniforms.uGlowColour.value as Color).set(palette.glow);
+}
+
+/**
+ * Soften a palette to the key light's strength (Light strength, 0 to 100).
+ *
+ * Like lowering the contrast of a lighting layer: the lit and shadow colours
+ * are pulled toward the base colour (mixed in OKLab, so they stay clean), so
+ * the lit side never bleaches toward white and the turn into shadow is a
+ * gentler step. The shadow moves a little less, so the form still holds.
+ * 100 leaves the palette as it is.
+ */
+export function softenPalette(palette: Palette, strength: number): Palette {
+  const pull = 1 - Math.min(100, Math.max(0, strength)) / 100;
+  return {
+    ...palette,
+    lit: mixHex(palette.lit, palette.base, pull),
+    shadow: mixHex(palette.shadow, palette.base, pull * 0.8),
+  };
 }

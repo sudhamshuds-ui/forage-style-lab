@@ -116,6 +116,12 @@ export interface Settings {
   };
   light: {
     direction: Vec2;
+    /**
+     * How strong the key light is, shared by every ingredient. 100: the full
+     * jump from shadow to lit colour. Lower pulls both toward the ingredient's
+     * base colour, for soft light that never bleaches the lit side.
+     */
+    strength: number;
     bands: number;
     softness: number;
     paintEdges: number;
@@ -219,13 +225,15 @@ export const DEFAULTS: Settings = {
   light: {
     // Upper left and slightly in front (board 05): about 35 degrees left of camera, 40 degrees up.
     direction: { x: -0.35, y: 0.51 },
+    // Soft light (chosen 2026-11-04): calmer lit side, wider turn into shadow, more fill.
+    strength: 55,
     bands: 3,
-    softness: 10,
+    softness: 32,
     paintEdges: 20,
     ambient: '#b6b3d6',
-    ambientAmount: 50,
+    ambientAmount: 62,
     bounce: '#cca17e',
-    bounceAmount: 45,
+    bounceAmount: 55,
   },
 };
 
@@ -391,6 +399,7 @@ export const SPECS: SpecTable = {
   },
   light: {
     direction: { kind: 'pad', label: 'Direction', nice: { x: [-0.85, 0.85], y: [0.2, 0.85] } },
+    strength: pct('Light strength', [40, 70]),
     bands: {
       kind: 'slider',
       label: 'Tone bands',
