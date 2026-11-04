@@ -248,7 +248,9 @@ wobble. Later tools: cut and cooked forms, vessels, combining, recipe cards.
 
 ## Branches (saved versions)
 `main` is the soft-light watercolour + gouache look (this file describes it), merged from
-`painterly` once approved. The version from just before Big, Medium, Small is the parent
+`painterly` once approved, plus the ingredient forms work (merged from `ingredient-forms`
+on 2026-11-05: registry, form kit, the ingredients so far, card framing, Shuffle ingredient).
+`ingredients-and-import` (the shelf, physics and multi-ingredient table) is not merged. The version from just before Big, Medium, Small is the parent
 of that merge on `main`. Older attempts are kept on local branches,
 newest first:
 `experiment-bad` (noise falloff + reference-scene page), `v4-before-noise` (compact
