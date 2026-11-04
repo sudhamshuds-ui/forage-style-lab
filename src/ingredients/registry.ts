@@ -183,24 +183,25 @@ export const REGISTRY: IngredientEntry[] = [
   },
   {
     spec: {
-      id: 'bread',
-      name: 'Bread',
-      // The loaf is round; the slice will be block and the baguette long (board 08: variants
-      // pick their own archetype).
-      archetype: 'round',
+      // Board 08's "bread" card, now the baguette (the user, 2026-11-04). A white sandwich loaf
+      // comes later as its own ingredient, "toast". The round boule is kept as the `loaf` form.
+      id: 'baguette',
+      name: 'Baguette',
+      archetype: 'long',
       family: 'cream-crust',
       layout: 'solo',
-      show: 'Round loaf (default), a slice lying flat, a baguette with two cut slices.',
-      forms: ['loaf', 'slice', 'baguette', 'crumbs', 'toast'],
+      show: 'A long baguette on a diagonal, four slashes showing pale crumb.',
+      forms: ['whole', 'loaf', 'slice', 'crumbs'],
       scale: 'L',
-      size_cm: [21, 12.5, 19],
-      parts: ['crust', 'crumb'],
+      size_cm: [32, 7.4, 9],
+      parts: ['crust', 'crumb@crumb'],
       light_case: 'dark',
-      notes: 'A boule: broad settled base, full dome, a touch oval, a cross scored into the top with raised lips. Crackle and flour dust are a shader texture.',
+      notes: 'Long, softly oval, round ends, settled base, a slight bend. Four angled slashes with raised lips and pale crumb inside. Crust colour, pores and flour dust are a shader texture. The round boule is kept as the loaf form.',
     },
     form: buildBread,
-    turn: 15,
-    skin: { kind: 'crust', size_mm: 14, amount: 0.8 },
+    // On a diagonal, lower left to upper right (board 07, long archetype).
+    turn: 35,
+    skin: { kind: 'crust', size_mm: 10, amount: 0.9 },
     matte: true,
     budget: [2000, 9000],
   },

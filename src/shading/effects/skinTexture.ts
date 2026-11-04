@@ -22,8 +22,9 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  *    clusters, each bud lit on its side toward the light, the gaps between
  *    them in the crown's own deep shade. Two sizes (clusters and buds), so it
  *    reads as a mass of tiny florets, not a pattern.
- *  - crust (bread): a fine network of crackle lines in the crust's own darker shade, a few
- *    soft blisters, and pale, dry flour dust where the crust faces up.
+ *  - crust (bread): baked colour, like the user's references: toastier and warmer on top,
+ *    paler golden down the sides, soft blotchy variation (watercolour-like), tiny dark pores,
+ *    and white flour specks on top. No crackle lines (they read as worms).
  *  - leaf (sepals and leaves, set automatically): deeper at the stalk and
  *    lighter toward the tip, a pale centre vein, faint side veins, a slight
  *    hue drift from leaf to leaf, and a paler, cooler underside. Uses the
@@ -140,20 +141,20 @@ if (kind > 0 && amount > 0.0) {
     // Gaps between buds: small, deep, in the crown's own colour.
     lab = shadeOwn(lab, (1.0 - bud) * (1.0 - bud) * 0.35 * show);
   } else if (kind == 7) {
-    // Crust: crackle lines where the baked skin split (thin ridges of a soft noise), in the
-    // crust's own deeper shade, never grey.
-    // Calm: thin, sparse lines (shapes first, few marks).
-    float crackle = 1.0 - smoothstep(0.008, 0.025, abs(valueNoise3(p) - 0.5));
-    crackle *= smoothstep(0.45, 0.65, valueNoise3(p * 0.37 + 7.0));
-    lab = shadeOwn(lab, crackle * 0.35 * show);
-    // A few soft blisters: low domes, lit on their side toward the light.
-    float blister = 1.0 - smoothstep(0.0, 0.7, skinCells(p * 0.6));
-    float blisterToward = 1.0 - smoothstep(0.0, 0.7, skinCells(p * 0.6 + L * 0.15));
-    float emboss = (blisterToward - blister) * show;
-    lab = emboss > 0.0 ? lab + vec3(emboss * 0.06, 0.0, 0.0) : shadeOwn(lab, -emboss * 0.5);
-    // Flour dust: pale, dry patches on the top, where the crust faces up.
-    float flour = smoothstep(0.52, 0.78, fbm3(p * 0.25)) * smoothstep(0.35, 0.85, N.y);
-    lab = mix(lab, linearToOklab(uHighlightColour), flour * 0.6 * amount);
+    // Crust: baked colour. The top bakes toastier and warmer (toward the deep glow shade),
+    // the sides stay paler and more golden.
+    float up = smoothstep(-0.1, 0.8, N.y);
+    lab = shadeOwn(lab, up * 0.6 * amount);
+    lab = mix(lab, linearToOklab(uLitColour), (1.0 - up) * 0.35 * amount);
+    // Soft, blotchy variation, like watercolour pooling on the crust: warmer and paler patches.
+    float blotch = fbm3(p * 0.18) - 0.5;
+    lab = blotch > 0.0 ? shadeOwn(lab, blotch * 1.5 * show) : mix(lab, linearToOklab(uLitColour), -blotch * 1.1 * show);
+    // Tiny pores: sparse dark specks in the crust's own shade.
+    float pore = 1.0 - smoothstep(0.07, 0.13, skinCells(p * 2.2));
+    lab = shadeOwn(lab, pore * 0.5 * show);
+    // Flour: small white specks on the top, where the crust faces up.
+    float speck = (1.0 - smoothstep(0.06, 0.1, skinCells(p * 1.4 + 3.0))) * smoothstep(0.3, 0.8, N.y);
+    lab = mix(lab, linearToOklab(uHighlightColour), speck * 0.75 * amount);
   } else if (kind == 5) {
     // Leaf: x runs from the stalk (0) to the tip (1), y across (0.5 is the centre vein).
     vec2 q = vSurfaceUv;

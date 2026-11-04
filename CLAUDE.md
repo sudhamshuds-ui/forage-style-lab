@@ -65,7 +65,7 @@ keep code readable with friendly comments.
   `families.ts`), never the form. Off-board additions (to add to board 04): `crimson`
   (berries, cooler and more magenta than the apple's red), and part-only palettes `leaf`
   (deeper, natural leaf green for sepals and small leaves), `stalk` (woody stems) and
-  `pale-green` (broccoli and cauliflower stalks). Fine texture (peel pebbling, seeds) belongs to the
+  `pale-green` (broccoli and cauliflower stalks) and `crumb` (pale cream bread crumb). Fine texture (peel pebbling, seeds) belongs to the
   shader (the registry's `skin`, `src/shading/effects/skinTexture.ts`), never geometry. Small
   parts (stem, calyx, leaf) keep a quiet highlight: one main highlight per object.
   Randomness is seeded from the id. Blender only after two honest
@@ -88,7 +88,7 @@ keep code readable with friendly comments.
   never cross). `matte: true` keeps the body's highlight quiet (broccoli). Touching is checked
   on dense samples (1500 per body), and with 'front' the parts are solid (stalks never pass
   through each other); with 'out' soft parts (sepals) may brush. An entry may carry its own
-  triangle `budget` when its archetype's does not fit (the 22 cm loaf: 9k). The branching triangle
+  triangle `budget` when its archetype's does not fit (the 32 cm baguette: 9k). The branching triangle
   budget is 18k, not board 07's 12k (a bumpier crown, asked for by the user).
 - **Cast shadows on the fruit**: ingredient materials read the key light's shadow map
   (`lightMask` in the shader), so sepals, stems and neighbours shade the fruit. A cast shadow
@@ -132,7 +132,7 @@ keep code readable with friendly comments.
    tone bands, wash bleed, shadow colour, glow, surface texture (shared paint grain), skin
    texture (each ingredient's own peel, from its registry `skin`: pebbled lemon, orange
    pores, apple streaks and freckles, strawberry seeds in lit dimples, broccoli florets, bread crust
-   crackle and flour dust; every leaf and sepal
+   colour (toastier top, paler sides, blotches, pores, flour specks; no crackle lines); every leaf and sepal
    gets the leaf skin: stalk-to-tip shading, centre and side veins, paler underside), highlights, matte. Everything on the apple is computed on its own surface, so
    it turns with the apple. Alpha is a label, not transparency: 0 = backdrop,
    0..0.2 = backdrop under the cast shadow (written by the floor, `ground.ts`, which also
@@ -226,8 +226,10 @@ framing, Shuffle ingredient, soft light (Light strength), skin textures, the lem
 orange (calyx, stem, leaf), the strawberry (a cluster of three) and the cluster layout,
 the broccoli (one head lying down with crown and cut end on the table, a crown of about 115
 lumps meshed with surface nets, a ribbed stalk with leaf scars forking into finger-like
-branches, a leaf resting on the table; the egg was skipped), the bread (the round loaf: a
-domed boule with a scored cross; the slice and baguette variants come later),
+branches, a leaf resting on the table; the egg was skipped), the baguette (board 08's
+bread card: a long loaf on a diagonal, four long almond slashes with pale crumb pieces in
+them; the round boule with a scored cross is kept as its `loaf` form for later, and a white
+sandwich loaf comes later as its own ingredient, "toast"),
 dev checks. Family rooms may sit 70 to 180
 degrees from the ingredient (board 04's own pairings, kept by choice). Next, one at a
 time with feedback: cheese wedge, butter, steak,

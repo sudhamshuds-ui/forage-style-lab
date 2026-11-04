@@ -8,8 +8,8 @@ import { seededRandom } from './forms/kit/random';
 const hueGap = (a: number, b: number) => Math.abs(((((a - b) % 360) + 540) % 360) - 180);
 
 describe('ingredient registry', () => {
-  it('keeps the build order: apple, lemon, orange, strawberry, broccoli, bread (the egg was skipped)', () => {
-    expect(REGISTRY.map((e) => e.spec.id).slice(0, 6)).toEqual(['apple', 'lemon', 'orange', 'strawberry', 'broccoli', 'bread']);
+  it('keeps the build order: apple, lemon, orange, strawberry, broccoli, baguette (the egg was skipped)', () => {
+    expect(REGISTRY.map((e) => e.spec.id).slice(0, 6)).toEqual(['apple', 'lemon', 'orange', 'strawberry', 'broccoli', 'baguette']);
     expect(REGISTRY[0].form).toBe('procedural-apple');
   });
 

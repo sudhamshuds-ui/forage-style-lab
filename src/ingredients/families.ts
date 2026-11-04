@@ -16,7 +16,7 @@ import type { Palette } from '../shading/stylizedMaterial';
  *
  * Colours live here, in data, never in a form.
  */
-export type FamilyId = 'red' | 'crimson' | 'orange' | 'yellow' | 'green' | 'cream-crust' | 'pink-raw' | 'stalk' | 'leaf' | 'pale-green';
+export type FamilyId = 'red' | 'crimson' | 'orange' | 'yellow' | 'green' | 'cream-crust' | 'pink-raw' | 'stalk' | 'leaf' | 'pale-green' | 'crumb';
 
 export interface ColourFamily {
   name: string;
@@ -79,6 +79,13 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   'pale-green': {
     name: 'Pale green',
     colours: { lit: '#e2ebb4', base: '#b4c983', shadow: '#5e8a78', glow: '#cfe08f', highlight: '#f3f7e0' },
+    rooms: [],
+  },
+  // Not a board 04 family: the pale cream of bread crumb, showing in a loaf's slashes (and later
+  // on a cut slice). Shadow a warm taupe, never grey.
+  crumb: {
+    name: 'Crumb',
+    colours: { lit: '#fcf3df', base: '#f1ddb6', shadow: '#c3a184', glow: '#f7dca4', highlight: '#fffaf0' },
     rooms: [],
   },
   'pink-raw': {
