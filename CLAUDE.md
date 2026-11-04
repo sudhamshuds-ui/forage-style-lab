@@ -31,9 +31,17 @@ keep code readable with friendly comments.
   the detailed brush controls, Form (Faceted, off) and the apple's shape sliders, the
   lighting and the individual colours. Never delete hidden controls;
   to bring one back, remove its `hidden` flag (group or control).
-- **Randomize** (`src/randomize.ts`) only shuffles the playful stroke settings (brush type,
-  stroke size and length, bristles, pattern and its amount). It never touches colours,
-  light, shape or the refined paint sliders.
+- **Randomize** (`src/randomize.ts`) picks a **painter** (`src/painters.ts`, always a different
+  one from the painter on screen) and rolls each stroke setting inside that painter's ranges,
+  so every roll reads as that painter. The panel shows "After {painter}" and one line about
+  their style under the button. Painters so far (chosen 2026-11-04, iconic names people know
+  at a glance): Monet (round, broken dabs of colour, shimmering backdrop), Cézanne (flat,
+  square-ish patches in parallel diagonals), Sargent (broad strokes that follow the form; the
+  default). Each painter sets the brush type, size, length, bristles, pattern, looseness,
+  broken colour, follow the form (100: along the form, 0: one diagonal, like hatching) and
+  backdrop stroke size, all hidden settings in the Brush group. It never touches colours,
+  light, shape or the refined paint sliders. Discussed for later: Van Gogh (strokes that
+  wrap the form), Seurat (dots); Thiebaud the user was unsure about.
 - The ingredient keeps its **own natural colours** (the apple is red; hidden Colour group).
   The user picks a **room combo** (wall, table, ambient and bounce light, cast shadow), not
   individual colours. Randomize never changes colours.
@@ -168,7 +176,8 @@ keep code readable with friendly comments.
   `Settings`, `DEFAULTS`, `SPECS` (label, range, Randomize range, `hidden`). The panel is
   generated from `SPECS`.
 - `src/palettes.ts` holds the room combos (soft and vivid families) and the Shuffle generator.
-- `src/randomize.ts` randomizes visible controls only, plus a random combo.
+- `src/painters.ts` holds the painters (each a style preset of stroke ranges);
+  `src/randomize.ts` picks one and rolls inside its ranges (`paintLike`).
 - `src/ingredients/` holds the ingredients: `registry.ts` (one entry per ingredient: the
   board 07 spec plus its form builder; the apple is entry 1 and still uses its procedural
   builder and the hidden Shape and Colour groups), `families.ts` (colour families and

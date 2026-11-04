@@ -92,6 +92,7 @@ export class Painter {
         uLength: { value: 1.5 },
         uLoose: { value: 0.6 },
         uVariation: { value: 0.45 },
+        uFollowForm: { value: 1 },
         uTexture: { value: 0.35 },
         uBrush: { value: 0 },
         uPattern: { value: 0 },
@@ -180,7 +181,9 @@ export class Painter {
   private updateUniforms(settings: Settings): void {
     const height = this.size.y;
     const cell = (0.012 + (settings.brush.size / 100) * 0.038) * height;
-    const backdropCell = (0.045 + (settings.scene.backdropStrokes / 100) * 0.085) * height;
+    // The painter scales the backdrop strokes: 50 keeps the tuned size, lower is finer.
+    const backdropScale = 0.4 + (settings.brush.backdrop / 100) * 1.2;
+    const backdropCell = (0.045 + (settings.scene.backdropStrokes / 100) * 0.085) * height * backdropScale;
 
     const flow = this.flowMaterial.uniforms;
     flow.uTexel.value.set(1 / this.size.x, 1 / this.size.y);
@@ -191,8 +194,11 @@ export class Painter {
     paint.uCell.value = cell;
     paint.uBackdropCell.value = backdropCell;
     paint.uLength.value = 0.9 + (settings.brush.length / 100) * 1.1;
-    paint.uLoose.value = settings.paint.painterly / 100;
-    paint.uVariation.value = settings.paint.variation / 100;
+    // The painter sets looseness and broken colour. The hidden Painterly and Colour
+    // variation sliders still scale them (at their defaults, 45, they change nothing).
+    paint.uLoose.value = (settings.brush.loose / 100) * (settings.paint.painterly / 45);
+    paint.uVariation.value = (settings.brush.colourBreak / 100) * 1.8 * (settings.paint.variation / 45);
+    paint.uFollowForm.value = settings.brush.followForm / 100;
     paint.uTexture.value = settings.brush.texture / 100;
     paint.uBrush.value = BRUSHES.indexOf(settings.brush.type);
     paint.uPattern.value = PATTERNS.indexOf(settings.brush.pattern);

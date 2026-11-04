@@ -1,3 +1,5 @@
+import { PAINTERS } from './painters';
+
 /**
  * Every adjustable value in the Style Lab lives here.
  *
@@ -43,12 +45,20 @@ export interface Settings {
      * strokes (like a kid's painting). Off: the refined, glazed look.
      */
     classic: boolean;
+    /** Which painter's look the strokes follow (see src/painters.ts). Randomize picks one. */
+    painter: string;
     type: Brush;
     size: number;
     length: number;
     texture: number;
     pattern: Pattern;
     patternAmount: number;
+    /** Set by the painter: how freely strokes wander, how much neighbouring colours differ,
+     *  how closely strokes follow the form, and how big the backdrop strokes are. */
+    loose: number;
+    colourBreak: number;
+    followForm: number;
+    backdrop: number;
   };
   paint: {
     brushiness: number;
@@ -161,12 +171,18 @@ export const DEFAULTS: Settings = {
   },
   brush: {
     classic: false,
+    // Playful strokes start as Sargent (the middle of his ranges in painters.ts).
+    painter: 'sargent',
     type: 'flat',
-    size: 55,
-    length: 60,
-    texture: 35,
+    size: 70,
+    length: 80,
+    texture: 18,
     pattern: 'none',
     patternAmount: 55,
+    loose: 38,
+    colourBreak: 22,
+    followForm: 92,
+    backdrop: 85,
   },
   paint: {
     brushiness: 35,
@@ -327,6 +343,16 @@ export const SPECS: SpecTable = {
       ],
     },
     patternAmount: pct('Pattern amount', [30, 80], hidden),
+    painter: {
+      kind: 'list',
+      label: 'Painter',
+      hidden: true,
+      options: PAINTERS.map((p) => ({ value: p.id, label: p.name })),
+    },
+    loose: pct('Looseness', [20, 90], hidden),
+    colourBreak: pct('Broken colour', [15, 95], hidden),
+    followForm: pct('Follow the form', [10, 100], hidden),
+    backdrop: pct('Backdrop stroke size', [15, 95], hidden),
   },
   paint: {
     brushiness: pct('Brushiness', [15, 70]),

@@ -40,6 +40,7 @@ uniform float uBackdropCell;
 uniform float uLength;
 uniform float uLoose;
 uniform float uVariation;
+uniform float uFollowForm;
 uniform float uTexture;
 uniform float uBrush;
 uniform float uPattern;
@@ -186,7 +187,11 @@ float strokeAngle(vec2 centreUv, float onObject, vec4 rnd) {
     // Table: long sweeps, nearly level.
     fallback = (rnd.w - 0.5) * 0.18;
   }
-  return mixAngle(fallback, edgeAngle, confidence) + (rnd.y - 0.5) * 0.5 * uLoose;
+  float formAngle = mixAngle(fallback, edgeAngle, confidence);
+  // Hatching: every stroke on the same diagonal (rising to the right), like
+  // Cézanne's parallel patches. Follow the form blends between the two.
+  float hatch = 0.95 + (rnd.z - 0.5) * 0.22;
+  return mixAngle(hatch, formAngle, uFollowForm) + (rnd.y - 0.5) * 0.5 * uLoose;
 }
 
 // One stroke's colour: the picked-up colour, shifted a little in lightness,

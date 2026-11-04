@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { BRUSHES, DEFAULTS, GROUPS, PATTERNS, SPECS, isVisible, type Spec } from './params';
+import { DEFAULTS, GROUPS, SPECS, isVisible, type Spec } from './params';
 import { randomStrokes } from './randomize';
+import { PAINTERS, findPainter } from './painters';
 
 const visibleLabels = () =>
   GROUPS.flatMap(({ key }) =>
@@ -53,22 +54,32 @@ describe('Randomize (playful strokes only)', () => {
     }
   });
 
-  it('picks strokes and patterns from the lists, and sizes inside their nice ranges', () => {
-    const seenBrushes = new Set<string>();
-    const seenPatterns = new Set<string>();
+  it('picks a different painter each time, and rolls every setting inside that painter\'s ranges', () => {
+    const seen = new Set<string>();
     for (let i = 0; i < 300; i++) {
-      const b = randomStrokes(playful()).brush;
-      seenBrushes.add(b.type);
-      seenPatterns.add(b.pattern);
-      for (const key of ['size', 'length', 'texture', 'patternAmount'] as const) {
-        const spec = SPECS.brush[key];
-        if (spec.kind !== 'slider') throw new Error(key);
-        expect(b[key]).toBeGreaterThanOrEqual(spec.nice[0]);
-        expect(b[key]).toBeLessThanOrEqual(spec.nice[1]);
+      const start = playful();
+      start.brush.painter = PAINTERS[i % PAINTERS.length].id;
+      const b = randomStrokes(start).brush;
+      expect(b.painter).not.toBe(start.brush.painter);
+      seen.add(b.painter);
+      const p = findPainter(b.painter);
+      expect(b.type).toBe(p.type);
+      expect(b.pattern).toBe(p.pattern);
+      for (const key of ['size', 'length', 'texture', 'loose', 'colourBreak', 'followForm', 'backdrop'] as const) {
+        expect(b[key]).toBeGreaterThanOrEqual(p[key][0]);
+        expect(b[key]).toBeLessThanOrEqual(p[key][1]);
       }
     }
-    expect([...seenBrushes].sort()).toEqual([...BRUSHES].sort());
-    expect([...seenPatterns].sort()).toEqual([...PATTERNS].sort());
+    expect([...seen].sort()).toEqual(PAINTERS.map((p) => p.id).sort());
+  });
+
+  it('starts as a real painter, with every default inside that painter\'s ranges', () => {
+    const p = findPainter(DEFAULTS.brush.painter);
+    expect(p.id).toBe(DEFAULTS.brush.painter);
+    for (const key of ['size', 'length', 'texture', 'loose', 'colourBreak', 'followForm', 'backdrop'] as const) {
+      expect(DEFAULTS.brush[key]).toBeGreaterThanOrEqual(p[key][0]);
+      expect(DEFAULTS.brush[key]).toBeLessThanOrEqual(p[key][1]);
+    }
   });
 });
 

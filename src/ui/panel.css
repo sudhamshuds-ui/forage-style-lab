@@ -471,3 +471,19 @@
 .randomize-button .tp-btnv_b:hover {
   background: #36342f;
 }
+
+/* Under Randomize: "After Monet" and one line about the painter's style. */
+.painter-note {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 4px 2px;
+}
+.painter-name {
+  font: 600 13px var(--font);
+  color: var(--ink);
+}
+.painter-line {
+  font: 400 12px/1.4 var(--font);
+  color: var(--ink-2);
+}

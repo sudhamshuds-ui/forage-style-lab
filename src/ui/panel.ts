@@ -1,6 +1,7 @@
 import { Pane } from 'tweakpane';
 import { GROUPS, SPECS, isVisible, type GroupKey, type Settings, type Spec } from '../params';
 import { createPalettePicker } from './palettePicker';
+import { findPainter } from '../painters';
 
 /**
  * Builds the parameter panel from the specs in params.ts.
@@ -35,8 +36,15 @@ export function createPanel(
   paletteContainer.hidden = paletteHidden;
   const pane = new Pane({ container: paneContainer });
   let randomizeButton: { hidden: boolean } | undefined;
+  // Under Randomize: which painter the strokes are after, and one line about their style.
+  const painterNote = document.createElement('div');
+  painterNote.className = 'painter-note';
+  painterNote.setAttribute('aria-live', 'polite');
   const showRandomize = () => {
     if (randomizeButton) randomizeButton.hidden = !settings.brush.classic;
+    painterNote.hidden = !settings.brush.classic;
+    const painter = findPainter(settings.brush.painter);
+    painterNote.innerHTML = `<span class="painter-name">After ${painter.name}</span><span class="painter-line">${painter.note}</span>`;
   };
 
   for (const group of GROUPS) {
@@ -65,6 +73,7 @@ export function createPanel(
       const button = folder.addButton({ title: 'Randomize' });
       button.element.classList.add('randomize-button');
       button.on('click', onRandomize);
+      button.element.after(painterNote);
       randomizeButton = button;
       showRandomize();
     }
