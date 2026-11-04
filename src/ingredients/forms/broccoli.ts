@@ -1,5 +1,6 @@
 import { Vector3, type BufferAttribute, type BufferGeometry } from 'three';
 import { crownGeometry, type Blob } from './kit/crown';
+import { smoothMax } from './kit/lathe';
 import { finishPieces, type FormBuilder, type FormPiece } from './kit/piece';
 import { seededRandom, signed } from './kit/random';
 import { leafPiece } from './kit/stemLeaf';
@@ -27,6 +28,8 @@ import { cutEnd, sweepGeometry } from './kit/sweep';
 /** Height of the crown's middle above the cut (cm), and how far its clusters spread. */
 const CROWN_HEIGHT = 9.6;
 const RING_CLUSTERS = 6;
+/** A second ring higher up the dome, between the top cluster and the edge. */
+const INNER_CLUSTERS = 5;
 const RING_DISTANCE = 3.3;
 /** How many lumps cover each cluster (the user asked for about 70% more bump than 9). */
 const LUMPS = 15;
@@ -49,6 +52,19 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
     clusters.push({
       centre: middle.clone().add(new Vector3(Math.sin(tilt) * Math.cos(a) * out, Math.cos(tilt) * out, Math.sin(tilt) * Math.sin(a) * out)),
       radius: 1.85 + signed(random) * 0.2,
+    });
+  }
+
+  // An inner ring between the top and the edge fills out the dome, so the crown is full and
+  // round across its whole top (the user: the top looked thin and lopsided).
+  const innerStart = start + Math.PI / RING_CLUSTERS;
+  for (let i = 0; i < INNER_CLUSTERS; i++) {
+    const a = innerStart + (i / INNER_CLUSTERS) * Math.PI * 2 + signed(random) * 0.3;
+    const tilt = ((30 + signed(random) * 6) * Math.PI) / 180;
+    const out = RING_DISTANCE * 1.05 + signed(random) * 0.2;
+    clusters.push({
+      centre: middle.clone().add(new Vector3(Math.sin(tilt) * Math.cos(a) * out, Math.cos(tilt) * out, Math.sin(tilt) * Math.sin(a) * out)),
+      radius: 1.75 + signed(random) * 0.2,
     });
   }
 
@@ -113,7 +129,8 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
   // 4. The fork: thick, finger-like branches grow out of the trunk's top rim and splay apart,
   // each up into its own cluster (the references: a fan of branches with gaps between them,
   // never a blocky trunk end). Together they cover the trunk's top.
-  for (const cluster of clusters) {
+  // Only the top and the outer ring need branches: the inner ring's would be hidden in the crown.
+  for (const cluster of clusters.slice(0, 1 + RING_CLUSTERS)) {
     const toward = cluster.centre.clone().sub(fork).setY(0);
     const out = toward.lengthSq() > 1e-6 ? toward.normalize() : new Vector3(1, 0, 0);
     const root = fork.clone().addScaledVector(out, 0.55).add(new Vector3(0, -0.35, 0));
@@ -171,12 +188,15 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
   const lie = (less + more) / 2;
   for (const piece of pieces) piece.geometry.rotateZ(lie);
 
-  // Anything small that would dip below the table (the leaf, a leaf scar) lies flat on it instead.
+  // Anything small that would dip into the table (the leaf, a leaf scar) eases down onto it
+  // instead, resting just above it (about 1.5 mm). Never exactly on the floor: a surface
+  // lying in the floor's own plane flickers against it.
   const table = Math.min(lowest(crown, 0), lowest(trunk, 0));
+  const rest = table + 0.15;
   for (const piece of pieces.slice(1)) {
     if (piece.geometry === trunk) continue;
     const position = piece.geometry.getAttribute('position') as BufferAttribute;
-    for (let i = 0; i < position.count; i++) if (position.getY(i) < table) position.setY(i, table);
+    for (let i = 0; i < position.count; i++) position.setY(i, smoothMax(position.getY(i), rest, 0.5));
     position.needsUpdate = true;
   }
   return finishPieces(pieces);
