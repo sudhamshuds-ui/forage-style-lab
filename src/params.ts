@@ -140,7 +140,9 @@ export const GROUPS: { key: GroupKey; title: string; expanded: boolean; hidden?:
   { key: 'palette', title: 'Colour combo', expanded: true, hidden: true },
   // Only the Playful strokes switch is shown; the detailed brush controls stay hidden.
   { key: 'brush', title: 'Style', expanded: true },
-  { key: 'paint', title: 'Paint', expanded: true },
+  // Hidden 2026-11-04 (the user): Brushiness, Wash bleed and Edge softness made too small a
+  // visible change to be worth a slider. They still work at their tuned defaults.
+  { key: 'paint', title: 'Paint', expanded: true, hidden: true },
   { key: 'lighting', title: 'Light', expanded: true, hidden: true },
   { key: 'highlight', title: 'Highlights', expanded: true, hidden: true },
   // Facets are retired: the Faceted switch and the shape sliders are all hidden, so Form is not shown.

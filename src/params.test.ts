@@ -14,8 +14,8 @@ const playful = () => {
 };
 
 describe('panel', () => {
-  it('shows only the style and paint controls', () => {
-    expect(visibleLabels()).toEqual(['Playful strokes', 'Brushiness', 'Wash bleed', 'Edge softness']);
+  it('shows only the Playful strokes switch (the Paint sliders are hidden, still working)', () => {
+    expect(visibleLabels()).toEqual(['Playful strokes']);
   });
 
   it('keeps the Faceted switch, hidden and off: every form is smooth', () => {
@@ -25,7 +25,7 @@ describe('panel', () => {
 
   it('keeps the colour combos, light, texture, highlights, scene and shape, just hidden', () => {
     const hiddenGroups = GROUPS.filter((g) => g.hidden).map((g) => g.key);
-    expect(hiddenGroups).toEqual(expect.arrayContaining(['palette', 'lighting', 'highlight', 'scene']));
+    expect(hiddenGroups).toEqual(expect.arrayContaining(['palette', 'paint', 'lighting', 'highlight', 'scene']));
     expect(SPECS.paint.texture.hidden).toBe(true);
   });
 

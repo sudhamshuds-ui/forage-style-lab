@@ -22,9 +22,10 @@ keep code readable with friendly comments.
   `references/ui` is the tool's look. Design: `docs/superpowers/specs/2026-10-17-painterly-design.md`.
 - No brand mark and no toast on the page (removed 2026-11-05): just the card and the panel.
 - The panel is deliberately small: the ingredient's name and Shuffle ingredient in the
-  head; Style (Playful strokes, and Randomize only while it is on); Paint (Brushiness, Wash
-  bleed, Edge softness); plus Reset (Copy settings was removed, 2026-11-05). **Hidden, not deleted** (still
-  working, in `src/params.ts`): the colour combo picker, Light, Texture, Highlights, Scene,
+  head; Style (Playful strokes, and Randomize only while it is on); plus Reset (Copy settings
+  was removed, 2026-11-05). **Hidden, not deleted** (still
+  working, in `src/params.ts`): the Paint group (Brushiness, Wash bleed, Edge softness: hidden
+  2026-11-04, too small a visible change), the colour combo picker, Light, Texture, Highlights, Scene,
   the detailed brush controls, Form (Faceted, off) and the apple's shape sliders, the
   lighting and the individual colours. Never delete hidden controls;
   to bring one back, remove its `hidden` flag (group or control).
