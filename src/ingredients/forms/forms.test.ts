@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { REGISTRY } from '../registry';
 import { seedFromId } from './kit/random';
-import { TRIANGLE_BUDGET, allFinite, boundsOf, outwardFraction, sizeInCm, triangleCount } from './kit/checks';
+import { TRIANGLE_BUDGET, allFinite, bodyPieces, boundsOf, outwardFraction, sizeInCm, triangleCount } from './kit/checks';
 
 /**
  * Every kit-built form in the registry gets the same checks (board 09,
@@ -15,7 +15,7 @@ describe.each(built)('$spec.name (whole)', ({ spec, build }) => {
   const pieces = build({ state: 'whole', seed: seedFromId(spec.id) });
 
   it('is its real size, within 10% of size_cm (the body: a leaf or stem may stick out)', () => {
-    const size = sizeInCm([pieces[0]]);
+    const size = sizeInCm(bodyPieces(pieces));
     size.forEach((cm, i) => {
       expect(Math.abs(cm - spec.size_cm[i]) / spec.size_cm[i], `axis ${'xyz'[i]}: ${cm.toFixed(2)} cm`).toBeLessThan(0.1);
     });

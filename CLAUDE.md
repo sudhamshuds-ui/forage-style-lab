@@ -64,7 +64,8 @@ keep code readable with friendly comments.
   entry. Forms carry shape only: colours come from the colour families (board 04,
   `families.ts`), never the form. Off-board additions (to add to board 04): `crimson`
   (berries, cooler and more magenta than the apple's red), and part-only palettes `leaf`
-  (deeper, natural leaf green for sepals and small leaves) and `stalk` (woody stems). Fine texture (peel pebbling, seeds) belongs to the
+  (deeper, natural leaf green for sepals and small leaves), `stalk` (woody stems) and
+  `pale-green` (broccoli and cauliflower stalks). Fine texture (peel pebbling, seeds) belongs to the
   shader (the registry's `skin`, `src/shading/effects/skinTexture.ts`), never geometry. Small
   parts (stem, calyx, leaf) keep a quiet highlight: one main highlight per object.
   Randomness is seeded from the id. Blender only after two honest
@@ -123,7 +124,7 @@ keep code readable with friendly comments.
    by the Backdrop slider (`backdropLayout.ts`). Ingredients use the stylized shader stack:
    tone bands, wash bleed, shadow colour, glow, surface texture (shared paint grain), skin
    texture (each ingredient's own peel, from its registry `skin`: pebbled lemon, orange
-   pores, apple streaks and freckles, strawberry seeds in lit dimples; every leaf and sepal
+   pores, apple streaks and freckles, strawberry seeds in lit dimples, broccoli florets; every leaf and sepal
    gets the leaf skin: stalk-to-tip shading, centre and side veins, paler underside), highlights, matte. Everything on the apple is computed on its own surface, so
    it turns with the apple. Alpha is a label, not transparency: 0 = backdrop,
    0..0.2 = backdrop under the cast shadow (written by the floor, `ground.ts`, which also
@@ -155,10 +156,11 @@ keep code readable with friendly comments.
   board 07 spec plus its form builder; the apple is entry 1 and still uses its procedural
   builder and the hidden Shape and Colour groups), `families.ts` (colour families and
   their rooms), `scale.ts` (cm to scene units), `subject.ts` (whichever ingredient is on
-  stage), `forms/kit/` (lathe, round recipe, stem, calyx and leaf, pieces, seeded random,
-  checks) and
-  `forms/{id}.ts`. The size check measures the main body (the first piece): a stem or
-  leaf may stick out. `apple/` builds the procedural apple (body, stem, leaf). No model files.
+  stage), `forms/kit/` (lathe, round recipe, stem, calyx and leaf, sweep (a tube along a
+  curve, for stalks and the long archetype), crown (blobs blended into one surface, for the
+  branching archetype), pieces, seeded random, checks) and
+  `forms/{id}.ts`. The size check measures every piece except small parts (stem, leaf,
+  calyx), which may stick out. `apple/` builds the procedural apple (body, stem, leaf). No model files.
 - `src/dev/checks.ts` has the dev-only report, silhouette, line-up and check sheet.
 - `src/shading/` is the stylized 3D shader, built from a stack of effect modules:
   `effect.ts` (interface, shared GLSL values, FrameContext), `stylizedMaterial.ts`,
@@ -211,9 +213,10 @@ Ingredient forms (branch `ingredient-forms`): facets retired (smooth apple), key
 upper left, the registry, colour families, form kit (lathe and round recipe), card
 framing, Shuffle ingredient, soft light (Light strength), skin textures, the lemon, the
 orange (calyx, stem, leaf), the strawberry (a cluster of three) and the cluster layout,
+the broccoli (branching: blob crown and a forking swept stalk; the egg was skipped),
 dev checks. Family rooms may sit 70 to 180
 degrees from the ingredient (board 04's own pairings, kept by choice). Next, one at a
-time with feedback: egg, broccoli, bread loaf, cheese wedge, butter, steak,
+time with feedback: bread loaf, cheese wedge, butter, steak,
 chicken drumstick, watermelon wedge (whole forms only; cut forms later).
 
 ## Planned for later sessions (not built yet)

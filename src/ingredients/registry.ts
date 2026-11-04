@@ -2,6 +2,7 @@ import type { FamilyId } from './families';
 import { buildLemon } from './forms/lemon';
 import { buildOrange } from './forms/orange';
 import { buildStrawberry } from './forms/strawberry';
+import { buildBroccoli } from './forms/broccoli';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
 import type { Skin } from '../shading/effects/skinTexture';
@@ -146,6 +147,24 @@ export const REGISTRY: IngredientEntry[] = [
     // A cluster: the hero's turn, so its calyx star faces the camera.
     turn: 40,
     skin: { kind: 'seeds', size_mm: 2.4, amount: 0.8 },
+  },
+  {
+    spec: {
+      id: 'broccoli',
+      name: 'Broccoli',
+      archetype: 'branching',
+      family: 'green',
+      layout: 'solo',
+      show: 'One head: three or four big floret clusters, a thick branching stalk.',
+      forms: ['head', 'floret', 'chopped'],
+      scale: 'L',
+      size_cm: [11, 15, 11],
+      parts: ['florets', 'stalk@pale-green'],
+      notes: 'Four big floret masses blended into one lumpy crown, never hundreds of bumps. A pale stalk with a flat cut, showing below the crown. Buds are a shader texture.',
+    },
+    form: buildBroccoli,
+    turn: 0,
+    skin: { kind: 'florets', size_mm: 4, amount: 0.9 },
   },
 ];
 

@@ -19,6 +19,15 @@ export const TRIANGLE_BUDGET = {
   contained: [0, 1000],
 } as const;
 
+/** Small parts that may stick out past an ingredient's real size (a stem, a leaf, a calyx). */
+export const SMALL_PARTS = ['stem', 'leaf', 'calyx'];
+
+/** The pieces that make up the ingredient's real size: everything but its small parts. */
+export function bodyPieces(pieces: FormPiece[]): FormPiece[] {
+  const body = pieces.filter((p) => !SMALL_PARTS.includes(p.role));
+  return body.length > 0 ? body : pieces;
+}
+
 /** The box around all pieces together, in scene units. */
 export function boundsOf(pieces: FormPiece[]): Box3 {
   const box = new Box3();
@@ -81,7 +90,7 @@ export function formReport(
   pieces: FormPiece[],
   spec: { size_cm: [number, number, number]; archetype: keyof typeof TRIANGLE_BUDGET },
 ): string {
-  const size = sizeInCm(pieces.slice(0, 1));
+  const size = sizeInCm(bodyPieces(pieces));
   const whole = sizeInCm(pieces);
   const budget = TRIANGLE_BUDGET[spec.archetype];
   const box = boundsOf(pieces);

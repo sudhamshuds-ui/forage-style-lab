@@ -16,7 +16,7 @@ import type { Palette } from '../shading/stylizedMaterial';
  *
  * Colours live here, in data, never in a form.
  */
-export type FamilyId = 'red' | 'crimson' | 'orange' | 'yellow' | 'green' | 'cream-crust' | 'pink-raw' | 'stalk' | 'leaf';
+export type FamilyId = 'red' | 'crimson' | 'orange' | 'yellow' | 'green' | 'cream-crust' | 'pink-raw' | 'stalk' | 'leaf' | 'pale-green';
 
 export interface ColourFamily {
   name: string;
@@ -72,6 +72,13 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   leaf: {
     name: 'Leaf',
     colours: { lit: '#8fb35a', base: '#4f8a3c', shadow: '#1f5a57', glow: '#9cc94a', highlight: '#d9e8b0' },
+    rooms: [],
+  },
+  // Not a board 04 family: the pale, yellowish green of a broccoli or cauliflower stalk, so the
+  // stalk reads lighter than the dark florets. Shadow teal, never grey.
+  'pale-green': {
+    name: 'Pale green',
+    colours: { lit: '#e2ebb4', base: '#b4c983', shadow: '#5e8a78', glow: '#cfe08f', highlight: '#f3f7e0' },
     rooms: [],
   },
   'pink-raw': {

@@ -18,6 +18,10 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  *  - seeds (strawberry): pale-gold seeds, evenly spread, each sitting in a
  *    soft dimple that catches the light on one side and shades on the
  *    other, which gives the berry its bumpy surface.
+ *  - florets (broccoli, cauliflower): tightly packed round buds in small
+ *    clusters, each bud lit on its side toward the light, the gaps between
+ *    them in the crown's own deep shade. Two sizes (clusters and buds), so it
+ *    reads as a mass of tiny florets, not a pattern.
  *  - leaf (sepals and leaves, set automatically): deeper at the stalk and
  *    lighter toward the tip, a pale centre vein, faint side veins, a slight
  *    hue drift from leaf to leaf, and a paler, cooler underside. Uses the
@@ -31,7 +35,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -122,6 +126,17 @@ if (kind > 0 && amount > 0.0) {
     float seed = 1.0 - smoothstep(0.1, 0.16, d);
     vec3 gold = linearToOklab(mix(uHighlightColour, uGlowColour, 0.5) * vec3(1.0, 0.92, 0.6));
     lab = mix(lab, gold, seed * 0.95 * amount * mix(0.7, 1.0, tone));
+  } else if (kind == 6) {
+    // Florets: domes at two sizes. Each dome is lit on its side toward the light (emboss),
+    // and the gaps between buds sink into the crown's own deep shade.
+    float cluster = 1.0 - smoothstep(0.0, 1.0, skinCells(p * 0.45));
+    float clusterToward = 1.0 - smoothstep(0.0, 1.0, skinCells(p * 0.45 + L * 0.12));
+    float bud = 1.0 - smoothstep(0.0, 0.85, skinCells(p));
+    float budToward = 1.0 - smoothstep(0.0, 0.85, skinCells(p + L * 0.25));
+    float emboss = ((clusterToward - cluster) * 0.6 + (budToward - bud) * 0.8) * show;
+    lab = emboss > 0.0 ? lab + vec3(emboss * 0.12, 0.0, 0.0) : shadeOwn(lab, -emboss * 1.1);
+    // Gaps between buds: small, deep, in the crown's own colour.
+    lab = shadeOwn(lab, (1.0 - bud) * (1.0 - bud) * 0.35 * show);
   } else if (kind == 5) {
     // Leaf: x runs from the stalk (0) to the tip (1), y across (0.5 is the centre vein).
     vec2 q = vSurfaceUv;
