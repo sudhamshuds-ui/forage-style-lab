@@ -63,7 +63,8 @@ keep code readable with friendly comments.
   shared kit `src/ingredients/forms/kit/` (one recipe per archetype), plus one registry
   entry. Forms carry shape only: colours come from the colour families (board 04,
   `families.ts`), never the form. Off-board additions (to add to board 04): `crimson`
-  (berries, cooler and more magenta than the apple's red), and part-only palettes `leaf`
+  (berries, cooler and more magenta than the apple's red), `baked` (a well-baked crust,
+  orange-brown to red-brown), and part-only palettes `leaf`
   (deeper, natural leaf green for sepals and small leaves), `stalk` (woody stems) and
   `pale-green` (broccoli and cauliflower stalks) and `crumb` (pale cream bread crumb). Fine texture (peel pebbling, seeds) belongs to the
   shader (the registry's `skin`, `src/shading/effects/skinTexture.ts`), never geometry. Small
@@ -227,8 +228,8 @@ orange (calyx, stem, leaf), the strawberry (a cluster of three) and the cluster 
 the broccoli (one head lying down with crown and cut end on the table, a crown of about 115
 lumps meshed with surface nets, a ribbed stalk with leaf scars forking into finger-like
 branches, a leaf resting on the table; the egg was skipped), the baguette (board 08's
-bread card: a long loaf on a diagonal, four long almond slashes with pale crumb pieces in
-them; the round boule with a scored cross is kept as its `loaf` form for later, and a white
+bread card: a long loaf on a diagonal, four varied, spread-out slashes with pointed tips and
+pale crumb pieces in them, in the warmer `baked` crust family; the round boule with a scored cross is kept as its `loaf` form for later, and a white
 sandwich loaf comes later as its own ingredient, "toast"),
 dev checks. Family rooms may sit 70 to 180
 degrees from the ingredient (board 04's own pairings, kept by choice). Next, one at a

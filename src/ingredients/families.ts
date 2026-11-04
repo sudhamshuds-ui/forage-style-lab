@@ -16,7 +16,7 @@ import type { Palette } from '../shading/stylizedMaterial';
  *
  * Colours live here, in data, never in a form.
  */
-export type FamilyId = 'red' | 'crimson' | 'orange' | 'yellow' | 'green' | 'cream-crust' | 'pink-raw' | 'stalk' | 'leaf' | 'pale-green' | 'crumb';
+export type FamilyId = 'red' | 'crimson' | 'orange' | 'yellow' | 'green' | 'cream-crust' | 'pink-raw' | 'stalk' | 'leaf' | 'pale-green' | 'crumb' | 'baked';
 
 export interface ColourFamily {
   name: string;
@@ -80,6 +80,14 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Pale green',
     colours: { lit: '#e2ebb4', base: '#b4c983', shadow: '#5e8a78', glow: '#cfe08f', highlight: '#f3f7e0' },
     rooms: [],
+  },
+  // Not on board 04 yet (added 2026-11-04, the user: "more orange and red hues"): a well-baked
+  // crust, warmer than cream and crust, orange-brown going red-brown in shadow. For the
+  // baguette; a candidate for the board's crust ramp.
+  baked: {
+    name: 'Baked crust',
+    colours: { lit: '#f8c98c', base: '#df8a47', shadow: '#94443a', glow: '#ee7b34', highlight: '#fff0d8' },
+    rooms: ['sage-morning', 'overcast'],
   },
   // Not a board 04 family: the pale cream of bread crumb, showing in a loaf's slashes (and later
   // on a cut slice). Shadow a warm taupe, never grey.

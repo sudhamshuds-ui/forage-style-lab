@@ -188,7 +188,7 @@ export const REGISTRY: IngredientEntry[] = [
       id: 'baguette',
       name: 'Baguette',
       archetype: 'long',
-      family: 'cream-crust',
+      family: 'baked',
       layout: 'solo',
       show: 'A long baguette on a diagonal, four slashes showing pale crumb.',
       forms: ['whole', 'loaf', 'slice', 'crumbs'],

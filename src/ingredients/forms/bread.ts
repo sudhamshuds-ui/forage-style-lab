@@ -117,7 +117,8 @@ export const buildBoule: FormBuilder = ({ seed }) => {
 const LONG = { length: 32, width: 9, height: 7.4 };
 const SLASHES = 4;
 // Long almonds running mostly along the loaf (the references), overlapping in a row.
-const SLASH = { length: 8.5, depth: 0.95, width: 0.85, angle: 0.36 };
+// Each slash gets its own length, width and angle round these (never four identical cuts).
+const SLASH = { length: 7.6, depth: 0.95, width: 0.8, angle: 0.4 };
 
 export const buildLongLoaf: FormBuilder = ({ seed }) => {
   const random = seededRandom(seed);
@@ -146,12 +147,18 @@ export const buildLongLoaf: FormBuilder = ({ seed }) => {
   });
 
   // The slashes: spread along the top, each at an angle across the loaf.
-  const slashes: { centre: Vector2; along: Vector2 }[] = [];
-  const spacing = (LONG.length * 0.66) / SLASHES;
+  // Spread along most of the loaf with crust between them, each its own size and angle.
+  const slashes: { centre: Vector2; along: Vector2; length: number; width: number }[] = [];
+  const spacing = (LONG.length * 0.78) / SLASHES;
   for (let k = 0; k < SLASHES; k++) {
-    const x = (k - (SLASHES - 1) / 2) * spacing + signed(random) * 0.4;
-    const angle = SLASH.angle + signed(random) * 0.08;
-    slashes.push({ centre: new Vector2(x, signed(random) * 0.3), along: new Vector2(Math.cos(angle), Math.sin(angle)) });
+    const x = (k - (SLASHES - 1) / 2) * spacing + signed(random) * 0.8;
+    const angle = SLASH.angle + signed(random) * 0.18;
+    slashes.push({
+      centre: new Vector2(x, signed(random) * 0.45),
+      along: new Vector2(Math.cos(angle), Math.sin(angle)),
+      length: SLASH.length * (1 + signed(random) * 0.2),
+      width: SLASH.width * (1 + signed(random) * 0.25),
+    });
   }
 
   // Top of the crust (its height at x, z), for placing the crumb in each slash.
@@ -170,17 +177,22 @@ export const buildLongLoaf: FormBuilder = ({ seed }) => {
     // Only the top is slashed.
     const onTop = smoothstep(radius * squash * 0.35, radius * squash * 0.75, p.y);
     if (onTop <= 0) continue;
+    // The deepest carve wins; a point no slash reaches stays as it is.
     let push = Infinity;
     for (const slash of slashes) {
       flat.set(p.x, p.z).sub(slash.centre);
       const along = flat.dot(slash.along);
       const across = flat.x * -slash.along.y + flat.y * slash.along.x;
-      // A long almond: widest in the middle of the slash, closing at both ends.
-      const ends = smoothstep(SLASH.length / 2, SLASH.length / 2 - 2.2, Math.abs(along));
-      const groove = Math.exp(-((across / SLASH.width) ** 2));
-      const lip = Math.exp(-(((Math.abs(across) - SLASH.width * 2) / (SLASH.width * 0.9)) ** 2));
-      push = Math.min(push, (lip * SLASH.depth * 0.45 - groove * SLASH.depth) * ends);
+      // A long almond with pointed tips: its width narrows to nothing at both ends.
+      const t = Math.abs(along) / (slash.length / 2);
+      if (t >= 1) continue;
+      const width = slash.width * Math.max(0.05, 1 - t * t);
+      const depth = SLASH.depth * (1 - t * t);
+      const groove = Math.exp(-((across / width) ** 2));
+      const lip = Math.exp(-(((Math.abs(across) - width * 2) / (width * 0.9)) ** 2));
+      push = Math.min(push, lip * depth * 0.45 - groove * depth);
     }
+    if (!Number.isFinite(push)) continue;
     // Push along the section's outward direction (round the loaf's long axis).
     outward.set(0, p.y, p.z).normalize();
     p.addScaledVector(outward, push * onTop);
@@ -191,13 +203,14 @@ export const buildLongLoaf: FormBuilder = ({ seed }) => {
   // The crumb in each slash: a pale almond, sunk into the groove and bent to the loaf's curve.
   const crumbs = slashes.map((slash) => {
     const piece = roundBody({
-      halfLength: SLASH.length / 2 - 0.4,
+      halfLength: slash.length / 2 - 0.3,
+      // A pointed almond (a lens, not a capsule): straight-ish sides meeting at sharp tips.
       radius: (x) => {
-        const t = Math.min(1, Math.abs(x) / (SLASH.length / 2 - 0.4));
-        return SLASH.width * 1.35 * (1 - t * t) ** 0.6;
+        const t = Math.min(1, Math.abs(x) / (slash.length / 2 - 0.3));
+        return slash.width * 1.35 * (1 - t * t);
       },
       lying: true,
-      lopsided: 0.3,
+      lopsided: 0.08,
       random,
       flatBase: 0,
       rings: 20,
