@@ -87,7 +87,8 @@ keep code readable with friendly comments.
   toward the camera, choosing the side that fans away from the others, so stalks show and
   never cross). `matte: true` keeps the body's highlight quiet (broccoli). Touching is checked
   on dense samples (1500 per body), and with 'front' the parts are solid (stalks never pass
-  through each other); with 'out' soft parts (sepals) may brush. The branching triangle
+  through each other); with 'out' soft parts (sepals) may brush. An entry may carry its own
+  triangle `budget` when its archetype's does not fit (the 22 cm loaf: 9k). The branching triangle
   budget is 18k, not board 07's 12k (a bumpier crown, asked for by the user).
 - **Cast shadows on the fruit**: ingredient materials read the key light's shadow map
   (`lightMask` in the shader), so sepals, stems and neighbours shade the fruit. A cast shadow
@@ -130,7 +131,8 @@ keep code readable with friendly comments.
    by the Backdrop slider (`backdropLayout.ts`). Ingredients use the stylized shader stack:
    tone bands, wash bleed, shadow colour, glow, surface texture (shared paint grain), skin
    texture (each ingredient's own peel, from its registry `skin`: pebbled lemon, orange
-   pores, apple streaks and freckles, strawberry seeds in lit dimples, broccoli florets; every leaf and sepal
+   pores, apple streaks and freckles, strawberry seeds in lit dimples, broccoli florets, bread crust
+   crackle and flour dust; every leaf and sepal
    gets the leaf skin: stalk-to-tip shading, centre and side veins, paler underside), highlights, matte. Everything on the apple is computed on its own surface, so
    it turns with the apple. Alpha is a label, not transparency: 0 = backdrop,
    0..0.2 = backdrop under the cast shadow (written by the floor, `ground.ts`, which also
@@ -224,10 +226,11 @@ framing, Shuffle ingredient, soft light (Light strength), skin textures, the lem
 orange (calyx, stem, leaf), the strawberry (a cluster of three) and the cluster layout,
 the broccoli (one head lying down with crown and cut end on the table, a crown of about 115
 lumps meshed with surface nets, a ribbed stalk with leaf scars forking into finger-like
-branches, a leaf resting on the table; the egg was skipped),
+branches, a leaf resting on the table; the egg was skipped), the bread (the round loaf: a
+domed boule with a scored cross; the slice and baguette variants come later),
 dev checks. Family rooms may sit 70 to 180
 degrees from the ingredient (board 04's own pairings, kept by choice). Next, one at a
-time with feedback: bread loaf, cheese wedge, butter, steak,
+time with feedback: cheese wedge, butter, steak,
 chicken drumstick, watermelon wedge (whole forms only; cut forms later).
 
 ## Planned for later sessions (not built yet)
