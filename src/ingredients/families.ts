@@ -16,7 +16,7 @@ import type { Palette } from '../shading/stylizedMaterial';
  *
  * Colours live here, in data, never in a form.
  */
-export type FamilyId = 'red' | 'orange' | 'yellow' | 'green' | 'cream-crust' | 'pink-raw';
+export type FamilyId = 'red' | 'orange' | 'yellow' | 'green' | 'cream-crust' | 'pink-raw' | 'stalk';
 
 export interface ColourFamily {
   name: string;
@@ -51,6 +51,13 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Cream and crust',
     colours: { lit: '#fbe6c4', base: '#e0ad73', shadow: '#9a6a63', glow: '#f2b45e', highlight: '#fff6e6' },
     rooms: ['sage-morning', 'overcast'],
+  },
+  // Not a board 04 family: only for small woody parts (stems, stalks), never a whole ingredient.
+  // Based on the apple's stem colour; the shadow leans plum, never grey, and the highlight stays muted.
+  stalk: {
+    name: 'Stem and stalk',
+    colours: { lit: '#9a9a55', base: '#66693a', shadow: '#4f3d45', glow: '#8f9a45', highlight: '#b9b78f' },
+    rooms: [],
   },
   'pink-raw': {
     name: 'Pink and raw',

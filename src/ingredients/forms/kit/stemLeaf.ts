@@ -43,6 +43,45 @@ export function stemPiece(options: StemOptions): BufferGeometry {
   return geometry;
 }
 
+export interface CalyxOptions {
+  /** Centre of the calyx (the bottom of the top dimple). */
+  base: Vector3;
+  radius: number;
+  /** Thickness at the centre. */
+  height: number;
+  /** How many soft points round the edge (an orange has five). */
+  points: number;
+  /** Turn of the star, in radians. */
+  turn: number;
+}
+
+/**
+ * The calyx: the little green star an orange or tomato wears round its stem.
+ * A flat, rounded disc whose edge swells into a few soft points, lying in
+ * the top dimple. Calm and simple: no separate sepals to model.
+ */
+export function calyxPiece(options: CalyxOptions): BufferGeometry {
+  const { radius, height, points, turn } = options;
+  const geometry = latheGeometry({
+    halfLength: height / 2,
+    rings: 8,
+    segments: 40,
+    radius: (x) => {
+      const t = Math.min(1, Math.abs(x) / (height / 2));
+      return radius * Math.sqrt(1 - t * t);
+    },
+    shape: (p, _u, angle) => {
+      // Swell the edge into soft points.
+      const star = 0.72 + 0.28 * Math.cos(points * (angle + turn));
+      p.y *= star;
+      p.z *= star;
+    },
+  });
+  geometry.rotateZ(Math.PI / 2);
+  geometry.translate(options.base.x, options.base.y, options.base.z);
+  return geometry;
+}
+
 export interface LeafOptions {
   /** Where the leaf's stalk end sits. */
   base: Vector3;

@@ -4,6 +4,7 @@ import { washBleed } from './washBleed';
 import { shadowColour } from './shadowColour';
 import { glow } from './glow';
 import { surfaceTexture } from './surfaceTexture';
+import { skinTexture } from './skinTexture';
 import { highlight } from './highlight';
 import { gouacheMatte } from './gouacheMatte';
 
@@ -18,5 +19,6 @@ import { gouacheMatte } from './gouacheMatte';
  *
  * Tone bands must stay first: it sets `tone`, which later layers read.
  * Glow reads `uBands` from Tone bands to find the light-to-shadow line.
+ * Skin texture sits on the shared surface texture and under the highlights.
  */
-export const EFFECT_STACK: ShaderEffect[] = [toonBands, washBleed, shadowColour, glow, surfaceTexture, highlight, gouacheMatte];
+export const EFFECT_STACK: ShaderEffect[] = [toonBands, washBleed, shadowColour, glow, surfaceTexture, skinTexture, highlight, gouacheMatte];

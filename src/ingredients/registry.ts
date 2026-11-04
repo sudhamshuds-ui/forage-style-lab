@@ -3,6 +3,7 @@ import { buildLemon } from './forms/lemon';
 import { buildOrange } from './forms/orange';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
+import type { Skin } from '../shading/effects/skinTexture';
 
 /**
  * The ingredient registry: one entry per ingredient.
@@ -61,6 +62,11 @@ export interface IngredientEntry {
    * Framing only: the form itself is not changed.
    */
   turn: number;
+  /**
+   * The main body's own peel texture, painted by the shader (never modelled):
+   * pebbled lemon peel, orange pores, apple streaks. Stems and leaves stay plain.
+   */
+  skin: Skin;
 }
 
 export const REGISTRY: IngredientEntry[] = [
@@ -80,6 +86,7 @@ export const REGISTRY: IngredientEntry[] = [
     },
     form: 'procedural-apple',
     turn: 0,
+    skin: { kind: 'streaks', size_mm: 9, amount: 0.7 },
   },
   {
     spec: {
@@ -98,6 +105,7 @@ export const REGISTRY: IngredientEntry[] = [
     },
     form: buildLemon,
     turn: 20,
+    skin: { kind: 'pebbled', size_mm: 2.6, amount: 0.7 },
   },
   {
     spec: {
@@ -110,12 +118,13 @@ export const REGISTRY: IngredientEntry[] = [
       forms: ['whole', 'half', 'slice', 'segment', 'peel'],
       scale: 'M',
       size_cm: [8, 7.5, 8],
-      parts: ['peel', 'stem@green', 'leaf@green', 'flesh:glow', 'pith', 'segments'],
+      parts: ['peel', 'calyx@green', 'stem@stalk', 'leaf@green', 'flesh:glow', 'pith', 'segments'],
       light_case: 'whole-next-to-cut',
-      notes: 'Small stem and leaf. Slightly squashed, full shoulders. Slice shows segments as soft wedges. Pores are a shader texture.',
+      notes: 'Small green calyx star, a short stem and one leaf. Slightly squashed, full shoulders. Slice shows segments as soft wedges. Pores are a shader texture.',
     },
     form: buildOrange,
     turn: 0,
+    skin: { kind: 'pores', size_mm: 1.8, amount: 0.9 },
   },
 ];
 

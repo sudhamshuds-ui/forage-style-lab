@@ -63,7 +63,9 @@ keep code readable with friendly comments.
   shared kit `src/ingredients/forms/kit/` (one recipe per archetype), plus one registry
   entry. Forms carry shape only: colours come from the colour families (board 04,
   `families.ts`), never the form. Fine texture (peel pebbling, seeds) belongs to the
-  shader, never geometry. Randomness is seeded from the id. Blender only after two honest
+  shader (the registry's `skin`, `src/shading/effects/skinTexture.ts`), never geometry. Small
+  parts (stem, calyx, leaf) keep a quiet highlight: one main highlight per object.
+  Randomness is seeded from the id. Blender only after two honest
   tries with the kit, and only after asking.
 - **Card framing** (board 06): the subject fills a centred square about 70% of the card
   width and touches the floor about 74% down (`src/scene/framing.ts`). It is done by
@@ -93,9 +95,10 @@ keep code readable with friendly comments.
 1. **Underpainting**: the 3D scene renders into a hidden image (`src/painting/painter.ts`).
    The room (`src/scene/background.ts`) is a 3D studio sweep painted in world space: mixed
    room colours, calm slabs (Brushiness), a soft light pool and a contact shadow, arranged
-   by the Backdrop slider (`backdropLayout.ts`). The apple uses the stylized shader stack:
-   tone bands, wash bleed, shadow colour, glow, surface texture (facet shards and granular
-   fill), highlights, matte. Everything on the apple is computed on its own surface, so
+   by the Backdrop slider (`backdropLayout.ts`). Ingredients use the stylized shader stack:
+   tone bands, wash bleed, shadow colour, glow, surface texture (shared paint grain), skin
+   texture (each ingredient's own peel, from its registry `skin`: pebbled lemon, orange
+   pores, apple streaks and freckles; stems and leaves stay plain), highlights, matte. Everything on the apple is computed on its own surface, so
    it turns with the apple. Alpha is a label, not transparency: 0 = backdrop,
    0..0.2 = backdrop under the cast shadow (written by the floor, `ground.ts`, which also
    darkens the colour so the apple's edge never shows a light halo),
@@ -126,7 +129,8 @@ keep code readable with friendly comments.
   board 07 spec plus its form builder; the apple is entry 1 and still uses its procedural
   builder and the hidden Shape and Colour groups), `families.ts` (colour families and
   their rooms), `scale.ts` (cm to scene units), `subject.ts` (whichever ingredient is on
-  stage), `forms/kit/` (lathe, round recipe, stem and leaf, pieces, seeded random, checks) and
+  stage), `forms/kit/` (lathe, round recipe, stem, calyx and leaf, pieces, seeded random,
+  checks) and
   `forms/{id}.ts`. The size check measures the main body (the first piece): a stem or
   leaf may stick out. `apple/` builds the procedural apple (body, stem, leaf). No model files.
 - `src/dev/checks.ts` has the dev-only report, silhouette, line-up and check sheet.

@@ -2,6 +2,8 @@ import { Box3, Group, Mesh, Sphere, Vector3, type ShaderMaterial } from 'three';
 import type { Settings } from '../params';
 import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
+import { mixHex } from '../utils/colour';
+import { setSkin } from '../shading/effects/skinTexture';
 import { FAMILIES } from './families';
 import { seedFromId } from './forms/kit/random';
 import { parsePart, type IngredientEntry } from './registry';
@@ -49,6 +51,7 @@ class AppleSubject implements Subject {
   ) {
     this.apple = new Apple(look);
     this.group.add(this.apple.group);
+    setSkin(this.apple.bodyMaterial, entry.skin);
   }
 
   update(settings: Settings, shapeChanged: boolean): boolean {
@@ -106,16 +109,20 @@ class FormSubject implements Subject {
     }));
 
     const pieces = entry.form({ state: 'whole', seed: seedFromId(spec.id) });
-    for (const piece of pieces) {
+    pieces.forEach((piece, index) => {
       const material = look.createMaterial({ doubleSided: piece.doubleSided });
       // A part can borrow another family (watermelon rind@green); the rest use the ingredient's own.
       const family = partFamilies.get(piece.role);
-      this.painted.push({ material, palette: family ? FAMILIES[family].colours : this.palette });
+      const palette = family ? FAMILIES[family].colours : this.palette;
+      // One main highlight per object (board 02): small parts keep theirs close to their own colour.
+      const quiet = index === 0 ? palette : { ...palette, highlight: mixHex(palette.highlight, palette.base, 0.65) };
+      this.painted.push({ material, palette: quiet });
+      if (index === 0) setSkin(material, entry.skin);
       const mesh = new Mesh(piece.geometry, material);
       mesh.name = piece.role;
       mesh.castShadow = true;
       this.group.add(mesh);
-    }
+    });
 
     // The first piece is the main body: highlights and the room are placed round it.
     const sphere = pieces[0].geometry.boundingSphere ?? new Sphere();

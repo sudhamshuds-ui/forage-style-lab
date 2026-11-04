@@ -4,6 +4,7 @@ import { mixHex } from '../utils/colour';
 import type { FrameContext, ShaderEffect } from './effect';
 import { colourGLSL } from './chunks/colour.glsl';
 import { noiseGLSL } from './chunks/noise.glsl';
+import { skinUniform } from './effects/skinTexture';
 
 /**
  * StylizedLook turns a list of ShaderEffects into materials.
@@ -131,6 +132,8 @@ export class StylizedLook {
         uShadowColour: { value: new Color() },
         uHighlightColour: { value: new Color() },
         uGlowColour: { value: new Color() },
+        // Each material's own peel texture (see effects/skinTexture.ts). Plain by default.
+        uSkin: skinUniform(),
       },
       vertexShader,
       fragmentShader: this.fragmentShader,

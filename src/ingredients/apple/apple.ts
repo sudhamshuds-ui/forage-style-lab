@@ -25,6 +25,11 @@ export class Apple {
   private readonly stemMesh: Mesh;
   private readonly leafMesh: Mesh;
   private readonly materials: { body: ShaderMaterial; stem: ShaderMaterial; leaf: ShaderMaterial };
+
+  /** The body's material, so the Style Lab can give the skin its texture. */
+  get bodyMaterial(): ShaderMaterial {
+    return this.materials.body;
+  }
   private readonly anchor = new Vector3();
 
   constructor(look: StylizedLook) {
