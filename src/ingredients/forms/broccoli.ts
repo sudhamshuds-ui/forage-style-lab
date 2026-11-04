@@ -116,7 +116,7 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
   for (const cluster of clusters) {
     const toward = cluster.centre.clone().sub(fork).setY(0);
     const out = toward.lengthSq() > 1e-6 ? toward.normalize() : new Vector3(1, 0, 0);
-    const root = fork.clone().addScaledVector(out, 0.55).add(new Vector3(0, -0.35, 0));
+    const root = fork.clone().addScaledVector(out, 0.75).add(new Vector3(0, -0.35, 0));
     const into = cluster.centre.clone().lerp(middle, 0.15).add(new Vector3(0, -cluster.radius * 0.35, 0));
     // Splay out first, then turn up into the cluster.
     const bend = root.clone().addScaledVector(out, 1.0).add(new Vector3(0, (into.y - root.y) * 0.45, 0));
@@ -124,9 +124,10 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
       role: 'stalk',
       geometry: sweepGeometry({
         points: [root, bend, into],
-        radius: (t) => (0.78 - 0.32 * t) * Math.sqrt(Math.min(1, (1 - t) / 0.08 + 0.2)),
+        // Slim fingers (the user: thick ones looked too big), tapering into the cluster.
+        radius: (t) => (0.46 - 0.16 * t) * Math.sqrt(Math.min(1, (1 - t) / 0.08 + 0.2)),
         rings: 9,
-        segments: 11,
+        segments: 10,
       }),
     });
   }
@@ -157,15 +158,16 @@ export const buildBroccoli: FormBuilder = ({ state, seed }) => {
     for (let i = 0; i < position.count; i++) low = Math.min(low, position.getX(i) * sin + position.getY(i) * cos);
     return low;
   };
-  let flatter = Math.PI / 3;
-  let steeper = Math.PI * 0.62;
+  let less = Math.PI / 6;
+  let more = Math.PI / 2;
   for (let i = 0; i < 30; i++) {
-    const angle = (flatter + steeper) / 2;
-    // Tipping further lowers the cut end; stop where it meets the table under the crown.
-    if (lowest(trunk, angle) > lowest(crown, angle)) flatter = angle;
-    else steeper = angle;
+    const angle = (less + more) / 2;
+    // Tipping over further brings the crown down and lifts the cut end: if the cut end is
+    // still higher than the crown's lowest point, tip back a little, and the other way round.
+    if (lowest(trunk, angle) > lowest(crown, angle)) more = angle;
+    else less = angle;
   }
-  const lie = (flatter + steeper) / 2;
+  const lie = (less + more) / 2;
   for (const piece of pieces) piece.geometry.rotateZ(lie);
 
   // Anything small that would dip below the table (the leaf, a leaf scar) lies flat on it instead.
