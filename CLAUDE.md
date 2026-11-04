@@ -35,7 +35,7 @@ keep code readable with friendly comments.
   The user picks a **room combo** (wall, table, ambient and bounce light, cast shadow), not
   individual colours. Randomize never changes colours.
 - **Idle spin is on by default**: a slow turntable that pauses while you drag the view and
-  comes back 4 seconds after you let go (`Stage.setIdleSpin`; Scene > Idle spin, hidden).
+  eases back in 1.5 seconds after you last drag or zoom (`Stage.setIdleSpin`; Scene > Idle spin, hidden).
 - **Facets are retired.** Every form is smooth and rounded, the apple included (the hidden
   Faceted switch is off). No stamped dabs on the apple. Highlights are
   soft and believable (Soft sheen, Dry speckle); the hard window shapes are kept but not

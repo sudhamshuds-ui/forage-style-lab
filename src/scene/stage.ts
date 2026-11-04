@@ -19,8 +19,10 @@ import type { Vec2 } from '../params';
  * Painting every frame is costly, so the stage only redraws when something
  * changed: the camera moved, the panel changed (invalidate) or the size changed.
  */
-/** Seconds after you let go of the view before the idle spin comes back. */
-const SPIN_RESUME = 4;
+/** Seconds after you last touch the view before the idle spin comes back. */
+const SPIN_RESUME = 1.5;
+/** Seconds the idle spin takes to ease back up to full speed (no sudden jolt). */
+const SPIN_EASE_IN = 1.2;
 
 export class Stage {
   readonly renderer: WebGLRenderer;
@@ -46,6 +48,9 @@ export class Stage {
   private spinWanted = false;
   private dragging = false;
   private spinResumeIn = 0;
+  /** 0..1: how far the idle spin has eased back up to its full speed. */
+  private spinRamp = 1;
+  private spinSpeed = 0;
 
   constructor(canvas: HTMLCanvasElement, private readonly frame: HTMLElement) {
     this.renderer = new WebGLRenderer({ canvas, antialias: false });
@@ -75,7 +80,12 @@ export class Stage {
     this.controls.addEventListener('end', () => {
       this.dragging = false;
       this.spinResumeIn = SPIN_RESUME;
+      this.spinRamp = 0;
     });
+    // Scrolling to zoom moves the camera inside the scroll event itself, so the loop
+    // below would not notice it and the picture would wait (until the spin came back)
+    // before showing the new zoom. Any camera change asks for a redraw straight away.
+    this.controls.addEventListener('change', () => this.invalidate());
     this.homeCamera = this.camera.clone();
     this.homeTarget.copy(this.controls.target);
 
@@ -145,11 +155,11 @@ export class Stage {
 
   /**
    * The idle spin: a slow turntable. Switched on or off here (Scene > Idle spin); it
-   * pauses while you drag the view and comes back a few seconds after you let go.
+   * pauses while you drag or zoom the view and eases back in shortly after you let go.
    */
   setIdleSpin(enabled: boolean, speed: number): void {
     this.spinWanted = enabled;
-    this.controls.autoRotateSpeed = (speed / 100) * 4;
+    this.spinSpeed = (speed / 100) * 4;
   }
 
   /**
@@ -165,7 +175,12 @@ export class Stage {
       // The idle spin turns only while switched on, not while you drag, and not until a
       // few seconds after you let go.
       this.spinResumeIn = Math.max(0, this.spinResumeIn - delta);
-      this.controls.autoRotate = this.spinWanted && !this.dragging && this.spinResumeIn <= 0;
+      const spinning = this.spinWanted && !this.dragging && this.spinResumeIn <= 0;
+      // Once it may spin again, ease up to full speed over a second or so (smoothstep).
+      if (spinning) this.spinRamp = Math.min(1, this.spinRamp + delta / SPIN_EASE_IN);
+      const ease = this.spinRamp * this.spinRamp * (3 - 2 * this.spinRamp);
+      this.controls.autoRotate = spinning;
+      this.controls.autoRotateSpeed = this.spinSpeed * ease;
       const cameraMoved = this.controls.update(delta);
       if (!cameraMoved && !this.needsRender) return;
       this.needsRender = false;
