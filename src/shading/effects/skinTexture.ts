@@ -18,7 +18,8 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  *
  * The pattern sticks to the surface (it uses objectPos), so it turns with
  * the ingredient and never swims. It fades in the deepest shadow, where a
- * painter would not bother with it. Unlike the shared layer, its values
+ * painter would not bother with it. Darker marks lean toward the
+ * ingredient's own deep shade (shadeOwn), never grey. Unlike the shared layer, its values
  * live on each material (`uSkin`), so the stem and leaf stay plain.
  */
 
@@ -83,18 +84,19 @@ if (kind > 0 && amount > 0.0) {
     // Wide, soft domes, so the cells never read as a pattern of patches.
     float here = 1.0 - smoothstep(0.0, 1.1, skinCells(p));
     float toward = 1.0 - smoothstep(0.0, 1.1, skinCells(p + L * 0.25));
-    lab.x += (toward - here) * 0.055 * show;
+    float emboss = (toward - here) * show;
+    lab = emboss > 0.0 ? lab + vec3(emboss * 0.055, 0.0, 0.0) : shadeOwn(lab, -emboss * 0.45);
   } else if (kind == 2) {
     // Pores: small pits with a lit rim on the side away from the light.
     float pit = 1.0 - smoothstep(0.08, 0.3, skinCells(p));
     float rim = 1.0 - smoothstep(0.08, 0.3, skinCells(p - L * 0.12));
-    lab.x -= pit * 0.045 * show;
+    lab = shadeOwn(lab, pit * 0.38 * show);
     lab.x += max(rim - pit, 0.0) * 0.03 * show;
   } else if (kind == 3) {
     // Streaks: stretched up and down the fruit, plus sparse pale freckles.
     float streak = valueNoise3(vec3(p.x * 4.0, p.y * 0.35, p.z * 4.0));
-    lab.x -= (streak - 0.5) * 0.06 * show;
-    lab.yz *= 1.0 + (streak - 0.5) * 0.18 * show;
+    float flush = (streak - 0.5) * show;
+    lab = flush > 0.0 ? shadeOwn(lab, flush * 0.5) : lab - vec3(flush * 0.06, 0.0, 0.0);
     float freckle = 1.0 - smoothstep(0.05, 0.13, skinCells(p * 1.6));
     lab.x += freckle * 0.05 * show;
     lab.yz *= 1.0 - freckle * 0.25 * show;

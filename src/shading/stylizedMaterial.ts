@@ -65,6 +65,15 @@ float paintStep(float edge, float x, float range) {
   return smoothstep(edge - width, edge + width, x + wobble);
 }
 
+// Darken a colour (in OKLab) toward the object's own deep, warm shade (its glow
+// colour, a little darker), never toward grey: a dark speck on a lemon turns
+// golden, not olive. k = 0 leaves it, 1 is the full shade.
+vec3 shadeOwn(vec3 lab, float k) {
+  vec3 deep = linearToOklab(uGlowColour);
+  deep.x = lab.x - 0.12;
+  return mix(lab, deep, clamp(k, 0.0, 1.0));
+}
+
 ${declarations}
 
 void main() {

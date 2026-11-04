@@ -153,6 +153,9 @@ keep code readable with friendly comments.
 
 ## Conventions
 - Colours are hex strings in settings. Mix colours in OKLab/OKLCh, not RGB.
+- Texture marks never darken toward grey: a darker speck, pit or streak uses `shadeOwn`
+  (in the shader), which leans toward the object's own deep shade (its glow colour). A
+  lemon's specks are golden, never olive.
 - Most sliders are 0..100 (shown as %), converted to real units where they are used.
 - List options are defined once in `params.ts` (`BRUSHES`, `PATTERNS`, `HIGHLIGHT_SHAPES`);
   shaders receive the option's index.

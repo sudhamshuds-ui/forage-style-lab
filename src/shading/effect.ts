@@ -22,6 +22,10 @@ import type { Palette } from './stylizedMaterial';
  *
  *   vec3  uBaseColour, uLitColour, uShadowColour, uHighlightColour, uGlowColour   this object's palette
  *
+ *   vec3 shadeOwn(vec3 lab, float k)
+ *     Darken an OKLab colour toward the object's own deep shade (never grey).
+ *     Use it for every dark mark: k = 0.3 is about as dark as lab.x - 0.035.
+ *
  *   float paintStep(float edge, float x, float range)
  *     A painted edge: 0 below `edge`, 1 above, with a soft and slightly
  *     wobbly transition. `range` is roughly how big x's usual span is
