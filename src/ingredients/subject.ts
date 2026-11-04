@@ -3,10 +3,11 @@ import type { Settings } from '../params';
 import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
 import { mixHex } from '../utils/colour';
-import { LEAF_SKIN, setSkin } from '../shading/effects/skinTexture';
+import { CRUMB_SKIN, LEAF_SKIN, setSkin } from '../shading/effects/skinTexture';
 import { FAMILIES } from './families';
 import { seedFromId, seededRandom } from './forms/kit/random';
-import { LAYOUT_COUNT, arrangeCluster } from './layout';
+import { LAYOUT_COUNT, arrangeCluster, footprintSpots, samplePoints, transformed } from './layout';
+import { MAX_CONTACTS } from '../scene/background';
 import { cmToUnits } from './scale';
 import { parsePart, type IngredientEntry } from './registry';
 
@@ -141,6 +142,8 @@ class FormSubject implements Subject {
         const quiet = loud ? palette : { ...palette, highlight: mixHex(palette.highlight, palette.base, 0.65) };
         this.painted.push({ material, palette: quiet });
         if (index === 0) setSkin(material, entry.skin);
+        // Crumb (bread inside a slash) gets the crumb skin: holes, streaks, a toasted rim.
+        else if (piece.role === 'crumb') setSkin(material, CRUMB_SKIN);
         // Leaves and sepals (pieces with a leaf map) get the leaf skin: vein, base-to-tip, underside.
         else if (piece.geometry.getAttribute('uv')) setSkin(material, LEAF_SKIN);
         const mesh = new Mesh(piece.geometry, material);
@@ -159,13 +162,14 @@ class FormSubject implements Subject {
     }
     this.turn = members.length > 1 ? 0 : entry.turn;
 
-    // One contact shadow per member, under its main body.
+    // Contact shadows follow each member's footprint on the table: a round piece gets one
+    // spot, a long one (a baguette) a row of small spots along its length, so the contact
+    // hugs it instead of one big circle poking out past its shadow. Up to MAX_CONTACTS in all.
+    const spotsEach = Math.max(1, Math.floor(MAX_CONTACTS / members.length));
     for (const member of members) {
       member.updateMatrix();
-      const body = (member.children[0] as Mesh).geometry;
-      body.computeBoundingSphere();
-      const sphere = body.boundingSphere!.clone().applyMatrix4(member.matrix);
-      this.contacts.push({ centre: sphere.center, radius: sphere.radius * RADIUS_FACTOR });
+      const body = transformed(samplePoints(member, 'body', 600), member);
+      this.contacts.push(...footprintSpots(body, spotsEach));
     }
 
     // Highlights and the room are placed round the whole subject (one body, or the cluster).

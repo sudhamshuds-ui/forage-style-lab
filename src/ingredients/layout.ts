@@ -194,6 +194,61 @@ export function transformed(points: Vector3[], member: Group): Vector3[] {
   return points.map((p) => p.clone().applyMatrix4(member.matrix));
 }
 
+/**
+ * Contact spots for one piece, from its points (in the subject's space): where it meets the
+ * table and how wide it is there. The footprint's long direction and narrow width are found
+ * from how the points spread on the table (like fitting an oval to them). A round piece gets
+ * one spot; a long one gets up to `most` spots along its length, each as wide as the piece.
+ */
+export function footprintSpots(points: Vector3[], most: number): { centre: Vector3; radius: number }[] {
+  if (points.length === 0) return [];
+  const middle = centroid(points);
+  // How the points spread on the table (x, z): a 2 by 2 covariance.
+  let xx = 0;
+  let xz = 0;
+  let zz = 0;
+  for (const p of points) {
+    const dx = p.x - middle.x;
+    const dz = p.z - middle.z;
+    xx += dx * dx;
+    xz += dx * dz;
+    zz += dz * dz;
+  }
+  // The long direction: the covariance's main axis.
+  const angle = 0.5 * Math.atan2(2 * xz, xx - zz);
+  const along = new Vector3(Math.cos(angle), 0, Math.sin(angle));
+  const across = new Vector3(-along.z, 0, along.x);
+  let minA = Infinity;
+  let maxA = -Infinity;
+  let minC = Infinity;
+  let maxC = -Infinity;
+  for (const p of points) {
+    const d = p.clone().sub(middle);
+    const a = d.dot(along);
+    const c = d.dot(across);
+    minA = Math.min(minA, a);
+    maxA = Math.max(maxA, a);
+    minC = Math.min(minC, c);
+    maxC = Math.max(maxC, c);
+  }
+  const length = maxA - minA;
+  const width = maxC - minC;
+  const radius = (width / 2) * 0.88;
+  // Round (or nearly): one spot. Long: a row of spots spaced along it, within its ends.
+  const count = Math.max(1, Math.min(most, Math.round(length / width)));
+  const spots: { centre: Vector3; radius: number }[] = [];
+  const centreAlong = (minA + maxA) / 2;
+  const centreAcross = (minC + maxC) / 2;
+  for (let k = 0; k < count; k++) {
+    const a = count === 1 ? centreAlong : minA + radius + ((length - 2 * radius) * k) / (count - 1);
+    spots.push({
+      centre: middle.clone().addScaledVector(along, a).addScaledVector(across, centreAcross),
+      radius: count === 1 ? Math.max(radius, (length / 2) * 0.88) : radius,
+    });
+  }
+  return spots;
+}
+
 /** The stem end: the part point furthest from the body's middle (a stalk's cut end). */
 function stemEnd(parts: Vector3[], body: Vector3[]): Vector3 {
   const middle = centroid(body);

@@ -103,7 +103,9 @@ keep code readable with friendly comments.
   from the group's middle; (3) the deep contact patch is a flat oval under each piece, on
   its side away from the light, never a rim round the outline, and it never reaches beyond
   the real cast shadow (the backdrop's own contact core stays within about half a piece's
-  radius, or it shows from above as a second, separate blob); (4) a soft, slightly darker
+  radius, or it shows from above as a second, separate blob). Contact spots follow each
+  piece's footprint (`footprintSpots`): one for a round piece, a row along a long one (the
+  baguette), sized to its narrow width, never one big circle; (4) a soft, slightly darker
   crevice where two pieces meet; (5) pieces shade each other with real cast shadows.
 - **Shuffle ingredient** swaps to a random different ingredient with a short fade, frames
   it, paints it with its family and switches the room to the family's suggested room.
@@ -133,7 +135,8 @@ keep code readable with friendly comments.
    tone bands, wash bleed, shadow colour, glow, surface texture (shared paint grain), skin
    texture (each ingredient's own peel, from its registry `skin`: pebbled lemon, orange
    pores, apple streaks and freckles, strawberry seeds in lit dimples, broccoli florets, bread crust
-   colour (toastier top, paler sides, blotches, pores, flour specks; no crackle lines); every leaf and sepal
+   colour (toastier top, paler sides, blotches, pores, flour specks; no crackle lines); every
+   piece named `crumb` gets the crumb skin (holes, streaks, a toasted rim, never flat white); every leaf and sepal
    gets the leaf skin: stalk-to-tip shading, centre and side veins, paler underside), highlights, matte. Everything on the apple is computed on its own surface, so
    it turns with the apple. Alpha is a label, not transparency: 0 = backdrop,
    0..0.2 = backdrop under the cast shadow (written by the floor, `ground.ts`, which also

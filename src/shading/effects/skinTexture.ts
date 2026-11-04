@@ -25,6 +25,9 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  *  - crust (bread): baked colour, like the user's references: toastier and warmer on top,
  *    paler golden down the sides, soft blotchy variation (watercolour-like), tiny dark pores,
  *    and white flour specks on top. No crackle lines (they read as worms).
+ *  - crumb (any piece named `crumb`, set automatically): soft open air holes in the crumb's
+ *    own deeper cream, faint lengthwise streaks where the dough stretched, and a golden,
+ *    toasted rim where it meets the crust (its steeper sides). Never flat white.
  *  - leaf (sepals and leaves, set automatically): deeper at the stalk and
  *    lighter toward the tip, a pale centre vein, faint side veins, a slight
  *    hue drift from leaf to leaf, and a paler, cooler underside. Uses the
@@ -38,7 +41,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -50,6 +53,9 @@ export interface Skin {
 }
 
 export const NO_SKIN: Skin = { kind: 'none', size_mm: 1, amount: 0 };
+
+/** Every piece named `crumb` (bread showing in a slash, later a cut slice) gets this skin. */
+export const CRUMB_SKIN: Skin = { kind: 'crumb', size_mm: 3, amount: 1 };
 
 /** Every leaf and sepal gets this skin automatically (it needs the leaf's own map). */
 export const LEAF_SKIN: Skin = { kind: 'leaf', size_mm: 1, amount: 1 };
@@ -155,6 +161,18 @@ if (kind > 0 && amount > 0.0) {
     // Flour: small white specks on the top, where the crust faces up.
     float speck = (1.0 - smoothstep(0.06, 0.1, skinCells(p * 1.4 + 3.0))) * smoothstep(0.3, 0.8, N.y);
     lab = mix(lab, linearToOklab(uHighlightColour), speck * 0.75 * amount);
+  } else if (kind == 8) {
+    // Crumb: soft, open air holes, sunk in the crumb's own deeper cream.
+    float hole = 1.0 - smoothstep(0.1, 0.32, skinCells(p));
+    lab = shadeOwn(lab, hole * 0.55 * show);
+    // Faint lengthwise streaks where the dough stretched as the cut opened (along x of the piece).
+    float streak = valueNoise3(vec3(p.x * 0.35, p.y * 3.0, p.z * 3.0)) - 0.5;
+    lab = streak > 0.0 ? shadeOwn(lab, streak * 0.5 * show) : lab - vec3(streak * 0.04, 0.0, 0.0);
+    // Warm, never white: the whole crumb leans a little golden.
+    lab = shadeOwn(lab, 0.18 * amount);
+    // A golden, toasted rim: the crumb's steeper sides, where it meets the crust, baked darker.
+    float rim = 1.0 - smoothstep(0.55, 0.97, N.y);
+    lab = shadeOwn(lab, rim * 1.3 * amount);
   } else if (kind == 5) {
     // Leaf: x runs from the stalk (0) to the tip (1), y across (0.5 is the centre vein).
     vec2 q = vSurfaceUv;
