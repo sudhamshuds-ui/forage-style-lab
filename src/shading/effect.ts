@@ -1,5 +1,6 @@
 import type { IUniform, Vector3 } from 'three';
 import type { Settings } from '../params';
+import type { Palette } from './stylizedMaterial';
 
 /**
  * A ShaderEffect is one "layer" of the stylized look, like an adjustment
@@ -52,6 +53,8 @@ export interface FrameContext {
   /** Centre and rough radius of the ingredient, for placing highlight shapes. */
   objectCentre: Vector3;
   objectRadius: number;
-  /** Height of the table top (the apple's lowest point), for the contact shadow. */
+  /** Height of the table top (the ingredient's lowest point), for the contact shadow. */
   groundY: number;
+  /** The ingredient's own colours (its family, or the apple's Colour group). */
+  objectColours: Palette;
 }

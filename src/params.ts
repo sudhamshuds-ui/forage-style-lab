@@ -88,7 +88,7 @@ export interface Settings {
   };
   // Hidden groups: the apple's shape, its individual colours (set by the palette) and the lighting.
   shape: {
-    /** On: the apple shows its flat planes (poly edges). Off: the soft, rounded apple. */
+    /** On: the apple shows its flat planes (poly edges). Off (default): the soft, rounded apple. */
     faceted: boolean;
     // Hidden below this line
     roundness: number;
@@ -137,7 +137,7 @@ export const GROUPS: { key: GroupKey; title: string; expanded: boolean; hidden?:
   { key: 'paint', title: 'Paint', expanded: true },
   { key: 'lighting', title: 'Light', expanded: true, hidden: true },
   { key: 'highlight', title: 'Highlights', expanded: true, hidden: true },
-  // Only the Faceted switch is shown; the detailed shape sliders stay hidden.
+  // Facets are retired: the Faceted switch and the shape sliders are all hidden, so Form is not shown.
   { key: 'shape', title: 'Form', expanded: true },
   { key: 'scene', title: 'Scene', expanded: true, hidden: true },
   { key: 'colour', title: 'Colour', expanded: false, hidden: true },
@@ -193,7 +193,8 @@ export const DEFAULTS: Settings = {
     spinSpeed: 25,
   },
   shape: {
-    faceted: true,
+    // Facets are retired (board 02): every form is smooth and rounded.
+    faceted: false,
     roundness: 58,
     height: 56,
     topDimple: 42,
@@ -216,7 +217,8 @@ export const DEFAULTS: Settings = {
     leaf: '#6c8c4a',
   },
   light: {
-    direction: { x: 0.7, y: 0.45 },
+    // Upper left and slightly in front (board 05): about 35 degrees left of camera, 40 degrees up.
+    direction: { x: -0.35, y: 0.51 },
     bands: 3,
     softness: 10,
     paintEdges: 20,
@@ -365,7 +367,7 @@ export const SPECS: SpecTable = {
     spinSpeed: pct('Spin speed', [10, 40], { random: false, hidden: true }),
   },
   shape: {
-    faceted: { kind: 'toggle', label: 'Faceted' },
+    faceted: { kind: 'toggle', label: 'Faceted', ...hidden },
     roundness: pct('Roundness', [25, 85], hidden),
     height: pct('Height', [30, 70], hidden),
     topDimple: pct('Top dimple', [15, 65], hidden),

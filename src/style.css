@@ -90,6 +90,16 @@ body {
   height: 100%;
   touch-action: none;
   cursor: grab;
+  transition: opacity 0.16s ease;
+}
+/* A short soft fade while Shuffle ingredient swaps what is on stage. */
+.card.is-swapping canvas {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card canvas {
+    transition: none;
+  }
 }
 .card canvas:active {
   cursor: grabbing;
@@ -116,9 +126,16 @@ body {
 }
 .panel-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
+  row-gap: 12px;
   padding: 18px 18px 6px;
+}
+/* Shuffle ingredient sits under the name, full width. */
+.btn-shuffle {
+  flex: 1 0 100%;
+  margin-bottom: 8px;
 }
 .panel-head h2 {
   margin: 0;

@@ -24,6 +24,8 @@ export class Stage {
   readonly scene = new Scene();
   readonly camera: PerspectiveCamera;
   readonly controls: OrbitControls;
+  /** A copy of the camera at the starting view: the card's framing is measured through it. */
+  readonly homeCamera: PerspectiveCamera;
   readonly keyLight: DirectionalLight;
   /** Current light direction in world space (points toward the light). */
   readonly lightDirection = new Vector3(0, 1, 0);
@@ -36,6 +38,7 @@ export class Stage {
   /** The starting view's orientation. The light pad is read in this frame. */
   private readonly roomFrame = new Quaternion();
   private readonly bufferSize = new Vector2();
+  private readonly homeTarget = new Vector3();
 
   constructor(canvas: HTMLCanvasElement, private readonly frame: HTMLElement) {
     this.renderer = new WebGLRenderer({ canvas, antialias: false });
@@ -60,6 +63,8 @@ export class Stage {
     this.controls.update();
     this.camera.updateMatrixWorld();
     this.roomFrame.copy(this.camera.quaternion);
+    this.homeCamera = this.camera.clone();
+    this.homeTarget.copy(this.controls.target);
 
     this.keyLight = new DirectionalLight(0xffffff, 1);
     this.keyLight.castShadow = true;
@@ -87,6 +92,8 @@ export class Stage {
     this.renderer.setSize(width, height, false);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
+    this.homeCamera.aspect = width / height;
+    this.homeCamera.updateProjectionMatrix();
     this.size.width = width;
     this.size.height = height;
     this.renderer.getDrawingBufferSize(this.bufferSize);
@@ -109,6 +116,15 @@ export class Stage {
     this.keyLight.position.copy(this.controls.target).addScaledVector(this.lightDirection, 8);
     this.keyLight.target.position.copy(this.controls.target);
     return this.lightDirection;
+  }
+
+  /** Jump back to the starting view (used when a new ingredient comes on stage). */
+  resetView(): void {
+    this.camera.position.copy(this.homeCamera.position);
+    this.camera.quaternion.copy(this.homeCamera.quaternion);
+    this.controls.target.copy(this.homeTarget);
+    this.controls.update();
+    this.invalidate();
   }
 
   setIdleSpin(enabled: boolean, speed: number): void {

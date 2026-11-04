@@ -6,17 +6,26 @@ import type { Panel } from './panel';
  * The buttons: Reset and Copy settings under the panel, and Randomize (which
  * lives in the Style section and only shows while Playful strokes is on).
  * Returns the Randomize action for the panel's button.
+ *
+ * `ingredient` tells the buttons which ingredient is on stage: Copy settings
+ * names it, and Reset puts its room back after restoring the default style.
  */
-export function setupActions(settings: Settings, panel: Panel, onApplied: () => void): { randomize: () => void } {
-  const apply = (next: Settings) => {
+export function setupActions(
+  settings: Settings,
+  panel: Panel,
+  onApplied: () => void,
+  ingredient: { ingredientId: () => string; afterReset: () => void },
+): { randomize: () => void } {
+  const apply = (next: Settings, after?: () => void) => {
     applySettings(settings, next);
+    after?.();
     panel.refresh();
     onApplied();
   };
 
-  button('btn-reset').addEventListener('click', () => apply(defaultSettings()));
+  button('btn-reset').addEventListener('click', () => apply(defaultSettings(), ingredient.afterReset));
   button('btn-copy').addEventListener('click', async () => {
-    const json = JSON.stringify({ ingredient: 'apple', version: 2, ...settings }, null, 2);
+    const json = JSON.stringify({ ingredient: ingredient.ingredientId(), version: 2, ...settings }, null, 2);
     const copied = await copyText(json);
     showToast(copied ? 'Settings copied as JSON' : 'Could not copy. Check the browser console.');
     if (!copied) console.log(json);

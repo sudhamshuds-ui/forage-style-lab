@@ -246,8 +246,8 @@ export class Background {
     u.uTable.value.set(scene.backgroundBottom);
     u.uWall.value.set(scene.backgroundTop);
     u.uAmbient.value.set(settings.light.ambient);
-    // The light patch borrows the pale, warm highlight colour of the combo.
-    u.uLight.value.set(settings.colour.highlight);
+    // The light patch borrows the ingredient's pale, warm highlight colour.
+    u.uLight.value.set(context.objectColours.highlight);
     u.uContact.value.set(scene.shadowColour);
     u.uFloorY.value = context.groundY;
     u.uContrast.value = layout.contrast;

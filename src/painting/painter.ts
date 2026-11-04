@@ -24,6 +24,8 @@ export interface PaintFrame {
   objectUv: Vector2;
   /** The apple's radius as a fraction of the screen height. */
   objectRadius: number;
+  /** The ingredient's base colour, reflected into its cast shadow. */
+  objectBase: string;
 }
 
 /**
@@ -201,8 +203,8 @@ export class Painter {
     glaze.uEdgeSoftness.value = settings.paint.edgeSoftness / 100;
     glaze.uTexture.value = settings.paint.texture / 100;
     glaze.uShadowColour.value.set(settings.scene.shadowColour);
-    // The apple's own colour, reflected into its shadow.
-    glaze.uShadowAccent.value.set(settings.colour.base);
+    // The ingredient's own colour, reflected into its shadow.
+    glaze.uShadowAccent.value.set(frame.objectBase);
     glaze.uShadowAmount.value = settings.scene.shadowAmount / 100;
     glaze.uShadowMix.value = settings.lighting.shadowColour / 100;
     glaze.uFrame.value = settings.scene.frame ? 1 : 0;

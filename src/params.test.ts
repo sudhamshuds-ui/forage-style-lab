@@ -14,19 +14,24 @@ const playful = () => {
 };
 
 describe('panel', () => {
-  it('shows only the style, paint and form controls', () => {
-    expect(visibleLabels()).toEqual(['Playful strokes', 'Brushiness', 'Wash bleed', 'Edge softness', 'Faceted']);
+  it('shows only the style and paint controls', () => {
+    expect(visibleLabels()).toEqual(['Playful strokes', 'Brushiness', 'Wash bleed', 'Edge softness']);
   });
 
-  it('keeps the colour combos, light, texture, highlights and scene, just hidden', () => {
+  it('keeps the Faceted switch, hidden and off: every form is smooth', () => {
+    expect(SPECS.shape.faceted.hidden).toBe(true);
+    expect(DEFAULTS.shape.faceted).toBe(false);
+  });
+
+  it('keeps the colour combos, light, texture, highlights, scene and shape, just hidden', () => {
     const hiddenGroups = GROUPS.filter((g) => g.hidden).map((g) => g.key);
     expect(hiddenGroups).toEqual(expect.arrayContaining(['palette', 'lighting', 'highlight', 'scene']));
     expect(SPECS.paint.texture.hidden).toBe(true);
   });
 
-  it('starts refined and faceted, with the frame and idle spin off', () => {
+  it('starts refined and smooth, with the frame and idle spin off', () => {
     expect(DEFAULTS.brush.classic).toBe(false);
-    expect(DEFAULTS.shape.faceted).toBe(true);
+    expect(DEFAULTS.shape.faceted).toBe(false);
     expect(DEFAULTS.scene.frame).toBe(false);
     expect(DEFAULTS.scene.idleSpin).toBe(false);
     expect(DEFAULTS.highlight.shape).toBe('sheen');

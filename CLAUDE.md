@@ -3,8 +3,9 @@
 ## What this is
 Forage is a cooking discovery web game where combined ingredients become painterly
 trading-card artworks. The Style Lab is step 1: a tool for stylizing a single 3D
-ingredient (an apple) with live parameters, viewable in 3D. Later sessions will add
-more effects and more ingredients.
+ingredient with live parameters, viewable in 3D. It started with an apple; ingredients
+are now built in code from a shared kit (branch `ingredient-forms`), one on stage at a
+time, flipped through with Shuffle ingredient.
 
 ## Who I'm working with
 A motion and visual designer who is new to coding. Explain things in simple terms
@@ -19,11 +20,12 @@ keep code readable with friendly comments.
   muted (not candy) surroundings. `02` and `03` support them; `90-avoid-stroke-clutter.png`
   shows what must never happen. `references/apple` is the old direction (kept for history);
   `references/ui` is the tool's look. Design: `docs/superpowers/specs/2026-10-17-painterly-design.md`.
-- The panel is deliberately small: Style (Playful strokes, and Randomize only while it is
-  on); Paint (Brushiness, Wash bleed, Edge softness); Form (Faceted); plus Reset and Copy
-  settings. **Hidden, not deleted** (still working, in `src/params.ts`): the colour combo
-  picker, Light, Texture, Highlights, Scene, the detailed brush controls, the apple's
-  shape sliders, the lighting and the individual colours. Never delete hidden controls;
+- The panel is deliberately small: the ingredient's name and Shuffle ingredient in the
+  head; Style (Playful strokes, and Randomize only while it is on); Paint (Brushiness, Wash
+  bleed, Edge softness); plus Reset and Copy settings. **Hidden, not deleted** (still
+  working, in `src/params.ts`): the colour combo picker, Light, Texture, Highlights, Scene,
+  the detailed brush controls, Form (Faceted, off) and the apple's shape sliders, the
+  lighting and the individual colours. Never delete hidden controls;
   to bring one back, remove its `hidden` flag (group or control).
 - **Randomize** (`src/randomize.ts`) only shuffles the playful stroke settings (brush type,
   stroke size and length, bristles, pattern and its amount). It never touches colours,
@@ -32,8 +34,8 @@ keep code readable with friendly comments.
   The user picks a **room combo** (wall, table, ambient and bounce light, cast shadow), not
   individual colours. Randomize never changes colours.
 - Idle spin is off by default.
-- The apple keeps its **facets** (poly edges) by default; Form > Faceted switches to the soft,
-  rounded apple. No stamped dabs on the apple. Highlights are
+- **Facets are retired.** Every form is smooth and rounded, the apple included (the hidden
+  Faceted switch is off). No stamped dabs on the apple. Highlights are
   soft and believable (Soft sheen, Dry speckle); the hard window shapes are kept but not
   the default and never picked by Randomize.
 - Style direction: **digital gouache with watercolour glazes, softly lit**. Shapes first
@@ -49,6 +51,24 @@ keep code readable with friendly comments.
 - The light **stays in the room** (world-fixed, set on the light pad from the starting view).
   The backdrop is a real 3D **studio sweep** (floor curving into wall, no horizon line) with
   mixed colours and one soft pool of light, so everything turns together when orbiting.
+  The key light comes from the **upper left**, slightly in front (about 35 degrees left of
+  camera, 40 up, board 05), so the cast shadow falls down and to the right.
+- **Ingredients** follow the Figma "Ingredient guidelines" (file 537QrQ0QsVjcT4u3st7M20,
+  node 60:2, boards 00 to 10; 07 and 09 matter most) and the skill
+  `docs/ingredients/forage-ingredient/SKILL.md`. Each one is built **in code** at its **real
+  size** in cm (the apple is 8 cm wide): a form file `src/ingredients/forms/{id}.ts` on the
+  shared kit `src/ingredients/forms/kit/` (one recipe per archetype), plus one registry
+  entry. Forms carry shape only: colours come from the colour families (board 04,
+  `families.ts`), never the form. Fine texture (peel pebbling, seeds) belongs to the
+  shader, never geometry. Randomness is seeded from the id. Blender only after two honest
+  tries with the kit, and only after asking.
+- **Card framing** (board 06): the subject fills a centred square about 70% of the card
+  width and touches the floor about 74% down (`src/scene/framing.ts`). It is done by
+  scaling the real-size subject on the stage (looks like a camera zoom, keeps the room
+  and marks at their tuned scale). Each entry's `turn` is measured from the camera.
+- **Shuffle ingredient** swaps to a random different ingredient with a short fade, frames
+  it, paints it with its family and switches the room to the family's suggested room.
+  Reset keeps that room. No physics, no multi-ingredient table on this branch.
 
 ## Tech
 - Vite + TypeScript + Three.js (WebGL, not WebGPU for now). No React.
@@ -57,10 +77,14 @@ keep code readable with friendly comments.
   postprocessing are the relevant ones). They target Three r160; this project uses r186.
 - Commands: `npm run dev` (dev server, http://localhost:5173), `npm run build`
   (type-check + production build), `npm test` (Vitest: panel, Randomize, palette rules,
-  backdrop layout).
+  backdrop layout, every registry form's size, contact, normals and triangle budget, the
+  registry and its rooms, card framing).
 - In dev, `styleLab.settings`, `styleLab.redraw()` and `styleLab.snapshot()` (paints one
   frame now and returns it as an image URL, handy for side-by-side comparisons) are
-  available in the browser console.
+  available in the browser console, plus the ingredient checks from board 09:
+  `styleLab.show('lemon')`, `styleLab.report()` (size in cm against size_cm, contact,
+  triangles), `styleLab.silhouette()`, `styleLab.lineUp()` (next to the apple at real
+  size) and `styleLab.checks()` (all of them on one sheet; click to close).
 
 ## How a frame is made (the pipeline)
 1. **Underpainting**: the 3D scene renders into a hidden image (`src/painting/painter.ts`).
@@ -95,13 +119,19 @@ keep code readable with friendly comments.
   generated from `SPECS`.
 - `src/palettes.ts` holds the room combos (soft and vivid families) and the Shuffle generator.
 - `src/randomize.ts` randomizes visible controls only, plus a random combo.
-- `src/ingredients/apple/` builds the procedural apple (body, stem, leaf). No model files.
+- `src/ingredients/` holds the ingredients: `registry.ts` (one entry per ingredient: the
+  board 07 spec plus its form builder; the apple is entry 1 and still uses its procedural
+  builder and the hidden Shape and Colour groups), `families.ts` (colour families and
+  their rooms), `scale.ts` (cm to scene units), `subject.ts` (whichever ingredient is on
+  stage), `forms/kit/` (lathe, round recipe, pieces, seeded random, checks) and
+  `forms/{id}.ts`. `apple/` builds the procedural apple (body, stem, leaf). No model files.
+- `src/dev/checks.ts` has the dev-only report, silhouette, line-up and check sheet.
 - `src/shading/` is the stylized 3D shader, built from a stack of effect modules:
   `effect.ts` (interface, shared GLSL values, FrameContext), `stylizedMaterial.ts`,
   `effects/index.ts` (ordered stack), `chunks/` (OKLab colour maths, noise).
 - `src/painting/` is the screen pass: painter, flow, glaze (default), classic strokes, frame.
 - `src/scene/` has the stage (renderer, camera, controls, light rig), the backdrop
-  underpainting, and the shadow-catching floor.
+  underpainting, the shadow-catching floor and the card framing.
 - `src/ui/` has the Tweakpane panel, the colour combo picker and the buttons.
 - `src/utils/colour.ts` has OKLab helpers in TypeScript.
 
@@ -118,7 +148,10 @@ keep code readable with friendly comments.
 - Most sliders are 0..100 (shown as %), converted to real units where they are used.
 - List options are defined once in `params.ts` (`BRUSHES`, `PATTERNS`, `HIGHLIGHT_SHAPES`);
   shaders receive the option's index.
-- The light direction is relative to the camera (like a lamp fixed to the easel).
+- The light pad is read from the starting view, then the light stays in the room.
+- The six light cases from board 05 (cut-juicy, wet, pale, dark, group, whole next to cut)
+  are stored on each spec (`light_case`) but not built yet; they plug in at
+  `showIngredient` in `main.ts`.
 
 ## Done so far
 v1: procedural apple, stylized shader, scene, panel, Randomize / Reset / Copy settings.
@@ -137,9 +170,15 @@ keeps its colours, soft + vivid rooms complementing it), Randomize leaves colour
 soft sheen and dry speckle highlights, facets back, facet shards and granular fill instead
 of dabs. Style switch: Playful strokes repaints the refined look with bold strokes (a
 kid's painting) while keeping all of it underneath.
+Ingredient forms (branch `ingredient-forms`): facets retired (smooth apple), key light
+upper left, the registry, colour families, form kit (lathe and round recipe), card
+framing, Shuffle ingredient, the lemon (whole), dev checks. Next, one at a time with
+feedback: orange, strawberry, egg, broccoli, bread loaf, cheese wedge, butter, steak,
+chicken drumstick, watermelon wedge (whole forms only; cut forms later).
 
 ## Planned for later sessions (not built yet)
-Importing 3D files (tool 01), patterns inside highlights and shadows, sparkles, soft body
+Cut forms (slice the whole form and cap the cut), the layouts (whole and cut, clusters),
+the light cases, patterns inside highlights and shadows, sparkles, soft body
 wobble. Later tools: cut and cooked forms, vessels, combining, recipe cards.
 
 ## Branches (saved versions)
