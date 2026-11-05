@@ -133,7 +133,9 @@ keep code readable with friendly comments.
   becomes a still), smudge (0 to 55%: big strokes, at least 9% of the card's height, sweep out
   from the ingredient in a wave, crossing each other, each dragging the paint along its path
   in a feedback loop), reveal (45 to 100%: strokes about 11% of the card's height, crossing
-  in three directions, paint the next card in from the middle outward), and the last
+  in three directions, paint the next card in from the middle outward; a soft, noisy wash
+  follows behind them from the middle, so gaps the strokes missed melt away instead of
+  lingering as sharp shards of the old card, which the user disliked), and the last
   frame is exactly the live view. Each stroke travels for about half a second with an
   ease-in-out (movement on screen). The panel's name changes as the reveal begins (a 100 ms
   fade and blur), and the button looks busy while a swap plays. User feedback that shaped

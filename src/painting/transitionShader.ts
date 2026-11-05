@@ -263,6 +263,12 @@ void main() {
   vec2 runDir = vec2(1.0, 0.0);
   float shown = revealLayer(px, big, 1.0, 0.45, 0.28, 0.5, runDir);
   shown = max(shown, revealLayer(px, big * 0.6, 2.0, 0.6, 0.25, 0.4, runDir));
+  // A soft wash follows behind the strokes, spreading out from the middle with a
+  // loose, noisy front, so the gaps the strokes missed melt away instead of
+  // lingering as sharp shards of the old card.
+  float looseFront = valueNoise3(vec3(px / uResolution.y * 5.0, 1.3)) - 0.5;
+  float wash = smoothstep(0.0, 0.14, uT - (0.62 + 0.2 * waveOrder(vUv)) + looseFront * 0.1);
+  shown = max(shown, wash);
 
   if (shown > 0.0) {
     // The next card is sharp. Only a stroke's soft edge is blurred and smeared a little
