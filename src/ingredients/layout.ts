@@ -242,11 +242,35 @@ export function footprintSpots(points: Vector3[], most: number): { centre: Vecto
   const centreAlong = (minA + maxA) / 2;
   const centreAcross = (minC + maxC) / 2;
   for (let k = 0; k < count; k++) {
-    const a = count === 1 ? centreAlong : minA + radius + ((length - 2 * radius) * k) / (count - 1);
-    spots.push({
-      centre: middle.clone().addScaledVector(along, a).addScaledVector(across, centreAcross),
-      radius: count === 1 ? Math.max(radius, (length / 2) * 0.88) : radius,
-    });
+    let a = count === 1 ? centreAlong : minA + radius + ((length - 2 * radius) * k) / (count - 1);
+    let r = count === 1 ? Math.max(radius, (length / 2) * 0.88) : radius;
+    let c = centreAcross;
+    if (count > 1) {
+      // Each spot only as wide as the piece is right there: a tapering piece (a watermelon wedge
+      // lying down) put a full-size spot by its narrow tip, which poked out past its outline.
+      const reach = length / count / 2;
+      let lo = Infinity;
+      let hi = -Infinity;
+      let aLo = Infinity;
+      let aHi = -Infinity;
+      for (const p of points) {
+        const d = p.clone().sub(middle);
+        const pa = d.dot(along);
+        if (Math.abs(pa - a) > reach) continue;
+        const pc = d.dot(across);
+        lo = Math.min(lo, pc);
+        hi = Math.max(hi, pc);
+        aLo = Math.min(aLo, pa);
+        aHi = Math.max(aHi, pa);
+      }
+      if (hi > lo) {
+        r = Math.min(r, ((hi - lo) / 2) * 0.88);
+        c = (lo + hi) / 2;
+        // Keep the spot inside the piece's ends too.
+        a = Math.min(Math.max(a, aLo + r), aHi - r);
+      }
+    }
+    spots.push({ centre: middle.clone().addScaledVector(along, a).addScaledVector(across, c), radius: r });
   }
   return spots;
 }

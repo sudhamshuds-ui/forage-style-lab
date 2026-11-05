@@ -339,6 +339,8 @@ export const REGISTRY: IngredientEntry[] = [
     shadowTint: 0.3,
     // A soft, juicy sheen, not a glossy white streak along the edges.
     matte: true,
+    // No rim glints: they drew a salmon line along the edge just inside the rind.
+    rimGlints: false,
     // Two finely meshed slabs (so their edges stay smooth), their shells and seeds.
     budget: [2000, 30000],
   },

@@ -155,6 +155,8 @@ Each registry entry can also carry, beside the spec and builder:
 - **Balance**: every piece must rest the way it really would. A wedge on its curved rind only stands straight up; to lean one, lay it on a flat cut side.
 - **Gradients between layers** (flesh to rind): paint them in the shader from a map on the body (like the `melon` skin), not as separate bands, which give hard edges.
 - **Seeds and dots**: few, irregular, never two above one (a face). Make them small raised beads, not flat stickers.
+- **Translucent flesh** (melon, citrus): glow in the shadows, more at thin places, and faint things seen inside by sampling under the surface along the line of sight (see `CLAUDE.md`, "Translucent flesh"). Keep it faint.
+- **Rim glints and pale layers**: the rim glint is painted in the body's highlight colour; on a gradient into a rind it draws a coloured line, so switch it off (`rimGlints: false`).
 - **Rind, band, peel layers**: lift each off the body's own surface by distance (`liftRegion`); the board's "separate shell" is its own layer without a seam.
 - **Flat marks on a face** (seeds): lift them clear of any wobble in the face, or they vanish under it.
 - **Local changes stay local**: a softened corner rounds only the top of that corner; rounding its whole upright edge hid a face of the block.

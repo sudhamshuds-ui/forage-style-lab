@@ -3,7 +3,7 @@ import type { Settings } from '../params';
 import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
 import { mixHex } from '../utils/colour';
-import { CRUMB_SKIN, LABEL_SKIN, LEAF_SKIN, setSkin } from '../shading/effects/skinTexture';
+import { CRUMB_SKIN, LABEL_SKIN, LEAF_SKIN, MELON_RIND_SKIN, setSkin } from '../shading/effects/skinTexture';
 import { hotSauceLabelTexture } from '../shading/labelArt';
 import { FAMILIES } from './families';
 import { seedFromId, seededRandom } from './forms/kit/random';
@@ -164,6 +164,8 @@ class FormSubject implements Subject {
         }
         // Crumb (bread inside a slash) gets the crumb skin: holes, streaks, a toasted rim.
         else if (piece.role === 'crumb') setSkin(material, CRUMB_SKIN);
+        // A melon's rind shell: stripes, mottling and specks (before the leaf rule: it has a map too).
+        else if (piece.role === 'rind' && entry.skin.kind === 'melon') setSkin(material, MELON_RIND_SKIN);
         // A printed label (a piece named `label` with its own map): the artwork, in cream ink.
         else if (piece.role === 'label' && piece.geometry.getAttribute('uv')) {
           setSkin(material, LABEL_SKIN);

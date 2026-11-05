@@ -279,6 +279,18 @@ keep code readable with friendly comments.
   and pass new uniforms from `Painter.updateGlaze`. Keep it derived from the image (no
   random screen-space cells on the apple), so the apple never boils when orbiting.
 
+## Translucent flesh (guideline, the user 2026-11-06: reuse for oranges, melons, lemons)
+Built first in the `melon` skin (`skinTexture.ts`, kind 10). For any cut, juicy flesh:
+- **Glow in the shadows**: the darker tones soak up the family's warm glow colour and lift a
+  little (light scatters inside), never dull or grey.
+- **Thin places glow most**: edges seen side on (a fresnel term) and narrow tips.
+- **Things inside show vaguely**: the material knows the camera in its own space
+  (`vObjectCamera`, set in the vertex shader of `stylizedMaterial.ts`), so the shader samples a
+  pattern a little way *under* the surface along the line of sight, at a few depths, fainter
+  deeper in. The melon's buried seeds do this; citrus could show segment walls or pips the same way.
+  They shift gently as the view turns, like looking into it. Keep them faint and sparse (a
+  dense scatter reads as polka dots).
+
 ## Conventions
 - Colours are hex strings in settings. Mix colours in OKLab/OKLCh, not RGB.
 - Texture marks never darken toward grey: a darker speck, pit or streak uses `shadeOwn`
@@ -424,6 +436,14 @@ glow colour soaks into the flesh's darker tones; **grain**: faint fibres fanning
 mottling, wet crystals and tiny pits; **finer mesh** (cell 0.28, rounding 0.62, budget 30k). The
 melon family is a juicier coral-red (the first read candy-pink), shadowTint 0.3, matte (a glossy
 white streak ran along the edges).
+Then (the user's second round, 2026-11-06): contact spots in a row are sized to the piece's
+width where each sits (`footprintSpots`: a full-size spot by the lying wedge's narrow tip poked out
+past its outline; helps the baguette too); no rim glints (`rimGlints: false`: they drew a salmon
+line just inside the rind); the grain fibres fade out toward the tip (they bunched into streaks
+there); the flesh-to-rind gradient has crisp, wandering wet edges (blush, then the pale band, then
+mottled green, a few red granules reaching into the pale) instead of one wide muddy blur; the rind
+shell has its own map and skin `melonRind` (kind 11: wavy, broken dark stripes running across
+the slab, mottling, pale specks); and **translucency** (see below).
 Next, one at a time with feedback: steak, chicken drumstick (whole forms only; cut forms later).
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):

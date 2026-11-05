@@ -41,7 +41,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -84,6 +84,9 @@ export function labelUniforms(): { uLabelMap: { value: Texture | null }; uLabelI
 export function melonUniforms(): { uMelonPale: { value: Color }; uMelonGreen: { value: Color } } {
   return { uMelonPale: { value: new Color('#f3f1c8') }, uMelonGreen: { value: new Color('#7fae55') } };
 }
+
+/** A melon's green rind shell (a piece named `rind` on a melon): stripes, mottling, speckles. */
+export const MELON_RIND_SKIN: Skin = { kind: 'melonRind', size_mm: 2, amount: 1 };
 
 /** Give one material its skin. */
 export function setSkin(material: ShaderMaterial, skin: Skin): void {
@@ -231,15 +234,33 @@ if (kind > 0 && amount > 0.0) {
     // Melon flesh (watermelon). Its map: x runs from the melon's centre (0) out to the outside
     // of the rind (1), y across the slice (-1 to 1).
     vec2 q = vSurfaceUv;
-    // 1. Translucent: light scatters inside the flesh, so its shadows stay warm and glowing,
-    //    never dull (the glow colour soaks into the darker tones).
+    vec3 deep = linearToOklab(uGlowColour);
+    // 1. Translucent: light scatters inside the flesh, so it glows. The darker tones soak up the
+    //    warm glow colour (never dull), and thin places glow most: the edges seen side on, and
+    //    the narrow tip.
     float inside = (1.0 - tone) * amount;
-    lab = mix(lab, linearToOklab(uGlowColour), inside * 0.38);
-    lab.x += inside * 0.035;
-    // 2. Grain: fibres fanning out from the centre (lighter streaks), soft mottling, and small
-    //    wet crystals catching the light, with tiny pits between them.
-    float fibre = valueNoise3(vec3(q.y * 11.0, q.x * 1.6, 3.0)) - 0.5;
-    lab.x += fibre * 0.035 * show;
+    float edgeOn = pow(1.0 - max(dot(N, V), 0.0), 2.0);
+    float thin = max(edgeOn * 0.8, 1.0 - smoothstep(0.05, 0.3, q.x));
+    lab = mix(lab, deep, clamp(inside * 0.55 + thin * 0.3, 0.0, 0.75) * amount);
+    lab.x += (inside * 0.06 + thin * 0.05) * amount;
+    // 2. Seeds inside, seen vaguely through the flesh: a scatter of seeds sampled a little way
+    //    under the surface, along the line of sight, so they shift gently as the melon turns,
+    //    like looking into it. Only in the ring where a melon keeps its seeds. Fainter deeper in.
+    vec3 ray = normalize(vObjectPos - vObjectCamera);
+    float ring = smoothstep(0.32, 0.45, q.x) * (1.0 - smoothstep(0.7, 0.8, q.x));
+    float buried = 0.0;
+    for (int i = 1; i <= 3; i++) {
+      float depth = float(i) * 0.05;
+      vec3 sp = (objectPos + ray * depth) * vec3(1.9, 2.8, 1.9) + 11.0;
+      float blob = 1.0 - smoothstep(0.06, 0.3, skinCells(sp));
+      buried = max(buried, blob * (1.0 - float(i) * 0.22));
+    }
+    vec3 plum = vec3(lab.x - 0.2, 0.06, -0.005);
+    lab = mix(lab, plum, buried * ring * 0.32 * amount);
+    // 3. Grain: fibres fanning out from the centre (faded out toward the tip, where they would
+    //    bunch into streaks), soft mottling, and small wet crystals with tiny pits between them.
+    float fibre = valueNoise3(vec3(q.y * 9.0, q.x * 1.6, 3.0)) - 0.5;
+    lab.x += fibre * 0.03 * show * smoothstep(0.3, 0.6, q.x);
     float mottle = fbm3(p * 0.12) - 0.5;
     lab = mottle > 0.0 ? shadeOwn(lab, mottle * 0.9 * show) : lab - vec3(mottle * 0.05, 0.0, 0.0);
     float crystal = 1.0 - smoothstep(0.05, 0.14, skinCells(p));
@@ -247,18 +268,45 @@ if (kind > 0 && amount > 0.0) {
     lab.yz *= 1.0 - crystal * 0.2 * show;
     float pit = 1.0 - smoothstep(0.04, 0.1, skinCells(p * 1.7 + 5.0));
     lab = shadeOwn(lab, pit * 0.35 * show);
-    // 3. Toward the rind, a soft gradient, never a hard band: the flesh pales to a creamy
-    //    band, which greens into the rind. Each colour is shaded like the flesh under it (the
-    //    same step in lightness from the flesh's base), and the edges wander a little.
-    float wander = (valueNoise3(vec3(q.y * 6.0, q.x * 4.0, 7.0)) - 0.5) * 0.035;
+    // 4. Toward the rind: the flesh pales a little, then a creamy band, then green. Each edge is
+    //    crisp but wandering, like a wet watercolour edge, never a wide muddy blur. Every colour
+    //    is shaded like the flesh under it (the same step in lightness from the flesh's base).
+    float wander = (valueNoise3(vec3(q.y * 9.0, q.x * 6.0, 7.0)) - 0.5) * 0.03
+                 + (valueNoise3(vec3(q.y * 31.0, q.x * 20.0, 2.0)) - 0.5) * 0.012;
     float t = q.x + wander;
     float shade = lab.x - linearToOklab(uBaseColour).x;
+    vec3 blush = lab;
+    blush.x += 0.05;
+    blush.yz *= 0.8;
+    lab = mix(lab, blush, smoothstep(0.76, 0.87, t));
     vec3 pale = linearToOklab(uMelonPale);
-    pale.x += shade * 0.8;
+    pale.x += shade * 0.7;
     vec3 green = linearToOklab(uMelonGreen);
     green.x += shade * 0.8;
-    lab = mix(lab, pale, smoothstep(0.84, 0.91, t));
-    lab = mix(lab, green, smoothstep(0.91, 0.97, t));
+    // A few red granules reach into the pale band.
+    float granule = 1.0 - smoothstep(0.1, 0.25, skinCells(p * 0.8 + 3.0));
+    lab = mix(lab, pale, smoothstep(0.868, 0.884, t + granule * 0.012));
+    // The green, mottled darker and lighter, with pale specks.
+    float gm = fbm3(p * 0.3 + 4.0) - 0.5;
+    green.x += gm * 0.06;
+    green.yz *= 1.0 + gm * 0.3;
+    lab = mix(lab, green, smoothstep(0.928, 0.945, t));
+  } else if (kind == 11) {
+    // A melon's green rind shell. Its map: x runs across the slice (-1 to 1 = the melon's
+    // angle), y across the slab's thickness (0 to 1). Watermelon stripes: wavy, broken dark
+    // bands running along the melon (here, across the slab), mottling, and tiny pale specks.
+    vec2 q = vSurfaceUv;
+    float angle = q.x * 0.42;
+    float warp = (fbm3(vec3(q.x * 3.0, q.y * 1.5, 1.0)) - 0.5) * 0.5;
+    float band = sin(angle * 34.0 + warp * 9.0);
+    float stripe = smoothstep(0.1, 0.55, band) * (0.75 + 0.5 * (valueNoise3(vec3(q * 6.0, 2.0)) - 0.5));
+    lab = shadeOwn(lab, stripe * 0.9 * amount);
+    lab.x -= stripe * 0.06 * amount;
+    float mottle = fbm3(p * 0.2) - 0.5;
+    lab.x += mottle * 0.06 * amount;
+    lab.yz *= 1.0 + mottle * 0.25 * amount;
+    float speck = 1.0 - smoothstep(0.05, 0.11, skinCells(p * 1.4));
+    lab = mix(lab, linearToOklab(uLitColour), speck * 0.45 * show);
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

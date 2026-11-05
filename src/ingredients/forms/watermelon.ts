@@ -28,7 +28,8 @@ import { wedgeDistance, type WedgeShape } from './kit/wedge';
  * Pieces, like layers in a pre-comp (the Style Lab paints each one):
  *   flesh_glow  one closed slab per wedge (the first is the hero; both get its skin)
  *   rind        the dark green shell: the curved back and a thin edge on each face, lifted
- *               off the slab's own surface like the cheese's rind, so there is no seam
+ *               off the slab's own surface like the cheese's rind, so there is no seam; its
+ *               own map carries the shader's stripes (the melonRind skin)
  *   seeds       a few glossy seeds, half sunk into the cut faces
  */
 
@@ -118,6 +119,15 @@ export const buildWatermelon: FormBuilder = ({ state, seed }) => {
 
     // The dark green shell: the outermost skin, lifted off the slab's own surface.
     const shell = liftRegion(mesh, (x, _y, z) => Math.hypot(x, z) - (R - SHELL), 0.012);
+    // Its own map, for the shader's stripes: across the slice (the melon's angle, -1 to 1) and
+    // across the slab's thickness (0 to 1).
+    const sp = shell.getAttribute('position');
+    const suv = new Float32Array(sp.count * 2);
+    for (let i = 0; i < sp.count; i++) {
+      suv[2 * i] = Math.atan2(sp.getZ(i), sp.getX(i)) / HALF_ANGLE;
+      suv[2 * i + 1] = sp.getY(i) / THICK;
+    }
+    shell.setAttribute('uv', new BufferAttribute(suv, 2));
 
     // Seeds: a few glossy beads half sunk into each cut face, tips toward the centre.
     const beads: BufferGeometry[] = [];
