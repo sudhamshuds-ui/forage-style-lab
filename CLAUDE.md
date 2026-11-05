@@ -86,7 +86,8 @@ keep code readable with friendly comments.
   (deeper, natural leaf green for sepals and small leaves), `stalk` (woody stems) and
   `pale-green` (broccoli and cauliflower stalks) and `crumb` (pale cream bread crumb), and for
   condiments `sauce` (dark wine-red sauce through glass, a whole-ingredient family) plus the
-  part-only `glass` (pale, cool clear glass) and `paper` (cream labels). Fine texture (peel pebbling, seeds) belongs to the
+  part-only `glass` (pale, cool clear glass), `paper` (cream labels), `gold` (printed ochre
+  gold) and `ink` (deep plum lettering, never black). Fine texture (peel pebbling, seeds) belongs to the
   shader (the registry's `skin`, `src/shading/effects/skinTexture.ts`), never geometry. Small
   parts (stem, calyx, leaf) keep a quiet highlight: one main highlight per object.
   Randomness is seeded from the id. Blender only after two honest
@@ -307,9 +308,14 @@ degrees from the ingredient (board 04's own pairings, kept by choice). The sauce
 Figma, node 81:5 "sauce ref", a painting signed Tikisso: used for the form only), the first
 `contained` ingredient: a squat hot sauce bottle, 6.5 x 12 cm, built with the new vessel kit
 (`forms/kit/vessel.ts`: `revolve` a profile standing up, with a `roundedSquare` or `ribs`
-cross-section, and `wrapSheet` for labels), pieces sauce_glow, glass base, collar, ridged cap,
-paper label and a crimson band; turned -25 so the label faces the light; its own triangle
-budget (12k). More condiments to come. Next, one at a
+cross-section, and `wrapSheet` for labels, rectangles or ovals), pieces sauce_glow, glass
+base, collar, ridged cap and a layered label; turned -25 so the label faces the light; its own
+triangle budget (14k). User feedback (2026-11-05), all done: the body flares toward its base (a
+soft triangle, 11% narrower at the shoulders), the cap is narrower at the bottom by the collar,
+and the label is layered like the reference: a red wrap round the front (`wrap@red`), a gold
+frame and two gold marks on the top band (`frame@gold`), a cream panel (`label@paper`), a small
+red seal (`seal@crimson`) and dark brush marks in two columns like lettering (`marks@ink`,
+abstract, never real letters, arranged so they never read as a face). More condiments to come. Next, one at a
 time with feedback: cheese wedge, butter, steak,
 chicken drumstick, watermelon wedge (whole forms only; cut forms later).
 

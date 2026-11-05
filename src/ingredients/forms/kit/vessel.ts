@@ -99,6 +99,8 @@ export interface SheetOptions {
   /** Grid points across and up. */
   columns: number;
   rows: number;
+  /** Round (an oval) instead of a rectangle: a seal or a dot. */
+  round?: boolean;
 }
 
 /**
@@ -107,12 +109,16 @@ export interface SheetOptions {
  * along the outward direction.
  */
 export function wrapSheet(options: SheetOptions): BufferGeometry {
-  const { surface, angles, heights, lift, columns, rows } = options;
+  const { surface, angles, heights, lift, columns, rows, round } = options;
   const positions: number[] = [];
   for (let j = 0; j <= rows; j++) {
-    const y = heights[0] + ((heights[1] - heights[0]) * j) / rows;
     for (let i = 0; i <= columns; i++) {
-      const angle = angles[0] + ((angles[1] - angles[0]) * i) / columns;
+      // Across and up, -1 to 1. A round sheet squeezes its square grid into an oval.
+      let a = (2 * i) / columns - 1;
+      let b = (2 * j) / rows - 1;
+      if (round) [a, b] = [a * Math.sqrt(1 - (b * b) / 2), b * Math.sqrt(1 - (a * a) / 2)];
+      const angle = angles[0] + ((angles[1] - angles[0]) * (a + 1)) / 2;
+      const y = heights[0] + ((heights[1] - heights[0]) * (b + 1)) / 2;
       const [x, , z] = surface(angle, y);
       const out = Math.hypot(x, z) || 1;
       positions.push(x + (x / out) * lift, y, z + (z / out) * lift);

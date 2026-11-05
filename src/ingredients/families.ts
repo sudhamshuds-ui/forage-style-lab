@@ -31,7 +31,9 @@ export type FamilyId =
   | 'baked'
   | 'sauce'
   | 'glass'
-  | 'paper';
+  | 'paper'
+  | 'gold'
+  | 'ink';
 
 export interface ColourFamily {
   name: string;
@@ -131,6 +133,20 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   paper: {
     name: 'Paper',
     colours: { lit: '#fdf6e6', base: '#efe2c6', shadow: '#b99f88', glow: '#f6e5c2', highlight: '#fffbf3' },
+    rooms: [],
+  },
+  // Not a board 04 family: only for parts (a label's printed gold). A warm ochre gold, the
+  // shadow a warm brown, never olive or grey.
+  gold: {
+    name: 'Gold',
+    colours: { lit: '#f2d688', base: '#d2a64a', shadow: '#8c5a3a', glow: '#f0c25a', highlight: '#fff6d8' },
+    rooms: [],
+  },
+  // Not a board 04 family: only for parts (brush lettering on a label). A deep plum ink,
+  // dark but never black or grey.
+  ink: {
+    name: 'Ink',
+    colours: { lit: '#6e3b4c', base: '#45222f', shadow: '#2e1523', glow: '#7a3a4a', highlight: '#8f6070' },
     rooms: [],
   },
   'pink-raw': {

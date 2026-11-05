@@ -1,3 +1,4 @@
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { smoothMax, smoothstep, ellipse } from './kit/lathe';
 import { finishPieces, type FormBuilder } from './kit/piece';
 import { flatEnds, revolve, revolvedPoint, ribs, roundedSquare, wrapSheet } from './kit/vessel';
@@ -8,19 +9,27 @@ import { flatEnds, revolve, revolvedPoint, ribs, roundedSquare, wrapSheet } from
  *
  * What makes it this bottle, not a jar or a ketchup bottle:
  *   - a squat body with a soft square cross-section (a flat face for the label)
- *     and full, rounded shoulders that run into a short neck,
- *   - a big, tall screw cap with vertical ridges, almost as wide as the body,
+ *     that flares out toward its base, so the silhouette reads as a soft
+ *     triangle, with rounded shoulders running into a short neck,
+ *   - a big, tall screw cap with vertical ridges, narrower at the bottom
+ *     (by the collar) and wider at the top,
  *   - a collar ring where the cap meets the neck,
  *   - a thick glass base under the dark sauce,
- *   - a paper label on the front face, with a coloured band across its top.
+ *   - a layered label, like a little poster: a red wrap round the front, a band
+ *     at the top with two gold marks, a cream panel in a gold frame, a small red
+ *     seal and a few dark brush marks (abstract, never real lettering).
  *
  * Pieces, like layers in a pre-comp (the Style Lab paints each one):
  *   sauce_glow  the bottle full of sauce (the glow name lets light through at thin edges)
  *   glass       the thick glass base
  *   collar      the ring under the cap
  *   cap         the ridged screw cap
- *   label       the paper label (an open sheet, painted both sides)
- *   band        the coloured band across the label's top
+ *   wrap        the label's red wrap round the front and a little round the sides
+ *   frame       the gold frame round the panel, and the two gold marks on the top band
+ *   label       the cream paper panel
+ *   seal        the small red seal on the panel
+ *   marks       a few dark brush marks on the panel, like hand lettering
+ * The label's layers are open sheets (painted both sides), each a hair above the one below.
  * Gloss, the see-through glass look and any lettering are the shader's job, never geometry.
  */
 
@@ -28,6 +37,8 @@ import { flatEnds, revolve, revolvedPoint, ribs, roundedSquare, wrapSheet } from
 const BODY = 3.25;
 /** The body block: from the table to where the shoulders end. */
 const BODY_TOP = 7.4;
+/** How much narrower the body is at the shoulders than at the base (the soft triangle). */
+const BODY_TAPER = 0.11;
 /** How square the body is from above (2 round, higher boxier). */
 const SQUARENESS = 3.4;
 /** The neck: its radius and where it ends (hidden under the cap). */
@@ -51,8 +62,10 @@ function bodyRadius(y: number): number {
   const block = t >= 1 ? 0 : BODY * (1 - u ** power) ** (1 / power);
   // The neck: a short rod with a rounded top, only above the shoulders.
   const rod = (y < NECK_TOP - 0.3 ? NECK : ellipse(y - (NECK_TOP - 0.3), 0.3, NECK)) * smoothstep(4.5, 5.5, y);
+  // Wide at the base, narrowing toward the shoulders: the soft triangle of the silhouette.
+  const taper = 1 - BODY_TAPER * smoothstep(0, BODY_TOP, y);
   // A soft fillet where shoulder meets neck.
-  return smoothMax(block, rod, 1.1);
+  return smoothMax(block * taper, rod, 1.1);
 }
 
 /** The body's cross-section: a soft square low down, easing to round at the neck. */
@@ -84,27 +97,58 @@ export const buildSauce: FormBuilder = ({ state }) => {
   // The collar: a thick, soft ring round the neck, just under the cap.
   const collar = revolve({ bottom: 8.05, top: 8.75, radius: (y) => flatEnds(y, 8.05, 8.75, 1.95, 3), rings: 10, segments: 48 });
 
-  // The screw cap: a tall can with rounded edges and vertical ridges, quieter near its top edge.
+  // The screw cap: a tall can with rounded edges and vertical ridges, quieter near its top
+  // edge. It tapers: narrower at the bottom by the collar, full width at the top.
   const cap = revolve({
     bottom: CAP_BOTTOM,
     top: CAP_TOP,
-    radius: (y) => flatEnds(y, CAP_BOTTOM, CAP_TOP, CAP, 7),
+    radius: (y) => flatEnds(y, CAP_BOTTOM, CAP_TOP, CAP, 7) * (0.9 + 0.1 * smoothstep(CAP_BOTTOM, CAP_TOP - 0.4, y)),
     section: (angle, y) => 1 + (ribs(angle, 24, 0.035) - 1) * (1 - smoothstep(CAP_TOP - 0.7, CAP_TOP - 0.25, y)),
     rings: 20,
     segments: 96,
   });
 
-  // The label on the front face (a quarter turn is the front), and its band across the top.
+  // The label, built up in layers on the front face (a quarter turn is the front), each a
+  // hair above the one below, like layers in a comp. `at` places a sheet by its angle
+  // either side of the centre line and its heights.
   const front = Math.PI / 2;
-  const label = wrapSheet({ surface: onBody, angles: [front - 0.66, front + 0.66], heights: [1.5, 5.7], lift: 0.03, columns: 20, rows: 14 });
-  const band = wrapSheet({ surface: onBody, angles: [front - 0.66, front + 0.66], heights: [4.85, 5.7], lift: 0.05, columns: 20, rows: 4 });
+  const sheet = (from: number, to: number, low: number, high: number, lift: number, columns: number, rows: number, round = false) =>
+    wrapSheet({ surface: onBody, angles: [front + from, front + to], heights: [low, high], lift, columns, rows, round });
+  // 1. The red wrap: round the front face and a little round each side.
+  const wrap = sheet(-0.95, 0.95, 1.3, 5.85, 0.03, 30, 16);
+  // 2. The gold frame behind the panel, and two small gold marks on the top band.
+  const frame = mergeGeometries([
+    sheet(-0.47, 0.47, 1.9, 4.85, 0.045, 14, 10),
+    sheet(-0.24, -0.08, 5.15, 5.6, 0.045, 6, 4, true),
+    sheet(0.0, 0.16, 5.15, 5.6, 0.045, 6, 4, true),
+  ]);
+  // 3. The cream paper panel inside the frame.
+  const label = sheet(-0.41, 0.41, 2.05, 4.7, 0.06, 14, 10);
+  // 4. A small red seal on the panel's left.
+  const seal = sheet(-0.34, -0.22, 2.75, 4.1, 0.075, 6, 8, true);
+  // 5. A few dark brush marks, like hand lettering (abstract, not real letters): long
+  //    ovals, so each reads as one dab of a brush, thick in the middle, thin at the ends.
+  //    Two columns, read top to bottom like a short word (and never like a face).
+  const marks = mergeGeometries([
+    // First column: a tall stroke, a short tick to its right, a dab below.
+    sheet(-0.15, -0.07, 3.0, 4.4, 0.075, 4, 8, true),
+    sheet(-0.05, 0.05, 3.85, 4.05, 0.075, 6, 4, true),
+    sheet(-0.13, -0.02, 2.3, 2.75, 0.075, 4, 6, true),
+    // Second column: a cross stroke on top, a tall stroke, a short foot.
+    sheet(0.08, 0.3, 4.12, 4.34, 0.075, 8, 4, true),
+    sheet(0.15, 0.23, 2.85, 4.2, 0.075, 4, 8, true),
+    sheet(0.15, 0.3, 2.35, 2.55, 0.075, 6, 4, true),
+  ]);
 
   return finishPieces([
     { role: 'sauce_glow', geometry: sauce },
     { role: 'glass', geometry: glass },
     { role: 'collar', geometry: collar },
     { role: 'cap', geometry: cap },
+    { role: 'wrap', geometry: wrap, doubleSided: true },
+    { role: 'frame', geometry: frame, doubleSided: true },
     { role: 'label', geometry: label, doubleSided: true },
-    { role: 'band', geometry: band, doubleSided: true },
+    { role: 'seal', geometry: seal, doubleSided: true },
+    { role: 'marks', geometry: marks, doubleSided: true },
   ]);
 };

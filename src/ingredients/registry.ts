@@ -218,9 +218,9 @@ export const REGISTRY: IngredientEntry[] = [
       forms: ['whole'],
       scale: 'M',
       size_cm: [6.5, 12, 6.5],
-      parts: ['sauce:glow', 'glass@glass', 'collar@crimson', 'cap@crimson', 'label@paper', 'band@crimson'],
+      parts: ['sauce:glow', 'glass@glass', 'collar@crimson', 'cap@crimson', 'wrap@red', 'frame@gold', 'label@paper', 'seal@crimson', 'marks@ink'],
       notes:
-        'After the user\'s reference (Figma "sauce ref"). Squat body with a soft square section and round shoulders, a tall ridged screw cap, a collar ring, a thick glass base, a paper label with a band. The first condiment: more to come.',
+        'After the user\'s reference (Figma "sauce ref"). Squat body with a soft square section flaring toward the base (a soft triangle), round shoulders, a tall ridged screw cap narrower at the bottom, a collar ring, a thick glass base, a layered label: red wrap, gold frame, cream panel, red seal, dark brush marks. The first condiment: more to come.',
     },
     form: buildSauce,
     // The label face turned toward the key light (upper left).
