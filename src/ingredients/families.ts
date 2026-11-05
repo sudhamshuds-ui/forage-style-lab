@@ -16,7 +16,22 @@ import type { Palette } from '../shading/stylizedMaterial';
  *
  * Colours live here, in data, never in a form.
  */
-export type FamilyId = 'red' | 'crimson' | 'orange' | 'yellow' | 'green' | 'cream-crust' | 'pink-raw' | 'stalk' | 'leaf' | 'pale-green' | 'crumb' | 'baked';
+export type FamilyId =
+  | 'red'
+  | 'crimson'
+  | 'orange'
+  | 'yellow'
+  | 'green'
+  | 'cream-crust'
+  | 'pink-raw'
+  | 'stalk'
+  | 'leaf'
+  | 'pale-green'
+  | 'crumb'
+  | 'baked'
+  | 'sauce'
+  | 'glass'
+  | 'paper';
 
 export interface ColourFamily {
   name: string;
@@ -94,6 +109,28 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   crumb: {
     name: 'Crumb',
     colours: { lit: '#fcf3df', base: '#f1ddb6', shadow: '#c3a184', glow: '#f7dca4', highlight: '#fffaf0' },
+    rooms: [],
+  },
+  // Not on board 04 yet (added 2026-11-05, the sauce bottle): dark red sauce seen through
+  // glass. Deeper than the apple's red, going to plum wine in shadow, with a bright red-orange
+  // glow where the light shines through at thin edges.
+  sauce: {
+    name: 'Sauce',
+    colours: { lit: '#cf4a3e', base: '#8e1b2b', shadow: '#4c1534', glow: '#e8452f', highlight: '#f8d9d2' },
+    rooms: ['linen', 'heather'],
+  },
+  // Not a board 04 family: only for parts (a bottle's thick glass base, later jars). Pale and
+  // cool, a hint of lilac, the shadow a soft mauve, never grey.
+  glass: {
+    name: 'Glass',
+    colours: { lit: '#f4eff3', base: '#ddd3de', shadow: '#97849a', glow: '#f1e6ee', highlight: '#ffffff' },
+    rooms: [],
+  },
+  // Not a board 04 family: only for parts (labels, wrappers). Warm cream paper, the shadow a
+  // warm taupe, never grey.
+  paper: {
+    name: 'Paper',
+    colours: { lit: '#fdf6e6', base: '#efe2c6', shadow: '#b99f88', glow: '#f6e5c2', highlight: '#fffbf3' },
     rooms: [],
   },
   'pink-raw': {

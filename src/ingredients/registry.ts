@@ -4,6 +4,8 @@ import { buildOrange } from './forms/orange';
 import { buildStrawberry } from './forms/strawberry';
 import { buildBroccoli } from './forms/broccoli';
 import { buildBread } from './forms/bread';
+import { buildSauce } from './forms/sauce';
+import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
 import type { Skin } from '../shading/effects/skinTexture';
@@ -204,6 +206,28 @@ export const REGISTRY: IngredientEntry[] = [
     skin: { kind: 'crust', size_mm: 10, amount: 0.9 },
     matte: true,
     budget: [2000, 9000],
+  },
+  {
+    spec: {
+      id: 'sauce',
+      name: 'Sauce',
+      archetype: 'contained',
+      family: 'sauce',
+      layout: 'solo',
+      show: 'One squat hot sauce bottle standing up, label face turned toward the light.',
+      forms: ['whole'],
+      scale: 'M',
+      size_cm: [6.5, 12, 6.5],
+      parts: ['sauce:glow', 'glass@glass', 'collar@crimson', 'cap@crimson', 'label@paper', 'band@crimson'],
+      notes:
+        'After the user\'s reference (Figma "sauce ref"). Squat body with a soft square section and round shoulders, a tall ridged screw cap, a collar ring, a thick glass base, a paper label with a band. The first condiment: more to come.',
+    },
+    form: buildSauce,
+    // The label face turned toward the key light (upper left).
+    turn: -25,
+    skin: NO_SKIN,
+    // A ridged cap needs more mesh than the contained archetype's simple vessel.
+    budget: [4000, 14000],
   },
 ];
 

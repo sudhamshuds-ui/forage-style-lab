@@ -84,7 +84,9 @@ keep code readable with friendly comments.
   (berries, cooler and more magenta than the apple's red), `baked` (a well-baked crust,
   orange-brown to red-brown), and part-only palettes `leaf`
   (deeper, natural leaf green for sepals and small leaves), `stalk` (woody stems) and
-  `pale-green` (broccoli and cauliflower stalks) and `crumb` (pale cream bread crumb). Fine texture (peel pebbling, seeds) belongs to the
+  `pale-green` (broccoli and cauliflower stalks) and `crumb` (pale cream bread crumb), and for
+  condiments `sauce` (dark wine-red sauce through glass, a whole-ingredient family) plus the
+  part-only `glass` (pale, cool clear glass) and `paper` (cream labels). Fine texture (peel pebbling, seeds) belongs to the
   shader (the registry's `skin`, `src/shading/effects/skinTexture.ts`), never geometry. Small
   parts (stem, calyx, leaf) keep a quiet highlight: one main highlight per object.
   Randomness is seeded from the id. Blender only after two honest
@@ -300,7 +302,14 @@ bread card: a long loaf on a diagonal, four varied, spread-out slashes with poin
 pale crumb pieces in them, in the warmer `baked` crust family; the round boule with a scored cross is kept as its `loaf` form for later, and a white
 sandwich loaf comes later as its own ingredient, "toast"),
 dev checks. Family rooms may sit 70 to 180
-degrees from the ingredient (board 04's own pairings, kept by choice). Next, one at a
+degrees from the ingredient (board 04's own pairings, kept by choice). The sauce bottle
+(2026-11-05, the user's idea, before the cheese: "condiments I'm planning to have"; reference in
+Figma, node 81:5 "sauce ref", a painting signed Tikisso: used for the form only), the first
+`contained` ingredient: a squat hot sauce bottle, 6.5 x 12 cm, built with the new vessel kit
+(`forms/kit/vessel.ts`: `revolve` a profile standing up, with a `roundedSquare` or `ribs`
+cross-section, and `wrapSheet` for labels), pieces sauce_glow, glass base, collar, ridged cap,
+paper label and a crimson band; turned -25 so the label faces the light; its own triangle
+budget (12k). More condiments to come. Next, one at a
 time with feedback: cheese wedge, butter, steak,
 chicken drumstick, watermelon wedge (whole forms only; cut forms later).
 
