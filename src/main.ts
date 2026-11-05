@@ -114,7 +114,8 @@ function showIngredient(
   // The Shuffle transition builds the next ingredient early and hands it over here.
   subject = options.built ?? createSubject(entry, look);
   framed.add(subject.group);
-  shapeChanged = true;
+  // A prepared ingredient is already built to the current shape settings.
+  shapeChanged = !options.built;
   needsFraming = true;
 
   applyRoom(entry);
@@ -189,10 +190,81 @@ function rehearse(built: Subject): void {
   update();
 }
 
-/** Start a swap: build the next ingredient now, and get the transition ready. */
-function beginSwap(next: IngredientEntry): Swap {
+/**
+ * The next ingredient, prepared in the background while the current card just sits
+ * spinning: picked, built, its materials compiled and rehearsed. A click on Shuffle
+ * then starts at once, with nothing heavy left to do. Like pre-rendering the next shot.
+ */
+interface Prepared {
+  next: IngredientEntry;
+  built: Subject;
+  /** True once the rehearsal has run (everything first-time is done). */
+  ready: boolean;
+}
+let prepared: Prepared | null = null;
+let preparing = false;
+/** Dev only: how long the last background preparation took, step by step (ms). */
+const prepTimes = { build: 0, compile: 0, rehearse: 0 };
+
+/** Run a job when the browser is idle (between frames), or soon if it never is. */
+function whenIdle(job: () => void, timeout = 1500): void {
+  // Safari has no idle callback: a short timer is the next best thing.
+  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(job, { timeout });
+  else window.setTimeout(job, 200);
+}
+
+/**
+ * Prepare the next ingredient in the background, in small steps between frames:
+ * 1. pick and build it, 2. compile its materials (without blocking the screen, where
+ * the graphics driver allows), 3. the invisible rehearsal.
+ */
+function prepareNext(delay = 1000): void {
+  if (preparing || prepared) return;
+  preparing = true;
+  window.setTimeout(() => {
+    whenIdle(() => {
+      if (transitioning) return void (preparing = false);
+      let t = performance.now();
+      const next = pickOther(subject.entry.spec.id);
+      const built = createSubject(next, look);
+      built.update(settings, true);
+      prepTimes.build = performance.now() - t;
+      const job: Prepared = { next, built, ready: false };
+      prepared = job;
+      t = performance.now();
+      stage.renderer
+        .compileAsync(built.group, stage.camera, stage.scene)
+        .catch(() => undefined)
+        .then(() => {
+          prepTimes.compile = performance.now() - t;
+          whenIdle(() => {
+            preparing = false;
+            if (transitioning || prepared !== job) return;
+            t = performance.now();
+            rehearse(built);
+            prepTimes.rehearse = performance.now() - t;
+            job.ready = true;
+          });
+        });
+    });
+  }, delay);
+}
+
+/** Take the prepared ingredient if it is still a valid pick, otherwise build one now. */
+function takePrepared(): { next: IngredientEntry; built: Subject; ready: boolean } {
+  const job = prepared;
+  prepared = null;
+  if (job && job.next.spec.id !== subject.entry.spec.id) return job;
+  job?.built.dispose();
+  const next = pickOther(subject.entry.spec.id);
   const built = createSubject(next, look);
-  rehearse(built);
+  built.update(settings, true);
+  return { next, built, ready: false };
+}
+
+/** Start a swap with the next ingredient (prepared in the background when possible). */
+function beginSwap(next: IngredientEntry, built: Subject, ready: boolean): Swap {
+  if (!ready) rehearse(built);
   update();
   transition.begin(stage.renderer, painter.strokeCell(settings), settings.brush.type === 'round' ? 1 : 0, paintFrame.objectUv);
   swap = { next, built, onStage: false };
@@ -245,28 +317,31 @@ function finishTransition(): void {
   setName(subject.entry.spec.name);
   setBusy(false);
   stage.release();
+  // Start preparing the one after, once this card has settled.
+  prepareNext();
 }
 
 shuffleButton?.addEventListener('click', () => {
   if (swapping) return;
   swapping = true;
-  const next = pickOther(subject.entry.spec.id);
+  const { next, built, ready } = takePrepared();
 
   if (reducedMotion.matches) {
     card.classList.add('is-swapping');
     window.setTimeout(() => {
-      showIngredient(next);
+      showIngredient(next, { built });
       // Wait one painted frame, so the new ingredient is there before the fade back in.
       requestAnimationFrame(() => {
         card.classList.remove('is-swapping');
         swapping = false;
+        prepareNext();
       });
     }, FADE_MS);
     return;
   }
 
   setBusy(true);
-  const current = beginSwap(next);
+  const current = beginSwap(next, built, ready);
   // Play it; the name changes as the reveal begins, and the live view carries on from
   // the last frame, still spinning.
   transitioning = true;
@@ -357,9 +432,14 @@ stage.start(update, () => painter.render(stage.renderer, stage.scene, stage.came
 window.setTimeout(() => {
   if (transitioning) return;
   transition.warmUp(stage.renderer);
+  // The painter's "paint into a hidden image" versions, compiled now too (once), so the
+  // first background rehearsal is light.
+  update();
+  painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, transition.stillFrom);
   // Repaint the live picture over the warm-up frame at once, before the screen updates.
   update();
   painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame);
+  prepareNext();
 }, 500);
 
 // Handy while developing: type `styleLab.settings` in the browser console to inspect values.
@@ -385,10 +465,14 @@ if (import.meta.env.DEV) {
          */
         /** Milliseconds each frame of the last transition took to prepare (spot stalls). */
         swapFrameTimes: () => swapFrameTimes.slice(),
+        /** How long the last background preparation took (ms), and whether one is ready. */
+        prepared: () => ({ ...prepTimes, next: prepared?.next.spec.id ?? null, ready: prepared?.ready ?? false }),
         filmstrip: (times = [0, 0.3, 0.6, 0.9, 1.2, 1.5, 1.8, 2.1, 2.4], to?: string) => {
           const next = (to && findIngredient(to)) || pickOther(subject.entry.spec.id);
           swapFrameTimes.length = 0;
-          const current = beginSwap(next);
+          const fresh = createSubject(next, look);
+          fresh.update(settings, true);
+          const current = beginSwap(next, fresh, false);
           const shots: string[] = [];
           let done = false;
           let index = 0;
