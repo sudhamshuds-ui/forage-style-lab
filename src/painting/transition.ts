@@ -106,6 +106,23 @@ export class ShuffleTransition {
     this.scene.add(this.quad);
   }
 
+  /**
+   * Compile the transition's shaders ahead of time (once, after the app loads), so the
+   * first Shuffle never stalls on its first frame while the graphics chip compiles them.
+   */
+  warmUp(renderer: WebGLRenderer): void {
+    // Each pass exactly where it will really draw: the smudge into its hidden image, the
+    // final mix onto the screen (a screen version is compiled separately, with the colour
+    // conversion). The caller must repaint the live picture straight after, in the same
+    // step, so this throwaway frame never shows.
+    this.quad.material = this.smudgeMaterial;
+    renderer.setRenderTarget(this.smudge[0]);
+    renderer.render(this.scene, this.camera);
+    this.quad.material = this.compositeMaterial;
+    renderer.setRenderTarget(null);
+    renderer.render(this.scene, this.camera);
+  }
+
   /** Match the canvas, in real device pixels. */
   setSize(width: number, height: number): void {
     for (const target of [this.stillFrom, this.stillTo, ...this.smudge]) target.setSize(width, height);

@@ -149,8 +149,13 @@ keep code readable with friendly comments.
   sweeping arc, a loaded start drying out into separate bristle streaks along the stroke,
   rough bitten edges with granular speckle, feathery tips where each bristle ends at its own
   length (`strokeMask` in `transitionShader.ts`). Clicks during a swap are ignored; resizing mid-swap jumps to the end; with
-  reduced motion it is a 200 ms opacity fade instead. `styleLab.filmstrip(times?, to?)` (dev)
-  plays it frame by frame at 60 fps and returns stills, for tuning. Buttons press to
+  reduced motion it is a 200 ms opacity fade instead. **No stalls mid-flight**: at the click a
+  quick invisible rehearsal paints the next ingredient once into a hidden image (compiling its
+  materials, uploading its shape, first shadows, framing), then puts the current one back;
+  without it the halfway swap froze for about 0.4 s (strokes and spin paused). The
+  transition's own shaders are compiled 0.5 s after load (`warmUp`). `styleLab.filmstrip(times?,
+  to?)` (dev) plays it frame by frame at 60 fps and returns stills; `styleLab.swapFrameTimes()`
+  gives each frame's preparation time in ms, to spot stalls. Buttons press to
   scale(0.97) and hover only on real pointers (from the `emil-design-eng` skill).
   Reset keeps that room. No physics, no multi-ingredient table on this branch.
 

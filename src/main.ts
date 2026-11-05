@@ -167,9 +167,32 @@ interface Swap {
 }
 let swap: Swap | null = null;
 
+/**
+ * A quick, invisible rehearsal: paint the next ingredient once into a hidden image, then
+ * put the current one straight back. Everything that happens only the first time an
+ * ingredient is drawn (compiling its materials for the graphics chip, uploading its
+ * shape, its first shadows, measuring its framing) is paid here, at the click, instead
+ * of halfway through the transition, where it froze the strokes and the spin.
+ */
+function rehearse(built: Subject): void {
+  const leaving = subject;
+  framed.remove(leaving.group);
+  framed.add(built.group);
+  subject = built;
+  needsFraming = true;
+  update();
+  painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, transition.stillTo);
+  framed.remove(built.group);
+  framed.add(leaving.group);
+  subject = leaving;
+  needsFraming = true;
+  update();
+}
+
 /** Start a swap: build the next ingredient now, and get the transition ready. */
 function beginSwap(next: IngredientEntry): Swap {
   const built = createSubject(next, look);
+  rehearse(built);
   update();
   transition.begin(stage.renderer, painter.strokeCell(settings), settings.brush.type === 'round' ? 1 : 0, paintFrame.objectUv);
   swap = { next, built, onStage: false };
@@ -188,7 +211,11 @@ function putOnStage(current: Swap): void {
  * spinning), into its hidden image, then let the transition mix the two.
  * Returns true once the transition has finished.
  */
+/** Dev only: how long each transition frame took to prepare (ms), to spot stalls. */
+const swapFrameTimes: number[] = [];
+
 function swapFrame(current: Swap, delta: number): boolean {
+  const began = performance.now();
   if (!current.onStage && transition.progress >= REVEAL_STARTS) {
     putOnStage(current);
     swapName(current.next.spec.name);
@@ -197,7 +224,9 @@ function swapFrame(current: Swap, delta: number): boolean {
   const leaving = !current.onStage;
   painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, leaving ? transition.stillFrom : transition.stillTo);
   transition.setCentre(leaving ? 'from' : 'to', paintFrame.objectUv);
-  return transition.step(stage.renderer, delta);
+  const finished = transition.step(stage.renderer, delta);
+  if (import.meta.env.DEV) swapFrameTimes.push(performance.now() - began);
+  return finished;
 }
 
 const shuffleButton = document.getElementById('btn-shuffle-ingredient');
@@ -324,6 +353,14 @@ function update(): void {
 }
 
 stage.start(update, () => painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame));
+// Once the first frames are up, compile the Shuffle transition's shaders in the background.
+window.setTimeout(() => {
+  if (transitioning) return;
+  transition.warmUp(stage.renderer);
+  // Repaint the live picture over the warm-up frame at once, before the screen updates.
+  update();
+  painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame);
+}, 500);
 
 // Handy while developing: type `styleLab.settings` in the browser console to inspect values.
 if (import.meta.env.DEV) {
@@ -346,8 +383,11 @@ if (import.meta.env.DEV) {
          * Play the Shuffle transition frame by frame at a steady 60 fps (to the next
          * ingredient, or the one named) and return stills at the given seconds.
          */
+        /** Milliseconds each frame of the last transition took to prepare (spot stalls). */
+        swapFrameTimes: () => swapFrameTimes.slice(),
         filmstrip: (times = [0, 0.3, 0.6, 0.9, 1.2, 1.5, 1.8, 2.1, 2.4], to?: string) => {
           const next = (to && findIngredient(to)) || pickOther(subject.entry.spec.id);
+          swapFrameTimes.length = 0;
           const current = beginSwap(next);
           const shots: string[] = [];
           let done = false;
