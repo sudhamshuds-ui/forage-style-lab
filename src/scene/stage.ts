@@ -51,7 +51,7 @@ export class Stage {
   /** 0..1: how far the idle spin has eased back up to its full speed. */
   private spinRamp = 1;
   private spinSpeed = 0;
-  /** While a transition plays, the scene holds still and this draws each frame instead. */
+  /** While a transition plays, this draws each frame instead (the spin keeps turning). */
   private frozenDraw: ((delta: number) => void) | null = null;
 
   constructor(canvas: HTMLCanvasElement, private readonly frame: HTMLElement) {
@@ -165,21 +165,19 @@ export class Stage {
   }
 
   /**
-   * Freeze the view for a transition: the camera and the spin stop, and `draw` paints
-   * every frame (with the seconds since the last one) until `unfreeze`.
+   * Hand the drawing to a transition: `draw` paints every frame (with the seconds since
+   * the last one) until `release`. The idle spin keeps turning the whole time, so the
+   * motion never stops; only dragging and zooming wait until it is over.
    */
-  freeze(draw: (delta: number) => void): void {
+  takeOver(draw: (delta: number) => void): void {
     this.frozenDraw = draw;
     this.controls.enabled = false;
-    this.controls.autoRotate = false;
   }
 
-  /** Back to the live view. The spin eases back in after the usual short wait. */
-  unfreeze(): void {
+  /** Back to the live view, carrying on exactly where the transition left the camera. */
+  release(): void {
     this.frozenDraw = null;
     this.controls.enabled = true;
-    this.spinResumeIn = SPIN_RESUME;
-    this.spinRamp = 0;
     this.invalidate();
   }
 
@@ -193,10 +191,6 @@ export class Stage {
     this.renderer.setAnimationLoop((now) => {
       const delta = Math.min((now - last) / 1000, 0.1);
       last = now;
-      if (this.frozenDraw) {
-        this.frozenDraw(delta);
-        return;
-      }
       // The idle spin turns only while switched on, not while you drag, and not until a
       // few seconds after you let go.
       this.spinResumeIn = Math.max(0, this.spinResumeIn - delta);
@@ -207,6 +201,11 @@ export class Stage {
       this.controls.autoRotate = spinning;
       this.controls.autoRotateSpeed = this.spinSpeed * ease;
       const cameraMoved = this.controls.update(delta);
+      if (this.frozenDraw) {
+        // A transition paints every frame itself, while the camera keeps spinning.
+        this.frozenDraw(delta);
+        return;
+      }
       if (!cameraMoved && !this.needsRender) return;
       this.needsRender = false;
       update();

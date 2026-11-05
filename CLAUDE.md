@@ -129,11 +129,14 @@ keep code readable with friendly comments.
   it, paints it with its family and switches the room to the family's suggested room. The
   swap is a **painted transition** (2026-11-05, the user's idea; `src/painting/transition.ts`
   and `transitionShader.ts`), **2.4 s** (1.6 s was too fast; `TRANSITION_SECONDS`, every phase
-  is a share of it), the same in both styles: freeze (the spin stops, the finished painting
-  becomes a still), smudge (0 to 55%: big strokes, at least 9% of the card's height, sweep out
-  from the ingredient in a wave, crossing each other, each dragging the paint along its path
-  in a feedback loop), reveal (45 to 100%: strokes about 11% of the card's height, crossing
-  in three directions, paint the next card in from the middle outward; a soft, noisy wash
+  is a share of it), the same in both styles. **The idle spin never stops** (the user): both
+  cards are painted live while on stage, the next ingredient is built at the click and put on
+  stage (without resetting the view) as the reveal begins, so the turn carries straight
+  through. Smudge (0 to 55%): two layers of long dry-brush strokes sweep out from the
+  ingredient in a wave, crossing each other, each dragging the paint along its path into a
+  smear layer with its own coverage mask (a feedback loop), over the live card. Reveal (45 to
+  100%): three layers of dry-brush strokes, crossing in three directions, paint the next card
+  in from the middle outward; a soft, noisy wash
   follows behind them from the middle, so gaps the strokes missed melt away instead of
   lingering as sharp shards of the old card, which the user disliked), and the last
   frame is exactly the live view. Each stroke travels for about half a second with an
@@ -141,9 +144,11 @@ keep code readable with friendly comments.
   fade and blur), and the button looks busy while a swap plays. User feedback that shaped
   it: smudge strokes were too small, all one way and all at once; reveal strokes were
   massive, spiky and all one way (audited with the `improve-animations` skill). **Blur only
-  on the strokes, never the whole card** (the user): smudge strokes have wide feathered edges
-  and soften the paint they drag; reveal strokes blur and smear only at their soft edges,
-  over a sharp new card. Clicks during a swap are ignored; resizing mid-swap jumps to the end; with
+  on the strokes, never the whole card** (the user). **Strokes are dry brush**, after the
+  user's references (2026-11-05): long and slim (about five times longer than wide), a
+  sweeping arc, a loaded start drying out into separate bristle streaks along the stroke,
+  rough bitten edges with granular speckle, feathery tips where each bristle ends at its own
+  length (`strokeMask` in `transitionShader.ts`). Clicks during a swap are ignored; resizing mid-swap jumps to the end; with
   reduced motion it is a 200 ms opacity fade instead. `styleLab.filmstrip(times?, to?)` (dev)
   plays it frame by frame at 60 fps and returns stills, for tuning. Buttons press to
   scale(0.97) and hover only on real pointers (from the `emil-design-eng` skill).

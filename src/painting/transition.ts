@@ -25,7 +25,8 @@ export const REVEAL_STARTS = 0.45;
  * The Shuffle ingredient transition: the painting is un-painted, then the next
  * card is painted in.
  *
- *   0%      Freeze. The spin stops and the finished painting is kept as a still.
+ *   0%      The spin keeps turning throughout: each card is painted live while it
+ *           is on stage (the next one goes on stage as the reveal begins).
  *   0-55%   Smudge. Big brush strokes sweep out from the ingredient in a wave,
  *           crossing each other, each dragging the paint along its path, until the
  *           ingredient melts into a smear of its own colours. The card softens.
@@ -33,16 +34,19 @@ export const REVEAL_STARTS = 0.45;
  *           crossing strokes, then smaller ones that fill the gaps. It arrives
  *           soft and sharpens over the last third.
  *   100%    The last frame is exactly the live picture, so the hand-back to the
- *           3D view is invisible, and the spin eases back in.
+ *           3D view is invisible and the spin simply carries on.
  * Each brush stroke eases in and out as it travels (it is movement on screen) and
  * takes about half a second, so it reads as a hand, not a snap.
  *
- * Both stills are made by the Painter (whatever the style: refined or Playful
+ * Both cards are painted by the Painter (whatever the style: refined or Playful
  * strokes), so the transition looks the same in both. It works only on flat
- * images, like a comp on two pre-rendered plates.
+ * images, like a comp on two live plates.
  */
 export class ShuffleTransition {
-  /** The painting we leave, and the one we arrive at. */
+  /**
+   * The painting we leave, and the one we arrive at. Both are repainted every frame
+   * while their ingredient is on stage, so they keep spinning with the camera.
+   */
   readonly stillFrom: WebGLRenderTarget;
   readonly stillTo: WebGLRenderTarget;
   /** The smudge feedback loop: two images, read one while writing the other. */
@@ -82,6 +86,7 @@ export class ShuffleTransition {
     this.compositeMaterial = new ShaderMaterial({
       uniforms: {
         tSmudge: { value: null },
+        tFrom: { value: this.stillFrom.texture },
         tNext: { value: this.stillTo.texture },
         uResolution: { value: new Vector2(1, 1) },
         uT: { value: 0 },
@@ -114,14 +119,26 @@ export class ShuffleTransition {
    * painter on screen. The centres (0..1 screen) are where each card's ingredient
    * sits: the smudge and the reveal both spread out from there.
    */
-  begin(cell: number, round: number, fromCentre: Vector2, toCentre: Vector2): void {
-    (this.smudgeMaterial.uniforms.uCentre.value as Vector2).copy(fromCentre);
-    (this.compositeMaterial.uniforms.uCentre.value as Vector2).copy(toCentre);
+  begin(renderer: WebGLRenderer, cell: number, round: number, centre: Vector2): void {
+    this.setCentre('from', centre);
+    this.setCentre('to', centre);
+    // Start with an empty smear layer (no paint, no coverage).
+    for (const target of this.smudge) {
+      renderer.setRenderTarget(target);
+      renderer.setClearColor(0x000000, 0);
+      renderer.clear();
+    }
     this.time = 0;
     this.flip = 0;
     this.firstFrame = true;
     this.smudgeMaterial.uniforms.uCell.value = cell;
     this.smudgeMaterial.uniforms.uRound.value = round;
+  }
+
+  /** Where the ingredient sits on screen (0..1): the smudge and the reveal spread out from there. */
+  setCentre(which: 'from' | 'to', centre: Vector2): void {
+    const material = which === 'from' ? this.smudgeMaterial : this.compositeMaterial;
+    (material.uniforms.uCentre.value as Vector2).copy(centre);
   }
 
   /** Seconds since the transition began. */
@@ -139,7 +156,7 @@ export class ShuffleTransition {
     // The first frame may carry the time it took to build the next ingredient: skip it.
     this.time += this.firstFrame ? 0 : delta;
     const smudge = this.smudgeMaterial.uniforms;
-    smudge.tPrev.value = this.firstFrame ? this.stillFrom.texture : this.smudge[this.flip].texture;
+    smudge.tPrev.value = this.smudge[this.flip].texture;
     smudge.uT.value = this.progress;
     smudge.uStep.value = this.firstFrame ? 1 : delta * 60;
     this.firstFrame = false;

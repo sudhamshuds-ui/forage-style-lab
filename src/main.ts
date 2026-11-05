@@ -105,26 +105,33 @@ function applyRoom(entry: IngredientEntry): void {
  * yet. When they are, `entry.spec.light_case` is read here, as small nudges
  * to glow, sheen, room and bounce.
  */
-function showIngredient(entry: IngredientEntry, nameLater = false): void {
+function showIngredient(
+  entry: IngredientEntry,
+  options: { nameLater?: boolean; keepView?: boolean; built?: Subject } = {},
+): void {
   framed.remove(subject.group);
   subject.dispose();
-  subject = createSubject(entry, look);
+  // The Shuffle transition builds the next ingredient early and hands it over here.
+  subject = options.built ?? createSubject(entry, look);
   framed.add(subject.group);
   shapeChanged = true;
   needsFraming = true;
 
   applyRoom(entry);
   pane.refresh();
-  if (!nameLater) setName(entry.spec.name);
+  if (!options.nameLater) setName(entry.spec.name);
   canvas.setAttribute('aria-label', `3D view of the stylized ${entry.spec.name.toLowerCase()}`);
-  stage.resetView();
+  // The transition keeps the camera where the spin has taken it, so the turn never jumps.
+  if (!options.keepView) stage.resetView();
   stage.invalidate();
 }
 
 /**
  * Shuffle ingredient. The painting is un-painted (smudged by brush strokes), then the
- * next card is painted in with big strokes: 1.6 seconds, see painting/transition.ts.
- * The same in both styles, since it works on the finished painting.
+ * next card is painted in with big strokes (painting/transition.ts). The same in both
+ * styles, since it works on the finished painting. The idle spin never stops: both
+ * cards are painted live while they are on stage, and the new ingredient goes on
+ * stage as the reveal begins, so the turn carries straight through.
  *
  * With reduced motion it is a short fade instead: out, swap, back in.
  * Clicks during a swap are ignored, so swaps never stack.
@@ -152,21 +159,45 @@ function swapName(text: string): void {
   }, 100);
 }
 
-/** Paint the two stills (the card we leave, the card we arrive at) and get ready. */
-function prepareTransition(next: IngredientEntry): void {
-  // 1. A still of the painting on screen now (exactly what you see).
+/** The swap in progress: the next ingredient (built at the click) and whether it is on stage yet. */
+interface Swap {
+  next: IngredientEntry;
+  built: Subject;
+  onStage: boolean;
+}
+let swap: Swap | null = null;
+
+/** Start a swap: build the next ingredient now, and get the transition ready. */
+function beginSwap(next: IngredientEntry): Swap {
+  const built = createSubject(next, look);
   update();
-  painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, transition.stillFrom);
-  const strokeCell = painter.strokeCell(settings);
-  const round = settings.brush.type === 'round' ? 1 : 0;
-  const fromCentre = paintFrame.objectUv.clone();
-  // 2. Build, frame and paint the next ingredient behind the curtain. (Any pause while it
-  //    builds is invisible: the screen still shows the last frame, the same as the still.)
-  //    Its name waits until the reveal begins.
-  showIngredient(next, true);
+  transition.begin(stage.renderer, painter.strokeCell(settings), settings.brush.type === 'round' ? 1 : 0, paintFrame.objectUv);
+  swap = { next, built, onStage: false };
+  return swap;
+}
+
+/** Put the next ingredient on stage (as the reveal begins), keeping the camera turning. */
+function putOnStage(current: Swap): void {
+  if (current.onStage) return;
+  current.onStage = true;
+  showIngredient(current.next, { nameLater: true, keepView: true, built: current.built });
+}
+
+/**
+ * One frame of the transition: paint whichever card is on stage, live (so it keeps
+ * spinning), into its hidden image, then let the transition mix the two.
+ * Returns true once the transition has finished.
+ */
+function swapFrame(current: Swap, delta: number): boolean {
+  if (!current.onStage && transition.progress >= REVEAL_STARTS) {
+    putOnStage(current);
+    swapName(current.next.spec.name);
+  }
   update();
-  painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, transition.stillTo);
-  transition.begin(strokeCell, round, fromCentre, paintFrame.objectUv);
+  const leaving = !current.onStage;
+  painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, leaving ? transition.stillFrom : transition.stillTo);
+  transition.setCentre(leaving ? 'from' : 'to', paintFrame.objectUv);
+  return transition.step(stage.renderer, delta);
 }
 
 const shuffleButton = document.getElementById('btn-shuffle-ingredient');
@@ -177,11 +208,14 @@ function setBusy(busy: boolean): void {
 }
 
 function finishTransition(): void {
+  // If the swap was cut short (a resize), the new ingredient still goes on stage.
+  if (swap) putOnStage(swap);
+  swap = null;
   transitioning = false;
   swapping = false;
-  setName(subject.entry.spec.name); // in case the swap was cut short
+  setName(subject.entry.spec.name);
   setBusy(false);
-  stage.unfreeze();
+  stage.release();
 }
 
 shuffleButton?.addEventListener('click', () => {
@@ -203,18 +237,12 @@ shuffleButton?.addEventListener('click', () => {
   }
 
   setBusy(true);
-  prepareTransition(next);
-  // 3. Play the transition; the name changes as the reveal begins, and the live view
-  //    comes back on the last frame.
+  const current = beginSwap(next);
+  // Play it; the name changes as the reveal begins, and the live view carries on from
+  // the last frame, still spinning.
   transitioning = true;
-  let named = false;
-  stage.freeze((delta) => {
-    const finished = transition.step(stage.renderer, delta);
-    if (!named && transition.progress >= REVEAL_STARTS) {
-      named = true;
-      swapName(next.spec.name);
-    }
-    if (finished) finishTransition();
+  stage.takeOver((delta) => {
+    if (swapFrame(current, delta)) finishTransition();
   });
 });
 
@@ -320,18 +348,19 @@ if (import.meta.env.DEV) {
          */
         filmstrip: (times = [0, 0.3, 0.6, 0.9, 1.2, 1.5, 1.8, 2.1, 2.4], to?: string) => {
           const next = (to && findIngredient(to)) || pickOther(subject.entry.spec.id);
-          prepareTransition(next);
-          setName(next.spec.name);
+          const current = beginSwap(next);
           const shots: string[] = [];
           let done = false;
           let index = 0;
           while (!done) {
-            done = transition.step(stage.renderer, 1 / 60);
+            done = swapFrame(current, 1 / 60);
             while (index < times.length && transition.elapsed >= times[index] - 1e-6) {
               shots.push(stage.renderer.domElement.toDataURL('image/png'));
               index++;
             }
           }
+          swap = null;
+          setName(subject.entry.spec.name);
           stage.invalidate();
           return shots;
         },
