@@ -6,6 +6,7 @@ import { buildBroccoli } from './forms/broccoli';
 import { buildBread } from './forms/bread';
 import { buildSauce } from './forms/sauce';
 import { buildCheese } from './forms/cheese';
+import { buildButter } from './forms/butter';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
@@ -273,6 +274,37 @@ export const REGISTRY: IngredientEntry[] = [
     // than the archetype's extruded wedge to keep the holes round, and the holes' insides
     // add surface.
     budget: [2000, 10000],
+  },
+  {
+    spec: {
+      id: 'butter',
+      name: 'Butter',
+      archetype: 'block',
+      // Board 08 says Yellow; a paler butter family keeps it apart from the cheese (families.ts).
+      family: 'butter',
+      layout: 'solo',
+      show: 'One block of butter on its creased paper wrapper, one top corner softened and slumping.',
+      // Board 08: block, pat, cubes, melted. `whole` is the block.
+      forms: ['whole', 'pat', 'cubes', 'melted'],
+      scale: 'M',
+      size_cm: [12, 4, 6],
+      // `paper` is a prop (kit/checks.ts PROPS): left out of the real size and the card's zone.
+      parts: ['butter', 'paper@parchment'],
+      notes:
+        'Board 08: a 12 x 6 x 4 cm block on a creased paper sheet, one top corner softened and slumping. Soft rounded edges, pillowy faces, two broad melt flows from the soft corner into a small pool at its foot. The unfolded wrapper: flat under the block, its flaps rising where they were folded, diagonal creases at the corners, crumpled, edges lifting, one corner curling.',
+    },
+    form: buildButter,
+    // Three-quarter view: the long side to the light (upper left), the soft corner and the end
+    // toward the camera, in the shadow side.
+    turn: -40,
+    // A very faint fine grain, like a slightly matte butter surface (never pitted like cheese).
+    skin: { kind: 'pores', size_mm: 1.1, amount: 0.18 },
+    // A soft, quiet sheen: a loud highlight ran along the long top edge as a dashed white line.
+    matte: true,
+    // Pale like the cheese: a little of the shadow's violet and pink, or it reads as stains.
+    shadowTint: 0.4,
+    // Meshed from a distance field (surface nets), plus a paper sheet with room for creases.
+    budget: [2000, 11000],
   },
 ];
 

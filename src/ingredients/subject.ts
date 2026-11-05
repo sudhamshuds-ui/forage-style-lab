@@ -10,6 +10,7 @@ import { seedFromId, seededRandom } from './forms/kit/random';
 import { LAYOUT_COUNT, arrangeCluster, footprintSpots, samplePoints, transformed } from './layout';
 import { MAX_CONTACTS } from '../scene/background';
 import { cmToUnits } from './scale';
+import { PROPS } from './forms/kit/checks';
 import { parsePart, type IngredientEntry } from './registry';
 
 /**
@@ -135,6 +136,14 @@ class FormSubject implements Subject {
       const pieces = entry.form({ state: 'whole', seed: (seed + m * 7919) >>> 0 });
       pieces.forEach((piece, index) => {
         const material = look.createMaterial({ doubleSided: piece.doubleSided });
+        // A prop lying flat on the table (the butter's paper) sits right on the floor's plane, and
+        // the two flickered in and out of each other (the floor's contact shadow speckled
+        // through). Drawn a hair in front of the floor, like a decal, it always wins.
+        if (PROPS.includes(piece.role)) {
+          material.polygonOffset = true;
+          material.polygonOffsetFactor = -2;
+          material.polygonOffsetUnits = -8;
+        }
         // A part can borrow another family (watermelon rind@green); the rest use the ingredient's own.
         const family = partFamilies.get(piece.role);
         const palette = family ? FAMILIES[family].colours : this.palette;
@@ -179,9 +188,14 @@ class FormSubject implements Subject {
       this.contacts.push(...footprintSpots(body, spotsEach));
     }
 
-    // Highlights and the room are placed round the whole subject (one body, or the cluster).
+    // Highlights and the room are placed round the whole subject (one body, or the cluster),
+    // not round a prop it rests on (the butter's paper sheet).
     this.group.updateMatrixWorld(true);
-    const sphere = new Box3().setFromObject(this.group).getBoundingSphere(new Sphere());
+    const around = new Box3();
+    this.group.traverse((object) => {
+      if (object instanceof Mesh && !PROPS.includes(object.name)) around.expandByObject(object);
+    });
+    const sphere = around.getBoundingSphere(new Sphere());
     this.centre.copy(sphere.center);
     this.radius = sphere.radius * RADIUS_FACTOR;
   }

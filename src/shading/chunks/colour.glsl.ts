@@ -71,8 +71,14 @@ vec3 turnHueTowardCool(vec3 lab, vec3 targetLab, float t) {
   float dh = mod(ht - h + LAB_PI, LAB_TAU) - LAB_PI;
   float yellow = 1.5708;
   float toYellow = mod(yellow - h + LAB_PI, LAB_TAU) - LAB_PI;
-  // Yellow lies on the way if it is in the same direction and closer than the target.
-  if (toYellow * dh > 0.0 && abs(toYellow) < abs(dh)) dh -= sign(dh) * LAB_TAU;
+  // A yellow itself (within about 30 degrees: butter, cheese, lemon) always cools the warm way
+  // round, through orange and wine: just past yellow, the long way went through green, and pale
+  // yellows got lime edges.
+  if (abs(toYellow) < 0.52) {
+    if (dh > 0.0) dh -= LAB_TAU;
+  }
+  // Otherwise yellow lies on the way if it is in the same direction and closer than the target.
+  else if (toYellow * dh > 0.0 && abs(toYellow) < abs(dh)) dh -= sign(dh) * LAB_TAU;
   h += dh * t;
   return vec3(lab.x, c * cos(h), c * sin(h));
 }

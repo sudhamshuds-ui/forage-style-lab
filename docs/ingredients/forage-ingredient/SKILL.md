@@ -75,6 +75,7 @@ The live values are in `src/ingredients/families.ts` (the source of truth; this 
 | baked | #f8c98c | #df8a47 | #94443a | #ee7b34 | #fff0d8 | Sage morning, Overcast | baguette (off-board) |
 | sauce | #cf4a3e | #8e1b2b | #4c1534 | #e8452f | #f8d9d2 | Linen, Heather | hot sauce (off-board) |
 | cheese | #fff1bf | #f3d273 | #c48a45 | #ffbf4a | #fffaf0 | Seafoam, Heather | cheese (off-board; board 08 says Yellow, which read acidic) |
+| butter | #fff7d2 | #f6e092 | #d4b08f | #ffcf66 | #fffdf2 | Heather, Seafoam | butter (off-board; board 08 says Yellow, kept apart from the cheese) |
 | pink-raw | #f6a493 | #d4544f | #8c3150 | #ff7a66 | #fbe4dc | Seafoam, Sage morning | |
 
 **Part-only families** (never a whole ingredient, no rooms; a part names one with `@`, e.g. `stem@stalk`):
@@ -91,6 +92,7 @@ The live values are in `src/ingredients/families.ts` (the source of truth; this 
 | gold | #f2d688 | #d2a64a | #8c5a3a | #f0c25a | #fff6d8 | printed gold |
 | ink | #6e3b4c | #45222f | #2e1523 | #7a3a4a | #8f6070 | lettering (deep plum, never black) |
 | rind | #fde5a4 | #eabd66 | #ae7a52 | #f6c25a | #fff6e0 | a cheese's rind |
+| parchment | #fdfbf6 | #efebe4 | #c4bccf | #f4ecdc | #ffffff | a butter wrapper, baking parchment (whiter and cooler than `paper`) |
 
 Colours live in data (the registry), never in the form. Shadows always shift hue (never grey or near black). A whole-ingredient family needs five colours and rooms **70 to 180 degrees** away on the colour wheel (board 04 says 70 to 150, but its own pairings go further; kept by choice, tested in `registry.test.ts`).
 
@@ -106,7 +108,7 @@ Forms are built from a shared kit in `src/ingredients/forms/kit/`. Create a kit 
 | branching | broccoli | `crown.ts` (blobs blended as a distance field), `surfaceNets.ts` (distance field to clean mesh), `sweep.ts` for stalks | solo | 6k to 18k (raised from 12k for a bumpier crown) |
 | wedge | cheese | `wedge.ts` (a slice of a wheel as a distance field, `roundedIntersection` for bevelled edges), meshed with `surfaceNets`, smoothed with `relaxOnSurface`, rind lifted off with `liftRegion` | solo | 2k to 5k (cheese has its own 10k) |
 | contained | hot sauce | `vessel.ts`: `revolve` (a profile spun standing up, with a `roundedSquare` or `ribs` cross-section), `wrapSheet` (a sheet hugging a vessel: labels, rectangles or ovals, `mapped` for printed artwork) | solo | vessel + 1k (sauce has its own 16k) |
-| block | (butter, steak next) | rounded box with a slight sag; fat, marbling and paper as separate pieces | solo, three-quarter view | 1k to 4k |
+| block | butter (steak next) | `block.ts`: `blockSides` (a box as distances, rounded with `roundedIntersection`, meshed with `surfaceNets` and `relaxOnSurface`), `paperSheet` with `fold` and `crease` for a creased sheet under it; fat, marbling as separate pieces | solo, three-quarter view | 1k to 4k (butter has its own 11k: a meshed block plus its paper) |
 | leafy | (not yet) | a shaped plane with a gentle curl and a little thickness | small pile | 1k to 3k |
 
 Only add a ninth archetype when three or more ingredients need it.
@@ -135,6 +137,8 @@ Each registry entry can also carry, beside the spec and builder:
 - `budget: [min, max]`: its own triangle budget when the archetype's does not fit.
 - For clusters: `stemEnds` ('out' or 'front').
 
+**Props**: what an ingredient rests on (a paper sheet, later a plate or a board) is a piece named in `PROPS` (`forms/kit/checks.ts`, now `paper`). It is left out of the real size and of the card's subject zone (it only has to stay inside the card), it is not the hero (put it after the body), and it is drawn a hair in front of the floor so the two never flicker.
+
 ## Lessons learned (read before building)
 
 - **Distance fields and surface nets** (branching, wedge): the meshing grid should never line up with a flat face (start it at odd offsets), and any bevel must span about two grid cells, or edges come out saw-toothed. Smooth the mesh with `relaxOnSurface` so long angled edges are clean.
@@ -144,6 +148,10 @@ Each registry entry can also carry, beside the spec and builder:
 - **Sheets on a surface** (labels): float them a hair off the surface; when a sheet wraps all the way round, its two ends must meet exactly (a tiny gap shows as a dark line).
 - **Printed artwork** (labels): draw it in code as a two-tone stencil and let the shader paint the ink with the ground's light and shadow. Our own design in the spirit of a reference, never a copy of a real brand or an artist's marks; keep it simple (the user removed borders, dots and repeated icons).
 - **References** are for form: a signed painting or a real brand's pack is never copied.
+- **Small bumps read as damage**: in the painted shading, a little drip or bead becomes a dark notch (a chip). Make a melt or a swelling broad and soft, or leave it out.
+- **Local changes stay local**: a softened corner rounds only the top of that corner; rounding its whole upright edge hid a face of the block.
+- **Anything lying flat on the table** (a paper sheet) must be a prop, or it flickers with the floor.
+- **Pale yellows** (butter, cheese, lemon): the shader cools their shadows the warm way, through orange; if a yellow shows lime edges, check that rule (`turnHueTowardCool`) before changing the family.
 
 ## Workflow
 

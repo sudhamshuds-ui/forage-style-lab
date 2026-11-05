@@ -36,7 +36,9 @@ export type FamilyId =
   | 'ink'
   | 'chili'
   | 'rind'
-  | 'cheese';
+  | 'cheese'
+  | 'butter'
+  | 'parchment';
 
 export interface ColourFamily {
   name: string;
@@ -173,6 +175,23 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   ink: {
     name: 'Ink',
     colours: { lit: '#6e3b4c', base: '#45222f', shadow: '#2e1523', glow: '#7a3a4a', highlight: '#8f6070' },
+    rooms: [],
+  },
+  // Not on board 04 yet (added 2026-11-05, the butter block): board 08 puts butter in Yellow,
+  // but next to the cheese it needs its own colour. Paler and softer than the cheese, a fresh
+  // cream-yellow, gold where it is thin (the drips glow), going to a soft honey-rose in shadow,
+  // never olive or grey.
+  butter: {
+    name: 'Butter',
+    colours: { lit: '#fff7d2', base: '#f6e092', shadow: '#d4b08f', glow: '#ffcf66', highlight: '#fffdf2' },
+    rooms: ['heather', 'seafoam'],
+  },
+  // Not a board 04 family: only for parts (a butter wrapper, baking parchment). Whiter and
+  // cooler than the cream paper of a label, its creases going to a soft lilac in shadow (never
+  // grey), so the warm butter sits on it like on a cool cloth.
+  parchment: {
+    name: 'Parchment',
+    colours: { lit: '#fdfbf6', base: '#efebe4', shadow: '#c4bccf', glow: '#f4ecdc', highlight: '#ffffff' },
     rooms: [],
   },
   'pink-raw': {

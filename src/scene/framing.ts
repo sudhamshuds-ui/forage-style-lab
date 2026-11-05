@@ -22,6 +22,11 @@ export const CARD_FRAMING = {
   zoneWidth: 0.7,
   /** Where the subject meets the floor, as a fraction of the card height from the top. */
   contactLine: 0.74,
+  /**
+   * A prop under the subject (the butter's paper sheet) may run past the subject zone, but
+   * stays this far inside the card's edges (a fraction of the card).
+   */
+  propMargin: 0.02,
 };
 
 export interface Framing {
@@ -36,9 +41,10 @@ const ITERATIONS = 40;
 /**
  * Work out the framing for a subject, seen from the starting camera.
  * `points` outline the subject at real size (bottom at y = 0), already turned
- * to face the camera the way it will on stage.
+ * to face the camera the way it will on stage. `props` outline what it rests on
+ * (a paper sheet): it may run past the subject zone, but stays inside the card.
  */
-export function frameSubject(points: Vector3[], camera: PerspectiveCamera): Framing {
+export function frameSubject(points: Vector3[], camera: PerspectiveCamera, props: Vector3[] = []): Framing {
   camera.updateMatrixWorld();
   const groundY = contactHeight(camera);
   const aspect = camera.aspect;
@@ -61,7 +67,18 @@ export function frameSubject(points: Vector3[], camera: PerspectiveCamera): Fram
     // Screen space runs from -1 to 1, so half the span is the fraction of the card.
     const width = (maxX - minX) / 2;
     const top = (1 - maxY) / 2;
-    return width <= CARD_FRAMING.zoneWidth && top >= zoneTop;
+    return width <= CARD_FRAMING.zoneWidth && top >= zoneTop && propsInside(scale);
+  };
+  // A prop stays inside the card, a margin in from every edge.
+  const edge = 1 - 2 * CARD_FRAMING.propMargin;
+  const propsInside = (scale: number) => {
+    for (const corner of props) {
+      point.copy(corner).multiplyScalar(scale);
+      point.y += groundY;
+      point.project(camera);
+      if (Math.abs(point.x) > edge || Math.abs(point.y) > edge) return false;
+    }
+    return true;
   };
 
   // Halve the search range until we find the biggest scale that still fits.
@@ -104,16 +121,16 @@ export function boxCorners(box: Box3): Vector3[] {
  * to find its outline on screen. Using the real surface (not its box) means
  * a lemon is measured by its own silhouette, not by the corners of its box.
  */
-export function outlinePoints(object: Object3D, budget = 600): Vector3[] {
+export function outlinePoints(object: Object3D, budget = 600, include: (mesh: Mesh) => boolean = () => true): Vector3[] {
   object.updateMatrixWorld(true);
   let total = 0;
   object.traverse((o) => {
-    if (o instanceof Mesh && o.visible) total += o.geometry.getAttribute('position').count;
+    if (o instanceof Mesh && o.visible && include(o)) total += o.geometry.getAttribute('position').count;
   });
   const step = Math.max(1, Math.floor(total / budget));
   const points: Vector3[] = [];
   object.traverse((o) => {
-    if (!(o instanceof Mesh) || !o.visible) return;
+    if (!(o instanceof Mesh) || !o.visible || !include(o)) return;
     const position = o.geometry.getAttribute('position') as BufferAttribute;
     for (let i = 0; i < position.count; i += step) {
       points.push(new Vector3().fromBufferAttribute(position, i).applyMatrix4(o.matrixWorld));

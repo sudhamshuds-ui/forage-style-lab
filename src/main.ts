@@ -1,6 +1,6 @@
 import './style.css';
 import './ui/panel.css';
-import { Group, Vector2, Vector3 } from 'three';
+import { Group, Mesh, Vector2, Vector3 } from 'three';
 import { defaultSettings } from './params';
 import { applyPalette, findPalette } from './palettes';
 import { Stage } from './scene/stage';
@@ -13,6 +13,7 @@ import type { FrameContext } from './shading/effect';
 import { FAMILIES } from './ingredients/families';
 import { REGISTRY, findIngredient, pickOther, type IngredientEntry } from './ingredients/registry';
 import { createSubject, type Subject } from './ingredients/subject';
+import { PROPS } from './ingredients/forms/kit/checks';
 import { Painter, type PaintFrame } from './painting/painter';
 import { REVEAL_STARTS, ShuffleTransition } from './painting/transition';
 import { createPanel } from './ui/panel';
@@ -411,7 +412,13 @@ function reframe(): void {
   framed.rotation.set(0, turn, 0);
   framed.scale.setScalar(1);
   framed.updateMatrixWorld(true);
-  const { scale, groundY } = frameSubject(outlinePoints(subject.group), stage.homeCamera);
+  // A prop (the butter's paper sheet) is not the subject: it only has to stay inside the card.
+  const isProp = (mesh: Mesh) => PROPS.includes(mesh.name);
+  const { scale, groundY } = frameSubject(
+    outlinePoints(subject.group, 600, (mesh) => !isProp(mesh)),
+    stage.homeCamera,
+    outlinePoints(subject.group, 400, isProp),
+  );
   framed.scale.setScalar(scale);
   framed.position.y = groundY;
   framed.updateMatrixWorld(true);

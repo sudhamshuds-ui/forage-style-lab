@@ -48,4 +48,23 @@ describe('card framing', () => {
       expect(Math.min(CARD_FRAMING.zoneWidth - width, top - zoneTop)).toBeLessThan(0.005);
     }
   });
+
+  it('keeps a prop (a paper sheet under the subject) inside the card, never in the subject zone', () => {
+    const body = boxCorners(new Box3(new Vector3(-1.5, 0, -0.8), new Vector3(1.5, 1, 0.8)));
+    const paper = boxCorners(new Box3(new Vector3(-2.6, 0, -1.8), new Vector3(2.6, 0.05, 1.8)));
+    const alone = frameSubject(body, camera);
+    const { scale, groundY } = frameSubject(body, camera, paper);
+    // The paper may hold the subject back a little, but it stays inside the card's margin.
+    expect(scale).toBeLessThanOrEqual(alone.scale);
+    const edge = 1 - 2 * CARD_FRAMING.propMargin;
+    for (const corner of paper) {
+      const p = corner.clone().multiplyScalar(scale);
+      p.y += groundY;
+      p.project(camera);
+      expect(Math.abs(p.x)).toBeLessThanOrEqual(edge + 1e-6);
+      expect(Math.abs(p.y)).toBeLessThanOrEqual(edge + 1e-6);
+    }
+    // The subject zone is measured on the body alone.
+    expect(onCard(body, scale, groundY, camera).width).toBeLessThanOrEqual(CARD_FRAMING.zoneWidth + 1e-6);
+  });
 });

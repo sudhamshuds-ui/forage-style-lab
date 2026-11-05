@@ -89,7 +89,14 @@ keep code readable with friendly comments.
   part-only `glass` (pale, cool clear glass), `paper` (cream labels), `gold` (printed ochre
   gold), `ink` (deep plum lettering, never black) and `chili` (a hot sauce label's warm
   red-orange ground); `cheese` (buttery cream-yellow, a whole-ingredient family) and the
-  part-only `rind`. Fine texture (peel pebbling, seeds) belongs to the
+  part-only `rind`; `butter` (paler and fresher than the cheese, honey-rose shadow, a
+  whole-ingredient family) and the part-only `parchment` (a whiter, cooler paper than the
+  label's cream, lilac creases). **Props**: what an ingredient rests on (the butter's paper
+  sheet; later a plate or board), listed in `PROPS` (`forms/kit/checks.ts`). A prop is left out
+  of the real size and of the card's subject zone (the framing only keeps it inside the card,
+  `propMargin`), and it is drawn a hair in front of the floor (a polygon offset in
+  `subject.ts`): lying flat at table height, it flickered with the floor and the floor's dark
+  contact shadow speckled through it like scribbles. Fine texture (peel pebbling, seeds) belongs to the
   shader (the registry's `skin`, `src/shading/effects/skinTexture.ts`), never geometry. Small
   parts (stem, calyx, leaf) keep a quiet highlight: one main highlight per object.
   Randomness is seeded from the id. Blender only after two honest
@@ -241,10 +248,11 @@ keep code readable with friendly comments.
   stage), `forms/kit/` (lathe, round recipe, stem, calyx and leaf, sweep (a tube along a
   curve, with an optional ribbed cross-section, for stalks and the long archetype), crown
   (blobs blended into one surface, for the branching archetype), surfaceNets (turns any
-  distance field into a clean mesh: no ledges, however lumpy), pieces, seeded random,
-  checks) and
+  distance field into a clean mesh: no ledges, however lumpy), wedge (a slice of a wheel),
+  vessel (bottles, caps, labels), block (a rounded box as distances, plus `paperSheet`, `fold`
+  and `crease` for a creased sheet under it), pieces, seeded random, checks) and
   `forms/{id}.ts`. The size check measures every piece except small parts (stem, leaf,
-  calyx), which may stick out. "Faces point outward" is checked by each closed piece's signed
+  calyx), which may stick out, and props (the butter's paper). "Faces point outward" is checked by each closed piece's signed
   volume (positive), which works for bent tubes too. `apple/` builds the procedural apple (body, stem, leaf). No model files.
 - `src/dev/checks.ts` has the dev-only report, silhouette, line-up and check sheet.
 - `src/shading/` is the stylized 3D shader, built from a stack of effect modules:
@@ -355,9 +363,24 @@ pink stains on a pale yellow. Every other ingredient is unchanged. The bevel spa
 cells (narrower made saw-toothed edges). New families: `cheese` (paler, buttery, warm caramel
 shadow; board 08 says Yellow, the lemon's yellow read acidic) and part-only `rind`. Turned 50 so
 the point comes toward the front left. Its own budget (10k). The form test's "faces point
-outward" rule of thumb asks 85% for wedges (hole insides rightly face inward). Next, one at a
-time with feedback: butter, steak,
-chicken drumstick, watermelon wedge (whole forms only; cut forms later).
+outward" rule of thumb asks 85% for wedges (hole insides rightly face inward). The butter
+(2026-11-05, board 08's card: "on a creased paper sheet, one top corner softened and slumping",
+12 x 4 x 6 cm), the first `block` ingredient: a new block kit (`forms/kit/block.ts`), the block
+as rounded distances meshed with surface nets and relaxed like the cheese (rounding 0.6, cell
+0.3), pillowy faces (a 0.06 cm seeded wobble), and the top front right corner softened: it
+sags 1.2 cm, rounds over (only at the top; rounding its whole upright edge hid the end of the
+block) and spreads at its foot into a small pool, with two broad melt flows running down from
+it (small drips with beads read as chips, so they were dropped). Under it, its wrapper as a
+prop (`paper@parchment`): flat under the block, flaps rising about a centimetre out where they
+were folded up the sides (the front one flat), diagonal creases where they meet, a few seeded
+crumples, lifted edges, the back left corner curling up. Turned -40 (the long side to the light,
+the soft corner toward the camera), matte (a loud highlight ran along the long top edge as a
+dashed white line), a very faint pore skin, shadowTint 0.4, its own budget (11k). The shader's
+cool-shadow rule (`turnHueTowardCool`) now sends a yellow (within about 30 degrees of yellow)
+always the warm way round, through orange: just past yellow, the long way went through green and
+the butter got lime edges (the lemon is unchanged; a few of the cheese's shadows turn warmer).
+Next, one at a time with feedback: steak, chicken drumstick, watermelon wedge (whole forms only;
+cut forms later).
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after
@@ -369,6 +392,11 @@ Later the same day (merged to `main` 2026-11-05): the painted Shuffle transition
 then paint the next card in with dry-brush strokes, the spin never stopping), the next
 ingredient prepared in the background, the `#perf` frame meter, and Emil Kowalski's design
 and animation skills in `.claude/skills/`. The user confirmed it runs smoothly on their Mac.
+Fixed on `main` (2026-11-05): the painter note ("After Sargent") still showed although
+`SHOW_PAINTER_NAME` is false: its `display: flex` outranked the `hidden` switch, so the CSS
+now says `.painter-note[hidden] { display: none }`. The ingredient guide
+(`docs/ingredients/forage-ingredient/SKILL.md`) is kept in step with the code: families, kit,
+look settings and lessons, updated with each new ingredient.
 
 ## Planned for later sessions (not built yet)
 Cut forms (slice the whole form and cap the cut), the whole-and-cut layout,
