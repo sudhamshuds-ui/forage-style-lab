@@ -42,10 +42,6 @@ uniform float uLoose;
 uniform float uVariation;
 uniform float uFollowForm;
 uniform float uSwirl;
-uniform sampler2D tSurfacePosition;
-uniform sampler2D tSurfaceNormal;
-uniform mat4 uViewProjection;
-uniform float uSurfacePx;
 uniform float uTexture;
 uniform float uBrush;
 uniform float uPattern;
@@ -327,126 +323,6 @@ vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelRegion
   return mix(colour, col1, a1);
 }
 
-// ---------------------------------------------------------------------------
-// Strokes painted ON the ingredient (pinned to its surface, not to the screen).
-//
-// The surface pass tells us where each pixel sits in the room. We look at the
-// fruit from one side (axis 0: from x, 1: from y, 2: from z), like a box map,
-// and lay the stroke grid out on that flat view. Each stroke's centre is a
-// point on the fruit; we find where it lands on screen to pick up its paint.
-// Because the grid and the angles belong to the fruit, the strokes travel and
-// turn with it when the view moves.
-// ---------------------------------------------------------------------------
-vec2 flatView(vec3 p, float axis) {
-  return axis < 0.5 ? p.zy : (axis < 1.5 ? p.xz : p.xy);
-}
-
-vec3 fromFlatView(vec2 q, float depth, float axis) {
-  return axis < 0.5 ? vec3(depth, q.y, q.x) : (axis < 1.5 ? vec3(q.x, depth, q.y) : vec3(q, depth));
-}
-
-float depthIn(vec3 p, float axis) {
-  return axis < 0.5 ? p.x : (axis < 1.5 ? p.y : p.z);
-}
-
-vec3 paintSurfaceLayer(vec3 colour, vec3 surfacePos, float axis, float cell, float layer, float coverage) {
-  // Positions in "virtual pixels": world units at the size they have in the starting view.
-  vec2 px = flatView(surfacePos, axis) * uSurfacePx;
-  float depth = depthIn(surfacePos, axis);
-  vec2 offset = vec2(0.37, 0.71) * layer + axis * 0.53;
-  vec2 grid = px / cell + offset;
-  vec2 base = floor(grid);
-
-  float key1 = -1.0;
-  float key2 = -1.0;
-  vec3 col1 = colour;
-  vec3 col2 = colour;
-  float a1 = 0.0;
-  float a2 = 0.0;
-
-  for (int j = -1; j <= 1; j++) {
-    for (int i = -1; i <= 1; i++) {
-      vec2 id = base + vec2(float(i), float(j));
-      vec4 place = hash42(id + layer * 31.7 + axis * 13.1);
-      if (place.x > coverage) continue;
-      vec4 rnd = hash42(id * 1.37 + layer * 7.1 + axis * 5.3 + 3.3);
-
-      vec2 centrePx = (id + 0.15 + 0.7 * place.yz - offset) * cell;
-      // Looser painting picks up its paint a little off-centre.
-      vec2 pickPx = centrePx + (rnd.xy - 0.5) * uLoose * cell * 0.6;
-      vec3 centreWorld = fromFlatView(pickPx / uSurfacePx, depth, axis);
-      vec4 clip = uViewProjection * vec4(centreWorld, 1.0);
-      if (clip.w <= 0.0) continue;
-      vec2 centreUv = clip.xy / clip.w * 0.5 + 0.5;
-      if (centreUv.x < 0.0 || centreUv.y < 0.0 || centreUv.x > 1.0 || centreUv.y > 1.0) continue;
-
-      // The centre must land on this same stretch of fruit (not hidden round the back).
-      vec4 there = texture2D(tSurfacePosition, centreUv);
-      if (there.a < 0.5) continue;
-      if (length(there.xyz - centreWorld) > cell * 1.5 / uSurfacePx) continue;
-      vec4 picked = texture2D(tColour, centreUv);
-      if (picked.a < 0.25 || picked.a > 0.75) continue; // the fruit only; never smear highlights
-
-      // The stroke's direction on the fruit: wrap round it (around the upright axis),
-      // or one fixed diagonal (hatching). Follow the form blends the two.
-      vec3 n = normalize(texture2D(tSurfaceNormal, centreUv).xyz);
-      vec3 around = cross(vec3(0.0, 1.0, 0.0), n);
-      if (dot(around, around) < 0.04) around = vec3(1.0, 0.0, 0.0); // at the very top or bottom
-      vec2 wrap = flatView(around, axis);
-      float wrapAngle = safeAtan(wrap.y, wrap.x);
-      float hatch = 0.95 + (rnd.z - 0.5) * 0.22;
-      float formWobble = (rnd.z - 0.5) * 0.35;
-      float angle = mixAngle(hatch, wrapAngle + formWobble, uFollowForm) + (rnd.y - 0.5) * 0.5 * uLoose;
-      vec2 dir = vec2(cos(angle), sin(angle));
-
-      vec2 rel = px - centrePx;
-      vec2 local = vec2(dot(rel, dir), dot(rel, vec2(-dir.y, dir.x)));
-      float halfLen = min(cell * uLength * 0.5 * (0.8 + 0.4 * rnd.z), cell);
-      float halfWid = cell * 0.36 * (0.85 + 0.3 * rnd.w);
-      float reach = length(vec2(halfLen, halfWid * 1.2)) + 3.0;
-      float fit = min(1.0, cell * 1.1 / reach);
-      halfLen *= fit;
-      halfWid *= fit;
-      if (abs(local.x) > halfLen + 2.0 || abs(local.y) > halfWid * 1.2 + 2.0) continue;
-
-      float a = brushShape(local, halfLen, halfWid, rnd);
-      float pattern = 0.0;
-      if (uPattern > 0.5) {
-        pattern = patternMask(local, halfWid, rnd);
-        a *= mix(1.0, mix(0.25, 1.0, pattern), uPatternAmount);
-      }
-      if (a < 0.003) continue;
-
-      vec3 lab = strokeLab(picked.rgb, rnd, 1.0);
-      lab.x += (bristles(local.y / halfWid, rnd.x) - 0.5) * 0.08 * uTexture;
-      lab.x -= pattern * 0.05 * uPatternAmount;
-      vec3 c = max(oklabToLinear(lab), 0.0);
-
-      float key = place.w;
-      if (key > key1) {
-        key2 = key1; col2 = col1; a2 = a1;
-        key1 = key; col1 = c; a1 = a;
-      } else if (key > key2) {
-        key2 = key; col2 = c; a2 = a;
-      }
-    }
-  }
-
-  colour = mix(colour, col2, a2);
-  return mix(colour, col1, a1);
-}
-
-// The full set of fruit strokes seen from one side: two passes at the main size,
-// then small detail strokes where edges need defining.
-vec3 paintSurface(vec3 colour, vec3 surfacePos, float axis, float edges) {
-  colour = paintSurfaceLayer(colour, surfacePos, axis, uCell, 3.0, 1.0);
-  colour = paintSurfaceLayer(colour, surfacePos, axis, uCell * 0.8, 4.0, 0.85);
-  if (edges > 0.0) {
-    colour = mix(colour, paintSurfaceLayer(colour, surfacePos, axis, uCell * 0.5, 5.0, 1.0), edges);
-  }
-  return colour;
-}
-
 void main() {
   vec2 px = vUv * uResolution;
   vec4 under = texture2D(tColour, vUv);
@@ -457,30 +333,16 @@ void main() {
   colour = paintLayer(colour, px, uBackdropCell, 1.0, region, 1.0, 1.0);
   colour = paintLayer(colour, px, uBackdropCell * 0.8, 2.0, region, 1.0, 0.55);
 
-  // 2 and 3. The object: strokes pinned to its surface, so they turn with it.
-  // (Detail strokes stay on the object: on the backdrop they made a pale halo.)
+  // 2. The object: two passes of strokes at the main size.
+  colour = paintLayer(colour, px, uCell, 3.0, region, 2.0, 1.0);
+  colour = paintLayer(colour, px, uCell * 0.8, 4.0, region, 2.0, 0.85);
+
+  // 3. Small detail strokes where edges need defining, on the object only. (On the
+  // backdrop they made a pale, speckled halo round the outline: small strokes pick up
+  // a slightly different colour from the big slabs around them.)
   float edges = smoothstep(0.03, 0.1, texture2D(tFlow, vUv).b);
-  vec4 surface = texture2D(tSurfacePosition, vUv);
-  if (region > 1.5 && surface.a > 0.5) {
-    // Look at the fruit from the side it faces most; where two sides are close,
-    // blend the two sets of strokes, so there is never a hard seam.
-    vec3 n = abs(normalize(texture2D(tSurfaceNormal, vUv).xyz));
-    vec3 w = pow(n, vec3(6.0));
-    float first = w.x > w.y ? (w.x > w.z ? 0.0 : 2.0) : (w.y > w.z ? 1.0 : 2.0);
-    float wFirst = first < 0.5 ? w.x : (first < 1.5 ? w.y : w.z);
-    vec3 rest = vec3(first < 0.5 ? -1.0 : w.x, (first > 0.5 && first < 1.5) ? -1.0 : w.y, first > 1.5 ? -1.0 : w.z);
-    float second = rest.x > rest.y ? (rest.x > rest.z ? 0.0 : 2.0) : (rest.y > rest.z ? 1.0 : 2.0);
-    float wSecond = max(rest.x, max(rest.y, rest.z));
-    float blend = wSecond / (wFirst + wSecond);
-    vec3 painted = paintSurface(colour, surface.xyz, first, edges);
-    if (blend > 0.12) {
-      painted = mix(painted, paintSurface(colour, surface.xyz, second, edges), smoothstep(0.12, 0.5, blend) * 0.5);
-    }
-    colour = painted;
-  } else if (region > 1.5) {
-    // Object pixels the surface pass missed (the soft outline): the screen strokes.
-    colour = paintLayer(colour, px, uCell, 3.0, region, 2.0, 1.0);
-    colour = paintLayer(colour, px, uCell * 0.8, 4.0, region, 2.0, 0.85);
+  if (edges > 0.0) {
+    colour = mix(colour, paintLayer(colour, px, uCell * 0.5, 5.0, region, 2.0, 1.0), edges);
   }
 
   // 4. Right on the object's outline, use the clean render so the silhouette stays smooth.

@@ -168,16 +168,7 @@ keep code readable with friendly comments.
 4. **Playful strokes** (Style switch, `brush.classic`): the glazed painting is kept in a
    hidden image (alpha label preserved) and the stroke pass (`paintShader.ts`) repaints it
    with bold strokes, so the playful look keeps every refined treatment underneath. Strokes
-   stay inside their area: object, cast shadow, or lit backdrop. **Strokes on the ingredient
-   are pinned to its surface** (2026-11-05, the user saw strokes spinning on their centres
-   while orbiting): a hidden surface pass (`surfaceShader.ts`, the ingredient alone on
-   `SURFACE_LAYER`) stores each pixel's world position and facing; the stroke grid is laid
-   out on the ingredient seen from its three sides (a box map, blended where two sides
-   meet), each stroke's centre is projected to the screen to pick up its paint, and its
-   angle comes from the form (wrap around the upright axis, or one fixed diagonal for
-   hatching), so strokes travel and turn with the fruit. Sized from the starting view
-   (`surfaceScale`), so they grow with the fruit when zooming. The backdrop's strokes are
-   still screen-based (next step: pin them to the room). The detailed brush
+   stay inside their area: object, cast shadow, or lit backdrop. The detailed brush
    controls (type, size, length, bristles, pattern) are hidden.
    The frame (`frame.glsl.ts`) is shared by both and hidden by default.
 - The stage only redraws when something changes (`stage.invalidate()`), or while the

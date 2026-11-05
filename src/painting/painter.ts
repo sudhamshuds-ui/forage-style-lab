@@ -3,10 +3,7 @@ import {
   Camera,
   Color,
   Float32BufferAttribute,
-  GLSL3,
   HalfFloatType,
-  Layers,
-  Matrix4,
   Mesh,
   Scene,
   ShaderMaterial,
@@ -20,13 +17,6 @@ import { MAX_CONTACTS } from '../scene/background';
 import { flowFragmentShader, flowVertexShader } from './flowShader';
 import { glazeFragmentShader, glazeVertexShader } from './glazeShader';
 import { paintFragmentShader, paintVertexShader } from './paintShader';
-import { surfaceFragmentShader, surfaceVertexShader } from './surfaceShader';
-
-/**
- * The ingredient's meshes also sit on this layer (set in main.ts), so the surface
- * pass can render the ingredient alone, without the room.
- */
-export const SURFACE_LAYER = 1;
 
 /** Things about the current view the glaze pass needs, besides the settings. */
 export interface PaintFrame {
@@ -43,12 +33,6 @@ export interface PaintFrame {
   pieces: Vector3[];
   /** The ingredient's base colour, reflected into its cast shadow. */
   objectBase: string;
-  /**
-   * How big one world unit looks from the starting view, in screen heights. The
-   * strokes painted on the ingredient are sized with it, so they keep their place
-   * on the surface while you zoom (they grow and shrink with the fruit).
-   */
-  surfaceScale: number;
 }
 
 /**
@@ -72,10 +56,6 @@ export class Painter {
   private readonly flowTarget: WebGLRenderTarget;
   /** The finished refined painting, kept so the playful strokes can repaint it. */
   private readonly glazeTarget: WebGLRenderTarget;
-  /** The surface pass: where each ingredient pixel sits in the room, and which way it faces. */
-  private readonly surfaceTarget: WebGLRenderTarget;
-  private readonly surfaceMaterial: ShaderMaterial;
-  private readonly savedLayers = new Layers();
   private readonly flowScene = new Scene();
   private readonly paintScene = new Scene();
   private readonly flowMaterial: ShaderMaterial;
@@ -89,14 +69,6 @@ export class Painter {
     this.sceneTarget = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
     this.flowTarget = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false });
     this.glazeTarget = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false });
-    // No anti-aliasing: positions must never be blended across an edge. Half floats are
-    // precise to well under a pixel here, and every graphics chip can render into them.
-    this.surfaceTarget = new WebGLRenderTarget(1, 1, { type: HalfFloatType, count: 2 });
-    this.surfaceMaterial = new ShaderMaterial({
-      glslVersion: GLSL3,
-      vertexShader: surfaceVertexShader,
-      fragmentShader: surfaceFragmentShader,
-    });
 
     this.flowMaterial = new ShaderMaterial({
       uniforms: {
@@ -129,10 +101,6 @@ export class Painter {
         uHorizon: { value: 0.36 },
         uFrame: { value: 1 },
         uFrameColour: { value: new Color() },
-        tSurfacePosition: { value: this.surfaceTarget.textures[0] },
-        tSurfaceNormal: { value: this.surfaceTarget.textures[1] },
-        uViewProjection: { value: new Matrix4() },
-        uSurfacePx: { value: 100 },
       },
       vertexShader: paintVertexShader,
       fragmentShader: paintFragmentShader,
@@ -178,7 +146,6 @@ export class Painter {
     this.sceneTarget.setSize(width, height);
     this.glazeTarget.setSize(width, height);
     this.flowTarget.setSize(Math.max(1, Math.ceil(width / 4)), Math.max(1, Math.ceil(height / 4)));
-    this.surfaceTarget.setSize(width, height);
   }
 
   render(renderer: WebGLRenderer, scene: Scene, camera: Camera, settings: Settings, frame: PaintFrame): void {
@@ -206,39 +173,10 @@ export class Painter {
 
     // 4. Playful strokes on top of the finished painting.
     if (playful) {
-      this.renderSurface(renderer, scene, camera, frame);
       this.paintMesh.material = this.paintMaterial;
       renderer.setRenderTarget(null);
       renderer.render(this.paintScene, camera);
     }
-  }
-
-  /**
-   * The surface pass: render the ingredient alone (its layer), with every material
-   * swapped for the position and facing shader, into the two hidden surface images.
-   */
-  private renderSurface(renderer: WebGLRenderer, scene: Scene, camera: Camera, frame: PaintFrame): void {
-    const paint = this.paintMaterial.uniforms;
-    (paint.uViewProjection.value as Matrix4).multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-    paint.uSurfacePx.value = frame.surfaceScale * this.size.y;
-
-    this.savedLayers.mask = camera.layers.mask;
-    camera.layers.set(SURFACE_LAYER);
-    const shadowsWereLive = renderer.shadowMap.autoUpdate;
-    renderer.shadowMap.autoUpdate = false; // the shadows were already drawn this frame
-    const background = scene.background;
-    scene.background = null;
-    scene.overrideMaterial = this.surfaceMaterial;
-
-    renderer.setRenderTarget(this.surfaceTarget);
-    renderer.setClearColor(0x000000, 0);
-    renderer.clear();
-    renderer.render(scene, camera);
-
-    scene.overrideMaterial = null;
-    scene.background = background;
-    renderer.shadowMap.autoUpdate = shadowsWereLive;
-    camera.layers.mask = this.savedLayers.mask;
   }
 
   private updateUniforms(settings: Settings): void {

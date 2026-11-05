@@ -13,7 +13,7 @@ import type { FrameContext } from './shading/effect';
 import { FAMILIES } from './ingredients/families';
 import { REGISTRY, findIngredient, pickOther, type IngredientEntry } from './ingredients/registry';
 import { createSubject, type Subject } from './ingredients/subject';
-import { Painter, SURFACE_LAYER, type PaintFrame } from './painting/painter';
+import { Painter, type PaintFrame } from './painting/painter';
 import { createPanel } from './ui/panel';
 import { setupActions } from './ui/actions';
 
@@ -83,13 +83,7 @@ const paintFrame: PaintFrame = {
   objectRadius: 0.2,
   objectBase: context.objectColours.base,
   pieces: [],
-  surfaceScale: 1,
 };
-
-/** Put every mesh of the ingredient on the surface layer too, for the stroke pass. */
-function markSurface(group: Group): void {
-  group.traverse((object) => object.layers.enable(SURFACE_LAYER));
-}
 
 /** Switch the room combo to the one the ingredient's colour family suggests (board 04). */
 function applyRoom(entry: IngredientEntry): void {
@@ -110,7 +104,6 @@ function showIngredient(entry: IngredientEntry): void {
   subject.dispose();
   subject = createSubject(entry, look);
   framed.add(subject.group);
-  markSurface(subject.group);
   shapeChanged = true;
   needsFraming = true;
 
@@ -157,12 +150,6 @@ function reframe(): void {
   context.groundY = groundY;
   context.objectCentre.copy(subject.centre).applyMatrix4(framed.matrixWorld);
   context.objectRadius = subject.radius * scale;
-  // How big one world unit looks from the starting view (screen heights), for the
-  // strokes painted on the ingredient's surface.
-  stage.homeCamera.updateMatrixWorld();
-  const home = context.objectCentre.clone().project(stage.homeCamera);
-  const homeTop = context.objectCentre.clone().addScaledVector(stage.homeCamera.up, context.objectRadius).project(stage.homeCamera);
-  paintFrame.surfaceScale = (Math.abs(homeTop.y - home.y) * 0.5) / context.objectRadius;
   // Each piece's contact spot on the floor: x, z and its radius, after the framing.
   context.contacts = subject.contacts.map(({ centre, radius }) => {
     const spot = centre.clone().applyMatrix4(framed.matrixWorld);
@@ -203,7 +190,6 @@ function updatePaintFrame(): void {
 
 function update(): void {
   if (subject.update(settings, shapeChanged)) needsFraming = true;
-  markSurface(subject.group); // cheap, and catches meshes rebuilt by a shape change
   shapeChanged = false;
   if (needsFraming) {
     reframe();
