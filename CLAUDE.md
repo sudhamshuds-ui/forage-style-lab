@@ -375,7 +375,12 @@ prop (`paper@parchment`): flat under the block, flaps rising about a centimetre 
 were folded up the sides (the front one flat), diagonal creases where they meet, a few seeded
 crumples, lifted edges, the back left corner curling up. Turned -40 (the long side to the light,
 the soft corner toward the camera), matte (a loud highlight ran along the long top edge as a
-dashed white line), a very faint pore skin, shadowTint 0.4, its own budget (11k). The shader's
+dashed white line), a very faint pore skin, shadowTint 0.4. Then (the user chose it over a
+butter knife, which would have brought in metal and a precedent of tools on every card): a
+knife's scrape across the top (a trough 0.85 cm deep where it runs out over the front edge, so
+it notches the outline, with soft ripples) and the curl it took off, lying on the paper in
+front with its rolled spiral end turned toward the camera (side on, it read as a little log):
+the piece `curl`, a small part like a stem, so left out of the real size. Its own budget (12k). The shader's
 cool-shadow rule (`turnHueTowardCool`) now sends a yellow (within about 30 degrees of yellow)
 always the warm way round, through orange: just past yellow, the long way went through green and
 the butter got lime edges (the lemon is unchanged; a few of the cheese's shadows turn warmer).

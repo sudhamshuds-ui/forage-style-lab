@@ -1,10 +1,11 @@
-import { Vector3 } from 'three';
-import { smoothMin, smoothstep } from './kit/lathe';
+import { Vector3, type BufferGeometry } from 'three';
+import { smoothMax, smoothMin, smoothstep } from './kit/lathe';
 import { finishPieces, type FormBuilder } from './kit/piece';
 import { seededRandom } from './kit/random';
 import { relaxOnSurface, surfaceNets } from './kit/surfaceNets';
 import { roundedIntersection } from './kit/wedge';
 import { blockSides, crease, fold, paperSheet, type BlockShape } from './kit/block';
+import { sweepGeometry } from './kit/sweep';
 
 /**
  * Butter (archetype: block). Board 08's card: a 12 x 6 x 4 cm block "on a creased paper
@@ -15,13 +16,18 @@ import { blockSides, crease, fold, paperSheet, type BlockShape } from './kit/blo
  *   - one top corner (front right, toward the camera) softened in the warmth: it sags,
  *     rounds over and spreads out a little at its foot, into a small pool on the paper,
  *   - two broad melt flows running down from that corner into the pool,
+ *   - a knife's scrape across the top, a shallow trough with soft ripples that runs out
+ *     over the front edge (a notch in the outline), and the curl it took off lying on
+ *     the paper just in front: the classic sign for butter (the user chose it over a knife),
  *   - the wrapper it came in, unfolded under it: flat where the block sits, its flaps
  *     rising a little where they were folded up the sides (fold lines parallel to the
  *     block, diagonal creases at the corners where it was tucked), crumpled here and
  *     there, its edges lifting and one corner curling up.
  *
  * Pieces, like layers in a pre-comp (the Style Lab paints each one):
- *   butter  the block, its slump, melt flows and pool: one piece (meshed with surface nets)
+ *   butter  the block, its slump, melt flows, pool and scrape: one piece (surface nets)
+ *   curl    the rolled ribbon of butter the knife took off (a small part, like a stem:
+ *           left out of the real size)
  *   paper   the wrapper under it (a prop: left out of the real size and the card framing)
  */
 
@@ -45,6 +51,40 @@ const SLUMP_REACH = 2.6;
 const SLUMP_SAG = 1.2;
 const SLUMP_ROUND = 1.3;
 const SLUMP_SPREAD = 0.5;
+
+/**
+ * The knife's scrape across the top (cm): from a rounded start at the back, toward the
+ * camera and out over the front edge. The blade dips in as it goes, so the trough deepens
+ * from `entry` to `depth`; soft ripples across it (the knife's chatter) catch the light.
+ */
+const SCRAPE = {
+  from: { x: -1.5, z: -1.5 },
+  to: { x: -2.7, z: BLOCK.width / 2 + 0.8 },
+  halfWidth: 1.2,
+  entry: 0.2,
+  depth: 0.85,
+  ripple: 0.09,
+  rippleEvery: 1.1,
+  softness: 0.15,
+};
+
+/**
+ * The curl: a ribbon of butter rolled up about 1.4 turns, lying on its side on the paper in
+ * front of the block, right below where the scrape runs out (cm).
+ */
+const CURL = {
+  at: { x: -2.9, z: BLOCK.width / 2 + 1.45 },
+  /**
+   * Its turn on the table (radians): its axis about 35 degrees off pointing at the camera, so
+   * its rolled spiral end shows (side on, it read as a little log).
+   */
+  angle: 1.3,
+  turns: 1.5,
+  inner: 0.28,
+  outer: 0.95,
+  halfWidth: 1.25,
+  thickness: 0.18,
+};
 
 /** Where the wrapper sits: a hair under the block, so the block rests on it. */
 const PAPER_Y = -0.03;
@@ -70,6 +110,59 @@ const DRIPS: Drip[] = [
 function softened(x: number, z: number): number {
   const d2 = (x - CORNER.x) ** 2 + (z - CORNER.z) ** 2;
   return Math.exp(-d2 / (SLUMP_REACH * SLUMP_REACH));
+}
+
+/**
+ * The scrape's cut, as a distance (negative inside): the part of the block the knife took
+ * away, above the blade's path and within its width.
+ */
+function scrapeCut(x: number, y: number, z: number, top: number): number {
+  const { from, to } = SCRAPE;
+  const dx = to.x - from.x;
+  const dz = to.z - from.z;
+  const length = Math.hypot(dx, dz);
+  // How far along the scrape (0 at its start) and how far to the side of its line.
+  const along = ((x - from.x) * dx + (z - from.z) * dz) / length;
+  const t = Math.max(0, Math.min(1, along / length));
+  const side = Math.hypot(x - (from.x + dx * t), z - (from.z + dz * t));
+  const footprint = side - SCRAPE.halfWidth;
+  // The blade's height: dipping in from the entry depth, with soft ripples across the trough.
+  const deepen = smoothstep(0, 0.55, t);
+  const ripple = SCRAPE.ripple * Math.sin((along / SCRAPE.rippleEvery) * Math.PI * 2) * deepen;
+  const blade = top - (SCRAPE.entry + (SCRAPE.depth - SCRAPE.entry) * deepen) + ripple;
+  return Math.max(footprint, blade - y);
+}
+
+/** The curl, built standing in its own space and laid on the table at CURL.at. */
+function butterCurl(): BufferGeometry {
+  // A spiral, growing outward as it turns: the ribbon seen end on.
+  const points: Vector3[] = [];
+  const steps = 28;
+  for (let i = 0; i <= steps; i++) {
+    const s = i / steps;
+    const a = s * CURL.turns * Math.PI * 2;
+    const r = CURL.inner + (CURL.outer - CURL.inner) * s;
+    points.push(new Vector3(r * Math.cos(a), r * Math.sin(a), 0));
+  }
+  // The ribbon's cross-section: wide along the curl's axis, thin across, closing at both ends.
+  const geometry = sweepGeometry({
+    points,
+    radius: () => 1,
+    rings: 64,
+    segments: 14,
+    around: (t, a) => {
+      const width = CURL.halfWidth * (0.82 + 0.18 * Math.sin(Math.PI * t));
+      const thick = (CURL.thickness / 2) * Math.min(1, Math.sqrt(Math.min(t, 1 - t) / 0.04));
+      // The frame's first direction runs along the curl's axis, its second across the ribbon.
+      return 1 / Math.hypot(Math.cos(a) / width, Math.sin(a) / Math.max(thick, 1e-4));
+    },
+  });
+  // Lay it on its side: resting on the table, its axis turned along the blade.
+  geometry.computeBoundingBox();
+  geometry.translate(0, -geometry.boundingBox!.min.y, 0);
+  geometry.rotateY(CURL.angle);
+  geometry.translate(CURL.at.x, 0, CURL.at.z);
+  return geometry;
 }
 
 /** A smooth bump, 1 at the centre line, 0 from `width` out. */
@@ -124,6 +217,8 @@ export const buildButter: FormBuilder = ({ state, seed }) => {
     const pz = (z - CORNER.z) / 1.15;
     const pool = (Math.hypot(px, y / 0.35, pz) - 1) * 0.35;
     d = smoothMin(d, pool, 0.8);
+    // The knife's scrape: the trough cut out of the top, softly edged.
+    d = smoothMax(d, -scrapeCut(x, y, z, BLOCK.height - SLUMP_SAG * softened(x, z)), SCRAPE.softness);
     // Nothing below the table.
     return Math.max(d, -y);
   };
@@ -163,15 +258,17 @@ export const buildButter: FormBuilder = ({ state, seed }) => {
     length: 14.5,
     width: 10,
     angle: 0.16,
-    columns: 56,
-    rows: 38,
+    columns: 52,
+    rows: 36,
     ragged: (u, v) => [
       0.012 * Math.sin(outline[0].k * v + outline[0].phase) * Math.abs(u) ** 3,
       0.016 * Math.sin(outline[1].k * u + outline[1].phase) * Math.abs(v) ** 3,
     ],
     height: (x, z, u, v) => {
-      // Flat under the butter and its pool: the paper only rises from about a centimetre out.
-      const outside = butter(x, 0.15, z);
+      // Flat under the butter, its pool and the curl: the paper only rises from about a
+      // centimetre out.
+      const underCurl = (Math.hypot((x - CURL.at.x) / 1.6, (z - CURL.at.z) / 1.6) - 1) * 1.6;
+      const outside = Math.min(butter(x, 0.15, z), underCurl);
       const free = smoothstep(0.2, 1.4, outside);
       let h = 0;
       for (const flap of flaps) {
@@ -189,6 +286,7 @@ export const buildButter: FormBuilder = ({ state, seed }) => {
 
   return finishPieces([
     { role: 'butter', geometry: mesh },
+    { role: 'curl', geometry: butterCurl() },
     { role: 'paper', geometry: paper, doubleSided: true },
   ]);
 };

@@ -289,9 +289,10 @@ export const REGISTRY: IngredientEntry[] = [
       scale: 'M',
       size_cm: [12, 4, 6],
       // `paper` is a prop (kit/checks.ts PROPS): left out of the real size and the card's zone.
-      parts: ['butter', 'paper@parchment'],
+      // `curl` is a small part (the ribbon the knife scraped off), left out of the real size.
+      parts: ['butter', 'curl', 'paper@parchment'],
       notes:
-        'Board 08: a 12 x 6 x 4 cm block on a creased paper sheet, one top corner softened and slumping. Soft rounded edges, pillowy faces, two broad melt flows from the soft corner into a small pool at its foot. The unfolded wrapper: flat under the block, its flaps rising where they were folded, diagonal creases at the corners, crumpled, edges lifting, one corner curling.',
+        'Board 08: a 12 x 6 x 4 cm block on a creased paper sheet, one top corner softened and slumping. Soft rounded edges, pillowy faces, two broad melt flows from the soft corner into a small pool at its foot. A knife scrape across the top running out over the front edge, and the curl it took lying on the paper in front. The unfolded wrapper: flat under the block, its flaps rising where they were folded, diagonal creases at the corners, crumpled, edges lifting, one corner curling.',
     },
     form: buildButter,
     // Three-quarter view: the long side to the light (upper left), the soft corner and the end
@@ -303,8 +304,9 @@ export const REGISTRY: IngredientEntry[] = [
     matte: true,
     // Pale like the cheese: a little of the shadow's violet and pink, or it reads as stains.
     shadowTint: 0.4,
-    // Meshed from a distance field (surface nets), plus a paper sheet with room for creases.
-    budget: [2000, 11000],
+    // Meshed from a distance field (surface nets), plus the curl and a paper sheet with room
+    // for creases.
+    budget: [2000, 12000],
   },
 ];
 

@@ -21,8 +21,8 @@ export const TRIANGLE_BUDGET = {
   contained: [0, 1000],
 } as const;
 
-/** Small parts that may stick out past an ingredient's real size (a stem, a leaf, a calyx). */
-export const SMALL_PARTS = ['stem', 'leaf', 'calyx'];
+/** Small parts that may stick out past an ingredient's real size (a stem, a leaf, a calyx, a butter curl). */
+export const SMALL_PARTS = ['stem', 'leaf', 'calyx', 'curl'];
 
 /**
  * Props: what an ingredient rests on, not the ingredient itself (the butter's paper sheet;

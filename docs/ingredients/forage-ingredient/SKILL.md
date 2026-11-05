@@ -108,7 +108,7 @@ Forms are built from a shared kit in `src/ingredients/forms/kit/`. Create a kit 
 | branching | broccoli | `crown.ts` (blobs blended as a distance field), `surfaceNets.ts` (distance field to clean mesh), `sweep.ts` for stalks | solo | 6k to 18k (raised from 12k for a bumpier crown) |
 | wedge | cheese | `wedge.ts` (a slice of a wheel as a distance field, `roundedIntersection` for bevelled edges), meshed with `surfaceNets`, smoothed with `relaxOnSurface`, rind lifted off with `liftRegion` | solo | 2k to 5k (cheese has its own 10k) |
 | contained | hot sauce | `vessel.ts`: `revolve` (a profile spun standing up, with a `roundedSquare` or `ribs` cross-section), `wrapSheet` (a sheet hugging a vessel: labels, rectangles or ovals, `mapped` for printed artwork) | solo | vessel + 1k (sauce has its own 16k) |
-| block | butter (steak next) | `block.ts`: `blockSides` (a box as distances, rounded with `roundedIntersection`, meshed with `surfaceNets` and `relaxOnSurface`), `paperSheet` with `fold` and `crease` for a creased sheet under it; fat, marbling as separate pieces | solo, three-quarter view | 1k to 4k (butter has its own 11k: a meshed block plus its paper) |
+| block | butter (steak next) | `block.ts`: `blockSides` (a box as distances, rounded with `roundedIntersection`, meshed with `surfaceNets` and `relaxOnSurface`), `paperSheet` with `fold` and `crease` for a creased sheet under it; fat, marbling as separate pieces | solo, three-quarter view | 1k to 4k (butter has its own 12k: a meshed block, its curl and its paper) |
 | leafy | (not yet) | a shaped plane with a gentle curl and a little thickness | small pile | 1k to 3k |
 
 Only add a ninth archetype when three or more ingredients need it.
@@ -149,6 +149,7 @@ Each registry entry can also carry, beside the spec and builder:
 - **Printed artwork** (labels): draw it in code as a two-tone stencil and let the shader paint the ink with the ground's light and shadow. Our own design in the spirit of a reference, never a copy of a real brand or an artist's marks; keep it simple (the user removed borders, dots and repeated icons).
 - **References** are for form: a signed painting or a real brand's pack is never copied.
 - **Small bumps read as damage**: in the painted shading, a little drip or bead becomes a dark notch (a chip). Make a melt or a swelling broad and soft, or leave it out.
+- **Tell the story with the ingredient, not a tool**: a knife's scrape and the curl it took say "butter" at a glance, with no utensil on the card. A small part like the curl is listed in `SMALL_PARTS` (left out of the real size); turn it so its most telling side (the curl's spiral end) faces the camera.
 - **Local changes stay local**: a softened corner rounds only the top of that corner; rounding its whole upright edge hid a face of the block.
 - **Anything lying flat on the table** (a paper sheet) must be a prop, or it flickers with the floor.
 - **Pale yellows** (butter, cheese, lemon): the shader cools their shadows the warm way, through orange; if a yellow shows lime edges, check that rule (`turnHueTowardCool`) before changing the family.
