@@ -173,6 +173,63 @@ float patternMask(vec2 local, float halfWid, vec4 rnd) {
   return max(lineMask(d1, thick * 0.8), lineMask(d2, thick * 0.8));
 }
 
+// Which area a pixel belongs to, from the alpha label: 0 = lit backdrop,
+// 1 = backdrop in the cast shadow, 2 = the object. Strokes stay inside their
+// own area, so the cast shadow keeps a clean shape instead of being chopped up.
+float regionOf(float a) {
+  return a >= 0.25 ? 2.0 : (a > 0.06 ? 1.0 : 0.0);
+}
+
+// ---------------------------------------------------------------------------
+// The room's horizon. uHorizon is where the wall colour takes over from the table
+// colour, found from the room itself each frame (roomHorizonUv in background.ts).
+// ---------------------------------------------------------------------------
+// 0 on the table, 1 on the wall, a soft step between.
+float wallness(vec2 uv) {
+  return smoothstep(-0.03, 0.03, uv.y - uHorizon);
+}
+
+// 1 right on the horizon, fading to 0 a little above and below it. It reaches a little
+// further down onto the table, where long strokes would otherwise lean up into the wall.
+float horizonBand(vec2 uv) {
+  float d = uv.y - uHorizon;
+  return d > 0.0 ? 1.0 - smoothstep(0.02, 0.07, d) : 1.0 - smoothstep(0.03, 0.11, -d);
+}
+
+// The room's own colour edges around a backdrop stroke: where the wall colour drifts into
+// the table colour, or the window light's patch begins. Measured from the painting at the
+// size of a big slab, the way the flow pass measures the object's edges. Returns the
+// direction the edge runs (xy, as cos/sin of twice the angle, so a line and its reverse
+// agree) scaled by how clear the edge is (0..1). \`around\` is the room's average colour
+// around the spot (OKLab), to spot thin features such as the light's rainbow fringe.
+vec2 roomEdge(vec2 uv, float region, float reachPx, out vec3 around) {
+  vec2 d = reachPx / uResolution;
+  vec4 c = texture2D(tColour, uv);
+  vec3 centre = linearToOklab(c.rgb);
+  vec4 e = texture2D(tColour, clamp(uv + vec2(d.x, 0.0), vec2(0.001), vec2(0.999)));
+  vec4 w = texture2D(tColour, clamp(uv - vec2(d.x, 0.0), vec2(0.001), vec2(0.999)));
+  vec4 n = texture2D(tColour, clamp(uv + vec2(0.0, d.y), vec2(0.001), vec2(0.999)));
+  vec4 s = texture2D(tColour, clamp(uv - vec2(0.0, d.y), vec2(0.001), vec2(0.999)));
+  // A sample on another area (the ingredient, the cast shadow) counts as the centre's
+  // colour, so the ingredient's outline never steers the room's strokes.
+  vec3 le = abs(regionOf(e.a) - region) < 0.5 ? linearToOklab(e.rgb) : centre;
+  vec3 lw = abs(regionOf(w.a) - region) < 0.5 ? linearToOklab(w.rgb) : centre;
+  vec3 ln = abs(regionOf(n.a) - region) < 0.5 ? linearToOklab(n.rgb) : centre;
+  vec3 ls = abs(regionOf(s.a) - region) < 0.5 ? linearToOklab(s.rgb) : centre;
+  around = (le + lw + ln + ls) * 0.25;
+  vec3 gx = le - lw;
+  vec3 gy = ln - ls;
+  float jxx = dot(gx, gx);
+  float jyy = dot(gy, gy);
+  float jxy = dot(gx, gy);
+  // The colour changes most along (jxx - jyy, 2 jxy); the edge runs across that, so flip it.
+  vec2 across = vec2(jxx - jyy, 2.0 * jxy);
+  float len = length(across);
+  if (len < 1e-8) return vec2(0.0);
+  float clear = smoothstep(0.07, 0.15, sqrt(jxx + jyy));
+  return -across / len * clear;
+}
+
 // ---------------------------------------------------------------------------
 // Which way a stroke runs.
 // ---------------------------------------------------------------------------
@@ -184,12 +241,15 @@ float strokeAngle(vec2 centreUv, float onObject, vec4 rnd) {
   float fallback;
   if (onObject > 0.5) {
     fallback = 0.5 + (rnd.z - 0.5) * 1.6;
-  } else if (centreUv.y > uHorizon) {
-    // Wall: big diagonal slabs, with a few steeper ones.
-    fallback = rnd.z < 0.7 ? -0.42 + (rnd.w - 0.5) * 0.35 : 1.25 + (rnd.w - 0.5) * 0.3;
   } else {
+    // Wall: big diagonal slabs, with a few steeper ones.
+    float wallAngle = rnd.z < 0.7 ? -0.42 + (rnd.w - 0.5) * 0.35 : 1.25 + (rnd.w - 0.5) * 0.3;
     // Table: long sweeps, nearly level.
-    fallback = (rnd.w - 0.5) * 0.18;
+    float tableAngle = (rnd.w - 0.5) * 0.18;
+    // Near the horizon the wall's slabs lie down level too, so they never poke into the
+    // table as a sawtooth. Like a painter laying the line where wall meets table with a
+    // few flat, level passes of the brush.
+    fallback = mixAngle(tableAngle, wallAngle, wallness(centreUv) * (1.0 - horizonBand(centreUv)));
   }
   // Swirl: strokes flow in slow, curling currents (Van Gogh's skies), from a smooth
   // noise field, so neighbouring strokes line up into streams.
@@ -226,13 +286,6 @@ vec3 strokeLab(vec3 picked, vec4 rnd, float onObject) {
 //   area: 0 = anywhere, 1 = backdrop only, 2 = object only
 //   coverage: chance that a cell has a stroke at all
 // ---------------------------------------------------------------------------
-// Which area a pixel belongs to, from the alpha label: 0 = lit backdrop,
-// 1 = backdrop in the cast shadow, 2 = the object. Strokes stay inside their
-// own area, so the cast shadow keeps a clean shape instead of being chopped up.
-float regionOf(float a) {
-  return a >= 0.25 ? 2.0 : (a > 0.06 ? 1.0 : 0.0);
-}
-
 vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelRegion, float area, float coverage) {
   vec2 offset = vec2(0.37, 0.71) * layer;
   vec2 grid = px / cell + offset;
@@ -255,6 +308,9 @@ vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelRegion
 
       vec2 centrePx = (id + 0.15 + 0.7 * place.yz - offset) * cell;
       vec2 centreUv = centrePx / uResolution;
+      // No stroke reaches further than about a cell from its centre (see \`fit\` below), so
+      // a far-away one can be skipped before any of the measuring.
+      if (length(px - centrePx) > cell * 1.1 + 2.0) continue;
 
       // Pick up paint. Looser painting picks it up a little off-centre.
       vec2 pickUv = centreUv + (rnd.xy - 0.5) * uLoose * cell * 0.6 / uResolution;
@@ -269,18 +325,33 @@ vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelRegion
       float angle = strokeAngle(centreUv, onObject, rnd);
       // In a swirl, backdrop strokes keep close to the current (less random wobble).
       if (onObject < 0.5 && uSwirl > 0.0) angle = mixAngle(angle, strokeAngle(centreUv, onObject, vec4(rnd.x, 0.5, 0.5, rnd.w)), uSwirl * 0.7);
+      if (onObject < 0.5) {
+        // Room strokes follow the room's own colour edges (wall into table, the edge of
+        // the window light), and lie level right along the horizon.
+        vec3 around;
+        vec2 edge = roomEdge(centreUv, regionOf(picked.a), cell * 0.6, around);
+        // A stroke that lands on a thin feature (the light's rainbow fringe, a sliver of
+        // colour) would spread it into a whole block. It loads the room's colour instead,
+        // and the wet-in-wet pick-up below lets the real fringe show in its own shape.
+        vec3 pickedOk = linearToOklab(picked.rgb);
+        float thin = smoothstep(0.015, 0.045, length(pickedOk - around));
+        picked.rgb = max(oklabToLinear(mix(pickedOk, around, thin * 0.85)), 0.0);
+        if (dot(edge, edge) > 1e-6) angle = mixAngle(angle, 0.5 * safeAtan(edge.y, edge.x), length(edge) * 0.8);
+        angle = mixAngle(angle, (rnd.w - 0.5) * 0.12, horizonBand(centreUv) * 0.92);
+      }
       vec2 dir = vec2(cos(angle), sin(angle));
       vec2 rel = px - centrePx;
       vec2 local = vec2(dot(rel, dir), dot(rel, vec2(-dir.y, dir.x)));
       float halfLen = min(cell * uLength * 0.5 * (0.8 + 0.4 * rnd.z), cell);
       float halfWid = cell * 0.36 * (0.85 + 0.3 * rnd.w);
       if (onObject < 0.5) {
-        bool wall = centreUv.y > uHorizon;
-        // Wall: broad slabs. Table: long, thinner sweeps.
+        // Wall: broad slabs. Table: long, thinner sweeps. Along the horizon, long thin
+        // level passes, so the line where wall meets table reads as a few calm strokes.
         // Mixed sizes, so the room never reads as a repeating pattern (polka dots).
+        float wall = wallness(centreUv) * (1.0 - horizonBand(centreUv));
         float mixed = 0.65 + 0.7 * place.y;
-        halfLen = min(cell * (wall ? 0.8 : 0.98) * (0.85 + 0.15 * rnd.z) * mixed, cell);
-        halfWid = cell * (wall ? 0.5 : 0.26) * (0.85 + 0.3 * rnd.w) * mixed;
+        halfLen = min(cell * mix(0.98, 0.8, wall) * (0.85 + 0.15 * rnd.z) * mixed, cell);
+        halfWid = cell * mix(0.26, 0.5, wall) * (0.85 + 0.3 * rnd.w) * mixed;
         // Swirling currents need long, thin strokes to read as streams.
         halfWid *= mix(1.0, 0.4, uSwirl);
         halfLen = min(halfLen * mix(1.0, 1.25, uSwirl), cell);
@@ -307,6 +378,22 @@ vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelRegion
       vec3 lab = strokeLab(picked.rgb, rnd, onObject);
       lab.x += (bristles(local.y / halfWid, rnd.x) - 0.5) * 0.08 * uTexture;
       lab.x -= pattern * 0.05 * uPatternAmount * (onObject > 0.5 ? 1.0 : 0.35);
+      if (onObject < 0.5) {
+        // Wet-in-wet: a room stroke that runs from one colour into another (wall into
+        // table, shade into the window light) picks up the colour under it as it goes,
+        // more toward its ends. Where the room underneath matches the stroke, nothing
+        // changes, so stroke edges stay crisp everywhere else. The stroke keeps its own
+        // shift and bristles, just in the new colour.
+        vec3 pickedLab = linearToOklab(picked.rgb);
+        vec3 hereLab = linearToOklab(texture2D(tColour, px / uResolution).rgb);
+        float differ = length(hereLab - pickedLab);
+        float toEnd = clamp(abs(local.x) / halfLen, 0.0, 1.0);
+        // Along the horizon even a gentle change counts; elsewhere only a clear one (the
+        // edge of the window light), so the wall's slabs keep their own shapes.
+        float from = mix(0.07, 0.025, horizonBand(centreUv));
+        float wet = smoothstep(from, from + 0.06, differ) * mix(0.3, 0.85, toEnd);
+        lab = mix(lab, hereLab + (lab - pickedLab), wet);
+      }
       vec3 c = max(oklabToLinear(lab), 0.0);
 
       float key = place.w;

@@ -1,4 +1,4 @@
-import { BackSide, Color, LatheGeometry, Mesh, ShaderMaterial, Vector2, Vector3 } from 'three';
+import { BackSide, type Camera, Color, LatheGeometry, Mesh, ShaderMaterial, Vector2, Vector3 } from 'three';
 import type { Settings } from '../params';
 import type { FrameContext } from '../shading/effect';
 import { colourGLSL } from '../shading/chunks/colour.glsl';
@@ -212,6 +212,51 @@ void main() {
   #include <colorspace_fragment>
 }
 `;
+
+/**
+ * Where the room's table colour turns into the wall colour, as a height on the card (0 = bottom,
+ * 1 = top). There is no hard line in the room (the sweep is one smooth surface), so this follows
+ * the same rule the shader above uses to mix table into wall (`reach`, halfway through `toWall`),
+ * walking out along the floor and up the curve straight behind the ingredient, and projects that
+ * spot onto the card. The playful strokes use it to lay their strokes level along the horizon.
+ * Returns null when the boundary is off the card (looking straight down, say).
+ */
+export function roomHorizonUv(
+  camera: Camera,
+  objectCentre: Vector3,
+  objectRadius: number,
+  groundY: number,
+): number | null {
+  // Straight away from the camera, across the floor, past the ingredient.
+  const away = new Vector2(objectCentre.x - camera.position.x, objectCentre.z - camera.position.z);
+  if (away.lengthSq() < 1e-8) return null;
+  away.normalize();
+  // Halfway through toWall = smoothstep(0.35, 1.25, reach).
+  const middle = 0.8;
+  const spot = new Vector3();
+  const steps = 160;
+  for (let i = 0; i <= steps; i++) {
+    // Walk the sweep's profile: the flat floor, then the quarter curve up into the wall.
+    const t = (i / steps) * (FLOOR_RADIUS + (CURVE_RADIUS * Math.PI) / 2);
+    let out = t;
+    let height = 0;
+    if (t > FLOOR_RADIUS) {
+      const a = (t - FLOOR_RADIUS) / CURVE_RADIUS;
+      out = FLOOR_RADIUS + CURVE_RADIUS * Math.sin(a);
+      height = CURVE_RADIUS * (1 - Math.cos(a));
+    }
+    spot.set(away.x * out, groundY + height, away.y * out);
+    const fromObject = Math.hypot(spot.x - objectCentre.x, spot.z - objectCentre.z);
+    const reach = (fromObject / objectRadius) * 0.12 + height * 0.08;
+    // Only count spots beyond the ingredient (the sweep is centred on it, give or take).
+    if (reach >= middle && (spot.x - objectCentre.x) * away.x + (spot.z - objectCentre.z) * away.y > 0) {
+      spot.project(camera);
+      if (spot.z > 1 || spot.y < -1 || spot.y > 1) return null;
+      return spot.y * 0.5 + 0.5;
+    }
+  }
+  return null;
+}
 
 export class Background {
   readonly mesh: Mesh<LatheGeometry, ShaderMaterial>;

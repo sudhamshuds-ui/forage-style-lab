@@ -193,7 +193,8 @@ keep code readable with friendly comments.
 - Commands: `npm run dev` (dev server, http://localhost:5173), `npm run build`
   (type-check + production build), `npm test` (Vitest: panel, Randomize, palette rules,
   backdrop layout, every registry form's size, contact, normals and triangle budget, the
-  registry and its rooms, card framing, cluster layout, skin texture, soft light).
+  registry and its rooms, card framing, cluster layout, skin texture, soft light, the room's
+  horizon).
 - In dev, `styleLab.settings`, `styleLab.redraw()` and `styleLab.snapshot()` (paints one
   frame now and returns it as an image URL, handy for side-by-side comparisons) are
   available in the browser console, plus the ingredient checks from board 09:
@@ -414,13 +415,19 @@ them as they cross, the line found from the room itself), not by blurring.
 
 ## Where we left off (2026-11-05, end of the office session)
 Everything is on `main` (Vercel deploys it). Next, in order:
-1. **Horizon strokes** (Playful strokes): the wall's tilted slabs poke into the table as a hard
-   sawtooth (the user's screenshot). Fix the painterly way, not with blur: strokes turn level
-   near the horizon, a stroke crossing from wall to table picks up the colour under it as it
-   goes (wet-in-wet), and the horizon is found from the room itself rather than the fixed
-   `uHorizon` screen line (`paintShader.ts`: `strokeAngle`, `paintLayer`). The same colour
-   pick-up should soften the box-like window light patch. Check every painter, and keep stroke
-   edges crisp everywhere else.
+1. **Horizon strokes**: built on branch `horizon-strokes` (2026-11-05), waiting for the
+   user's review. The horizon is found from the room (`roomHorizonUv` in `background.ts`: the
+   spot straight behind the ingredient where the shader's table-to-wall mix is halfway,
+   projected onto the card each frame; the hidden Horizon setting is only the fallback). In
+   `paintShader.ts`: room strokes lie level in a band around it (`horizonBand`, reaching a
+   little further down onto the table), wall slabs keep their diagonals above it; room strokes
+   follow clear colour edges in the room (`roomEdge`); a stroke whose centre lands on a thin
+   feature (the light's rainbow fringe) loads the room's colour around it instead of painting
+   a block; and room strokes pick up the colour under them toward their ends (wet-in-wet),
+   gently near the horizon and only for clear changes elsewhere. A first try that picked up
+   every small change flattened the wall's slabs into the underpainting: keep the thresholds.
+   Strokes that cannot reach a pixel are skipped before any measuring (cheaper). Checked
+   with all six painters on the apple, strawberries and baguette.
 2. **Steak** (block archetype, board 08's card; read it in Figma first), then chicken drumstick,
    watermelon wedge. Update `docs/ingredients/forage-ingredient/SKILL.md` with each one.
 3. Open question from the user: "the camera still pauses spinning mid transition". CPU frame

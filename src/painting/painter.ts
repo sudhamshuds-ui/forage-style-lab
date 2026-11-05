@@ -33,6 +33,11 @@ export interface PaintFrame {
   pieces: Vector3[];
   /** The ingredient's base colour, reflected into its cast shadow. */
   objectBase: string;
+  /**
+   * Where the room's wall meets its table, as a height on the card (0..1), found from the room
+   * itself (`roomHorizonUv`). Null when it is off the card: the hidden Horizon setting is used.
+   */
+  horizonUv: number | null;
 }
 
 /**
@@ -161,7 +166,7 @@ export class Painter {
     frame: PaintFrame,
     output: WebGLRenderTarget | null = null,
   ): void {
-    this.updateUniforms(settings);
+    this.updateUniforms(settings, frame);
     this.updateGlaze(settings, frame);
     const playful = settings.brush.classic;
 
@@ -196,7 +201,7 @@ export class Painter {
     return (0.012 + (settings.brush.size / 100) * 0.038) * this.size.y;
   }
 
-  private updateUniforms(settings: Settings): void {
+  private updateUniforms(settings: Settings, frame: PaintFrame): void {
     const height = this.size.y;
     const cell = this.strokeCell(settings);
     // The painter scales the backdrop strokes: 50 keeps the tuned size, 0 is tiny (Seurat's dots).
@@ -222,7 +227,7 @@ export class Painter {
     paint.uBrush.value = BRUSHES.indexOf(settings.brush.type);
     paint.uPattern.value = PATTERNS.indexOf(settings.brush.pattern);
     paint.uPatternAmount.value = settings.brush.patternAmount / 100;
-    paint.uHorizon.value = settings.scene.horizon / 100;
+    paint.uHorizon.value = frame.horizonUv ?? settings.scene.horizon / 100;
     paint.uFrame.value = settings.scene.frame ? 1 : 0;
     paint.uFrameColour.value.set(settings.scene.frameColour);
   }

@@ -4,7 +4,7 @@ import { Group, Mesh, Vector2, Vector3 } from 'three';
 import { defaultSettings } from './params';
 import { applyPalette, findPalette } from './palettes';
 import { Stage } from './scene/stage';
-import { Background } from './scene/background';
+import { Background, roomHorizonUv } from './scene/background';
 import { Ground } from './scene/ground';
 import { cameraAzimuth, frameSubject, outlinePoints } from './scene/framing';
 import { StylizedLook } from './shading/stylizedMaterial';
@@ -90,6 +90,7 @@ const paintFrame: PaintFrame = {
   objectRadius: 0.2,
   objectBase: context.objectColours.base,
   pieces: [],
+  horizonUv: null,
 };
 
 /** Switch the room combo to the one the ingredient's colour family suggests (board 04). */
@@ -455,6 +456,8 @@ function updatePaintFrame(): void {
   // In screen heights: the NDC y range is 2 units tall.
   paintFrame.objectRadius = Math.abs(projectedTop.y - projected.y) * 0.5;
   paintFrame.objectBase = context.objectColours.base;
+  // Where the wall meets the table on the card, found from the room (the strokes lie level there).
+  paintFrame.horizonUv = roomHorizonUv(stage.camera, centre, radius, context.groundY);
 
   // Where each piece meets the table, on the card: its contact point and its size on screen.
   paintFrame.pieces = context.contacts.map((spot) => {
