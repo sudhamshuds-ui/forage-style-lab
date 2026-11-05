@@ -223,9 +223,10 @@ export const REGISTRY: IngredientEntry[] = [
       forms: ['whole'],
       scale: 'M',
       size_cm: [6.5, 13.2, 6.5],
-      // The label's parts (wrap to marks) stay listed: the label is switched off for now
+      // `label` is the printed hot sauce label (its artwork in src/shading/labelArt.ts). The
+      // earlier layered label's parts (wrap to marks) stay listed: it is switched off
       // (WITH_LABEL in forms/sauce.ts), not deleted.
-      parts: ['sauce:glow', 'glass@glass', 'collar@crimson', 'cap@crimson', 'wrap@red', 'frame@gold', 'label@paper', 'seal@crimson', 'marks@ink'],
+      parts: ['sauce:glow', 'glass@glass', 'collar@crimson', 'cap@crimson', 'label@chili', 'wrap@red', 'frame@gold', 'panel@paper', 'seal@crimson', 'marks@ink'],
       notes:
         'After the user\'s reference (Figma "sauce ref"). Squat body with a soft square section flaring toward the base (a soft triangle), round shoulders, a tall ridged screw cap narrower at the bottom, a collar ring, a thick glass base, a layered label: red wrap, gold frame, cream panel, red seal, dark brush marks. The first condiment: more to come.',
     },
@@ -234,8 +235,9 @@ export const REGISTRY: IngredientEntry[] = [
     turn: -25,
     skin: NO_SKIN,
     rimGlints: false,
-    // A ridged cap needs more mesh than the contained archetype's simple vessel.
-    budget: [4000, 14000],
+    // A ridged cap and a label wrapped all the way round need more mesh than the contained
+    // archetype's simple vessel.
+    budget: [4000, 16000],
   },
 ];
 

@@ -15,7 +15,9 @@ import { flatEnds, revolve, revolvedPoint, ribs, roundedSquare, wrapSheet } from
  *     (by the collar) and wider at the top,
  *   - a collar ring where the cap meets the neck,
  *   - a thick glass base under the dark sauce,
- *   - (switched off for now, the user 2026-11-05: `WITH_LABEL`) a layered label,
+ *   - a printed hot sauce label wrapped all the way round (`WITH_PRINTED_LABEL`): bold
+ *     hand-lettered words, a flame, a chili and doodled borders, painted by the shader,
+ *   - (switched off, the user 2026-11-05: `WITH_LABEL`) the earlier layered label,
  *     like a little poster: a red wrap round the front, a band at the top with two
  *     gold marks, a cream panel in a gold frame, a small red seal and a few dark
  *     brush marks (abstract, never real lettering).
@@ -27,7 +29,8 @@ import { flatEnds, revolve, revolvedPoint, ribs, roundedSquare, wrapSheet } from
  *   cap         the ridged screw cap
  *   wrap        the label's red wrap round the front and a little round the sides
  *   frame       the gold frame round the panel, and the two gold marks on the top band
- *   label       the cream paper panel
+ *   label       the printed label, wrapped round the body (its artwork is a shader texture)
+ *   panel       the cream paper panel (old layered label, off)
  *   seal        the small red seal on the panel
  *   marks       a few dark brush marks on the panel, like hand lettering
  * The label's layers are open sheets (painted both sides), each a hair above the one below.
@@ -41,14 +44,22 @@ const BODY = 3.25;
  * can come back by setting this to true.
  */
 const WITH_LABEL = false;
+/** The printed hot sauce label (on): wrapped round the body, artwork painted by the shader. */
+const WITH_PRINTED_LABEL = true;
+/** Where the printed label sits on the body (cm), on the straight part below the shoulders. */
+const LABEL_BOTTOM = 1.45;
+const LABEL_TOP = 7.15;
 /** How much taller the bottle is than the first version (cm): everything above the base moves up. */
 const LONGER = 1.2;
 /** The body block: from the table to where the shoulders end. */
 const BODY_TOP = 7.4 + LONGER;
 /** How much narrower the body is at the shoulders than at the base (the soft triangle). */
 const BODY_TAPER = 0.11;
-/** How square the body is from above (2 round, higher boxier). */
-const SQUARENESS = 3.4;
+/**
+ * How square the body is from above (2 round, higher boxier). 6.5: crisp corners with
+ * a small rounded bevel (the user, 2026-11-05: "edges too round, make them sharper").
+ */
+const SQUARENESS = 6.5;
 /** The neck: its radius and where it ends (hidden under the cap). */
 const NECK = 1.5;
 const NECK_TOP = 9.2 + LONGER;
@@ -67,8 +78,8 @@ const GLASS_LIFT = 0.05;
 function bodyRadius(y: number): number {
   if (y <= 0 || y >= NECK_TOP) return 0;
   const t = y / BODY_TOP; // 0 at the table, 1 at the shoulders
-  // Flatter at the bottom (it stands), rounder at the top (the shoulders).
-  const power = y < BODY_TOP / 2 ? 6 : 2.6;
+  // Flat at the bottom with a crisp edge (it stands), square shoulders at the top.
+  const power = y < BODY_TOP / 2 ? 12 : 5;
   const u = Math.abs(2 * t - 1);
   const block = t >= 1 ? 0 : BODY * (1 - u ** power) ** (1 / power);
   // The neck: a short rod with a rounded top, only above the shoulders.
@@ -77,7 +88,7 @@ function bodyRadius(y: number): number {
   const taper = 1 - BODY_TAPER * smoothstep(0, BODY_TOP, y);
   // A soft fillet where shoulder meets neck. Generous on purpose: a tighter bend caught the
   // shader's rim glint as a hard white sliver on the shoulder (the user saw it as a glitch).
-  return smoothMax(block * taper, rod, 2.0);
+  return smoothMax(block * taper, rod, 1.0);
 }
 
 /** The body's cross-section: a soft square low down, easing to round at the neck. */
@@ -110,7 +121,7 @@ export const buildSauce: FormBuilder = ({ state }) => {
   const collar = revolve({
     bottom: COLLAR_BOTTOM,
     top: COLLAR_TOP,
-    radius: (y) => flatEnds(y, COLLAR_BOTTOM, COLLAR_TOP, 1.95, 3),
+    radius: (y) => flatEnds(y, COLLAR_BOTTOM, COLLAR_TOP, 1.95, 6),
     rings: 10,
     segments: 48,
   });
@@ -120,7 +131,7 @@ export const buildSauce: FormBuilder = ({ state }) => {
   const cap = revolve({
     bottom: CAP_BOTTOM,
     top: CAP_TOP,
-    radius: (y) => flatEnds(y, CAP_BOTTOM, CAP_TOP, CAP, 7) * (0.9 + 0.1 * smoothstep(CAP_BOTTOM, CAP_TOP - 0.4, y)),
+    radius: (y) => flatEnds(y, CAP_BOTTOM, CAP_TOP, CAP, 12) * (0.9 + 0.1 * smoothstep(CAP_BOTTOM, CAP_TOP - 0.4, y)),
     section: (angle, y) => 1 + (ribs(angle, 24, 0.035) - 1) * (1 - smoothstep(CAP_TOP - 0.7, CAP_TOP - 0.25, y)),
     rings: 20,
     segments: 96,
@@ -132,6 +143,26 @@ export const buildSauce: FormBuilder = ({ state }) => {
     { role: 'collar', geometry: collar },
     { role: 'cap', geometry: cap },
   ];
+  // The printed label (the user, 2026-11-05: "like hot sauce"): one sheet wrapped all the
+  // way round the body, with its own map so the shader can print the artwork on it
+  // (src/shading/labelArt.ts: hand-lettered words, a flame, a chili, doodled borders).
+  if (WITH_PRINTED_LABEL) {
+    const front = Math.PI / 2;
+    pieces.push({
+      role: 'label',
+      geometry: wrapSheet({
+        surface: onBody,
+        // Once round, starting and ending at the back, so the front is the middle of the map.
+        angles: [front - Math.PI + 0.001, front + Math.PI - 0.001],
+        heights: [LABEL_BOTTOM, LABEL_TOP],
+        lift: 0.04,
+        columns: 112,
+        rows: 10,
+        mapped: true,
+      }),
+      doubleSided: true,
+    });
+  }
   if (WITH_LABEL) pieces.push(...buildLabel());
   return finishPieces(pieces);
 };
@@ -174,7 +205,7 @@ function buildLabel(): FormPiece[] {
   return [
     { role: 'wrap', geometry: wrap, doubleSided: true },
     { role: 'frame', geometry: frame, doubleSided: true },
-    { role: 'label', geometry: label, doubleSided: true },
+    { role: 'panel', geometry: label, doubleSided: true },
     { role: 'seal', geometry: seal, doubleSided: true },
     { role: 'marks', geometry: marks, doubleSided: true },
   ];

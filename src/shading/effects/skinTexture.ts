@@ -1,4 +1,4 @@
-import { Vector4, type ShaderMaterial } from 'three';
+import { Color, Vector4, type ShaderMaterial, type Texture } from 'three';
 import type { ShaderEffect } from '../effect';
 import { UNITS_PER_CM } from '../../ingredients/scale';
 
@@ -41,7 +41,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -60,9 +60,21 @@ export const CRUMB_SKIN: Skin = { kind: 'crumb', size_mm: 3, amount: 1 };
 /** Every leaf and sepal gets this skin automatically (it needs the leaf's own map). */
 export const LEAF_SKIN: Skin = { kind: 'leaf', size_mm: 1, amount: 1 };
 
+/**
+ * A printed label (a piece named `label` with its own map): the label's artwork, a two-tone
+ * stencil from src/shading/labelArt.ts, in cream ink on the label's ground colour. The ink
+ * takes the same light and shadow as the ground, so it looks printed on the bottle.
+ */
+export const LABEL_SKIN: Skin = { kind: 'label', size_mm: 1, amount: 1 };
+
 /** The per-material value this layer reads. Added to every material by StylizedLook. */
 export function skinUniform(): { value: Vector4 } {
   return { value: new Vector4(0, 1, 0, 0) };
+}
+
+/** A label's artwork and ink colour (only label materials use them). Added to every material. */
+export function labelUniforms(): { uLabelMap: { value: Texture | null }; uLabelInk: { value: Color } } {
+  return { uLabelMap: { value: null }, uLabelInk: { value: new Color('#fdf6e6') } };
 }
 
 /** Give one material its skin. */
@@ -77,6 +89,8 @@ export const skinTexture: ShaderEffect = {
   uniforms: {},
   declarations: /* glsl */ `
 uniform vec4 uSkin; // x: kind (see SKIN_KINDS), y: cells per scene unit, z: amount
+uniform sampler2D uLabelMap; // a label's artwork: white = ink, black = the ground
+uniform vec3 uLabelInk;      // the ink colour (cream)
 
 // Distance to the nearest of a scatter of points (one per cell): a cellular
 // pattern, round cells of about one unit.
@@ -194,6 +208,15 @@ if (kind > 0 && amount > 0.0) {
       lab.x += 0.07 * amount;
       lab.yz *= 0.75;
     }
+  } else if (kind == 9) {
+    // Label: the artwork's ink, shaded exactly like the ground under it (the same step in
+    // lightness from the ground's base colour), with a touch of the ground's hue, so the
+    // print turns warm in the light and plum in the shadow along with the label.
+    float ink = texture2D(uLabelMap, vSurfaceUv).r;
+    vec3 inkLab = linearToOklab(uLabelInk);
+    inkLab.x += lab.x - linearToOklab(uBaseColour).x;
+    inkLab.yz = mix(inkLab.yz, lab.yz, 0.12);
+    lab = mix(lab, inkLab, ink * amount);
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

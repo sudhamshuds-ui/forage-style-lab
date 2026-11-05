@@ -87,7 +87,8 @@ keep code readable with friendly comments.
   `pale-green` (broccoli and cauliflower stalks) and `crumb` (pale cream bread crumb), and for
   condiments `sauce` (dark wine-red sauce through glass, a whole-ingredient family) plus the
   part-only `glass` (pale, cool clear glass), `paper` (cream labels), `gold` (printed ochre
-  gold) and `ink` (deep plum lettering, never black). Fine texture (peel pebbling, seeds) belongs to the
+  gold), `ink` (deep plum lettering, never black) and `chili` (a hot sauce label's warm
+  red-orange ground). Fine texture (peel pebbling, seeds) belongs to the
   shader (the registry's `skin`, `src/shading/effects/skinTexture.ts`), never geometry. Small
   parts (stem, calyx, leaf) keep a quiet highlight: one main highlight per object.
   Randomness is seeded from the id. Blender only after two honest
@@ -321,7 +322,16 @@ back, its parts stay listed in the registry), the bottle is 1.2 cm longer (`LONG
 shoulder runs into the neck with a softer fillet, and the bottle **skips rim glints** (registry
 `rimGlints: false`, passed to the shader through `FrameContext.rimGlints`): its narrow neck
 faced the light and caught a glint as a hard white bar, which the user saw as a glitch. Rim
-glints on every other ingredient are unchanged. More condiments to come. Next, one at a
+glints on every other ingredient are unchanged. Then (the user): **sharper edges** (squareness
+6.5, square shoulders, crisp base, cap and collar edges, each with a small bevel) and a
+**printed hot sauce label** in the spirit of the user's reference (a real brand's bottle, so
+our own design, never a copy): one sheet wrapped all the way round the body with its own map
+(`wrapSheet` `mapped`), the artwork drawn in code as a two-tone stencil
+(`src/shading/labelArt.ts`: hand-lettered HOT SAUCE, a flame, a chili, zig-zag and triangle
+borders, small flames round the back), painted by a new skin kind `label` (`LABEL_SKIN`: cream
+ink from the `paper` family on the label's `chili` ground, the ink shaded like the ground).
+Any piece named `label` with a map gets it (`subject.ts`). The old layered label's cream
+panel is now `panel`. More condiments to come. Next, one at a
 time with feedback: cheese wedge, butter, steak,
 chicken drumstick, watermelon wedge (whole forms only; cut forms later).
 

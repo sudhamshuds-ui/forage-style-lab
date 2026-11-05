@@ -33,7 +33,8 @@ export type FamilyId =
   | 'glass'
   | 'paper'
   | 'gold'
-  | 'ink';
+  | 'ink'
+  | 'chili';
 
 export interface ColourFamily {
   name: string;
@@ -133,6 +134,13 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   paper: {
     name: 'Paper',
     colours: { lit: '#fdf6e6', base: '#efe2c6', shadow: '#b99f88', glow: '#f6e5c2', highlight: '#fffbf3' },
+    rooms: [],
+  },
+  // Not a board 04 family: only for parts (a hot sauce label's ground). A warm chili red-orange,
+  // brighter and warmer than the sauce, going to a red wine in shadow.
+  chili: {
+    name: 'Chili',
+    colours: { lit: '#f2875a', base: '#d6532f', shadow: '#8a2f3a', glow: '#f26a3a', highlight: '#fde2d0' },
     rooms: [],
   },
   // Not a board 04 family: only for parts (a label's printed gold). A warm ochre gold, the

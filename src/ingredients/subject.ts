@@ -1,9 +1,10 @@
-import { Box3, Group, Mesh, Sphere, Vector3, type ShaderMaterial } from 'three';
+import { Box3, Color, Group, Mesh, Sphere, Vector3, type ShaderMaterial } from 'three';
 import type { Settings } from '../params';
 import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
 import { mixHex } from '../utils/colour';
-import { CRUMB_SKIN, LEAF_SKIN, setSkin } from '../shading/effects/skinTexture';
+import { CRUMB_SKIN, LABEL_SKIN, LEAF_SKIN, setSkin } from '../shading/effects/skinTexture';
+import { hotSauceLabelTexture } from '../shading/labelArt';
 import { FAMILIES } from './families';
 import { seedFromId, seededRandom } from './forms/kit/random';
 import { LAYOUT_COUNT, arrangeCluster, footprintSpots, samplePoints, transformed } from './layout';
@@ -144,6 +145,12 @@ class FormSubject implements Subject {
         if (index === 0) setSkin(material, entry.skin);
         // Crumb (bread inside a slash) gets the crumb skin: holes, streaks, a toasted rim.
         else if (piece.role === 'crumb') setSkin(material, CRUMB_SKIN);
+        // A printed label (a piece named `label` with its own map): the artwork, in cream ink.
+        else if (piece.role === 'label' && piece.geometry.getAttribute('uv')) {
+          setSkin(material, LABEL_SKIN);
+          material.uniforms.uLabelMap.value = hotSauceLabelTexture();
+          (material.uniforms.uLabelInk.value as Color).set(FAMILIES.paper.colours.lit);
+        }
         // Leaves and sepals (pieces with a leaf map) get the leaf skin: vein, base-to-tip, underside.
         else if (piece.geometry.getAttribute('uv')) setSkin(material, LEAF_SKIN);
         const mesh = new Mesh(piece.geometry, material);

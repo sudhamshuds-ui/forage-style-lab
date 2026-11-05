@@ -101,6 +101,11 @@ export interface SheetOptions {
   rows: number;
   /** Round (an oval) instead of a rectangle: a seal or a dot. */
   round?: boolean;
+  /**
+   * Give the sheet its own map (u across, v up, 0 to 1), so artwork can be painted on it
+   * (a printed label). Only labels: a piece with a map is otherwise treated as a leaf.
+   */
+  mapped?: boolean;
 }
 
 /**
@@ -109,8 +114,9 @@ export interface SheetOptions {
  * along the outward direction.
  */
 export function wrapSheet(options: SheetOptions): BufferGeometry {
-  const { surface, angles, heights, lift, columns, rows, round } = options;
+  const { surface, angles, heights, lift, columns, rows, round, mapped } = options;
   const positions: number[] = [];
+  const uvs: number[] = [];
   for (let j = 0; j <= rows; j++) {
     for (let i = 0; i <= columns; i++) {
       // Across and up, -1 to 1. A round sheet squeezes its square grid into an oval.
@@ -122,6 +128,7 @@ export function wrapSheet(options: SheetOptions): BufferGeometry {
       const [x, , z] = surface(angle, y);
       const out = Math.hypot(x, z) || 1;
       positions.push(x + (x / out) * lift, y, z + (z / out) * lift);
+      uvs.push(i / columns, j / rows);
     }
   }
   const indices: number[] = [];
@@ -134,6 +141,7 @@ export function wrapSheet(options: SheetOptions): BufferGeometry {
   }
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  if (mapped) geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
   geometry.setIndex(indices);
   return geometry;
 }
