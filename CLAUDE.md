@@ -401,7 +401,10 @@ Fixed on `main` (2026-11-05): the painter note ("After Sargent") still showed al
 `SHOW_PAINTER_NAME` is false: its `display: flex` outranked the `hidden` switch, so the CSS
 now says `.painter-note[hidden] { display: none }`. The ingredient guide
 (`docs/ingredients/forage-ingredient/SKILL.md`) is kept in step with the code: families, kit,
-look settings and lessons, updated with each new ingredient.
+look settings and lessons, updated with each new ingredient. The butter (with its scrape and
+curl) merged to `main` the same day. Next on the list: soften the backdrop strokes at the
+horizon the painterly way (level strokes along the line, strokes picking up the colour under
+them as they cross, the line found from the room itself), not by blurring.
 
 ## Planned for later sessions (not built yet)
 Cut forms (slice the whole form and cap the cut), the whole-and-cut layout,
