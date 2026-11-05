@@ -59,6 +59,8 @@ export interface Settings {
     colourBreak: number;
     followForm: number;
     backdrop: number;
+    /** How much the strokes flow in curling currents (Van Gogh). 0 for most painters. */
+    swirl: number;
   };
   paint: {
     brushiness: number;
@@ -182,7 +184,8 @@ export const DEFAULTS: Settings = {
     loose: 38,
     colourBreak: 22,
     followForm: 92,
-    backdrop: 85,
+    backdrop: 78,
+    swirl: 0,
   },
   paint: {
     brushiness: 35,
@@ -353,6 +356,7 @@ export const SPECS: SpecTable = {
     colourBreak: pct('Broken colour', [15, 95], hidden),
     followForm: pct('Follow the form', [10, 100], hidden),
     backdrop: pct('Backdrop stroke size', [15, 95], hidden),
+    swirl: pct('Swirl', [0, 100], hidden),
   },
   paint: {
     brushiness: pct('Brushiness', [15, 70]),

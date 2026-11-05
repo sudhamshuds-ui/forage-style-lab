@@ -20,6 +20,7 @@ import type { Brush, Pattern } from './params';
  *   followForm  100: strokes run along the form's edges and turns;
  *               0: every stroke runs the same diagonal, like hatching
  *   backdrop    how big the strokes on the wall and table are
+ *   swirl       how much strokes flow in curling currents (Van Gogh)
  */
 
 export type Range = [number, number];
@@ -39,6 +40,7 @@ export interface Painter {
   colourBreak: Range;
   followForm: Range;
   backdrop: Range;
+  swirl: Range;
 }
 
 export const PAINTERS: Painter[] = [
@@ -56,7 +58,8 @@ export const PAINTERS: Painter[] = [
     loose: [70, 90],
     colourBreak: [65, 85],
     followForm: [35, 55],
-    backdrop: [22, 36],
+    backdrop: [32, 46],
+    swirl: [0, 0],
   },
   {
     // Paul Cézanne: small, square-ish patches laid in parallel diagonals,
@@ -73,6 +76,7 @@ export const PAINTERS: Painter[] = [
     colourBreak: [50, 70],
     followForm: [10, 25],
     backdrop: [35, 50],
+    swirl: [0, 0],
   },
   {
     // John Singer Sargent: a few broad, confident strokes, wet into wet, each
@@ -88,7 +92,59 @@ export const PAINTERS: Painter[] = [
     loose: [30, 45],
     colourBreak: [15, 30],
     followForm: [85, 100],
-    backdrop: [75, 95],
+    backdrop: [70, 85],
+    swirl: [0, 0],
+  },
+  {
+    // Vincent van Gogh: long, thick, streaky strokes that wrap around the form,
+    // in lively broken colour, with the backdrop flowing in curling currents.
+    id: 'van-gogh',
+    name: 'Van Gogh',
+    note: 'Thick strokes that wrap the form, in a swirling room.',
+    type: 'flat',
+    pattern: 'none',
+    size: [30, 40],
+    length: [75, 95],
+    texture: [55, 75],
+    loose: [25, 40],
+    colourBreak: [55, 75],
+    followForm: [90, 100],
+    backdrop: [30, 40],
+    swirl: [75, 95],
+  },
+  {
+    // Georges Seurat: pointillism. Tiny dots of colour side by side, which mix
+    // in your eye. Everything, room included, is made of dots.
+    id: 'seurat',
+    name: 'Seurat',
+    note: 'Tiny dots of colour that mix in your eye.',
+    type: 'round',
+    pattern: 'none',
+    size: [0, 6],
+    length: [0, 5],
+    texture: [0, 10],
+    loose: [10, 25],
+    colourBreak: [70, 90],
+    followForm: [40, 60],
+    backdrop: [0, 8],
+    swirl: [0, 0],
+  },
+  {
+    // Edgar Degas: soft pastel. Long, thin, dry strokes hatched along the form,
+    // with the paper showing between the streaks.
+    id: 'degas',
+    name: 'Degas',
+    note: 'Soft pastel hatching, with the paper showing through.',
+    type: 'dry',
+    pattern: 'lines',
+    size: [28, 38],
+    length: [80, 100],
+    texture: [60, 80],
+    loose: [30, 45],
+    colourBreak: [35, 55],
+    followForm: [60, 80],
+    backdrop: [45, 60],
+    swirl: [0, 0],
   },
 ];
 

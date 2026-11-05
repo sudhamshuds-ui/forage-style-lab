@@ -41,6 +41,7 @@ uniform float uLength;
 uniform float uLoose;
 uniform float uVariation;
 uniform float uFollowForm;
+uniform float uSwirl;
 uniform float uTexture;
 uniform float uBrush;
 uniform float uPattern;
@@ -187,6 +188,13 @@ float strokeAngle(vec2 centreUv, float onObject, vec4 rnd) {
     // Table: long sweeps, nearly level.
     fallback = (rnd.w - 0.5) * 0.18;
   }
+  // Swirl: strokes flow in slow, curling currents (Van Gogh's skies), from a smooth
+  // noise field, so neighbouring strokes line up into streams.
+  if (uSwirl > 0.0) {
+    vec2 p = centreUv * vec2(uResolution.x / uResolution.y, 1.0) * 1.3;
+    float current = 6.283 * (valueNoise3(vec3(p, 1.7)) * 1.1 + valueNoise3(vec3(p * 2.3, 4.2)) * 0.15);
+    fallback = mixAngle(fallback, current, uSwirl);
+  }
   float formAngle = mixAngle(fallback, edgeAngle, confidence);
   // Hatching: every stroke on the same diagonal (rising to the right), like
   // Cézanne's parallel patches. Follow the form blends between the two.
@@ -198,7 +206,9 @@ float strokeAngle(vec2 centreUv, float onObject, vec4 rnd) {
 // hue and saturation, so neighbouring strokes are different mixes of paint.
 vec3 strokeLab(vec3 picked, vec4 rnd, float onObject) {
   vec3 lab = linearToOklab(picked);
-  float j = uVariation * (onObject > 0.5 ? 0.8 : 0.9);
+  // The backdrop's colour shifts are capped, so even a broken-colour painter (Monet)
+  // keeps a calm room around a lively subject.
+  float j = onObject > 0.5 ? uVariation * 0.8 : min(uVariation, 0.7 + 0.4 * uSwirl) * 0.9;
   lab.x += (rnd.y - 0.5) * 0.06 * j;
   float turn = (rnd.w - 0.5) * 0.4 * j;
   float c = cos(turn);
@@ -254,6 +264,8 @@ vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelRegion
       if (picked.a > 0.75) continue; // never smear the crisp highlights
 
       float angle = strokeAngle(centreUv, onObject, rnd);
+      // In a swirl, backdrop strokes keep close to the current (less random wobble).
+      if (onObject < 0.5 && uSwirl > 0.0) angle = mixAngle(angle, strokeAngle(centreUv, onObject, vec4(rnd.x, 0.5, 0.5, rnd.w)), uSwirl * 0.7);
       vec2 dir = vec2(cos(angle), sin(angle));
       vec2 rel = px - centrePx;
       vec2 local = vec2(dot(rel, dir), dot(rel, vec2(-dir.y, dir.x)));
@@ -262,8 +274,13 @@ vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelRegion
       if (onObject < 0.5) {
         bool wall = centreUv.y > uHorizon;
         // Wall: broad slabs. Table: long, thinner sweeps.
-        halfLen = cell * (wall ? 0.8 : 0.98) * (0.85 + 0.15 * rnd.z);
-        halfWid = cell * (wall ? 0.5 : 0.26) * (0.85 + 0.3 * rnd.w);
+        // Mixed sizes, so the room never reads as a repeating pattern (polka dots).
+        float mixed = 0.65 + 0.7 * place.y;
+        halfLen = min(cell * (wall ? 0.8 : 0.98) * (0.85 + 0.15 * rnd.z) * mixed, cell);
+        halfWid = cell * (wall ? 0.5 : 0.26) * (0.85 + 0.3 * rnd.w) * mixed;
+        // Swirling currents need long, thin strokes to read as streams.
+        halfWid *= mix(1.0, 0.4, uSwirl);
+        halfLen = min(halfLen * mix(1.0, 1.25, uSwirl), cell);
       }
       if (abs(local.x) > halfLen + 2.0 || abs(local.y) > halfWid * 1.2 + 2.0) continue;
 
@@ -271,13 +288,15 @@ vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelRegion
       float pattern = 0.0;
       if (uPattern > 0.5) {
         pattern = patternMask(local, halfWid, rnd);
-        a *= mix(1.0, mix(0.25, 1.0, pattern), uPatternAmount);
+        // Quieter on the backdrop, so the room never turns into wallpaper.
+        float amount = uPatternAmount * (onObject > 0.5 ? 1.0 : 0.35);
+        a *= mix(1.0, mix(0.25, 1.0, pattern), amount);
       }
       if (a < 0.003) continue;
 
       vec3 lab = strokeLab(picked.rgb, rnd, onObject);
       lab.x += (bristles(local.y / halfWid, rnd.x) - 0.5) * 0.08 * uTexture;
-      lab.x -= pattern * 0.05 * uPatternAmount;
+      lab.x -= pattern * 0.05 * uPatternAmount * (onObject > 0.5 ? 1.0 : 0.35);
       vec3 c = max(oklabToLinear(lab), 0.0);
 
       float key = place.w;
@@ -308,10 +327,12 @@ void main() {
   colour = paintLayer(colour, px, uCell, 3.0, region, 2.0, 1.0);
   colour = paintLayer(colour, px, uCell * 0.8, 4.0, region, 2.0, 0.85);
 
-  // 3. Small detail strokes where edges need defining (plane edges, horizon, outline).
+  // 3. Small detail strokes where edges need defining, on the object only. (On the
+  // backdrop they made a pale, speckled halo round the outline: small strokes pick up
+  // a slightly different colour from the big slabs around them.)
   float edges = smoothstep(0.03, 0.1, texture2D(tFlow, vUv).b);
   if (edges > 0.0) {
-    colour = mix(colour, paintLayer(colour, px, uCell * 0.5, 5.0, region, 0.0, 1.0), edges);
+    colour = mix(colour, paintLayer(colour, px, uCell * 0.5, 5.0, region, 2.0, 1.0), edges);
   }
 
   // 4. Right on the object's outline, use the clean render so the silhouette stays smooth.

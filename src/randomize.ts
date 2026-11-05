@@ -40,5 +40,6 @@ export function paintLike(id: string): Partial<Settings['brush']> {
     colourBreak: roll(p.colourBreak),
     followForm: roll(p.followForm),
     backdrop: roll(p.backdrop),
+    swirl: roll(p.swirl),
   };
 }

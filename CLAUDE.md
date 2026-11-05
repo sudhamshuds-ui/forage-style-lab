@@ -34,14 +34,18 @@ keep code readable with friendly comments.
 - **Randomize** (`src/randomize.ts`) picks a **painter** (`src/painters.ts`, always a different
   one from the painter on screen) and rolls each stroke setting inside that painter's ranges,
   so every roll reads as that painter. The painter's name is not shown (the user, 2026-11-04;
-  `SHOW_PAINTER_NAME` in `src/ui/panel.ts` brings back "After {painter}" under the button). Painters so far (chosen 2026-11-04, iconic names people know
-  at a glance): Monet (round, broken dabs of colour, shimmering backdrop), Cézanne (flat,
-  square-ish patches in parallel diagonals), Sargent (broad strokes that follow the form; the
-  default). Each painter sets the brush type, size, length, bristles, pattern, looseness,
-  broken colour, follow the form (100: along the form, 0: one diagonal, like hatching) and
-  backdrop stroke size, all hidden settings in the Brush group. It never touches colours,
-  light, shape or the refined paint sliders. Discussed for later: Van Gogh (strokes that
-  wrap the form), Seurat (dots); Thiebaud the user was unsure about.
+  `SHOW_PAINTER_NAME` in `src/ui/panel.ts` brings back "After {painter}" under the button). Painters (iconic names people know at a glance, chosen
+  2026-11-04/05): Monet (round, broken dabs of colour), Cézanne (flat, square-ish patches in
+  parallel diagonals), Sargent (broad strokes that follow the form; the default), Van Gogh
+  (thick, streaky strokes that wrap the form, a backdrop swirling in currents), Seurat (tiny
+  dots, the room too), Degas (dry pastel hatching with comb lines). Each painter sets the
+  brush type, size, length, bristles, pattern, looseness, broken colour, follow the form
+  (100: along the form, 0: one diagonal, like hatching), backdrop stroke size and swirl, all
+  hidden settings in the Brush group. It never touches colours, light, shape or the refined
+  paint sliders. Thiebaud: the user was unsure, not added. Stroke rules for every painter:
+  edge detail strokes stay on the object (on the backdrop they made a pale halo round the
+  outline); backdrop strokes come in mixed sizes, with capped colour shifts and quieter
+  patterns, so the room stays calm and never reads as polka dots or wallpaper.
 - The ingredient keeps its **own natural colours** (the apple is red; hidden Colour group).
   The user picks a **room combo** (wall, table, ambient and bounce light, cast shadow), not
   individual colours. Randomize never changes colours.

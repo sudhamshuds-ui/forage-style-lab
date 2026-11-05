@@ -93,6 +93,7 @@ export class Painter {
         uLoose: { value: 0.6 },
         uVariation: { value: 0.45 },
         uFollowForm: { value: 1 },
+        uSwirl: { value: 0 },
         uTexture: { value: 0.35 },
         uBrush: { value: 0 },
         uPattern: { value: 0 },
@@ -181,8 +182,8 @@ export class Painter {
   private updateUniforms(settings: Settings): void {
     const height = this.size.y;
     const cell = (0.012 + (settings.brush.size / 100) * 0.038) * height;
-    // The painter scales the backdrop strokes: 50 keeps the tuned size, lower is finer.
-    const backdropScale = 0.4 + (settings.brush.backdrop / 100) * 1.2;
+    // The painter scales the backdrop strokes: 50 keeps the tuned size, 0 is tiny (Seurat's dots).
+    const backdropScale = 0.15 + (settings.brush.backdrop / 100) * 1.7;
     const backdropCell = (0.045 + (settings.scene.backdropStrokes / 100) * 0.085) * height * backdropScale;
 
     const flow = this.flowMaterial.uniforms;
@@ -199,6 +200,7 @@ export class Painter {
     paint.uLoose.value = (settings.brush.loose / 100) * (settings.paint.painterly / 45);
     paint.uVariation.value = (settings.brush.colourBreak / 100) * 1.8 * (settings.paint.variation / 45);
     paint.uFollowForm.value = settings.brush.followForm / 100;
+    paint.uSwirl.value = settings.brush.swirl / 100;
     paint.uTexture.value = settings.brush.texture / 100;
     paint.uBrush.value = BRUSHES.indexOf(settings.brush.type);
     paint.uPattern.value = PATTERNS.indexOf(settings.brush.pattern);

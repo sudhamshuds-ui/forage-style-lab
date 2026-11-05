@@ -65,7 +65,7 @@ describe('Randomize (playful strokes only)', () => {
       const p = findPainter(b.painter);
       expect(b.type).toBe(p.type);
       expect(b.pattern).toBe(p.pattern);
-      for (const key of ['size', 'length', 'texture', 'loose', 'colourBreak', 'followForm', 'backdrop'] as const) {
+      for (const key of ['size', 'length', 'texture', 'loose', 'colourBreak', 'followForm', 'backdrop', 'swirl'] as const) {
         expect(b[key]).toBeGreaterThanOrEqual(p[key][0]);
         expect(b[key]).toBeLessThanOrEqual(p[key][1]);
       }
@@ -76,7 +76,7 @@ describe('Randomize (playful strokes only)', () => {
   it('starts as a real painter, with every default inside that painter\'s ranges', () => {
     const p = findPainter(DEFAULTS.brush.painter);
     expect(p.id).toBe(DEFAULTS.brush.painter);
-    for (const key of ['size', 'length', 'texture', 'loose', 'colourBreak', 'followForm', 'backdrop'] as const) {
+    for (const key of ['size', 'length', 'texture', 'loose', 'colourBreak', 'followForm', 'backdrop', 'swirl'] as const) {
       expect(DEFAULTS.brush[key]).toBeGreaterThanOrEqual(p[key][0]);
       expect(DEFAULTS.brush[key]).toBeLessThanOrEqual(p[key][1]);
     }
