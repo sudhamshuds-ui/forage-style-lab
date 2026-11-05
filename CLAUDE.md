@@ -327,11 +327,10 @@ glints on every other ingredient are unchanged. Then (the user): **sharper edges
 **printed hot sauce label** in the spirit of the user's reference (a real brand's bottle, so
 our own design, never a copy): one sheet wrapped all the way round the body with its own map
 (`wrapSheet` `mapped`), the artwork drawn in code as a two-tone stencil
-(`src/shading/labelArt.ts`: hand-lettered HOT SAUCE with a flame, a small chili under SAUCE
-with a gap, a thin line top and bottom; round the sides and back a composition of big cropped
-shapes, a huge flame with a cut-out across the back, a tilted flame on one side and a sweeping
-chili on the other; the user removed the zig-zag borders, dots and triangles and asked for no
-repeated icons), painted by a new skin kind `label` (`LABEL_SKIN`: cream
+(`src/shading/labelArt.ts`: hand-lettered HOT SAUCE with a flame, a small chili at the bottom
+left of SAUCE with breathing room, a thin line top and bottom; the sides and back plain, the
+user's choice after trying zig-zag borders, dots, triangles, small repeated flames and a
+composition of big cropped flames and a chili), painted by a new skin kind `label` (`LABEL_SKIN`: cream
 ink from the `paper` family on the label's `chili` ground, the ink shaded like the ground).
 Any piece named `label` with a map gets it (`subject.ts`). The label's two ends meet
 exactly at the back (a hair-thin gap showed as a dark line). The label keeps its size as the
