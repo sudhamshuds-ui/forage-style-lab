@@ -468,8 +468,16 @@
   color: #fff;
   font: 500 13px var(--font);
 }
-.randomize-button .tp-btnv_b:hover {
-  background: #36342f;
+.randomize-button .tp-btnv_b {
+  transition: background-color 0.15s ease, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .randomize-button .tp-btnv_b:hover {
+    background: #36342f;
+  }
+}
+.randomize-button .tp-btnv_b:active {
+  transform: scale(0.97);
 }
 
 /* Under Randomize: "After Monet" and one line about the painter's style. */

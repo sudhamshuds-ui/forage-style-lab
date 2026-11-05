@@ -148,7 +148,19 @@ export class Painter {
     this.flowTarget.setSize(Math.max(1, Math.ceil(width / 4)), Math.max(1, Math.ceil(height / 4)));
   }
 
-  render(renderer: WebGLRenderer, scene: Scene, camera: Camera, settings: Settings, frame: PaintFrame): void {
+  /**
+   * Paint one frame. `output` null paints to the screen; a hidden image instead lets the
+   * Shuffle transition keep a still of the finished painting (in linear colour, like the
+   * other hidden images; the transition converts it for the screen).
+   */
+  render(
+    renderer: WebGLRenderer,
+    scene: Scene,
+    camera: Camera,
+    settings: Settings,
+    frame: PaintFrame,
+    output: WebGLRenderTarget | null = null,
+  ): void {
     this.updateUniforms(settings);
     this.updateGlaze(settings, frame);
     const playful = settings.brush.classic;
@@ -168,20 +180,25 @@ export class Painter {
     const glaze = this.glazeMaterial.uniforms;
     glaze.uKeepLabel.value = playful ? 1 : 0;
     if (playful) glaze.uFrame.value = 0; // the strokes draw the frame
-    renderer.setRenderTarget(playful ? this.glazeTarget : null);
+    renderer.setRenderTarget(playful ? this.glazeTarget : output);
     renderer.render(this.paintScene, camera);
 
     // 4. Playful strokes on top of the finished painting.
     if (playful) {
       this.paintMesh.material = this.paintMaterial;
-      renderer.setRenderTarget(null);
+      renderer.setRenderTarget(output);
       renderer.render(this.paintScene, camera);
     }
   }
 
+  /** The size of one stroke cell in device pixels (the Shuffle transition borrows it). */
+  strokeCell(settings: Settings): number {
+    return (0.012 + (settings.brush.size / 100) * 0.038) * this.size.y;
+  }
+
   private updateUniforms(settings: Settings): void {
     const height = this.size.y;
-    const cell = (0.012 + (settings.brush.size / 100) * 0.038) * height;
+    const cell = this.strokeCell(settings);
     // The painter scales the backdrop strokes: 50 keeps the tuned size, 0 is tiny (Seurat's dots).
     const backdropScale = 0.15 + (settings.brush.backdrop / 100) * 1.7;
     const backdropCell = (0.045 + (settings.scene.backdropStrokes / 100) * 0.085) * height * backdropScale;

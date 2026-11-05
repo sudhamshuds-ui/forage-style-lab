@@ -125,8 +125,19 @@ keep code readable with friendly comments.
   piece's footprint (`footprintSpots`): one for a round piece, a row along a long one (the
   baguette), sized to its narrow width, never one big circle; (4) a soft, slightly darker
   crevice where two pieces meet; (5) pieces shade each other with real cast shadows.
-- **Shuffle ingredient** swaps to a random different ingredient with a short fade, frames
-  it, paints it with its family and switches the room to the family's suggested room.
+- **Shuffle ingredient** swaps to a random different ingredient, frames
+  it, paints it with its family and switches the room to the family's suggested room. The
+  swap is a **painted transition** (2026-11-05, the user's idea; `src/painting/transition.ts`
+  and `transitionShader.ts`), 1.6 s, the same in both styles: freeze (the spin stops, the
+  finished painting becomes a still), smudge (0 to 1 s: brush strokes in the painter's stroke
+  size land a few at first then faster, each dragging the paint along its path in a feedback
+  loop, while the old card softly blurs, until the ingredient is unrecognisable), reveal (0.8
+  to 1.6 s: big curved strokes, then smaller ones, paint the next card in with feathered,
+  bristly edges and a wet smear; it arrives soft and sharpens), and the last frame is exactly
+  the live view. Clicks during a swap are ignored; resizing mid-swap jumps to the end; with
+  reduced motion it is a 200 ms opacity fade instead. `styleLab.filmstrip(times?, to?)` (dev)
+  plays it frame by frame at 60 fps and returns stills, for tuning. Buttons press to
+  scale(0.97) and hover only on real pointers (from the `emil-design-eng` skill).
   Reset keeps that room. No physics, no multi-ingredient table on this branch.
 
 ## Tech
@@ -134,6 +145,9 @@ keep code readable with friendly comments.
 - Tweakpane 4 for the panel, re-skinned in `src/ui/panel.css`.
 - Three.js reference skills are installed in `.claude/skills/` (shaders and
   postprocessing are the relevant ones). They target Three r160; this project uses r186.
+  Emil Kowalski's design and animation skills are there too (MIT, added 2026-11-05 at the
+  user's request): `emil-design-eng` (the user asked to use it for UI and motion work),
+  `animate`, `choreograph`, `review-animations` and others.
 - Commands: `npm run dev` (dev server, http://localhost:5173), `npm run build`
   (type-check + production build), `npm test` (Vitest: panel, Randomize, palette rules,
   backdrop layout, every registry form's size, contact, normals and triangle budget, the

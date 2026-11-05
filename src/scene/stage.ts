@@ -51,6 +51,8 @@ export class Stage {
   /** 0..1: how far the idle spin has eased back up to its full speed. */
   private spinRamp = 1;
   private spinSpeed = 0;
+  /** While a transition plays, the scene holds still and this draws each frame instead. */
+  private frozenDraw: ((delta: number) => void) | null = null;
 
   constructor(canvas: HTMLCanvasElement, private readonly frame: HTMLElement) {
     this.renderer = new WebGLRenderer({ canvas, antialias: false });
@@ -163,6 +165,25 @@ export class Stage {
   }
 
   /**
+   * Freeze the view for a transition: the camera and the spin stop, and `draw` paints
+   * every frame (with the seconds since the last one) until `unfreeze`.
+   */
+  freeze(draw: (delta: number) => void): void {
+    this.frozenDraw = draw;
+    this.controls.enabled = false;
+    this.controls.autoRotate = false;
+  }
+
+  /** Back to the live view. The spin eases back in after the usual short wait. */
+  unfreeze(): void {
+    this.frozenDraw = null;
+    this.controls.enabled = true;
+    this.spinResumeIn = SPIN_RESUME;
+    this.spinRamp = 0;
+    this.invalidate();
+  }
+
+  /**
    * Start the loop. Each frame, if anything changed, `update` copies the
    * settings into the scene and `draw` paints the picture.
    */
@@ -172,6 +193,10 @@ export class Stage {
     this.renderer.setAnimationLoop((now) => {
       const delta = Math.min((now - last) / 1000, 0.1);
       last = now;
+      if (this.frozenDraw) {
+        this.frozenDraw(delta);
+        return;
+      }
       // The idle spin turns only while switched on, not while you drag, and not until a
       // few seconds after you let go.
       this.spinResumeIn = Math.max(0, this.spinResumeIn - delta);

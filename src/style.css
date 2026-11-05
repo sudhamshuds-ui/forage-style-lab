@@ -65,16 +65,12 @@ body {
   height: 100%;
   touch-action: none;
   cursor: grab;
-  transition: opacity 0.16s ease;
+  transition: opacity 0.2s ease;
 }
-/* A short soft fade while Shuffle ingredient swaps what is on stage. */
+/* With reduced motion, Shuffle ingredient skips the painted transition and simply
+   fades the card out and back in (opacity only, no movement). */
 .card.is-swapping canvas {
   opacity: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-  .card canvas {
-    transition: none;
-  }
 }
 .card canvas:active {
   cursor: grabbing;
@@ -146,13 +142,17 @@ body {
   color: var(--ink);
   font: 500 13px var(--font);
   cursor: pointer;
-  transition: background-color 0.15s ease, transform 0.08s ease;
+  transition: background-color 0.15s ease, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
 }
-.btn:hover {
-  background: var(--control-hover);
+/* Hover only on devices with a real pointer (a tap must not leave a stuck hover). */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    background: var(--control-hover);
+  }
 }
+/* A small press, so the button feels like it heard you. */
 .btn:active {
-  transform: translateY(1px);
+  transform: scale(0.97);
 }
 .btn:focus-visible {
   outline: 2px solid var(--ink);
@@ -163,8 +163,10 @@ body {
   background: var(--ink);
   color: #fff;
 }
-.btn-primary:hover {
-  background: #36342f;
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    background: #36342f;
+  }
 }
 
 /* Phones and narrow windows: card on top, panel below */

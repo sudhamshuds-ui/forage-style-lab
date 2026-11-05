@@ -14,6 +14,7 @@ import { FAMILIES } from './ingredients/families';
 import { REGISTRY, findIngredient, pickOther, type IngredientEntry } from './ingredients/registry';
 import { createSubject, type Subject } from './ingredients/subject';
 import { Painter, type PaintFrame } from './painting/painter';
+import { ShuffleTransition } from './painting/transition';
 import { createPanel } from './ui/panel';
 import { setupActions } from './ui/actions';
 
@@ -38,9 +39,14 @@ const background = new Background();
 const ground = new Ground();
 const framed = new Group();
 const painter = new Painter();
+const transition = new ShuffleTransition();
+let transitioning = false;
 stage.scene.add(background.mesh, ground.mesh, framed);
 stage.onResize = (width, height) => {
   painter.setSize(width, height);
+  transition.setSize(width, height);
+  // Resizing mid-transition clears its images: jump straight to the live view.
+  if (transitioning) finishTransition();
   needsFraming = true;
 };
 
@@ -116,21 +122,63 @@ function showIngredient(entry: IngredientEntry): void {
   stage.invalidate();
 }
 
-/** Shuffle ingredient: a short soft fade, swap, fade back in. */
-const FADE_MS = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 160;
+/**
+ * Shuffle ingredient. The painting is un-painted (smudged by brush strokes), then the
+ * next card is painted in with big strokes: 1.6 seconds, see painting/transition.ts.
+ * The same in both styles, since it works on the finished painting.
+ *
+ * With reduced motion it is a short fade instead: out, swap, back in.
+ * Clicks during a swap are ignored, so swaps never stack.
+ */
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const FADE_MS = 200;
 let swapping = false;
+
+/** Paint the two stills (the card we leave, the card we arrive at) and get ready. */
+function prepareTransition(next: IngredientEntry): void {
+  // 1. A still of the painting on screen now (exactly what you see).
+  update();
+  painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, transition.stillFrom);
+  const strokeCell = painter.strokeCell(settings);
+  const round = settings.brush.type === 'round' ? 1 : 0;
+  // 2. Build, frame and paint the next ingredient behind the curtain. (Any pause while it
+  //    builds is invisible: the screen still shows the last frame, the same as the still.)
+  showIngredient(next);
+  update();
+  painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, transition.stillTo);
+  transition.begin(strokeCell, round);
+}
+
+function finishTransition(): void {
+  transitioning = false;
+  swapping = false;
+  stage.unfreeze();
+}
+
 document.getElementById('btn-shuffle-ingredient')?.addEventListener('click', () => {
   if (swapping) return;
   swapping = true;
-  card.classList.add('is-swapping');
-  window.setTimeout(() => {
-    showIngredient(pickOther(subject.entry.spec.id));
-    // Wait one painted frame, so the new ingredient is there before the fade back in.
-    requestAnimationFrame(() => {
-      card.classList.remove('is-swapping');
-      swapping = false;
-    });
-  }, FADE_MS);
+  const next = pickOther(subject.entry.spec.id);
+
+  if (reducedMotion.matches) {
+    card.classList.add('is-swapping');
+    window.setTimeout(() => {
+      showIngredient(next);
+      // Wait one painted frame, so the new ingredient is there before the fade back in.
+      requestAnimationFrame(() => {
+        card.classList.remove('is-swapping');
+        swapping = false;
+      });
+    }, FADE_MS);
+    return;
+  }
+
+  prepareTransition(next);
+  // 3. Play the transition; the live view comes back on its last frame.
+  transitioning = true;
+  stage.freeze((delta) => {
+    if (transition.step(stage.renderer, delta)) finishTransition();
+  });
 });
 
 /** Scale and place the framing layer so the subject fills the card's subject zone. */
@@ -229,6 +277,26 @@ if (import.meta.env.DEV) {
         snapshot,
         /** The ingredient on stage now. */
         ingredient: () => subject.entry.spec,
+        /**
+         * Play the Shuffle transition frame by frame at a steady 60 fps (to the next
+         * ingredient, or the one named) and return stills at the given seconds.
+         */
+        filmstrip: (times = [0, 0.25, 0.5, 0.75, 0.95, 1.1, 1.25, 1.4, 1.6], to?: string) => {
+          const next = (to && findIngredient(to)) || pickOther(subject.entry.spec.id);
+          prepareTransition(next);
+          const shots: string[] = [];
+          let done = false;
+          let index = 0;
+          while (!done) {
+            done = transition.step(stage.renderer, 1 / 60);
+            while (index < times.length && transition.elapsed >= times[index] - 1e-6) {
+              shots.push(stage.renderer.domElement.toDataURL('image/png'));
+              index++;
+            }
+          }
+          stage.invalidate();
+          return shots;
+        },
         /** Put an ingredient on stage by id, e.g. styleLab.show('lemon'). */
         show: (id: string) => {
           const entry = findIngredient(id);
