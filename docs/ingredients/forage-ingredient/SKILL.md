@@ -76,6 +76,7 @@ The live values are in `src/ingredients/families.ts` (the source of truth; this 
 | sauce | #cf4a3e | #8e1b2b | #4c1534 | #e8452f | #f8d9d2 | Linen, Heather | hot sauce (off-board) |
 | cheese | #fff1bf | #f3d273 | #c48a45 | #ffbf4a | #fffaf0 | Seafoam, Heather | cheese (off-board; board 08 says Yellow, which read acidic) |
 | butter | #fff7d2 | #f6e092 | #d4b08f | #ffcf66 | #fffdf2 | Heather, Seafoam | butter (off-board; board 08 says Yellow, kept apart from the cheese) |
+| melon | #ff8f86 | #e8474f | #8e2a4f | #ff6a5a | #ffe3df | Seafoam, Sage morning | watermelon flesh (off-board; board 08 says Red, the apple's red is a skin) |
 | pink-raw | #f6a493 | #d4544f | #8c3150 | #ff7a66 | #fbe4dc | Seafoam, Sage morning | |
 
 **Part-only families** (never a whole ingredient, no rooms; a part names one with `@`, e.g. `stem@stalk`):
@@ -106,7 +107,7 @@ Forms are built from a shared kit in `src/ingredients/forms/kit/`. Create a kit 
 | small | strawberry | one master form, seeded variants, `layout.ts` arranges cluster-2 and cluster-3 | cluster-3 | 1k to 3k each |
 | long | baguette | `sweep.ts` (a tube along a curve, optional ribbed section) | solo, on a diagonal | 2k to 5k (baguette has its own 9k) |
 | branching | broccoli | `crown.ts` (blobs blended as a distance field), `surfaceNets.ts` (distance field to clean mesh), `sweep.ts` for stalks | solo | 6k to 18k (raised from 12k for a bumpier crown) |
-| wedge | cheese | `wedge.ts` (a slice of a wheel as a distance field, `roundedIntersection` for bevelled edges), meshed with `surfaceNets`, smoothed with `relaxOnSurface`, rind lifted off with `liftRegion` | solo | 2k to 5k (cheese has its own 10k) |
+| wedge | cheese, watermelon | `wedge.ts` (a slice of a wheel as a distance field, `roundedIntersection` for bevelled edges), meshed with `surfaceNets`, smoothed with `relaxOnSurface`, rind lifted off with `liftRegion` | solo | 2k to 5k (cheese has its own 10k) |
 | contained | hot sauce | `vessel.ts`: `revolve` (a profile spun standing up, with a `roundedSquare` or `ribs` cross-section), `wrapSheet` (a sheet hugging a vessel: labels, rectangles or ovals, `mapped` for printed artwork) | solo | vessel + 1k (sauce has its own 16k) |
 | block | butter (steak next) | `block.ts`: `blockSides` (a box as distances, rounded with `roundedIntersection`, meshed with `surfaceNets` and `relaxOnSurface`), `paperSheet` with `fold` and `crease` for a creased sheet under it; fat, marbling as separate pieces | solo, three-quarter view | 1k to 4k (butter has its own 12k: a meshed block, its curl and its paper) |
 | leafy | (not yet) | a shaped plane with a gentle curl and a little thickness | small pile | 1k to 3k |
@@ -150,6 +151,9 @@ Each registry entry can also carry, beside the spec and builder:
 - **References** are for form: a signed painting or a real brand's pack is never copied.
 - **Small bumps read as damage**: in the painted shading, a little drip or bead becomes a dark notch (a chip). Make a melt or a swelling broad and soft, or leave it out.
 - **Tell the story with the ingredient, not a tool**: a knife's scrape and the curl it took say "butter" at a glance, with no utensil on the card. A small part like the curl is listed in `SMALL_PARTS` (left out of the real size); turn it so its most telling side (the curl's spiral end) faces the camera.
+- **A pair built in the form** (watermelon): when a layout needs something the cluster layout cannot do (a lean), build the members in the form, each resting on the table on its own. Repeat the hero's role for the second body, so both get the skin, the highlight and contact spots.
+- **Rind, band, peel layers**: lift each off the body's own surface by distance (`liftRegion`); the board's "separate shell" is its own layer without a seam.
+- **Flat marks on a face** (seeds): lift them clear of any wobble in the face, or they vanish under it.
 - **Local changes stay local**: a softened corner rounds only the top of that corner; rounding its whole upright edge hid a face of the block.
 - **Anything lying flat on the table** (a paper sheet) must be a prop, or it flickers with the floor.
 - **Keep deformations gentle**: a softened corner reads at about half what first seems needed (the butter's sag went from 1.2 to 0.6 cm). Start small; the user can always ask for more.

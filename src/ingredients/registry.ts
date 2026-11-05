@@ -7,6 +7,7 @@ import { buildBread } from './forms/bread';
 import { buildSauce } from './forms/sauce';
 import { buildCheese } from './forms/cheese';
 import { buildButter } from './forms/butter';
+import { buildWatermelon } from './forms/watermelon';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
@@ -307,6 +308,35 @@ export const REGISTRY: IngredientEntry[] = [
     // Meshed from a distance field (surface nets), plus the curl and a paper sheet with room
     // for creases.
     budget: [2000, 12000],
+  },
+  {
+    spec: {
+      id: 'watermelon',
+      name: 'Watermelon',
+      archetype: 'wedge',
+      // Board 08 says Red; a pinker, wetter melon family keeps it apart from the apple.
+      family: 'melon',
+      // Board 08: a cluster of 2. The pair is built in the form (forms/watermelon.ts), because
+      // the front wedge leans, which the shared cluster layout cannot do.
+      layout: 'solo',
+      show: 'Two triangular wedges, rind down, one leaning. Seeds as flat shapes.',
+      forms: ['whole', 'slice', 'cube', 'ball'],
+      scale: 'L',
+      // The pair as it stands (each wedge about 16 cm from point to rind, 3 cm thick).
+      size_cm: [24, 15.5, 9.8],
+      parts: ['flesh:glow', 'band:glow@pale-green', 'rind@leaf', 'seeds@ink'],
+      light_case: 'cut-juicy',
+      notes:
+        'Board 08: two wedges from a round melon, point up, standing on the curved rind, the front one leaning. Rind is a separate green shell; the pale band between flesh and rind glows. Flat teardrop seeds on the cut faces, deep plum, never black. The whole form is the pair of wedges.',
+    },
+    form: buildWatermelon,
+    turn: 15,
+    // Pale, sparkling flecks in the flesh, like juice catching the light.
+    skin: { kind: 'seeds', size_mm: 1.6, amount: 0.5 },
+    // Half the shadow's violet patches: with all of them the red flesh read magenta.
+    shadowTint: 0.5,
+    // Two meshed slabs with their skins and seeds.
+    budget: [2000, 18000],
   },
 ];
 

@@ -166,7 +166,9 @@ export function arrangeCluster(members: Group[], options: ClusterOptions): void 
  */
 export function samplePoints(member: Group, which: 'body' | 'parts' = 'body', budget = SAMPLES): Vector3[] {
   const meshes = member.children.filter((o): o is Mesh => o instanceof Mesh);
-  const chosen = which === 'body' ? meshes.slice(0, 1) : meshes.slice(1);
+  // The body is the first piece, and any more pieces with its name (the watermelon's two wedges).
+  const isBody = (mesh: Mesh) => mesh === meshes[0] || (mesh.name !== '' && mesh.name === meshes[0].name);
+  const chosen = which === 'body' ? meshes.filter(isBody) : meshes.filter((m) => !isBody(m));
   let total = 0;
   for (const mesh of chosen) total += mesh.geometry.getAttribute('position').count;
   const step = Math.max(1, Math.floor(total / budget));

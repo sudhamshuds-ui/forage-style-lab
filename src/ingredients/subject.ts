@@ -148,10 +148,13 @@ class FormSubject implements Subject {
         const family = partFamilies.get(piece.role);
         const palette = family ? FAMILIES[family].colours : this.palette;
         // One main highlight per object (board 02): small parts keep theirs close to their own colour.
-        const loud = index === 0 && !entry.matte;
+        // A form with two bodies (the watermelon's pair of wedges) repeats the hero's role: each
+        // body gets the hero's highlight and skin.
+        const hero = index === 0 || piece.role === pieces[0].role;
+        const loud = hero && !entry.matte;
         const quiet = loud ? palette : { ...palette, highlight: mixHex(palette.highlight, palette.base, 0.65) };
         this.painted.push({ material, palette: quiet });
-        if (index === 0) setSkin(material, entry.skin);
+        if (hero) setSkin(material, entry.skin);
         // Crumb (bread inside a slash) gets the crumb skin: holes, streaks, a toasted rim.
         else if (piece.role === 'crumb') setSkin(material, CRUMB_SKIN);
         // A printed label (a piece named `label` with its own map): the artwork, in cream ink.
@@ -184,7 +187,17 @@ class FormSubject implements Subject {
     const spotsEach = Math.max(1, Math.floor(MAX_CONTACTS / members.length));
     for (const member of members) {
       member.updateMatrix();
-      const body = transformed(samplePoints(member, 'body', 600), member);
+      let body = transformed(samplePoints(member, 'body', 600), member);
+      // A tall piece (the watermelon's wedges, standing on their rind) only meets the table at its
+      // foot: measured from the whole outline, a leaning wedge put a contact spot on the floor
+      // under its top, where nothing touches. Keep its lowest quarter. Pieces wider than tall (an
+      // apple, a cheese) are measured as before.
+      const box = new Box3().setFromPoints(body);
+      const height = box.max.y - box.min.y;
+      if (height > Math.max(box.max.x - box.min.x, box.max.z - box.min.z) * 0.9) {
+        const foot = body.filter((p) => p.y < box.min.y + height * 0.25);
+        if (foot.length >= 20) body = foot;
+      }
       this.contacts.push(...footprintSpots(body, spotsEach));
     }
 

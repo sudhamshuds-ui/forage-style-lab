@@ -391,8 +391,23 @@ smaller pool; the block 11.4 x 5.5 so it still measures 12 x 6). Its own budget 
 cool-shadow rule (`turnHueTowardCool`) now sends a yellow (within about 30 degrees of yellow)
 always the warm way round, through orange: just past yellow, the long way went through green and
 the butter got lime edges (the lemon is unchanged; a few of the cheese's shadows turn warmer).
-Next, one at a time with feedback: steak, chicken drumstick, watermelon wedge (whole forms only;
-cut forms later).
+The watermelon (2026-11-06, board 08's card, chosen before the steak by the user): two
+triangular wedges from a round melon, point up, standing on the curved rind, the front one
+leaning over toward the back one (turned about its own point, so its rind still rests on the
+table). The pair is built in the form (`forms/watermelon.ts`, layout `solo`), because the
+shared cluster layout cannot lean a piece. Each wedge is a rounded slab from the wedge kit
+(`wedgeDistance`, 16 cm, 3 cm thick, half angle 0.42, rounding 0.75, cell 0.36), meshed with
+surface nets and stood up. "Rind is a separate green shell. Pale band between flesh and rind
+glows": both are skins lifted off the slab's own surface (`liftRegion`, like the cheese rind),
+`rind@leaf` and `band:glow@pale-green`. Seeds: flat teardrops on both cut faces (`seeds@ink`,
+deep plum, never black), lifted clear of the faces' gentle wobble. New whole-ingredient family
+`melon` (a wetter, pinker coral-crimson than the apple's red; rooms Seafoam, Sage morning).
+Skin: pale sparkling flecks (`seeds` at 1.6 mm), shadowTint 0.5 (with all the violet the flesh
+read magenta), budget 18k. Shared changes: a form may repeat its hero's role for a second
+body (the two wedges both get the hero's skin and highlight, `subject.ts`, and both count as
+the body for contact spots, `samplePoints`); a tall piece's contact spots come from its foot
+only (its lowest quarter), or a leaning wedge put a spot under its top.
+Next, one at a time with feedback: steak, chicken drumstick (whole forms only; cut forms later).
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after

@@ -38,7 +38,8 @@ export type FamilyId =
   | 'rind'
   | 'cheese'
   | 'butter'
-  | 'parchment';
+  | 'parchment'
+  | 'melon';
 
 export interface ColourFamily {
   name: string;
@@ -193,6 +194,14 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Parchment',
     colours: { lit: '#fdfbf6', base: '#efebe4', shadow: '#c4bccf', glow: '#f4ecdc', highlight: '#ffffff' },
     rooms: [],
+  },
+  // Not on board 04 yet (added 2026-11-06, the watermelon): board 08 says Red, but the apple's
+  // red is an orange-red skin. Watermelon flesh is wetter and pinker: a coral-crimson, glowing
+  // warm where it is thin, going to a wine-plum in shadow.
+  melon: {
+    name: 'Melon',
+    colours: { lit: '#ff8f86', base: '#e8474f', shadow: '#8e2a4f', glow: '#ff6a5a', highlight: '#ffe3df' },
+    rooms: ['seafoam', 'sage-morning'],
   },
   'pink-raw': {
     name: 'Pink and raw',
