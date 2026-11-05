@@ -105,12 +105,15 @@ float brushShape(vec2 local, float halfLen, float halfWid, vec4 rnd) {
   if (uBrush < 0.5 || uBrush > 2.5) {
     // Flat brush (and dry brush): straight sides, a clean start, and a
     // ragged end where the bristles run out of paint at different points.
-    float b = bristles(v, rnd.x);
     float side = halfWid * (1.0 + (noise1(u * 2.0 + rnd.y * 40.0) - 0.5) * 0.12);
     float a = 1.0 - smoothstep(side - aa, side + aa, abs(local.y));
-    float start = -halfLen * (1.0 - 0.06 * b);
-    float end = halfLen * (1.0 - (0.15 + 0.35 * uLoose) * b);
-    a *= smoothstep(start - aa, start + aa, local.x) * (1.0 - smoothstep(end - 2.0 * aa, end + aa, local.x));
+    // The ragged end: a few soft steps where bristles run out of paint (a smooth,
+    // low-frequency wave across the brush, not fine comb teeth, which flickered
+    // like a saw blade while the view turned).
+    float rag = noise1(v * 2.5 + rnd.x * 57.0);
+    float start = -halfLen * (1.0 - 0.06 * rag);
+    float end = halfLen * (1.0 - (0.12 + 0.28 * uLoose) * rag);
+    a *= smoothstep(start - aa, start + aa, local.x) * (1.0 - smoothstep(end - 3.0 * aa, end + 2.0 * aa, local.x));
     if (uBrush > 2.5) {
       // Dry brush: paint runs out along the stroke, leaving bristle gaps.
       float t = clamp(u * 0.5 + 0.5, 0.0, 1.0);
@@ -282,6 +285,13 @@ vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelRegion
         halfWid *= mix(1.0, 0.4, uSwirl);
         halfLen = min(halfLen * mix(1.0, 1.25, uSwirl), cell);
       }
+      // Keep the whole stroke, even its corners when it is turned, inside the 3 by 3
+      // cells we look at. A stroke that reached further got cut off in a straight
+      // line, and the cut popped in and out while the view turned.
+      float reach = length(vec2(halfLen, halfWid * 1.2)) + 3.0;
+      float fit = min(1.0, cell * 1.1 / reach);
+      halfLen *= fit;
+      halfWid *= fit;
       if (abs(local.x) > halfLen + 2.0 || abs(local.y) > halfWid * 1.2 + 2.0) continue;
 
       float a = brushShape(local, halfLen, halfWid, rnd);
