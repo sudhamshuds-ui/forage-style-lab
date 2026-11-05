@@ -380,7 +380,9 @@ butter knife, which would have brought in metal and a precedent of tools on ever
 knife's scrape across the top (a trough 0.85 cm deep where it runs out over the front edge, so
 it notches the outline, with soft ripples) and the curl it took off, lying on the paper in
 front with its rolled spiral end turned toward the camera (side on, it read as a little log):
-the piece `curl`, a small part like a stem, so left out of the real size. Its own budget (12k). The shader's
+the piece `curl`, a small part like a stem, so left out of the real size. Then (the user, after
+seeing it on main): **the scrape is switched off** ("dont keep this dug up thing on top", the
+top is as before; `WITH_SCRAPE` in `forms/butter.ts` brings it back) and the curl stays. Its own budget (12k). The shader's
 cool-shadow rule (`turnHueTowardCool`) now sends a yellow (within about 30 degrees of yellow)
 always the warm way round, through orange: just past yellow, the long way went through green and
 the butter got lime edges (the lemon is unchanged; a few of the cheese's shadows turn warmer).
@@ -401,8 +403,8 @@ Fixed on `main` (2026-11-05): the painter note ("After Sargent") still showed al
 `SHOW_PAINTER_NAME` is false: its `display: flex` outranked the `hidden` switch, so the CSS
 now says `.painter-note[hidden] { display: none }`. The ingredient guide
 (`docs/ingredients/forage-ingredient/SKILL.md`) is kept in step with the code: families, kit,
-look settings and lessons, updated with each new ingredient. The butter (with its scrape and
-curl) merged to `main` the same day. Next on the list: soften the backdrop strokes at the
+look settings and lessons, updated with each new ingredient. The butter (with its curl; the
+scrape on top switched off) merged to `main` the same day. Next on the list: soften the backdrop strokes at the
 horizon the painterly way (level strokes along the line, strokes picking up the colour under
 them as they cross, the line found from the room itself), not by blurring.
 

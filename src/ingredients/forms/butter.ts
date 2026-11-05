@@ -16,18 +16,17 @@ import { sweepGeometry } from './kit/sweep';
  *   - one top corner (front right, toward the camera) softened in the warmth: it sags,
  *     rounds over and spreads out a little at its foot, into a small pool on the paper,
  *   - two broad melt flows running down from that corner into the pool,
- *   - a knife's scrape across the top, a shallow trough with soft ripples that runs out
- *     over the front edge (a notch in the outline), and the curl it took off lying on
- *     the paper just in front: the classic sign for butter (the user chose it over a knife),
+ *   - a butter curl lying on the paper just in front: the classic sign for butter (the user
+ *     chose it over a knife). The knife's scrape across the top that went with it is
+ *     switched off (`WITH_SCRAPE`, the user, 2026-11-05: keep the top as it was),
  *   - the wrapper it came in, unfolded under it: flat where the block sits, its flaps
  *     rising a little where they were folded up the sides (fold lines parallel to the
  *     block, diagonal creases at the corners where it was tucked), crumpled here and
  *     there, its edges lifting and one corner curling up.
  *
  * Pieces, like layers in a pre-comp (the Style Lab paints each one):
- *   butter  the block, its slump, melt flows, pool and scrape: one piece (surface nets)
- *   curl    the rolled ribbon of butter the knife took off (a small part, like a stem:
- *           left out of the real size)
+ *   butter  the block, its slump, melt flows and pool: one piece (surface nets)
+ *   curl    a rolled ribbon of butter (a small part, like a stem: left out of the real size)
  *   paper   the wrapper under it (a prop: left out of the real size and the card framing)
  */
 
@@ -53,6 +52,11 @@ const SLUMP_ROUND = 1.3;
 const SLUMP_SPREAD = 0.5;
 
 /**
+ * The knife's scrape across the top. Switched off (the user, 2026-11-05: "dont keep this dug up
+ * thing on top"); its code stays, so it can come back by setting this to true.
+ */
+const WITH_SCRAPE = false;
+/**
  * The knife's scrape across the top (cm): from a rounded start at the back, toward the
  * camera and out over the front edge. The blade dips in as it goes, so the trough deepens
  * from `entry` to `depth`; soft ripples across it (the knife's chatter) catch the light.
@@ -69,8 +73,8 @@ const SCRAPE = {
 };
 
 /**
- * The curl: a ribbon of butter rolled up about 1.4 turns, lying on its side on the paper in
- * front of the block, right below where the scrape runs out (cm).
+ * The curl: a ribbon of butter rolled up about 1.5 turns, lying on its side on the paper in
+ * front of the block (cm).
  */
 const CURL = {
   at: { x: -2.9, z: BLOCK.width / 2 + 1.45 },
@@ -217,8 +221,8 @@ export const buildButter: FormBuilder = ({ state, seed }) => {
     const pz = (z - CORNER.z) / 1.15;
     const pool = (Math.hypot(px, y / 0.35, pz) - 1) * 0.35;
     d = smoothMin(d, pool, 0.8);
-    // The knife's scrape: the trough cut out of the top, softly edged.
-    d = smoothMax(d, -scrapeCut(x, y, z, BLOCK.height - SLUMP_SAG * softened(x, z)), SCRAPE.softness);
+    // The knife's scrape (switched off): the trough cut out of the top, softly edged.
+    if (WITH_SCRAPE) d = smoothMax(d, -scrapeCut(x, y, z, BLOCK.height - SLUMP_SAG * softened(x, z)), SCRAPE.softness);
     // Nothing below the table.
     return Math.max(d, -y);
   };
