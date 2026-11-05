@@ -469,6 +469,7 @@ function update(): void {
   context.cameraPosition.copy(stage.camera.position);
   context.cameraRight.setFromMatrixColumn(stage.camera.matrixWorld, 0);
   context.objectColours = subject.colours(settings);
+  context.rimGlints = subject.entry.rimGlints;
 
   look.update(settings, context);
   background.update(settings, context);

@@ -1,10 +1,10 @@
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { smoothMax, smoothstep, ellipse } from './kit/lathe';
-import { finishPieces, type FormBuilder } from './kit/piece';
+import { finishPieces, type FormBuilder, type FormPiece } from './kit/piece';
 import { flatEnds, revolve, revolvedPoint, ribs, roundedSquare, wrapSheet } from './kit/vessel';
 
 /**
- * Sauce (archetype: contained). Spec: 6.5 x 12 x 6.5 cm, standing up.
+ * Sauce (archetype: contained). Spec: 6.5 x 13.2 x 6.5 cm, standing up.
  * After the user's reference (Figma, "sauce ref"): a squat hot sauce bottle.
  *
  * What makes it this bottle, not a jar or a ketchup bottle:
@@ -15,9 +15,10 @@ import { flatEnds, revolve, revolvedPoint, ribs, roundedSquare, wrapSheet } from
  *     (by the collar) and wider at the top,
  *   - a collar ring where the cap meets the neck,
  *   - a thick glass base under the dark sauce,
- *   - a layered label, like a little poster: a red wrap round the front, a band
- *     at the top with two gold marks, a cream panel in a gold frame, a small red
- *     seal and a few dark brush marks (abstract, never real lettering).
+ *   - (switched off for now, the user 2026-11-05: `WITH_LABEL`) a layered label,
+ *     like a little poster: a red wrap round the front, a band at the top with two
+ *     gold marks, a cream panel in a gold frame, a small red seal and a few dark
+ *     brush marks (abstract, never real lettering).
  *
  * Pieces, like layers in a pre-comp (the Style Lab paints each one):
  *   sauce_glow  the bottle full of sauce (the glow name lets light through at thin edges)
@@ -35,19 +36,29 @@ import { flatEnds, revolve, revolvedPoint, ribs, roundedSquare, wrapSheet } from
 
 /** Half the body's width across its flat faces (cm): 6.5 cm wide. */
 const BODY = 3.25;
+/**
+ * The label is switched off (the user, 2026-11-05: a plain bottle). Its code stays, so it
+ * can come back by setting this to true.
+ */
+const WITH_LABEL = false;
+/** How much taller the bottle is than the first version (cm): everything above the base moves up. */
+const LONGER = 1.2;
 /** The body block: from the table to where the shoulders end. */
-const BODY_TOP = 7.4;
+const BODY_TOP = 7.4 + LONGER;
 /** How much narrower the body is at the shoulders than at the base (the soft triangle). */
 const BODY_TAPER = 0.11;
 /** How square the body is from above (2 round, higher boxier). */
 const SQUARENESS = 3.4;
 /** The neck: its radius and where it ends (hidden under the cap). */
 const NECK = 1.5;
-const NECK_TOP = 9.2;
+const NECK_TOP = 9.2 + LONGER;
 /** The cap: radius, bottom and top (the top of the whole bottle). */
 const CAP = 2.35;
-const CAP_BOTTOM = 8.55;
-const CAP_TOP = 12.0;
+const CAP_BOTTOM = 8.55 + LONGER;
+const CAP_TOP = 12.0 + LONGER;
+/** The collar ring under the cap: its bottom and top. */
+const COLLAR_BOTTOM = 8.05 + LONGER;
+const COLLAR_TOP = 8.75 + LONGER;
 /** The glass base: how thick it shows, and how far it stands proud of the sauce. */
 const GLASS_TOP = 1.05;
 const GLASS_LIFT = 0.05;
@@ -61,11 +72,12 @@ function bodyRadius(y: number): number {
   const u = Math.abs(2 * t - 1);
   const block = t >= 1 ? 0 : BODY * (1 - u ** power) ** (1 / power);
   // The neck: a short rod with a rounded top, only above the shoulders.
-  const rod = (y < NECK_TOP - 0.3 ? NECK : ellipse(y - (NECK_TOP - 0.3), 0.3, NECK)) * smoothstep(4.5, 5.5, y);
+  const rod = (y < NECK_TOP - 0.3 ? NECK : ellipse(y - (NECK_TOP - 0.3), 0.3, NECK)) * smoothstep(4.5 + LONGER, 5.5 + LONGER, y);
   // Wide at the base, narrowing toward the shoulders: the soft triangle of the silhouette.
   const taper = 1 - BODY_TAPER * smoothstep(0, BODY_TOP, y);
-  // A soft fillet where shoulder meets neck.
-  return smoothMax(block * taper, rod, 1.1);
+  // A soft fillet where shoulder meets neck. Generous on purpose: a tighter bend caught the
+  // shader's rim glint as a hard white sliver on the shoulder (the user saw it as a glitch).
+  return smoothMax(block * taper, rod, 2.0);
 }
 
 /** The body's cross-section: a soft square low down, easing to round at the neck. */
@@ -95,7 +107,13 @@ export const buildSauce: FormBuilder = ({ state }) => {
   });
 
   // The collar: a thick, soft ring round the neck, just under the cap.
-  const collar = revolve({ bottom: 8.05, top: 8.75, radius: (y) => flatEnds(y, 8.05, 8.75, 1.95, 3), rings: 10, segments: 48 });
+  const collar = revolve({
+    bottom: COLLAR_BOTTOM,
+    top: COLLAR_TOP,
+    radius: (y) => flatEnds(y, COLLAR_BOTTOM, COLLAR_TOP, 1.95, 3),
+    rings: 10,
+    segments: 48,
+  });
 
   // The screw cap: a tall can with rounded edges and vertical ridges, quieter near its top
   // edge. It tapers: narrower at the bottom by the collar, full width at the top.
@@ -108,9 +126,22 @@ export const buildSauce: FormBuilder = ({ state }) => {
     segments: 96,
   });
 
-  // The label, built up in layers on the front face (a quarter turn is the front), each a
-  // hair above the one below, like layers in a comp. `at` places a sheet by its angle
-  // either side of the centre line and its heights.
+  const pieces: FormPiece[] = [
+    { role: 'sauce_glow', geometry: sauce },
+    { role: 'glass', geometry: glass },
+    { role: 'collar', geometry: collar },
+    { role: 'cap', geometry: cap },
+  ];
+  if (WITH_LABEL) pieces.push(...buildLabel());
+  return finishPieces(pieces);
+};
+
+/**
+ * The label (switched off: `WITH_LABEL`), built up in layers on the front face (a quarter
+ * turn is the front), each a hair above the one below, like layers in a comp. `sheet`
+ * places one by its angle either side of the centre line and its heights.
+ */
+function buildLabel(): FormPiece[] {
   const front = Math.PI / 2;
   const sheet = (from: number, to: number, low: number, high: number, lift: number, columns: number, rows: number, round = false) =>
     wrapSheet({ surface: onBody, angles: [front + from, front + to], heights: [low, high], lift, columns, rows, round });
@@ -140,15 +171,11 @@ export const buildSauce: FormBuilder = ({ state }) => {
     sheet(0.15, 0.3, 2.35, 2.55, 0.075, 6, 4, true),
   ]);
 
-  return finishPieces([
-    { role: 'sauce_glow', geometry: sauce },
-    { role: 'glass', geometry: glass },
-    { role: 'collar', geometry: collar },
-    { role: 'cap', geometry: cap },
+  return [
     { role: 'wrap', geometry: wrap, doubleSided: true },
     { role: 'frame', geometry: frame, doubleSided: true },
     { role: 'label', geometry: label, doubleSided: true },
     { role: 'seal', geometry: seal, doubleSided: true },
     { role: 'marks', geometry: marks, doubleSided: true },
-  ]);
-};
+  ];
+}

@@ -69,4 +69,9 @@ export interface FrameContext {
    * for a solo ingredient, one per member for a cluster (up to MAX_CONTACTS).
    */
   contacts: Vector3[];
+  /**
+   * False when the ingredient on stage skips rim glints (its registry `rimGlints`): a narrow
+   * tube facing the light, like a bottle's neck, catches them as a hard white bar.
+   */
+  rimGlints?: boolean;
 }

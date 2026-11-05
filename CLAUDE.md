@@ -306,7 +306,7 @@ dev checks. Family rooms may sit 70 to 180
 degrees from the ingredient (board 04's own pairings, kept by choice). The sauce bottle
 (2026-11-05, the user's idea, before the cheese: "condiments I'm planning to have"; reference in
 Figma, node 81:5 "sauce ref", a painting signed Tikisso: used for the form only), the first
-`contained` ingredient: a squat hot sauce bottle, 6.5 x 12 cm, built with the new vessel kit
+`contained` ingredient: a hot sauce bottle, 6.5 x 13.2 cm, built with the new vessel kit
 (`forms/kit/vessel.ts`: `revolve` a profile standing up, with a `roundedSquare` or `ribs`
 cross-section, and `wrapSheet` for labels, rectangles or ovals), pieces sauce_glow, glass
 base, collar, ridged cap and a layered label; turned -25 so the label faces the light; its own
@@ -315,7 +315,13 @@ soft triangle, 11% narrower at the shoulders), the cap is narrower at the bottom
 and the label is layered like the reference: a red wrap round the front (`wrap@red`), a gold
 frame and two gold marks on the top band (`frame@gold`), a cream panel (`label@paper`), a small
 red seal (`seal@crimson`) and dark brush marks in two columns like lettering (`marks@ink`,
-abstract, never real letters, arranged so they never read as a face). More condiments to come. Next, one at a
+abstract, never real letters, arranged so they never read as a face). Then (same day, the
+user): **the label is switched off** (a plain bottle; `WITH_LABEL` in `forms/sauce.ts` brings it
+back, its parts stay listed in the registry), the bottle is 1.2 cm longer (`LONGER`), the
+shoulder runs into the neck with a softer fillet, and the bottle **skips rim glints** (registry
+`rimGlints: false`, passed to the shader through `FrameContext.rimGlints`): its narrow neck
+faced the light and caught a glint as a hard white bar, which the user saw as a glitch. Rim
+glints on every other ingredient are unchanged. More condiments to come. Next, one at a
 time with feedback: cheese wedge, butter, steak,
 chicken drumstick, watermelon wedge (whole forms only; cut forms later).
 

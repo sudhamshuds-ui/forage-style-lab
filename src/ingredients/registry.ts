@@ -77,6 +77,11 @@ export interface IngredientEntry {
   /** A matte surface (broccoli, bread): the body's highlight stays quiet, like a small part's. */
   matte?: boolean;
   /**
+   * False to skip the shader's rim glints on this ingredient. The sauce bottle's narrow neck
+   * faces the light and caught a glint as a hard white bar (the user saw it as a glitch).
+   */
+  rimGlints?: boolean;
+  /**
    * Its own triangle budget, when the archetype's does not fit (a 22 cm loaf is "round" like an
    * apple, but needs more mesh for its scored crust). Leave it out to use the archetype's.
    */
@@ -214,10 +219,12 @@ export const REGISTRY: IngredientEntry[] = [
       archetype: 'contained',
       family: 'sauce',
       layout: 'solo',
-      show: 'One squat hot sauce bottle standing up, label face turned toward the light.',
+      show: 'One hot sauce bottle standing up, a flat face turned toward the light.',
       forms: ['whole'],
       scale: 'M',
-      size_cm: [6.5, 12, 6.5],
+      size_cm: [6.5, 13.2, 6.5],
+      // The label's parts (wrap to marks) stay listed: the label is switched off for now
+      // (WITH_LABEL in forms/sauce.ts), not deleted.
       parts: ['sauce:glow', 'glass@glass', 'collar@crimson', 'cap@crimson', 'wrap@red', 'frame@gold', 'label@paper', 'seal@crimson', 'marks@ink'],
       notes:
         'After the user\'s reference (Figma "sauce ref"). Squat body with a soft square section flaring toward the base (a soft triangle), round shoulders, a tall ridged screw cap narrower at the bottom, a collar ring, a thick glass base, a layered label: red wrap, gold frame, cream panel, red seal, dark brush marks. The first condiment: more to come.',
@@ -226,6 +233,7 @@ export const REGISTRY: IngredientEntry[] = [
     // The label face turned toward the key light (upper left).
     turn: -25,
     skin: NO_SKIN,
+    rimGlints: false,
     // A ridged cap needs more mesh than the contained archetype's simple vessel.
     budget: [4000, 14000],
   },

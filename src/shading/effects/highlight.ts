@@ -147,6 +147,6 @@ colour = mix(colour, uHighlightColour, highlightMask);
     uniforms.uCameraRight.value.copy(context.cameraRight);
     uniforms.uHighlightShape.value = HIGHLIGHT_SHAPES.indexOf(settings.highlight.shape);
     uniforms.uHighlightSize.value = 0.05 + (settings.highlight.size / 100) * 0.3;
-    uniforms.uRimGlints.value = settings.highlight.rimGlints ? 1 : 0;
+    uniforms.uRimGlints.value = settings.highlight.rimGlints && context.rimGlints !== false ? 1 : 0;
   },
 };
