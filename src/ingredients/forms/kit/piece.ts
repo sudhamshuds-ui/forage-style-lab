@@ -17,6 +17,11 @@ export interface FormPiece {
   geometry: BufferGeometry;
   /** Thin, open pieces (a leaf) are painted on both sides. */
   doubleSided?: boolean;
+  /**
+   * Keep the normals the piece already has (a skin lifted off another piece, like a cheese's
+   * rind), so it shades exactly like the surface under it, with no seam at its edge.
+   */
+  keepNormals?: boolean;
 }
 
 /** Which state to build (`whole`, `half`, ...) and the seed from the ingredient id. */
@@ -46,7 +51,7 @@ export function finishPieces(pieces: FormPiece[]): FormPiece[] {
   const cz = (box.min.z + box.max.z) / 2;
   for (const piece of pieces) {
     piece.geometry.translate(-cx, -box.min.y, -cz);
-    piece.geometry.computeVertexNormals();
+    if (!piece.keepNormals || !piece.geometry.getAttribute('normal')) piece.geometry.computeVertexNormals();
     piece.geometry.computeBoundingBox();
     piece.geometry.computeBoundingSphere();
   }

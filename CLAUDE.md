@@ -340,10 +340,18 @@ bottle grows, centred a little higher. The old layered label's cream panel is no
 ingredient: a new wedge kit (`forms/kit/wedge.ts`: a slice of a wheel as a distance field,
 `roundedIntersection` for soft-bevelled edges, standing on its triangle with the point at the
 origin), holes as round bubbles whose centres sit a little under a face so each opens as a deep
-hole with an overhanging rim and a shadowed inside (shallow dishes read as pale spots), a thin
-`rind` piece along the curved back, both meshed with surface nets and then smoothed with the new
-`relaxOnSurface` (points relaxed toward their neighbours and pulled back onto the surface, so
-long edges at an angle to the grid come out clean, no terracing). The bevel spans about two grid
+hole with an overhanging rim and a shadowed inside (shallow dishes read as pale spots), plus
+round bites centred on the edges (top, bottom, the point) so the outline is never a straight
+line, and a very gentle seeded wobble in the faces (0.07 cm, off the table face). One piece,
+meshed with surface nets and smoothed with the new `relaxOnSurface` (points relaxed toward
+their neighbours and pulled back onto the surface, so long edges at an angle to the grid come
+out clean, no terracing). **The rind is the back of that same surface** (the user: a separate
+rind slab looked like a cushion stuck on the back), lifted off as a thin skin with the new
+`liftRegion` (clipped exactly along a line in the middle of the back bevel, 0.012 cm off the
+surface, keeping the cheese's normals via the piece's `keepNormals`, so it shades with no seam).
+**Shadow tint**: a registry `shadowTint` (0 to 1, through `FrameContext.shadowTint`) scales the
+shadow's violet and pink patches per ingredient; the cheese takes 0.35, or its shadows read as
+pink stains on a pale yellow. Every other ingredient is unchanged. The bevel spans about two grid
 cells (narrower made saw-toothed edges). New families: `cheese` (paler, buttery, warm caramel
 shadow; board 08 says Yellow, the lemon's yellow read acidic) and part-only `rind`. Turned 50 so
 the point comes toward the front left. Its own budget (10k). The form test's "faces point

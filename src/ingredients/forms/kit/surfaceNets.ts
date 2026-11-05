@@ -165,3 +165,61 @@ export function relaxOnSurface(
   position.needsUpdate = true;
   return geometry;
 }
+
+/**
+ * Lift a region of a surface off as a thin skin, like peeling a printed area off a mask:
+ * a cheese's rind is the back of the cheese's own surface, never a separate slab.
+ *
+ * `inside` is positive where the skin should be. Triangles that cross its edge are cut
+ * exactly along it (marching triangles), so the skin's edge is a clean line, not a zigzag
+ * of whole triangles. The skin floats `lift` (cm) off the surface along its normals, and
+ * keeps the surface's own normals, so it shades exactly like what is under it.
+ * The geometry needs its normals computed first.
+ */
+export function liftRegion(geometry: BufferGeometry, inside: (x: number, y: number, z: number) => number, lift: number): BufferGeometry {
+  const position = geometry.getAttribute('position') as BufferAttribute;
+  const normal = geometry.getAttribute('normal') as BufferAttribute;
+  const index = geometry.index!;
+  const out: number[] = [];
+  const outN: number[] = [];
+  type V = { p: [number, number, number]; n: [number, number, number]; f: number };
+  const vertex = (i: number): V => {
+    const p: [number, number, number] = [position.getX(i), position.getY(i), position.getZ(i)];
+    return { p, n: [normal.getX(i), normal.getY(i), normal.getZ(i)], f: inside(p[0], p[1], p[2]) };
+  };
+  // A point on the edge between a (inside) and b (outside), where `inside` is exactly 0.
+  const cross = (a: V, b: V): V => {
+    const t = a.f / (a.f - b.f);
+    const p = a.p.map((v, k) => v + (b.p[k] - v) * t) as [number, number, number];
+    const n = a.n.map((v, k) => v + (b.n[k] - v) * t) as [number, number, number];
+    const l = Math.hypot(n[0], n[1], n[2]) || 1;
+    return { p, n: [n[0] / l, n[1] / l, n[2] / l], f: 0 };
+  };
+  const emit = (...vs: V[]) => {
+    for (const v of vs) {
+      out.push(v.p[0] + v.n[0] * lift, v.p[1] + v.n[1] * lift, v.p[2] + v.n[2] * lift);
+      outN.push(v.n[0], v.n[1], v.n[2]);
+    }
+  };
+  for (let t = 0; t < index.count; t += 3) {
+    const tri = [vertex(index.getX(t)), vertex(index.getX(t + 1)), vertex(index.getX(t + 2))];
+    const ins = tri.map((v) => v.f > 0);
+    const count = ins.filter(Boolean).length;
+    if (count === 0) continue;
+    if (count === 3) {
+      emit(tri[0], tri[1], tri[2]);
+      continue;
+    }
+    // Rotate so the odd one out comes first, keeping the winding (the face direction).
+    const odd = count === 1 ? ins.indexOf(true) : ins.indexOf(false);
+    const [a, b, c] = [tri[odd], tri[(odd + 1) % 3], tri[(odd + 2) % 3]];
+    const ab = cross(a, b);
+    const ac = cross(a, c);
+    if (count === 1) emit(a, ab, ac); // only the corner a is inside
+    else emit(ab, b, c, ab, c, ac); // a is outside: the quad b, c, ac, ab
+  }
+  const skin = new BufferGeometry();
+  skin.setAttribute('position', new BufferAttribute(new Float32Array(out), 3));
+  skin.setAttribute('normal', new BufferAttribute(new Float32Array(outN), 3));
+  return skin;
+}

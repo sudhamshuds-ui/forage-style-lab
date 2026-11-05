@@ -74,4 +74,10 @@ export interface FrameContext {
    * tube facing the light, like a bottle's neck, catches them as a hard white bar.
    */
   rimGlints?: boolean;
+  /**
+   * How much of the shadow's mixed colours (violet and pink patches, the room's cool hue) the
+   * ingredient on stage takes, 0 to 1 (its registry `shadowTint`, default 1). A pale yellow
+   * cheese takes less, or its shadows read as pink stains.
+   */
+  shadowTint?: number;
 }

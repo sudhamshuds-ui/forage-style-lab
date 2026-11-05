@@ -83,6 +83,11 @@ export interface IngredientEntry {
    */
   rimGlints?: boolean;
   /**
+   * How much of the shadow's mixed colours (violet and pink patches) it takes, 0 to 1
+   * (default 1). The cheese takes about a third: on pale yellow they read as pink stains.
+   */
+  shadowTint?: number;
+  /**
    * Its own triangle budget, when the archetype's does not fit (a 22 cm loaf is "round" like an
    * apple, but needs more mesh for its scored crust). Leave it out to use the archetype's.
    */
@@ -262,6 +267,8 @@ export const REGISTRY: IngredientEntry[] = [
     // Tiny pinholes in the paste, very quiet.
     skin: { kind: 'pores', size_mm: 1.6, amount: 0.35 },
     matte: true,
+    // Warm caramel shadows: the violet and pink shadow patches read as stains on a pale cheese.
+    shadowTint: 0.35,
     // Meshed from a distance field (surface nets), so the flat faces need a finer grid
     // than the archetype's extruded wedge to keep the holes round, and the holes' insides
     // add surface.

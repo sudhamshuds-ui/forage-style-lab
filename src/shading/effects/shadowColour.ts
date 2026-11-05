@@ -73,7 +73,7 @@ lab.yz *= 1.0 + 0.25 * contact;
 colour = max(oklabToLinear(lab), 0.0);
 `,
   update(settings, context) {
-    uniforms.uShadowMix.value = settings.lighting.shadowColour / 100;
+    uniforms.uShadowMix.value = (settings.lighting.shadowColour / 100) * (context.shadowTint ?? 1);
     uniforms.uShadowAmbient.value.set(settings.light.ambient);
     uniforms.uShadowBounce.value.set(settings.light.bounce);
     uniforms.uGroundY.value = context.groundY;
