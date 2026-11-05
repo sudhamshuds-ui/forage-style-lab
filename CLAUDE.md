@@ -412,6 +412,24 @@ scrape on top switched off) merged to `main` the same day. Next on the list: sof
 horizon the painterly way (level strokes along the line, strokes picking up the colour under
 them as they cross, the line found from the room itself), not by blurring.
 
+## Where we left off (2026-11-05, end of the office session)
+Everything is on `main` (Vercel deploys it). Next, in order:
+1. **Horizon strokes** (Playful strokes): the wall's tilted slabs poke into the table as a hard
+   sawtooth (the user's screenshot). Fix the painterly way, not with blur: strokes turn level
+   near the horizon, a stroke crossing from wall to table picks up the colour under it as it
+   goes (wet-in-wet), and the horizon is found from the room itself rather than the fixed
+   `uHorizon` screen line (`paintShader.ts`: `strokeAngle`, `paintLayer`). The same colour
+   pick-up should soften the box-like window light patch. Check every painter, and keep stroke
+   edges crisp everywhere else.
+2. **Steak** (block archetype, board 08's card; read it in Figma first), then chicken drumstick,
+   watermelon wedge. Update `docs/ingredients/forage-ingredient/SKILL.md` with each one.
+3. Open question from the user: "the camera still pauses spinning mid transition". CPU frame
+   times measured 1 to 5 ms, so it was not found; ask whether the wall and table keep moving
+   during the pause (a perceptual pause) or everything freezes (a real stall: use `#perf`).
+4. Ask before editing the Figma boards (new families for board 04, kit recipes for 07).
+Workflow the user expects: work on a branch, push it and publish the preview (the private
+claude.ai page "Forage Style Lab"), merge to `main` only when the user says so.
+
 ## Planned for later sessions (not built yet)
 Cut forms (slice the whole form and cap the cut), the whole-and-cut layout,
 the light cases, patterns inside highlights and shadows, sparkles, soft body
