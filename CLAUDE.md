@@ -161,7 +161,8 @@ keep code readable with friendly comments.
   deleted at the swap (deleting GPU resources mid-flight can stall, on Macs especially): it is
   set aside and cleared in an idle moment after the transition (`retired`). **Frame meter**:
   add `#perf` to the page address (works on the published preview too) and press Shuffle;
-  the card shows the longest real frame and where in the transition it happened. `styleLab.filmstrip(times?,
+  the longest real frame and where in the transition it happened go to the browser's
+  console. The on-card readout is hidden (the user; `SHOW_FRAME_METER` in `main.ts`). `styleLab.filmstrip(times?,
   to?)` (dev) plays it frame by frame at 60 fps and returns stills; `styleLab.swapFrameTimes()`
   gives each frame's preparation time in ms, to spot stalls. Buttons press to
   scale(0.97) and hover only on real pointers (from the `emil-design-eng` skill).

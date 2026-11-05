@@ -305,6 +305,11 @@ const swapFrameTimes: number[] = [];
  * catches the graphics chip catching up) and where in the transition it happened.
  */
 const perfMeter = location.hash === '#perf';
+/**
+ * Show the meter's readout on the card. Off (the user, 2026-11-05): with #perf the
+ * result goes to the browser's developer console instead. Set true to see it on the card.
+ */
+const SHOW_FRAME_METER = false;
 let lastFrameAt = 0;
 let longestFrame = { ms: 0, at: 0 };
 
@@ -351,18 +356,21 @@ function finishTransition(): void {
   prepareNext();
 }
 
-/** The frame meter's readout, in the card's corner (only with #perf). */
+/** The frame meter's result (only with #perf): in the console, and on the card if switched on. */
 function showFrameMeter(): void {
+  const where = Math.round(longestFrame.at * 100);
+  const text = `Longest frame: ${Math.round(longestFrame.ms)} ms, at ${where}% (swap at ${Math.round(REVEAL_STARTS * 100)}%)`;
+  longestFrame = { ms: 0, at: 0 };
+  lastFrameAt = 0;
+  console.info(`[Shuffle] ${text}`);
+  if (!SHOW_FRAME_METER) return;
   let readout = document.getElementById('frame-meter');
   if (!readout) {
     readout = document.createElement('p');
     readout.id = 'frame-meter';
     card.appendChild(readout);
   }
-  const where = Math.round(longestFrame.at * 100);
-  readout.textContent = `Longest frame: ${Math.round(longestFrame.ms)} ms, at ${where}% (swap at ${Math.round(REVEAL_STARTS * 100)}%)`;
-  longestFrame = { ms: 0, at: 0 };
-  lastFrameAt = 0;
+  readout.textContent = text;
 }
 
 shuffleButton?.addEventListener('click', () => {
