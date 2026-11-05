@@ -125,7 +125,9 @@ keep code readable with friendly comments.
   (`lightMask` in the shader), so sepals, stems and neighbours shade the fruit. A cast shadow
   drops the surface one tone band (to the middle tone, coloured, never grey); it fades out at
   the light-to-shadow line (no acne). The shadow map is fine (4096) with a small blur
-  (radius 2): a clean edge, never jagged, never a fuzzy fringe.
+  (radius 2): a clean edge, never jagged, never a fuzzy fringe. Shadow bias -0.0008 (was
+  -0.0002 until 2026-11-05: the butter's paper, flat right against the block, caught a row of
+  dark dashes along its foot; the other ingredients look the same).
 - **Shadow rules for several pieces** (cluster now, dishes later; glaze `uPieces`, backdrop
   `uContacts`, up to `MAX_CONTACTS` = 4): (1) one shared shadow shape, never darker where
   shadows overlap; (2) each stretch of shadow belongs to the nearest piece: darkness and
@@ -382,7 +384,9 @@ it notches the outline, with soft ripples) and the curl it took off, lying on th
 front with its rolled spiral end turned toward the camera (side on, it read as a little log):
 the piece `curl`, a small part like a stem, so left out of the real size. Then (the user, after
 seeing it on main): **the scrape is switched off** ("dont keep this dug up thing on top", the
-top is as before; `WITH_SCRAPE` in `forms/butter.ts` brings it back) and the curl stays. Its own budget (12k). The shader's
+top is as before; `WITH_SCRAPE` in `forms/butter.ts` brings it back) and the curl stays. Then
+(the user): **the melt is about half** (sag 0.6, rounding 0.8, spread 0.25, gentler flows, a
+smaller pool; the block 11.4 x 5.5 so it still measures 12 x 6). Its own budget (12k). The shader's
 cool-shadow rule (`turnHueTowardCool`) now sends a yellow (within about 30 degrees of yellow)
 always the warm way round, through orange: just past yellow, the long way went through green and
 the butter got lime edges (the lemon is unchanged; a few of the cheese's shadows turn warmer).

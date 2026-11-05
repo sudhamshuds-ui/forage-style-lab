@@ -152,6 +152,7 @@ Each registry entry can also carry, beside the spec and builder:
 - **Tell the story with the ingredient, not a tool**: a knife's scrape and the curl it took say "butter" at a glance, with no utensil on the card. A small part like the curl is listed in `SMALL_PARTS` (left out of the real size); turn it so its most telling side (the curl's spiral end) faces the camera.
 - **Local changes stay local**: a softened corner rounds only the top of that corner; rounding its whole upright edge hid a face of the block.
 - **Anything lying flat on the table** (a paper sheet) must be a prop, or it flickers with the floor.
+- **Keep deformations gentle**: a softened corner reads at about half what first seems needed (the butter's sag went from 1.2 to 0.6 cm). Start small; the user can always ask for more.
 - **Pale yellows** (butter, cheese, lemon): the shader cools their shadows the warm way, through orange; if a yellow shows lime edges, check that rule (`turnHueTowardCool`) before changing the family.
 
 ## Workflow

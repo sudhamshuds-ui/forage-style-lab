@@ -34,7 +34,7 @@ import { sweepGeometry } from './kit/sweep';
  * The block before it softens (cm). A little under 12 x 6: the slump and the pool at the
  * front right corner spread it out to about 12 x 6.
  */
-const BLOCK: BlockShape = { length: 11.0, height: 4.0, width: 5.3 };
+const BLOCK: BlockShape = { length: 11.4, height: 4.0, width: 5.5 };
 /** How round the edges are (cm): at least two grid cells (CELL), or edges come out saw-toothed. */
 const ROUNDING = 0.6;
 /** The grid size for meshing (cm): smaller is smoother, but heavier. */
@@ -46,10 +46,13 @@ const WOBBLE = 0.06;
 const CORNER = { x: BLOCK.length / 2, z: BLOCK.width / 2 };
 /** How far the softening reaches from the corner (cm). */
 const SLUMP_REACH = 2.6;
-/** How far the corner sags (cm), how much rounder it gets, and how far its foot spreads. */
-const SLUMP_SAG = 1.2;
-const SLUMP_ROUND = 1.3;
-const SLUMP_SPREAD = 0.5;
+/**
+ * How far the corner sags (cm), how much rounder it gets, and how far its foot spreads. About
+ * half what it first was (the user, 2026-11-05: "the deform can be reduced").
+ */
+const SLUMP_SAG = 0.6;
+const SLUMP_ROUND = 0.8;
+const SLUMP_SPREAD = 0.25;
 
 /**
  * The knife's scrape across the top. Switched off (the user, 2026-11-05: "dont keep this dug up
@@ -214,13 +217,13 @@ export const buildButter: FormBuilder = ({ state, seed }) => {
       const line = Math.hypot(across - drip.along, dy);
       // It thickens a little as it runs down, gathering into the pool.
       const run = smoothstep(top, drip.to, y);
-      d -= 0.3 * drip.wide * (0.7 + 0.3 * run) * bump(line, drip.wide) * near;
+      d -= 0.18 * drip.wide * (0.7 + 0.3 * run) * bump(line, drip.wide) * near;
     }
     // The pool at the softened corner's foot: a low, flat lens of butter on the paper.
-    const px = (x - CORNER.x) / 1.5;
-    const pz = (z - CORNER.z) / 1.15;
-    const pool = (Math.hypot(px, y / 0.35, pz) - 1) * 0.35;
-    d = smoothMin(d, pool, 0.8);
+    const px = (x - CORNER.x) / 1.1;
+    const pz = (z - CORNER.z) / 0.85;
+    const pool = (Math.hypot(px, y / 0.3, pz) - 1) * 0.3;
+    d = smoothMin(d, pool, 0.6);
     // The knife's scrape (switched off): the trough cut out of the top, softly edged.
     if (WITH_SCRAPE) d = smoothMax(d, -scrapeCut(x, y, z, BLOCK.height - SLUMP_SAG * softened(x, z)), SCRAPE.softness);
     // Nothing below the table.

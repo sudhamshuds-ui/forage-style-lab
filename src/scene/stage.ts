@@ -98,7 +98,9 @@ export class Stage {
     // A clean edge: the softness of a cast shadow comes from the paint (glaze), not a wide
     // shadow-map blur, which frays the edge into a fuzzy fringe.
     this.keyLight.shadow.radius = 2;
-    this.keyLight.shadow.bias = -0.0002;
+    // -0.0008 (was -0.0002): a sheet lying flat right against a block (the butter's paper)
+    // caught a row of dark dashes along the block's foot. The other ingredients look the same.
+    this.keyLight.shadow.bias = -0.0008;
     // Small biases keep the shadow tucked right under the apple (no gap at the contact).
     this.keyLight.shadow.normalBias = 0.006;
     const shadowCamera = this.keyLight.shadow.camera;
