@@ -487,6 +487,10 @@
   gap: 2px;
   padding: 8px 4px 2px;
 }
+/* The display above outranks the browser's own rule for hidden things, so say it again. */
+.painter-note[hidden] {
+  display: none;
+}
 .painter-name {
   font: 600 13px var(--font);
   color: var(--ink);
