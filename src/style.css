@@ -142,12 +142,30 @@ body {
   color: var(--ink);
   font: 500 13px var(--font);
   cursor: pointer;
-  transition: background-color 0.15s ease, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: background-color 0.15s ease, opacity 0.2s ease, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
 }
 /* Hover only on devices with a real pointer (a tap must not leave a stuck hover). */
 @media (hover: hover) and (pointer: fine) {
   .btn:hover {
     background: var(--control-hover);
+  }
+}
+/* While Shuffle ingredient plays its transition, the button rests (clicks wait). */
+.btn.is-busy {
+  opacity: 0.6;
+  cursor: progress;
+}
+/* The ingredient's name changes with the picture: a quick soft fade and blur. */
+#ingredient-name {
+  transition: opacity 100ms ease, filter 100ms ease;
+}
+#ingredient-name.is-changing {
+  opacity: 0;
+  filter: blur(2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  #ingredient-name.is-changing {
+    filter: none;
   }
 }
 /* A small press, so the button feels like it heard you. */

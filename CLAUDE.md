@@ -128,13 +128,18 @@ keep code readable with friendly comments.
 - **Shuffle ingredient** swaps to a random different ingredient, frames
   it, paints it with its family and switches the room to the family's suggested room. The
   swap is a **painted transition** (2026-11-05, the user's idea; `src/painting/transition.ts`
-  and `transitionShader.ts`), 1.6 s, the same in both styles: freeze (the spin stops, the
-  finished painting becomes a still), smudge (0 to 1 s: brush strokes in the painter's stroke
-  size land a few at first then faster, each dragging the paint along its path in a feedback
-  loop, while the old card softly blurs, until the ingredient is unrecognisable), reveal (0.8
-  to 1.6 s: big curved strokes, then smaller ones, paint the next card in with feathered,
-  bristly edges and a wet smear; it arrives soft and sharpens), and the last frame is exactly
-  the live view. Clicks during a swap are ignored; resizing mid-swap jumps to the end; with
+  and `transitionShader.ts`), **2.4 s** (1.6 s was too fast; `TRANSITION_SECONDS`, every phase
+  is a share of it), the same in both styles: freeze (the spin stops, the finished painting
+  becomes a still), smudge (0 to 55%: big strokes, at least 9% of the card's height, sweep out
+  from the ingredient in a wave, crossing each other, each dragging the paint along its path
+  in a feedback loop, while the old card softly blurs), reveal (45 to 100%: strokes about 11%
+  of the card's height, crossing in three directions, paint the next card in from the middle
+  outward with feathered edges and a wet smear; it arrives soft and sharpens), and the last
+  frame is exactly the live view. Each stroke travels for about half a second with an
+  ease-in-out (movement on screen). The panel's name changes as the reveal begins (a 100 ms
+  fade and blur), and the button looks busy while a swap plays. User feedback that shaped
+  it: smudge strokes were too small, all one way and all at once; reveal strokes were
+  massive, spiky and all one way (audited with the `improve-animations` skill). Clicks during a swap are ignored; resizing mid-swap jumps to the end; with
   reduced motion it is a 200 ms opacity fade instead. `styleLab.filmstrip(times?, to?)` (dev)
   plays it frame by frame at 60 fps and returns stills, for tuning. Buttons press to
   scale(0.97) and hover only on real pointers (from the `emil-design-eng` skill).

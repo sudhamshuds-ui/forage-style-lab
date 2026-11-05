@@ -14,7 +14,7 @@ import { FAMILIES } from './ingredients/families';
 import { REGISTRY, findIngredient, pickOther, type IngredientEntry } from './ingredients/registry';
 import { createSubject, type Subject } from './ingredients/subject';
 import { Painter, type PaintFrame } from './painting/painter';
-import { ShuffleTransition } from './painting/transition';
+import { REVEAL_STARTS, ShuffleTransition } from './painting/transition';
 import { createPanel } from './ui/panel';
 import { setupActions } from './ui/actions';
 
@@ -105,7 +105,7 @@ function applyRoom(entry: IngredientEntry): void {
  * yet. When they are, `entry.spec.light_case` is read here, as small nudges
  * to glow, sheen, room and bounce.
  */
-function showIngredient(entry: IngredientEntry): void {
+function showIngredient(entry: IngredientEntry, nameLater = false): void {
   framed.remove(subject.group);
   subject.dispose();
   subject = createSubject(entry, look);
@@ -115,8 +115,7 @@ function showIngredient(entry: IngredientEntry): void {
 
   applyRoom(entry);
   pane.refresh();
-  const name = document.getElementById('ingredient-name');
-  if (name) name.textContent = entry.spec.name;
+  if (!nameLater) setName(entry.spec.name);
   canvas.setAttribute('aria-label', `3D view of the stylized ${entry.spec.name.toLowerCase()}`);
   stage.resetView();
   stage.invalidate();
@@ -134,6 +133,25 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const FADE_MS = 200;
 let swapping = false;
 
+/** The panel's ingredient name. */
+const nameLabel = document.getElementById('ingredient-name');
+function setName(text: string): void {
+  if (nameLabel) nameLabel.textContent = text;
+}
+
+/**
+ * Change the name with the picture: a quick soft fade out (100 ms), the new name,
+ * and a fade back in, so the panel never names a card that is not on screen yet.
+ */
+function swapName(text: string): void {
+  if (!nameLabel) return;
+  nameLabel.classList.add('is-changing');
+  window.setTimeout(() => {
+    setName(text);
+    nameLabel.classList.remove('is-changing');
+  }, 100);
+}
+
 /** Paint the two stills (the card we leave, the card we arrive at) and get ready. */
 function prepareTransition(next: IngredientEntry): void {
   // 1. A still of the painting on screen now (exactly what you see).
@@ -141,21 +159,32 @@ function prepareTransition(next: IngredientEntry): void {
   painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, transition.stillFrom);
   const strokeCell = painter.strokeCell(settings);
   const round = settings.brush.type === 'round' ? 1 : 0;
+  const fromCentre = paintFrame.objectUv.clone();
   // 2. Build, frame and paint the next ingredient behind the curtain. (Any pause while it
   //    builds is invisible: the screen still shows the last frame, the same as the still.)
-  showIngredient(next);
+  //    Its name waits until the reveal begins.
+  showIngredient(next, true);
   update();
   painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, transition.stillTo);
-  transition.begin(strokeCell, round);
+  transition.begin(strokeCell, round, fromCentre, paintFrame.objectUv);
+}
+
+const shuffleButton = document.getElementById('btn-shuffle-ingredient');
+/** While a swap plays the button looks busy, so an ignored click is never a mystery. */
+function setBusy(busy: boolean): void {
+  shuffleButton?.classList.toggle('is-busy', busy);
+  shuffleButton?.setAttribute('aria-busy', String(busy));
 }
 
 function finishTransition(): void {
   transitioning = false;
   swapping = false;
+  setName(subject.entry.spec.name); // in case the swap was cut short
+  setBusy(false);
   stage.unfreeze();
 }
 
-document.getElementById('btn-shuffle-ingredient')?.addEventListener('click', () => {
+shuffleButton?.addEventListener('click', () => {
   if (swapping) return;
   swapping = true;
   const next = pickOther(subject.entry.spec.id);
@@ -173,11 +202,19 @@ document.getElementById('btn-shuffle-ingredient')?.addEventListener('click', () 
     return;
   }
 
+  setBusy(true);
   prepareTransition(next);
-  // 3. Play the transition; the live view comes back on its last frame.
+  // 3. Play the transition; the name changes as the reveal begins, and the live view
+  //    comes back on the last frame.
   transitioning = true;
+  let named = false;
   stage.freeze((delta) => {
-    if (transition.step(stage.renderer, delta)) finishTransition();
+    const finished = transition.step(stage.renderer, delta);
+    if (!named && transition.progress >= REVEAL_STARTS) {
+      named = true;
+      swapName(next.spec.name);
+    }
+    if (finished) finishTransition();
   });
 });
 
@@ -281,9 +318,10 @@ if (import.meta.env.DEV) {
          * Play the Shuffle transition frame by frame at a steady 60 fps (to the next
          * ingredient, or the one named) and return stills at the given seconds.
          */
-        filmstrip: (times = [0, 0.25, 0.5, 0.75, 0.95, 1.1, 1.25, 1.4, 1.6], to?: string) => {
+        filmstrip: (times = [0, 0.3, 0.6, 0.9, 1.2, 1.5, 1.8, 2.1, 2.4], to?: string) => {
           const next = (to && findIngredient(to)) || pickOther(subject.entry.spec.id);
           prepareTransition(next);
+          setName(next.spec.name);
           const shots: string[] = [];
           let done = false;
           let index = 0;
