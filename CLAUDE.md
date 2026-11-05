@@ -437,6 +437,12 @@ Everything is on `main` (Vercel deploys it). Next, in order:
 Workflow the user expects: work on a branch, push it and publish the preview (the private
 claude.ai page "Forage Style Lab"), merge to `main` only when the user says so.
 
+Horizon follow-up (2026-11-06, the user still saw a block with a toothy top beside the apple):
+room strokes right beside the ingredient followed the soft edge just outside its outline,
+stood upright and carried the wall colour down past the horizon. Now they lie level there
+(`nearObject` in `paintShader.ts`), the wet-in-wet pick-up works all along a stroke (not only at
+its ends), and the level passes along the horizon are slimmer.
+
 ## Planned for later sessions (not built yet)
 Cut forms (slice the whole form and cap the cut), the whole-and-cut layout,
 the light cases, patterns inside highlights and shadows, sparkles, soft body

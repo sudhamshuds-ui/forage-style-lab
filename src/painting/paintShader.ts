@@ -202,6 +202,21 @@ float horizonBand(vec2 uv) {
 // direction the edge runs (xy, as cos/sin of twice the angle, so a line and its reverse
 // agree) scaled by how clear the edge is (0..1). \`around\` is the room's average colour
 // around the spot (OKLab), to spot thin features such as the light's rainbow fringe.
+// How close the ingredient is to a room stroke (1 = right beside it, 0 = clear of it), from
+// eight samples round the stroke's centre, out to about a stroke's length.
+float nearObject(vec2 uv, float reachPx) {
+  float near = 0.0;
+  for (int i = 0; i < 8; i++) {
+    float a = float(i) * 0.7854;
+    for (int k = 1; k <= 2; k++) {
+      vec2 d = vec2(cos(a), sin(a)) * reachPx * float(k) / uResolution;
+      float alpha = texture2D(tColour, clamp(uv + d, vec2(0.001), vec2(0.999))).a;
+      if (alpha >= 0.25) near = max(near, k == 1 ? 1.0 : 0.6);
+    }
+  }
+  return near;
+}
+
 vec2 roomEdge(vec2 uv, float region, float reachPx, out vec3 around) {
   vec2 d = reachPx / uResolution;
   vec4 c = texture2D(tColour, uv);
@@ -337,7 +352,12 @@ vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelRegion
         float thin = smoothstep(0.015, 0.045, length(pickedOk - around));
         picked.rgb = max(oklabToLinear(mix(pickedOk, around, thin * 0.85)), 0.0);
         if (dot(edge, edge) > 1e-6) angle = mixAngle(angle, 0.5 * safeAtan(edge.y, edge.x), length(edge) * 0.8);
-        angle = mixAngle(angle, (rnd.w - 0.5) * 0.12, horizonBand(centreUv) * 0.92);
+        // Right beside the ingredient, the soft edge just outside its outline is not part of the
+        // room: strokes that followed it stood upright and carried the wall's colour straight
+        // down past the horizon, as a block with a toothy top (the user, 2026-11-06). There they
+        // lie level, like the calm passes along the horizon.
+        float near = nearObject(centreUv, cell * 0.6);
+        angle = mixAngle(angle, (rnd.w - 0.5) * 0.12, max(horizonBand(centreUv) * 0.92, near));
       }
       vec2 dir = vec2(cos(angle), sin(angle));
       vec2 rel = px - centrePx;
@@ -352,6 +372,8 @@ vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelRegion
         float mixed = 0.65 + 0.7 * place.y;
         halfLen = min(cell * mix(0.98, 0.8, wall) * (0.85 + 0.15 * rnd.z) * mixed, cell);
         halfWid = cell * mix(0.26, 0.5, wall) * (0.85 + 0.3 * rnd.w) * mixed;
+        // Along the horizon the level passes stay slim, so none carries the wall far down.
+        halfWid *= mix(1.0, 0.6, horizonBand(centreUv));
         // Swirling currents need long, thin strokes to read as streams.
         halfWid *= mix(1.0, 0.4, uSwirl);
         halfLen = min(halfLen * mix(1.0, 1.25, uSwirl), cell);
@@ -391,7 +413,11 @@ vec3 paintLayer(vec3 colour, vec2 px, float cell, float layer, float pixelRegion
         // Along the horizon even a gentle change counts; elsewhere only a clear one (the
         // edge of the window light), so the wall's slabs keep their own shapes.
         float from = mix(0.07, 0.025, horizonBand(centreUv));
-        float wet = smoothstep(from, from + 0.06, differ) * mix(0.3, 0.85, toEnd);
+        // Strongly all along the stroke, not only at its ends: a wide slab that spilled across
+        // the horizon kept its wall colour in its middle, and stacks of them hung down into
+        // the table as a block with a toothy top, worst beside the ingredient where fewer room
+        // strokes overlap (the user, 2026-11-06).
+        float wet = smoothstep(from, from + 0.06, differ) * mix(0.75, 0.95, toEnd);
         lab = mix(lab, hereLab + (lab - pickedLab), wet);
       }
       vec3 c = max(oklabToLinear(lab), 0.0);
