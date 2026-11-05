@@ -168,7 +168,11 @@ keep code readable with friendly comments.
 4. **Playful strokes** (Style switch, `brush.classic`): the glazed painting is kept in a
    hidden image (alpha label preserved) and the stroke pass (`paintShader.ts`) repaints it
    with bold strokes, so the playful look keeps every refined treatment underneath. Strokes
-   stay inside their area: object, cast shadow, or lit backdrop. The detailed brush
+   stay inside their area: object, cast shadow, or lit backdrop. Strokes are screen-based on
+   purpose: strokes pinned to the ingredient's surface (so they turn with it while orbiting)
+   were built and **rejected by the user** (2026-11-05, "the previous version looked more
+   painterly"; reverted, kept in history as commit 1d48d51). The known side effect: while the
+   view turns, single strokes pivot on their own centres. The detailed brush
    controls (type, size, length, bristles, pattern) are hidden.
    The frame (`frame.glsl.ts`) is shared by both and hidden by default.
 - The stage only redraws when something changes (`stage.invalidate()`), or while the
