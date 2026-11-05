@@ -76,7 +76,7 @@ The live values are in `src/ingredients/families.ts` (the source of truth; this 
 | sauce | #cf4a3e | #8e1b2b | #4c1534 | #e8452f | #f8d9d2 | Linen, Heather | hot sauce (off-board) |
 | cheese | #fff1bf | #f3d273 | #c48a45 | #ffbf4a | #fffaf0 | Seafoam, Heather | cheese (off-board; board 08 says Yellow, which read acidic) |
 | butter | #fff7d2 | #f6e092 | #d4b08f | #ffcf66 | #fffdf2 | Heather, Seafoam | butter (off-board; board 08 says Yellow, kept apart from the cheese) |
-| melon | #ff8f86 | #e8474f | #8e2a4f | #ff6a5a | #ffe3df | Seafoam, Sage morning | watermelon flesh (off-board; board 08 says Red, the apple's red is a skin) |
+| melon | #ff8f74 | #e4473d | #962f45 | #ff6e4f | #ffe6dc | Seafoam, Sage morning | watermelon flesh (off-board; board 08 says Red, the apple's red is a skin) |
 | pink-raw | #f6a493 | #d4544f | #8c3150 | #ff7a66 | #fbe4dc | Seafoam, Sage morning | |
 
 **Part-only families** (never a whole ingredient, no rooms; a part names one with `@`, e.g. `stem@stalk`):
@@ -152,6 +152,9 @@ Each registry entry can also carry, beside the spec and builder:
 - **Small bumps read as damage**: in the painted shading, a little drip or bead becomes a dark notch (a chip). Make a melt or a swelling broad and soft, or leave it out.
 - **Tell the story with the ingredient, not a tool**: a knife's scrape and the curl it took say "butter" at a glance, with no utensil on the card. A small part like the curl is listed in `SMALL_PARTS` (left out of the real size); turn it so its most telling side (the curl's spiral end) faces the camera.
 - **A pair built in the form** (watermelon): when a layout needs something the cluster layout cannot do (a lean), build the members in the form, each resting on the table on its own. Repeat the hero's role for the second body, so both get the skin, the highlight and contact spots.
+- **Balance**: every piece must rest the way it really would. A wedge on its curved rind only stands straight up; to lean one, lay it on a flat cut side.
+- **Gradients between layers** (flesh to rind): paint them in the shader from a map on the body (like the `melon` skin), not as separate bands, which give hard edges.
+- **Seeds and dots**: few, irregular, never two above one (a face). Make them small raised beads, not flat stickers.
 - **Rind, band, peel layers**: lift each off the body's own surface by distance (`liftRegion`); the board's "separate shell" is its own layer without a seam.
 - **Flat marks on a face** (seeds): lift them clear of any wobble in the face, or they vanish under it.
 - **Local changes stay local**: a softened corner rounds only the top of that corner; rounding its whole upright edge hid a face of the block.

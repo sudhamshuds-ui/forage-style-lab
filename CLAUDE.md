@@ -411,6 +411,19 @@ read magenta), budget 18k. Shared changes: a form may repeat its hero's role for
 body (the two wedges both get the hero's skin and highlight, `subject.ts`, and both count as
 the body for contact spots, `samplePoints`); a tall piece's contact spots come from its foot
 only (its lowest quarter), or a leaning wedge put a spot under its top.
+Then (the user's notes and a reference painting, 2026-11-06): **balance**: a wedge on its curved
+rind can only rest upright, so the front wedge now lies on a straight cut side (stable) with its
+rind up on the left and its point to the right, and the back one stands upright behind and to the
+right; **thicker** (4 cm); **fewer seeds** (2 or 3 a face, never in a face-like triangle) as
+glossy beads half sunk into the flesh, not flat stickers; **the flesh fades into the rind** as one
+soft gradient painted by a new skin kind `melon` (`skinTexture.ts`, kind 10, from a map on the
+flesh: distance from the melon's centre): red, a creamy pale band (`pale-green` lit), then green
+(`green` base), each shaded like the flesh, with wandering edges; only a thin dark shell
+(`rind@leaf`, 0.32 cm) is a separate piece. The separate `band` piece is gone. **Translucent**: the
+glow colour soaks into the flesh's darker tones; **grain**: faint fibres fanning from the centre,
+mottling, wet crystals and tiny pits; **finer mesh** (cell 0.28, rounding 0.62, budget 30k). The
+melon family is a juicier coral-red (the first read candy-pink), shadowTint 0.3, matte (a glossy
+white streak ran along the edges).
 Next, one at a time with feedback: steak, chicken drumstick (whole forms only; cut forms later).
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):

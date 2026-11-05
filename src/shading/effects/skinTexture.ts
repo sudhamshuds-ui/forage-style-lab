@@ -41,7 +41,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -77,6 +77,14 @@ export function labelUniforms(): { uLabelMap: { value: Texture | null }; uLabelI
   return { uLabelMap: { value: null }, uLabelInk: { value: new Color('#fdf6e6') } };
 }
 
+/**
+ * A melon's rind colours, for the `melon` skin's gradient from flesh to rind: the pale band and
+ * the green. Added to every material; only melon flesh uses them (set in subject.ts).
+ */
+export function melonUniforms(): { uMelonPale: { value: Color }; uMelonGreen: { value: Color } } {
+  return { uMelonPale: { value: new Color('#f3f1c8') }, uMelonGreen: { value: new Color('#7fae55') } };
+}
+
 /** Give one material its skin. */
 export function setSkin(material: ShaderMaterial, skin: Skin): void {
   // Cells per scene unit: 10 mm per cm, then centimetres to scene units.
@@ -91,6 +99,8 @@ export const skinTexture: ShaderEffect = {
 uniform vec4 uSkin; // x: kind (see SKIN_KINDS), y: cells per scene unit, z: amount
 uniform sampler2D uLabelMap; // a label's artwork: white = ink, black = the ground
 uniform vec3 uLabelInk;      // the ink colour (cream)
+uniform vec3 uMelonPale;     // a melon's pale band, between flesh and rind
+uniform vec3 uMelonGreen;    // a melon's green rind
 
 // Distance to the nearest of a scatter of points (one per cell): a cellular
 // pattern, round cells of about one unit.
@@ -217,6 +227,38 @@ if (kind > 0 && amount > 0.0) {
     inkLab.x += lab.x - linearToOklab(uBaseColour).x;
     inkLab.yz = mix(inkLab.yz, lab.yz, 0.12);
     lab = mix(lab, inkLab, ink * amount);
+  } else if (kind == 10) {
+    // Melon flesh (watermelon). Its map: x runs from the melon's centre (0) out to the outside
+    // of the rind (1), y across the slice (-1 to 1).
+    vec2 q = vSurfaceUv;
+    // 1. Translucent: light scatters inside the flesh, so its shadows stay warm and glowing,
+    //    never dull (the glow colour soaks into the darker tones).
+    float inside = (1.0 - tone) * amount;
+    lab = mix(lab, linearToOklab(uGlowColour), inside * 0.38);
+    lab.x += inside * 0.035;
+    // 2. Grain: fibres fanning out from the centre (lighter streaks), soft mottling, and small
+    //    wet crystals catching the light, with tiny pits between them.
+    float fibre = valueNoise3(vec3(q.y * 11.0, q.x * 1.6, 3.0)) - 0.5;
+    lab.x += fibre * 0.035 * show;
+    float mottle = fbm3(p * 0.12) - 0.5;
+    lab = mottle > 0.0 ? shadeOwn(lab, mottle * 0.9 * show) : lab - vec3(mottle * 0.05, 0.0, 0.0);
+    float crystal = 1.0 - smoothstep(0.05, 0.14, skinCells(p));
+    lab.x += crystal * 0.07 * show;
+    lab.yz *= 1.0 - crystal * 0.2 * show;
+    float pit = 1.0 - smoothstep(0.04, 0.1, skinCells(p * 1.7 + 5.0));
+    lab = shadeOwn(lab, pit * 0.35 * show);
+    // 3. Toward the rind, a soft gradient, never a hard band: the flesh pales to a creamy
+    //    band, which greens into the rind. Each colour is shaded like the flesh under it (the
+    //    same step in lightness from the flesh's base), and the edges wander a little.
+    float wander = (valueNoise3(vec3(q.y * 6.0, q.x * 4.0, 7.0)) - 0.5) * 0.035;
+    float t = q.x + wander;
+    float shade = lab.x - linearToOklab(uBaseColour).x;
+    vec3 pale = linearToOklab(uMelonPale);
+    pale.x += shade * 0.8;
+    vec3 green = linearToOklab(uMelonGreen);
+    green.x += shade * 0.8;
+    lab = mix(lab, pale, smoothstep(0.84, 0.91, t));
+    lab = mix(lab, green, smoothstep(0.91, 0.97, t));
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

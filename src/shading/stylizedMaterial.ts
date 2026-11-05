@@ -4,7 +4,7 @@ import { mixHex } from '../utils/colour';
 import type { FrameContext, ShaderEffect } from './effect';
 import { colourGLSL } from './chunks/colour.glsl';
 import { noiseGLSL } from './chunks/noise.glsl';
-import { labelUniforms, skinUniform } from './effects/skinTexture';
+import { labelUniforms, melonUniforms, skinUniform } from './effects/skinTexture';
 
 /**
  * StylizedLook turns a list of ShaderEffects into materials.
@@ -175,6 +175,7 @@ export class StylizedLook {
         uSkin: skinUniform(),
         // A printed label's artwork and ink (only label pieces use them).
         ...labelUniforms(),
+      ...melonUniforms(),
       },
       vertexShader,
       fragmentShader: this.fragmentShader,

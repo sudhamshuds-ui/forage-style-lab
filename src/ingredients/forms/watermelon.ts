@@ -1,4 +1,4 @@
-import { CircleGeometry, Matrix4, Vector3, type BufferGeometry } from 'three';
+import { BufferAttribute, Matrix4, SphereGeometry, Vector3, type BufferGeometry } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { finishPieces, type FormBuilder, type FormPiece } from './kit/piece';
 import { seededRandom } from './kit/random';
@@ -7,58 +7,80 @@ import { wedgeDistance, type WedgeShape } from './kit/wedge';
 
 /**
  * Watermelon (archetype: wedge). Board 08's card: two triangular wedges, rind down, one
- * leaning; "Rind is a separate green shell. Pale band between flesh and rind glows." Black
- * seeds as flat shapes (painted deep plum here: never black). L, an 18 cm wedge.
+ * leaning; "Rind is a separate green shell. Pale band between flesh and rind glows." Seeds
+ * as dark shapes (deep plum here: never black). L, an 18 cm wedge.
  *
- * Each wedge is a slice of a round melon, cut into a triangle: a flat slab (3 cm thick) with
- * its point at the melon's centre and the rind along its curved bottom. It stands on that
- * curve, point up, like on the card.
+ * Each wedge is a slice of a round melon, cut into a triangle: a slab 4 cm thick with its
+ * point at the melon's centre and the rind along its curved side.
  *
- * The pair is built here, in the form, not by the shared cluster layout: the front wedge
- * leans over (turned about its own point, so its rind still rests on the table), the back
- * one stands upright behind it and to the right. The layout cannot lean a piece.
+ * Composition after the user's reference (2026-11-06), and it has to balance:
+ *   - the front wedge lies on one of its straight cut sides (flat on the table, stable), its
+ *     rind standing up on the left and its point to the right, its cut face to the camera,
+ *   - the back wedge stands upright on its rind, point up, behind and to the right. On its
+ *     curved rind it can only rest straight up (leaning, it would roll back), so it does.
+ * The pair is built here, in the form, not by the shared cluster layout, which cannot lay a
+ * piece on its side.
+ *
+ * The flesh's colours, from red through a pale band into the green rind, are one soft
+ * gradient painted by the shader (the `melon` skin), from a map on the flesh: x runs from the
+ * melon's centre (0) to the outside (1). Only the outermost dark skin is a separate shell.
  *
  * Pieces, like layers in a pre-comp (the Style Lab paints each one):
- *   flesh_glow  the red flesh: one closed slab per wedge (the first is the hero)
- *   band_glow   the pale band between flesh and rind, lifted off the slab as a thin skin
- *   rind        the green shell: the curved back and a strip of each face, lifted the same way
- *   seeds       flat teardrop seeds on both cut faces
- * The band and rind are skins lifted off the flesh's own surface (like the cheese's rind), so
- * the slab shades as one piece with no seam, and the board's "separate shell" is its own layer.
+ *   flesh_glow  one closed slab per wedge (the first is the hero; both get its skin)
+ *   rind        the dark green shell: the curved back and a thin edge on each face, lifted
+ *               off the slab's own surface like the cheese's rind, so there is no seam
+ *   seeds       a few glossy seeds, half sunk into the cut faces
  */
 
 /** Grid size for meshing (cm), and how round the slab's edges are (two cells or more). */
-const CELL = 0.36;
-const ROUNDING = 0.75;
+const CELL = 0.28;
+const ROUNDING = 0.62;
 /** The slice (cm): from the point to the outside of the rind, its thickness, half its angle. */
 const RADIUS = 16;
-const THICK = 3;
+const THICK = 4;
 const HALF_ANGLE = 0.42;
-/** How deep the green rind and the pale band reach in from the outside (cm). */
-const RIND = 1.0;
-const BAND = 1.9;
+/** How far in from the outside the dark rind shell reaches (cm). */
+const SHELL = 0.32;
 
-/** How each wedge sits: its lean (radians, about its point), turn, and where it stands (cm). */
+/**
+ * Each wedge: how it is tipped about its point (radians), turned, where its point stands (cm),
+ * its size, and its seeds on the front and back faces (angle across the slice, -1 to 1, and
+ * distance from the centre, a share of the radius). Placed by hand, a loose few, never in
+ * pairs that read as eyes.
+ */
 const WEDGES = [
-  // In front and to the left, leaning over toward the other, its cut face to the camera.
-  { lean: -0.36, turn: 0.12, x: -4.2, z: 2.1, grow: 1.0 },
-  // Behind and to the right, partly hidden by the front one (as on the card), standing up.
-  { lean: 0.05, turn: -0.18, x: 2.2, z: -2.6, grow: 0.94 },
+  {
+    // Lying on its lower cut side: tipped so that side is level (a quarter turn plus the half angle).
+    lean: -(Math.PI / 2 + HALF_ANGLE),
+    turn: -0.12,
+    x: 6.5,
+    z: 2.6,
+    grow: 1.0,
+    // A loose row across the slice: two above one read as a face.
+    seeds: { front: [[-0.42, 0.6], [-0.02, 0.67], [0.38, 0.62]], back: [[0.2, 0.55], [-0.3, 0.66]] },
+  },
+  {
+    // Standing upright on its rind, behind and to the right.
+    lean: 0,
+    turn: 0.22,
+    x: 3.2,
+    z: -3.9,
+    grow: 0.94,
+    seeds: { front: [[0.15, 0.58], [-0.35, 0.68]], back: [[-0.1, 0.62]] },
+  },
 ];
 
-/** A flat teardrop seed (cm), lying in the XZ plane facing up, its tip toward +X. */
-function seedShape(): BufferGeometry {
-  const seed = new CircleGeometry(1, 12);
-  const p = seed.getAttribute('position');
+/** A seed (cm): a glossy teardrop bead lying flat (thin along Y), its tip toward +X. */
+function seedBead(): BufferGeometry {
+  const bead = new SphereGeometry(1, 12, 8);
+  const p = bead.getAttribute('position');
   for (let i = 0; i < p.count; i++) {
-    // Along (x) and across (y) before laying it down: narrower toward the tip.
     const along = p.getX(i);
-    const across = p.getY(i);
-    p.setXY(i, along * 0.42, across * 0.24 * (1 - 0.45 * Math.max(0, along)));
+    const narrow = 1 - 0.45 * Math.max(0, along);
+    p.setXYZ(i, along * 0.5, p.getY(i) * 0.16, p.getZ(i) * 0.3 * narrow);
   }
-  seed.deleteAttribute('uv'); // a map would make it a leaf
-  seed.rotateX(-Math.PI / 2);
-  return seed;
+  bead.deleteAttribute('uv'); // a map would make it a leaf
+  return bead;
 }
 
 export const buildWatermelon: FormBuilder = ({ state, seed }) => {
@@ -66,8 +88,7 @@ export const buildWatermelon: FormBuilder = ({ state, seed }) => {
 
   const random = seededRandom(seed ^ 0x3e10);
   const flesh: BufferGeometry[] = [];
-  const bands: BufferGeometry[] = [];
-  const rinds: BufferGeometry[] = [];
+  const shells: BufferGeometry[] = [];
   const seeds: BufferGeometry[] = [];
 
   for (const place of WEDGES) {
@@ -78,40 +99,47 @@ export const buildWatermelon: FormBuilder = ({ state, seed }) => {
     const slab = (x: number, y: number, z: number) =>
       wedgeDistance(shape, x, y, z) + 0.03 * Math.sin(k[0] * x + k[1] * z + k[2]) * Math.min(1, Math.hypot(x, z) / 3);
 
-    // Mesh it in its own space: standing on its face, the point at the origin, the slice
-    // running along +X to the rind. The grid starts at odd offsets (never on a flat face).
+    // Mesh it in its own space: lying on a face, the point at the origin, the slice running
+    // along +X to the rind. The grid starts at odd offsets (never on a flat face).
     const min = new Vector3(-0.913, -0.617, -R * Math.sin(HALF_ANGLE) - 0.909);
     const max = new Vector3(R + 0.6, THICK + 0.6, R * Math.sin(HALF_ANGLE) + 0.6);
     const mesh = relaxOnSurface(surfaceNets(slab, min, max, CELL), slab, CELL);
     mesh.computeVertexNormals();
 
-    // The pale band and the green rind: skins lifted off the slab's own surface, by how far
-    // each point is from the melon's centre (the slice's point).
-    const reach = (x: number, z: number) => Math.hypot(x, z);
-    const band = liftRegion(mesh, (x, _y, z) => Math.min(reach(x, z) - (R - BAND), R - RIND - reach(x, z)), 0.012);
-    const rind = liftRegion(mesh, (x, _y, z) => reach(x, z) - (R - RIND), 0.012);
+    // The map for the shader's flesh-to-rind gradient: how far out from the melon's centre
+    // (0 to 1), and the angle across the slice (-1 to 1).
+    const pos = mesh.getAttribute('position');
+    const uv = new Float32Array(pos.count * 2);
+    for (let i = 0; i < pos.count; i++) {
+      uv[2 * i] = Math.hypot(pos.getX(i), pos.getZ(i)) / R;
+      uv[2 * i + 1] = Math.atan2(pos.getZ(i), pos.getX(i)) / HALF_ANGLE;
+    }
+    mesh.setAttribute('uv', new BufferAttribute(uv, 2));
 
-    // Seeds: a loose ring of flat teardrops on both cut faces, tips toward the centre.
-    const drops: BufferGeometry[] = [];
-    const count = 5 + Math.floor(random() * 3);
-    // A little off the face, clear of its gentle wobble (at 0.02 the wobble buried them).
-    for (const face of [THICK + 0.09, -0.09]) {
-      for (let i = 0; i < count; i++) {
-        const angle = HALF_ANGLE * 0.75 * (2 * ((i + 0.5 + (random() - 0.5) * 0.5) / count) - 1);
-        const r = R * (0.5 + 0.22 * random());
-        const drop = seedShape();
-        // Face down on the far face (flipped first), then the tip toward the centre, a
-        // little askew.
-        if (face < 0) drop.rotateX(Math.PI);
-        drop.rotateY(Math.PI - angle + (random() - 0.5) * 0.5);
-        drop.translate(Math.cos(angle) * r, face, Math.sin(angle) * r);
-        drops.push(drop);
+    // The dark green shell: the outermost skin, lifted off the slab's own surface.
+    const shell = liftRegion(mesh, (x, _y, z) => Math.hypot(x, z) - (R - SHELL), 0.012);
+
+    // Seeds: a few glossy beads half sunk into each cut face, tips toward the centre.
+    const beads: BufferGeometry[] = [];
+    for (const [faceY, list] of [
+      [THICK, place.seeds.front],
+      [0, place.seeds.back],
+    ] as const) {
+      for (const [across, out] of list) {
+        const angle = across * HALF_ANGLE;
+        const bead = seedBead();
+        // On the far face, flipped to face out.
+        if (faceY === 0) bead.rotateX(Math.PI);
+        bead.rotateY(Math.PI - angle + (random() - 0.5) * 0.5);
+        // Its middle just under the face: the bead stands a little proud, the rest is buried.
+        bead.translate(Math.cos(angle) * R * out, faceY + (faceY === 0 ? 0.05 : -0.05), Math.sin(angle) * R * out);
+        beads.push(bead);
       }
     }
-    const pips = mergeGeometries(drops);
+    const pips = mergeGeometries(beads);
 
-    // Stand it up on its rind, point up, its top face toward the camera (+Z), then lean,
-    // turn and place it. Every layer of this wedge moves together.
+    // Stand it up, its top face toward the camera (+Z), then tip, turn and place it. Every
+    // layer of this wedge moves together.
     const stand = new Matrix4()
       .makeTranslation(place.x, 0, place.z)
       .multiply(new Matrix4().makeRotationY(place.turn))
@@ -119,24 +147,22 @@ export const buildWatermelon: FormBuilder = ({ state, seed }) => {
       .multiply(new Matrix4().makeRotationZ(-Math.PI / 2))
       .multiply(new Matrix4().makeRotationX(Math.PI / 2))
       .multiply(new Matrix4().makeTranslation(0, -THICK / 2, 0));
-    const layers = [mesh, band, rind, pips];
+    const layers = [mesh, shell, pips];
     for (const g of layers) g.applyMatrix4(stand);
-    // Each wedge rests on the table on its own rind.
+    // Each wedge rests on the table on its own.
     mesh.computeBoundingBox();
     const lift = -mesh.boundingBox!.min.y;
     for (const g of layers) g.translate(0, lift, 0);
 
     flesh.push(mesh);
-    bands.push(band);
-    rinds.push(rind);
+    shells.push(shell);
     seeds.push(pips);
   }
 
   const pieces: FormPiece[] = [
     ...flesh.map((geometry) => ({ role: 'flesh_glow', geometry })),
-    { role: 'band_glow', geometry: mergeGeometries(bands), doubleSided: true, keepNormals: true },
-    { role: 'rind', geometry: mergeGeometries(rinds), doubleSided: true, keepNormals: true },
-    { role: 'seeds', geometry: mergeGeometries(seeds), doubleSided: true },
+    { role: 'rind', geometry: mergeGeometries(shells), doubleSided: true, keepNormals: true },
+    { role: 'seeds', geometry: mergeGeometries(seeds) },
   ];
   return finishPieces(pieces);
 };

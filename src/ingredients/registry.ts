@@ -323,20 +323,24 @@ export const REGISTRY: IngredientEntry[] = [
       forms: ['whole', 'slice', 'cube', 'ball'],
       scale: 'L',
       // The pair as it stands (each wedge about 16 cm from point to rind, 3 cm thick).
-      size_cm: [24, 15.5, 9.8],
-      parts: ['flesh:glow', 'band:glow@pale-green', 'rind@leaf', 'seeds@ink'],
+      size_cm: [18.9, 14.6, 11.4],
+      // The pale band is part of the flesh's gradient (the `melon` skin), not a piece.
+      parts: ['flesh:glow', 'rind@leaf', 'seeds@ink'],
       light_case: 'cut-juicy',
       notes:
-        'Board 08: two wedges from a round melon, point up, standing on the curved rind, the front one leaning. Rind is a separate green shell; the pale band between flesh and rind glows. Flat teardrop seeds on the cut faces, deep plum, never black. The whole form is the pair of wedges.',
+        'Board 08: two wedges from a round melon, point up, standing on the curved rind, the front one leaning. Rind is a separate green shell; the flesh fades through a pale band into it. A few glossy seeds half sunk into the cut faces, deep plum, never black. The whole form is the pair of wedges: one lying on a cut side, one standing on its rind.',
     },
     form: buildWatermelon,
     turn: 15,
-    // Pale, sparkling flecks in the flesh, like juice catching the light.
-    skin: { kind: 'seeds', size_mm: 1.6, amount: 0.5 },
-    // Half the shadow's violet patches: with all of them the red flesh read magenta.
-    shadowTint: 0.5,
-    // Two meshed slabs with their skins and seeds.
-    budget: [2000, 18000],
+    // The flesh: translucent, grainy, streaked from the centre, fading through a pale band into
+    // the green rind (skinTexture.ts, kind melon).
+    skin: { kind: 'melon', size_mm: 2.2, amount: 0.8 },
+    // A third of the shadow's violet patches: with more, the red flesh read magenta.
+    shadowTint: 0.3,
+    // A soft, juicy sheen, not a glossy white streak along the edges.
+    matte: true,
+    // Two finely meshed slabs (so their edges stay smooth), their shells and seeds.
+    budget: [2000, 30000],
   },
 ];
 

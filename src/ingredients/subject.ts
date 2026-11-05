@@ -154,7 +154,14 @@ class FormSubject implements Subject {
         const loud = hero && !entry.matte;
         const quiet = loud ? palette : { ...palette, highlight: mixHex(palette.highlight, palette.base, 0.65) };
         this.painted.push({ material, palette: quiet });
-        if (hero) setSkin(material, entry.skin);
+        if (hero) {
+          setSkin(material, entry.skin);
+          // Melon flesh fades into its rind: the pale band and the green come from the families.
+          if (entry.skin.kind === 'melon') {
+            (material.uniforms.uMelonPale.value as Color).set(FAMILIES['pale-green'].colours.lit);
+            (material.uniforms.uMelonGreen.value as Color).set(FAMILIES.green.colours.base);
+          }
+        }
         // Crumb (bread inside a slash) gets the crumb skin: holes, streaks, a toasted rim.
         else if (piece.role === 'crumb') setSkin(material, CRUMB_SKIN);
         // A printed label (a piece named `label` with its own map): the artwork, in cream ink.
