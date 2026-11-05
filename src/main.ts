@@ -107,10 +107,14 @@ function applyRoom(entry: IngredientEntry): void {
  */
 function showIngredient(
   entry: IngredientEntry,
-  options: { nameLater?: boolean; keepView?: boolean; built?: Subject } = {},
+  options: { nameLater?: boolean; keepView?: boolean; built?: Subject; disposeLater?: boolean } = {},
 ): void {
   framed.remove(subject.group);
-  subject.dispose();
+  // Mid-transition, the old ingredient is only set aside: deleting its shapes and
+  // materials can make the graphics chip stop and catch up (on Macs especially), which
+  // paused the strokes and the spin. It is cleared away once the transition is over.
+  if (options.disposeLater) retired.push(subject);
+  else subject.dispose();
   // The Shuffle transition builds the next ingredient early and hands it over here.
   subject = options.built ?? createSubject(entry, look);
   framed.add(subject.group);
@@ -271,11 +275,20 @@ function beginSwap(next: IngredientEntry, built: Subject, ready: boolean): Swap 
   return swap;
 }
 
+/** Ingredients taken off stage mid-transition, waiting to be cleared away. */
+const retired: Subject[] = [];
+function clearRetired(): void {
+  whenIdle(() => {
+    if (transitioning) return clearRetired();
+    retired.splice(0).forEach((old) => old.dispose());
+  });
+}
+
 /** Put the next ingredient on stage (as the reveal begins), keeping the camera turning. */
 function putOnStage(current: Swap): void {
   if (current.onStage) return;
   current.onStage = true;
-  showIngredient(current.next, { nameLater: true, keepView: true, built: current.built });
+  showIngredient(current.next, { nameLater: true, keepView: true, built: current.built, disposeLater: true });
 }
 
 /**
@@ -286,8 +299,23 @@ function putOnStage(current: Swap): void {
 /** Dev only: how long each transition frame took to prepare (ms), to spot stalls. */
 const swapFrameTimes: number[] = [];
 
+/**
+ * The frame meter: add #perf to the page address, press Shuffle, and the card shows the
+ * longest real frame of the transition (time between two painted frames, so it also
+ * catches the graphics chip catching up) and where in the transition it happened.
+ */
+const perfMeter = location.hash === '#perf';
+let lastFrameAt = 0;
+let longestFrame = { ms: 0, at: 0 };
+
 function swapFrame(current: Swap, delta: number): boolean {
   const began = performance.now();
+  if (perfMeter) {
+    if (lastFrameAt > 0 && began - lastFrameAt > longestFrame.ms) {
+      longestFrame = { ms: began - lastFrameAt, at: transition.progress };
+    }
+    lastFrameAt = began;
+  }
   if (!current.onStage && transition.progress >= REVEAL_STARTS) {
     putOnStage(current);
     swapName(current.next.spec.name);
@@ -317,8 +345,24 @@ function finishTransition(): void {
   setName(subject.entry.spec.name);
   setBusy(false);
   stage.release();
+  clearRetired();
+  if (perfMeter) showFrameMeter();
   // Start preparing the one after, once this card has settled.
   prepareNext();
+}
+
+/** The frame meter's readout, in the card's corner (only with #perf). */
+function showFrameMeter(): void {
+  let readout = document.getElementById('frame-meter');
+  if (!readout) {
+    readout = document.createElement('p');
+    readout.id = 'frame-meter';
+    card.appendChild(readout);
+  }
+  const where = Math.round(longestFrame.at * 100);
+  readout.textContent = `Longest frame: ${Math.round(longestFrame.ms)} ms, at ${where}% (swap at ${Math.round(REVEAL_STARTS * 100)}%)`;
+  longestFrame = { ms: 0, at: 0 };
+  lastFrameAt = 0;
 }
 
 shuffleButton?.addEventListener('click', () => {

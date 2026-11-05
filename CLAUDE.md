@@ -157,7 +157,11 @@ keep code readable with friendly comments.
   it builds and rehearses at the click. Without the rehearsal the halfway swap froze for about
   0.4 s. The transition's shaders and the painter's hidden-image versions are compiled 0.5 s
   after load (`warmUp`). The broccoli's build (about 0.3 s) is the heaviest background step.
-  `styleLab.prepared()` (dev) shows the background timings. `styleLab.filmstrip(times?,
+  `styleLab.prepared()` (dev) shows the background timings. The old ingredient is not
+  deleted at the swap (deleting GPU resources mid-flight can stall, on Macs especially): it is
+  set aside and cleared in an idle moment after the transition (`retired`). **Frame meter**:
+  add `#perf` to the page address (works on the published preview too) and press Shuffle;
+  the card shows the longest real frame and where in the transition it happened. `styleLab.filmstrip(times?,
   to?)` (dev) plays it frame by frame at 60 fps and returns stills; `styleLab.swapFrameTimes()`
   gives each frame's preparation time in ms, to spot stalls. Buttons press to
   scale(0.97) and hover only on real pointers (from the `emil-design-eng` skill).

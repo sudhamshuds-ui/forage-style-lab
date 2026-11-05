@@ -52,12 +52,27 @@ body {
   min-width: 0;
 }
 .card {
+  position: relative;
   width: min(100%, calc((100svh - 140px) * 0.75), 680px);
   aspect-ratio: 3 / 4;
   border-radius: var(--radius-card);
   overflow: hidden;
   background: #d8d4cc;
   box-shadow: var(--shadow-soft);
+}
+/* The frame meter (only with #perf in the address): a small readout in the corner. */
+#frame-meter {
+  position: absolute;
+  left: 12px;
+  bottom: 8px;
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(31, 30, 28, 0.75);
+  color: #fff;
+  font: 500 12px var(--font);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
 }
 .card canvas {
   display: block;
