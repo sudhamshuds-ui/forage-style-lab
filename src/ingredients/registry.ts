@@ -5,6 +5,7 @@ import { buildStrawberry } from './forms/strawberry';
 import { buildBroccoli } from './forms/broccoli';
 import { buildBread } from './forms/bread';
 import { buildSauce } from './forms/sauce';
+import { buildCheese } from './forms/cheese';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
@@ -238,6 +239,33 @@ export const REGISTRY: IngredientEntry[] = [
     // A ridged cap and a label wrapped all the way round need more mesh than the contained
     // archetype's simple vessel.
     budget: [4000, 16000],
+  },
+  {
+    spec: {
+      id: 'cheese',
+      name: 'Cheese',
+      archetype: 'wedge',
+      // Board 08 says Yellow; a paler, buttery cheese family reads truer (families.ts).
+      family: 'cheese',
+      layout: 'solo',
+      show: 'One wedge with four to six round holes, some cut open on the faces.',
+      forms: ['whole', 'slice', 'cubes', 'grated', 'melted'],
+      scale: 'M',
+      size_cm: [12, 5.5, 7.1],
+      parts: ['cheese', 'rind@rind'],
+      notes:
+        'Board 08: a 12 cm wedge from a round wheel, standing on its triangle. Flat cut faces with softly rounded edges, a thin rind along the curved back, round holes opening as craters on the faces. The whole form is the wedge.',
+    },
+    form: buildCheese,
+    // The point aims toward the front left, so the wedge reads as a wedge (not a block).
+    turn: 50,
+    // Tiny pinholes in the paste, very quiet.
+    skin: { kind: 'pores', size_mm: 1.6, amount: 0.35 },
+    matte: true,
+    // Meshed from a distance field (surface nets), so the flat faces need a finer grid
+    // than the archetype's extruded wedge to keep the holes round, and the holes' insides
+    // add surface.
+    budget: [2000, 10000],
   },
 ];
 

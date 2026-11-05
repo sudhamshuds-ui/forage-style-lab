@@ -88,7 +88,8 @@ keep code readable with friendly comments.
   condiments `sauce` (dark wine-red sauce through glass, a whole-ingredient family) plus the
   part-only `glass` (pale, cool clear glass), `paper` (cream labels), `gold` (printed ochre
   gold), `ink` (deep plum lettering, never black) and `chili` (a hot sauce label's warm
-  red-orange ground). Fine texture (peel pebbling, seeds) belongs to the
+  red-orange ground); `cheese` (buttery cream-yellow, a whole-ingredient family) and the
+  part-only `rind`. Fine texture (peel pebbling, seeds) belongs to the
   shader (the registry's `skin`, `src/shading/effects/skinTexture.ts`), never geometry. Small
   parts (stem, calyx, leaf) keep a quiet highlight: one main highlight per object.
   Randomness is seeded from the id. Blender only after two honest
@@ -334,8 +335,20 @@ composition of big cropped flames and a chili), painted by a new skin kind `labe
 ink from the `paper` family on the label's `chili` ground, the ink shaded like the ground).
 Any piece named `label` with a map gets it (`subject.ts`). The label's two ends meet
 exactly at the back (a hair-thin gap showed as a dark line). The label keeps its size as the
-bottle grows, centred a little higher. The old layered label's cream panel is now `panel`. More condiments to come. Next, one at a
-time with feedback: cheese wedge, butter, steak,
+bottle grows, centred a little higher. The old layered label's cream panel is now `panel`. More condiments to come. The cheese (2026-11-05, board 08's card: a
+12 cm wedge, four to six round holes, some cut open on the faces), the first `wedge`
+ingredient: a new wedge kit (`forms/kit/wedge.ts`: a slice of a wheel as a distance field,
+`roundedIntersection` for soft-bevelled edges, standing on its triangle with the point at the
+origin), holes as round bubbles whose centres sit a little under a face so each opens as a deep
+hole with an overhanging rim and a shadowed inside (shallow dishes read as pale spots), a thin
+`rind` piece along the curved back, both meshed with surface nets and then smoothed with the new
+`relaxOnSurface` (points relaxed toward their neighbours and pulled back onto the surface, so
+long edges at an angle to the grid come out clean, no terracing). The bevel spans about two grid
+cells (narrower made saw-toothed edges). New families: `cheese` (paler, buttery, warm caramel
+shadow; board 08 says Yellow, the lemon's yellow read acidic) and part-only `rind`. Turned 50 so
+the point comes toward the front left. Its own budget (10k). The form test's "faces point
+outward" rule of thumb asks 85% for wedges (hole insides rightly face inward). Next, one at a
+time with feedback: butter, steak,
 chicken drumstick, watermelon wedge (whole forms only; cut forms later).
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):

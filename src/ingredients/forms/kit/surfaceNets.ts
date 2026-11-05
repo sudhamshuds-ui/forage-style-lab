@@ -96,3 +96,72 @@ export function surfaceNets(
   geometry.setIndex(indices);
   return geometry;
 }
+
+/**
+ * Smooth a surface-nets mesh while keeping it on the true surface: like smoothing a path
+ * in Illustrator while its points stay on the curve. Surface nets can leave a long edge
+ * that runs at an angle across the grid slightly terraced (stairs on a diagonal). Each
+ * round, every point moves part of the way toward the average of its neighbours, then is
+ * pulled back exactly onto the surface along the distance field's slope.
+ *
+ * `cell` is the grid size the mesh was built with (it sets how finely the slope is measured).
+ */
+export function relaxOnSurface(
+  geometry: BufferGeometry,
+  distance: (x: number, y: number, z: number) => number,
+  cell: number,
+  rounds = 3,
+  amount = 0.5,
+): BufferGeometry {
+  const position = geometry.getAttribute('position') as BufferAttribute;
+  const index = geometry.index!;
+  const count = position.count;
+  // Who is next to whom: every pair of points that share a triangle edge.
+  const neighbours: Set<number>[] = Array.from({ length: count }, () => new Set<number>());
+  for (let t = 0; t < index.count; t += 3) {
+    const a = index.getX(t);
+    const b = index.getX(t + 1);
+    const c = index.getX(t + 2);
+    neighbours[a].add(b).add(c);
+    neighbours[b].add(a).add(c);
+    neighbours[c].add(a).add(b);
+  }
+  const p = position.array as Float32Array;
+  const next = new Float32Array(p.length);
+  const h = cell * 0.25;
+  for (let round = 0; round < rounds; round++) {
+    for (let i = 0; i < count; i++) {
+      // 1. Toward the neighbours' average.
+      let ax = 0;
+      let ay = 0;
+      let az = 0;
+      for (const n of neighbours[i]) {
+        ax += p[3 * n];
+        ay += p[3 * n + 1];
+        az += p[3 * n + 2];
+      }
+      const size = neighbours[i].size || 1;
+      let x = p[3 * i] + ((ax / size - p[3 * i]) * amount);
+      let y = p[3 * i + 1] + ((ay / size - p[3 * i + 1]) * amount);
+      let z = p[3 * i + 2] + ((az / size - p[3 * i + 2]) * amount);
+      // 2. Back onto the surface: two small steps down the distance field's slope.
+      for (let step = 0; step < 2; step++) {
+        const d = distance(x, y, z);
+        const gx = (distance(x + h, y, z) - distance(x - h, y, z)) / (2 * h);
+        const gy = (distance(x, y + h, z) - distance(x, y - h, z)) / (2 * h);
+        const gz = (distance(x, y, z + h) - distance(x, y, z - h)) / (2 * h);
+        const g2 = gx * gx + gy * gy + gz * gz;
+        if (g2 < 1e-8) break;
+        x -= (d * gx) / g2;
+        y -= (d * gy) / g2;
+        z -= (d * gz) / g2;
+      }
+      next[3 * i] = x;
+      next[3 * i + 1] = y;
+      next[3 * i + 2] = z;
+    }
+    p.set(next);
+  }
+  position.needsUpdate = true;
+  return geometry;
+}

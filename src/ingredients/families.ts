@@ -34,7 +34,9 @@ export type FamilyId =
   | 'paper'
   | 'gold'
   | 'ink'
-  | 'chili';
+  | 'chili'
+  | 'rind'
+  | 'cheese';
 
 export interface ColourFamily {
   name: string;
@@ -134,6 +136,22 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   paper: {
     name: 'Paper',
     colours: { lit: '#fdf6e6', base: '#efe2c6', shadow: '#b99f88', glow: '#f6e5c2', highlight: '#fffbf3' },
+    rooms: [],
+  },
+  // Not on board 04 yet (added 2026-11-05, the cheese wedge): board 08 puts cheese in Yellow,
+  // but the lemon's yellow read acidic on a cheese. A paler, buttery cream-yellow, like the
+  // board's own cheese picture, with warm caramel shadows, never green or grey.
+  cheese: {
+    name: 'Cheese',
+    colours: { lit: '#fff1bf', base: '#f3d273', shadow: '#c48a45', glow: '#ffbf4a', highlight: '#fffaf0' },
+    rooms: ['seafoam', 'heather'],
+  },
+  // Not a board 04 family: only for parts (a cheese's rind, along the wedge's curved back). Just
+  // a little deeper and warmer than the paste (a loud orange slab read wrong), going to a warm
+  // brown in shadow, never olive.
+  rind: {
+    name: 'Rind',
+    colours: { lit: '#fde5a4', base: '#eabd66', shadow: '#ae7a52', glow: '#f6c25a', highlight: '#fff6e0' },
     rooms: [],
   },
   // Not a board 04 family: only for parts (a hot sauce label's ground). A warm chili red-orange,
