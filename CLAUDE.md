@@ -307,7 +307,7 @@ dev checks. Family rooms may sit 70 to 180
 degrees from the ingredient (board 04's own pairings, kept by choice). The sauce bottle
 (2026-11-05, the user's idea, before the cheese: "condiments I'm planning to have"; reference in
 Figma, node 81:5 "sauce ref", a painting signed Tikisso: used for the form only), the first
-`contained` ingredient: a hot sauce bottle, 6.5 x 13.2 cm, built with the new vessel kit
+`contained` ingredient: a hot sauce bottle, 6.5 x 15 cm (made longer twice), built with the new vessel kit
 (`forms/kit/vessel.ts`: `revolve` a profile standing up, with a `roundedSquare` or `ribs`
 cross-section, and `wrapSheet` for labels, rectangles or ovals), pieces sauce_glow, glass
 base, collar, ridged cap and a layered label; turned -25 so the label faces the light; its own
@@ -327,11 +327,15 @@ glints on every other ingredient are unchanged. Then (the user): **sharper edges
 **printed hot sauce label** in the spirit of the user's reference (a real brand's bottle, so
 our own design, never a copy): one sheet wrapped all the way round the body with its own map
 (`wrapSheet` `mapped`), the artwork drawn in code as a two-tone stencil
-(`src/shading/labelArt.ts`: hand-lettered HOT SAUCE, a flame, a chili, zig-zag and triangle
-borders, small flames round the back), painted by a new skin kind `label` (`LABEL_SKIN`: cream
+(`src/shading/labelArt.ts`: hand-lettered HOT SAUCE with a flame, a small chili under SAUCE
+with a gap, a thin line top and bottom; round the sides and back a composition of big cropped
+shapes, a huge flame with a cut-out across the back, a tilted flame on one side and a sweeping
+chili on the other; the user removed the zig-zag borders, dots and triangles and asked for no
+repeated icons), painted by a new skin kind `label` (`LABEL_SKIN`: cream
 ink from the `paper` family on the label's `chili` ground, the ink shaded like the ground).
-Any piece named `label` with a map gets it (`subject.ts`). The old layered label's cream
-panel is now `panel`. More condiments to come. Next, one at a
+Any piece named `label` with a map gets it (`subject.ts`). The label's two ends meet
+exactly at the back (a hair-thin gap showed as a dark line). The label keeps its size as the
+bottle grows, centred a little higher. The old layered label's cream panel is now `panel`. More condiments to come. Next, one at a
 time with feedback: cheese wedge, butter, steak,
 chicken drumstick, watermelon wedge (whole forms only; cut forms later).
 

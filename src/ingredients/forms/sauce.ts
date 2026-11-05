@@ -4,7 +4,7 @@ import { finishPieces, type FormBuilder, type FormPiece } from './kit/piece';
 import { flatEnds, revolve, revolvedPoint, ribs, roundedSquare, wrapSheet } from './kit/vessel';
 
 /**
- * Sauce (archetype: contained). Spec: 6.5 x 13.2 x 6.5 cm, standing up.
+ * Sauce (archetype: contained). Spec: 6.5 x 15 x 6.5 cm, standing up.
  * After the user's reference (Figma, "sauce ref"): a squat hot sauce bottle.
  *
  * What makes it this bottle, not a jar or a ketchup bottle:
@@ -46,11 +46,18 @@ const BODY = 3.25;
 const WITH_LABEL = false;
 /** The printed hot sauce label (on): wrapped round the body, artwork painted by the shader. */
 const WITH_PRINTED_LABEL = true;
-/** Where the printed label sits on the body (cm), on the straight part below the shoulders. */
-const LABEL_BOTTOM = 1.45;
-const LABEL_TOP = 7.15;
-/** How much taller the bottle is than the first version (cm): everything above the base moves up. */
-const LONGER = 1.2;
+/**
+ * How much taller the bottle is than the first version (cm): everything above the base
+ * moves up. 1.2, then 3.0 (the user asked twice for a longer bottle, 2026-11-05).
+ */
+const LONGER = 3.0;
+/**
+ * Where the printed label sits on the body (cm), on the straight part below the shoulders.
+ * It keeps its size as the bottle grows (so the lettering never stretches), centred a little
+ * higher on the longer body.
+ */
+const LABEL_BOTTOM = 1.45 + (LONGER - 1.2) * 0.55;
+const LABEL_TOP = LABEL_BOTTOM + 5.7;
 /** The body block: from the table to where the shoulders end. */
 const BODY_TOP = 7.4 + LONGER;
 /** How much narrower the body is at the shoulders than at the base (the soft triangle). */
@@ -153,7 +160,8 @@ export const buildSauce: FormBuilder = ({ state }) => {
       geometry: wrapSheet({
         surface: onBody,
         // Once round, starting and ending at the back, so the front is the middle of the map.
-        angles: [front - Math.PI + 0.001, front + Math.PI - 0.001],
+        // The two ends meet exactly: a hair-thin gap showed the dark bottle as a line.
+        angles: [front - Math.PI, front + Math.PI],
         heights: [LABEL_BOTTOM, LABEL_TOP],
         lift: 0.04,
         columns: 112,

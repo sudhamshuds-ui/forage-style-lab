@@ -7,8 +7,11 @@ import { CanvasTexture, LinearFilter, NoColorSpace, RepeatWrapping } from 'three
  * the print sits on the bottle instead of looking pasted on.
  *
  * The strip wraps all the way round the bottle: u runs once round (0.5 is the front,
- * facing the starting view), v runs up. The lettering sits on the front; doodled
- * borders (zig-zags, triangles, dots) and small flames run all the way round.
+ * facing the starting view), v runs up. The lettering sits on the front, a thin line
+ * runs round the top and bottom edges, and the sides and back carry a composition of a
+ * few big, cropped shapes: a huge flame across the back, a chili sweeping round one side,
+ * a tilted flame on the other. (Zig-zag borders, triangles, dots and small repeated flames
+ * were tried and removed, the user, 2026-11-05: no repeating icons.)
  *
  * Our own design, in the spirit of the user's hot sauce reference (2026-11-05): bold,
  * hand-lettered words, a flame, a chili and tribal-style borders. Never a copy of a real
@@ -37,6 +40,19 @@ function flame(ctx: CanvasRenderingContext2D, x: number, y: number, h: number, l
   ctx.bezierCurveTo(x - w * 0.1, y - h * 0.02, x + w * 0.05, y - h * 0.05, x + lean * h, y - h * 0.5);
   ctx.closePath();
   ctx.fill();
+}
+
+/** A bold flame: a big flame with a smaller one cut out of it, like a printed graphic. */
+function boldFlame(ctx: CanvasRenderingContext2D, x: number, y: number, h: number, lean: number, angle: number): void {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.fillStyle = '#fff';
+  flame(ctx, 0, 0, h, lean);
+  ctx.fillStyle = '#000';
+  flame(ctx, h * 0.02, h * 0.16, h * 0.5, lean * 0.6);
+  ctx.restore();
+  ctx.fillStyle = '#fff';
 }
 
 /** A chili pepper lying on its side, curving down to a point, with a little stem. */
@@ -75,26 +91,13 @@ function letter(ctx: CanvasRenderingContext2D, word: string, cx: number, baselin
   });
 }
 
-/** A border band: a line, a zig-zag and a row of small triangles, repeating all the way round. */
-function border(ctx: CanvasRenderingContext2D, y: number, flip: number): void {
-  const step = 64; // divides the width, so the band meets itself seamlessly at the back
+/** A border: one thin line all the way round. */
+function border(ctx: CanvasRenderingContext2D, y: number): void {
   ctx.lineWidth = 5;
-  ctx.lineJoin = 'round';
   ctx.beginPath();
   ctx.moveTo(0, y);
   ctx.lineTo(WIDTH, y);
   ctx.stroke();
-  ctx.beginPath();
-  for (let x = 0; x <= WIDTH; x += step / 2) ctx.lineTo(x, y + flip * (x % step === 0 ? 14 : 34));
-  ctx.stroke();
-  for (let x = step / 2; x < WIDTH; x += step) {
-    ctx.beginPath();
-    ctx.moveTo(x - 9, y + flip * 50);
-    ctx.lineTo(x + 9, y + flip * 50);
-    ctx.lineTo(x, y + flip * 64);
-    ctx.closePath();
-    ctx.fill();
-  }
 }
 
 /** Draw the hot sauce label's stencil. */
@@ -112,38 +115,30 @@ export function drawHotSauceLabel(): HTMLCanvasElement {
   ctx.strokeStyle = '#fff';
 
   // Borders top and bottom (canvas y runs down; the strip's top is y = 0).
-  border(ctx, 26, 1);
-  border(ctx, HEIGHT - 26, -1);
+  border(ctx, 26);
+  border(ctx, HEIGHT - 26);
 
-  // Small flames and dots all the way round the back and sides.
-  for (let x = 32; x < WIDTH; x += 128) {
-    const front = Math.abs(x / WIDTH - 0.5) < 0.2;
-    if (front) continue;
-    flame(ctx, x, HEIGHT / 2 - 40, 70, random() * 0.2 - 0.1);
-    ctx.beginPath();
-    ctx.arc(x + 64, HEIGHT / 2 + 60, 9, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  // The sides and back: one composition of a few big shapes, cropped by the label's
+  // edges, never a repeated icon. The back is where u wraps (x = 0 and x = WIDTH meet),
+  // so the big flame is drawn at both ends and reads as one shape across the join.
+  for (const x of [0, WIDTH]) boldFlame(ctx, x, HEIGHT * 0.55, HEIGHT * 1.35, 0.12, 0);
+  // Right side (as you look at the front): a big chili sweeping across, its tip cropped.
+  ctx.save();
+  ctx.translate(WIDTH * 0.8, HEIGHT * 0.5);
+  ctx.rotate(-0.35);
+  chili(ctx, -190, -40, 400);
+  ctx.restore();
+  // Left side: a medium flame, tilted, leaning in toward the back.
+  boldFlame(ctx, WIDTH * 0.25, HEIGHT * 0.52, HEIGHT * 0.8, -0.1, -0.25);
 
   // The front: two words, hand-lettered, with a flame and a chili.
   const cx = WIDTH / 2;
-  letter(ctx, 'HOT', cx - 40, 260, 190, random);
-  flame(ctx, cx + 210, 185, 150, 0.2);
-  letter(ctx, 'SAUCE', cx, 392, 128, random);
-  chili(ctx, cx - 200, 405, 150);
-
-  // Side panels framing the front: a column of stacked triangles each side.
-  for (const side of [-1, 1]) {
-    const x = cx + side * 345;
-    for (let y = 120; y < HEIGHT - 110; y += 44) {
-      ctx.beginPath();
-      ctx.moveTo(x - 14, y);
-      ctx.lineTo(x + 14, y);
-      ctx.lineTo(x, y + 24);
-      ctx.closePath();
-      ctx.fill();
-    }
-  }
+  letter(ctx, 'HOT', cx - 40, 240, 190, random);
+  flame(ctx, cx + 210, 165, 150, 0.2);
+  letter(ctx, 'SAUCE', cx, 362, 124, random);
+  // The chili lies under SAUCE, centred on the front face, with a small gap below the
+  // letters so they never touch (the user, 2026-11-05).
+  chili(ctx, cx - 70, 414, 150);
   return canvas;
 }
 

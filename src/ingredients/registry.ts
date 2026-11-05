@@ -222,7 +222,7 @@ export const REGISTRY: IngredientEntry[] = [
       show: 'One hot sauce bottle standing up, a flat face turned toward the light.',
       forms: ['whole'],
       scale: 'M',
-      size_cm: [6.5, 13.2, 6.5],
+      size_cm: [6.5, 15, 6.5],
       // `label` is the printed hot sauce label (its artwork in src/shading/labelArt.ts). The
       // earlier layered label's parts (wrap to marks) stay listed: it is switched off
       // (WITH_LABEL in forms/sauce.ts), not deleted.
