@@ -262,6 +262,13 @@ degrees from the ingredient (board 04's own pairings, kept by choice). Next, one
 time with feedback: cheese wedge, butter, steak,
 chicken drumstick, watermelon wedge (whole forms only; cut forms later).
 
+Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
+zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after
+you drag or zoom, the Paint sliders hidden and Light (Strength, Tone bands) shown, Randomize
+picks one of six painters (Monet, Cézanne, Sargent, Van Gogh, Seurat, Degas; names hidden),
+stroke fixes (no pale halo round the outline, no straight cut-offs or saw-tooth ends while
+the view turns, calmer backdrops). Surface-pinned strokes were tried and rejected.
+
 ## Planned for later sessions (not built yet)
 Cut forms (slice the whole form and cap the cut), the whole-and-cut layout,
 the light cases, patterns inside highlights and shadows, sparkles, soft body
