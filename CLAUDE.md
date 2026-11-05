@@ -180,6 +180,10 @@ keep code readable with friendly comments.
   to?)` (dev) plays it frame by frame at 60 fps and returns stills; `styleLab.swapFrameTimes()`
   gives each frame's preparation time in ms, to spot stalls. Buttons press to
   scale(0.97) and hover only on real pointers (from the `emil-design-eng` skill).
+  **No repeats too soon** (the user, 2026-11-06): Shuffle remembers what was shown
+  (`shownRecently` in `main.ts`) and picks only from ingredients not seen lately (`pickFresh`
+  in `registry.ts`): it holds back all but the three seen longest ago, at most seven
+  (`holdBack`), so with ten ingredients nothing comes back within eight shuffles.
   Reset keeps that room. No physics, no multi-ingredient table on this branch.
 
 ## Tech
