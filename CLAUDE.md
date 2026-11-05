@@ -36,7 +36,8 @@ keep code readable with friendly comments.
   so every roll reads as that painter. The painter's name is not shown (the user, 2026-11-04;
   `SHOW_PAINTER_NAME` in `src/ui/panel.ts` brings back "After {painter}" under the button). Painters (iconic names people know at a glance, chosen
   2026-11-04/05): Monet (round, broken dabs of colour), Cézanne (flat, square-ish patches in
-  parallel diagonals), Sargent (broad strokes that follow the form; the default), Van Gogh
+  parallel diagonals), Sargent (the default: exactly the original Playful strokes settings from before the
+  painters, brought back by the user on 2026-11-05, with a little variation around them), Van Gogh
   (thick, streaky strokes that wrap the form, a backdrop swirling in currents), Seurat (tiny
   dots, the room too), Degas (dry pastel hatching with comb lines). Each painter sets the
   brush type, size, length, bristles, pattern, looseness, broken colour, follow the form

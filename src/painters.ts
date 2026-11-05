@@ -79,20 +79,22 @@ export const PAINTERS: Painter[] = [
     swirl: [0, 0],
   },
   {
-    // John Singer Sargent: a few broad, confident strokes, wet into wet, each
-    // one following the form. Calm colour, big simple shapes.
+    // John Singer Sargent: confident strokes, wet into wet, each one following
+    // the form. Calm colour. He is the original Playful strokes look (the
+    // settings from before the painters existed, kept by the user's choice),
+    // with only a little variation around it.
     id: 'sargent',
     name: 'Sargent',
     note: 'A few broad, confident strokes that follow the form.',
     type: 'flat',
     pattern: 'none',
-    size: [62, 78],
-    length: [70, 90],
-    texture: [10, 25],
-    loose: [30, 45],
-    colourBreak: [15, 30],
-    followForm: [85, 100],
-    backdrop: [70, 85],
+    size: [50, 60],
+    length: [55, 65],
+    texture: [30, 40],
+    loose: [40, 50],
+    colourBreak: [22, 28],
+    followForm: [100, 100],
+    backdrop: [46, 54],
     swirl: [0, 0],
   },
   {

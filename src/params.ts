@@ -173,18 +173,20 @@ export const DEFAULTS: Settings = {
   },
   brush: {
     classic: false,
-    // Playful strokes start as Sargent (the middle of his ranges in painters.ts).
+    // Playful strokes start as Sargent: exactly the original Playful strokes look
+    // (from before the painters existed). Looseness 45 and broken colour 25 give the
+    // original 0.45 looseness and colour variation in the stroke shader.
     painter: 'sargent',
     type: 'flat',
-    size: 70,
-    length: 80,
-    texture: 18,
+    size: 55,
+    length: 60,
+    texture: 35,
     pattern: 'none',
     patternAmount: 55,
-    loose: 38,
-    colourBreak: 22,
-    followForm: 92,
-    backdrop: 78,
+    loose: 45,
+    colourBreak: 25,
+    followForm: 100,
+    backdrop: 50,
     swirl: 0,
   },
   paint: {
