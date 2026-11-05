@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { findPalette } from '../palettes';
 import { hexToOklch } from '../utils/colour';
 import { FAMILIES } from './families';
-import { REGISTRY, parsePart, pickOther } from './registry';
+import { REGISTRY, holdBack, parsePart, pickFresh, pickOther } from './registry';
 import { seededRandom } from './forms/kit/random';
 
 const hueGap = (a: number, b: number) => Math.abs(((((a - b) % 360) + 540) % 360) - 180);
@@ -43,6 +43,21 @@ describe('ingredient registry', () => {
     for (let i = 0; i < 200; i++) {
       for (const { spec } of REGISTRY) expect(pickOther(spec.id, random).spec.id).not.toBe(spec.id);
     }
+  });
+
+  it('Shuffle never brings an ingredient back until several others have been shown', () => {
+    const random = seededRandom(7);
+    const shown = [REGISTRY[0].spec.id];
+    const gap = holdBack(REGISTRY.length);
+    for (let i = 0; i < 300; i++) {
+      const next = pickFresh(shown, random).spec.id;
+      // Not among the last `gap` shown (with ten ingredients: the last seven).
+      expect(shown.slice(-gap)).not.toContain(next);
+      shown.push(next);
+    }
+    // Every ingredient still comes up.
+    expect(new Set(shown).size).toBe(REGISTRY.length);
+    expect(gap).toBeGreaterThanOrEqual(5);
   });
 
   it('reads part names: glow parts and parts in another family', () => {

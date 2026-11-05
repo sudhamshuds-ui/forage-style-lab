@@ -314,6 +314,27 @@ export function findIngredient(id: string): IngredientEntry | undefined {
   return REGISTRY.find((entry) => entry.spec.id === id);
 }
 
+/**
+ * How many recently shown ingredients Shuffle holds back: all but the three seen longest ago,
+ * and never more than seven (the user, 2026-11-06: repeat only after five to seven others).
+ * With ten ingredients, nothing comes back within eight shuffles.
+ */
+export function holdBack(total: number): number {
+  return Math.max(1, Math.min(7, total - 3));
+}
+
+/**
+ * A random ingredient that has not been shown lately. `recent` lists the ids shown, oldest
+ * first, the one on stage last. Like dealing from a deck that only gets an old card back once
+ * enough new ones have been dealt.
+ */
+export function pickFresh(recent: string[], random: () => number = Math.random): IngredientEntry {
+  const held = new Set(recent.slice(-holdBack(REGISTRY.length)));
+  const fresh = REGISTRY.filter((entry) => !held.has(entry.spec.id));
+  if (fresh.length === 0) return pickOther(recent[recent.length - 1] ?? '', random);
+  return fresh[Math.floor(random() * fresh.length) % fresh.length];
+}
+
 /** A random ingredient that is not the one on stage now. */
 export function pickOther(currentId: string, random: () => number = Math.random): IngredientEntry {
   const others = REGISTRY.filter((entry) => entry.spec.id !== currentId);

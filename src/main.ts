@@ -11,7 +11,7 @@ import { StylizedLook } from './shading/stylizedMaterial';
 import { EFFECT_STACK } from './shading/effects';
 import type { FrameContext } from './shading/effect';
 import { FAMILIES } from './ingredients/families';
-import { REGISTRY, findIngredient, pickOther, type IngredientEntry } from './ingredients/registry';
+import { REGISTRY, findIngredient, pickFresh, type IngredientEntry } from './ingredients/registry';
 import { createSubject, type Subject } from './ingredients/subject';
 import { PROPS } from './ingredients/forms/kit/checks';
 import { Painter, type PaintFrame } from './painting/painter';
@@ -99,6 +99,9 @@ function applyRoom(entry: IngredientEntry): void {
   if (room) applyPalette(settings, room);
 }
 
+/** The ingredients shown lately, oldest first (Shuffle holds these back so they don't repeat soon). */
+const shownRecently: string[] = [subject.entry.spec.id];
+
 /**
  * Put an ingredient on stage: build its form, paint it with its family,
  * switch the room, and frame it from the starting view.
@@ -111,6 +114,9 @@ function showIngredient(
   entry: IngredientEntry,
   options: { nameLater?: boolean; keepView?: boolean; built?: Subject; disposeLater?: boolean } = {},
 ): void {
+  // Remember it, so Shuffle won't bring it back until several others have been shown.
+  shownRecently.push(entry.spec.id);
+  if (shownRecently.length > 20) shownRecently.shift();
   framed.remove(subject.group);
   // Mid-transition, the old ingredient is only set aside: deleting its shapes and
   // materials can make the graphics chip stop and catch up (on Macs especially), which
@@ -231,7 +237,7 @@ function prepareNext(delay = 1000): void {
     whenIdle(() => {
       if (transitioning) return void (preparing = false);
       let t = performance.now();
-      const next = pickOther(subject.entry.spec.id);
+      const next = pickFresh(shownRecently);
       const built = createSubject(next, look);
       built.update(settings, true);
       prepTimes.build = performance.now() - t;
@@ -262,7 +268,7 @@ function takePrepared(): { next: IngredientEntry; built: Subject; ready: boolean
   prepared = null;
   if (job && job.next.spec.id !== subject.entry.spec.id) return job;
   job?.built.dispose();
-  const next = pickOther(subject.entry.spec.id);
+  const next = pickFresh(shownRecently);
   const built = createSubject(next, look);
   built.update(settings, true);
   return { next, built, ready: false };
@@ -532,7 +538,7 @@ if (import.meta.env.DEV) {
         /** How long the last background preparation took (ms), and whether one is ready. */
         prepared: () => ({ ...prepTimes, next: prepared?.next.spec.id ?? null, ready: prepared?.ready ?? false }),
         filmstrip: (times = [0, 0.3, 0.6, 0.9, 1.2, 1.5, 1.8, 2.1, 2.4], to?: string) => {
-          const next = (to && findIngredient(to)) || pickOther(subject.entry.spec.id);
+          const next = (to && findIngredient(to)) || pickFresh(shownRecently);
           swapFrameTimes.length = 0;
           const fresh = createSubject(next, look);
           fresh.update(settings, true);
