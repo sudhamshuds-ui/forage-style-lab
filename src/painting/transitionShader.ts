@@ -121,13 +121,7 @@ void main() {
   vec2 texel = 1.0 / uResolution;
   vec3 colour = texture2D(tPrev, vUv).rgb;
 
-  // The whole picture slowly softens, as if the paint were still wet.
-  float soften = smoothstep(0.06, 0.6, uT) * 0.35 * min(uStep, 2.0);
-  if (soften > 0.0) {
-    vec3 around = texture2D(tPrev, vUv + vec2(texel.x, 0.0)).rgb + texture2D(tPrev, vUv - vec2(texel.x, 0.0)).rgb
-      + texture2D(tPrev, vUv + vec2(0.0, texel.y)).rgb + texture2D(tPrev, vUv - vec2(0.0, texel.y)).rgb;
-    colour = mix(colour, around * 0.25, soften);
-  }
+  // No blur on the picture itself (the user, 2026-11-05): only the strokes are soft.
 
   // Brush strokes, each on its own clock. Later strokes sit on top. Sized from the card
   // (never smaller than 9% of its height), so each one reads as a gesture.
@@ -162,13 +156,19 @@ void main() {
       vec2 rel = px - centre;
       vec2 local = vec2(dot(rel, dir), dot(rel, vec2(-dir.y, dir.x)));
       if (abs(local.x) > halfLen + 4.0 || abs(local.y) > halfWid * 1.4 + 4.0) continue;
-      float a = strokeMask(local, halfLen, halfWid, easeInOut(grown), rnd, halfWid * 0.3, 0.5, 1.0);
+      // A wide, feathered edge, so a smudge never has a hard, glassy cut.
+      float a = strokeMask(local, halfLen, halfWid, easeInOut(grown), rnd, halfWid * 0.55, 0.5, 1.0);
       if (a <= 0.0) continue;
 
       // The stroke drags the paint it passes through along its path...
       float bristle = noise1(local.y / halfWid * 5.0 + rnd.x * 57.0);
       vec2 drag = dir * (4.5 + 1.5 * bristle) * min(uStep, 2.0) * texel;
-      vec3 dragged = texture2D(tPrev, vUv - drag).rgb;
+      // The dragged paint is softened a little across the stroke (wet paint, not glass):
+      // three samples side by side across its width.
+      vec2 across = vec2(-dir.y, dir.x) * 1.5 * texel;
+      vec3 dragged = (texture2D(tPrev, vUv - drag).rgb * 2.0
+        + texture2D(tPrev, vUv - drag + across).rgb
+        + texture2D(tPrev, vUv - drag - across).rgb) * 0.25;
       // ...and lays down a little pigment picked up where it started.
       vec2 tailUv = clamp((centre - dir * halfLen * 0.9) / uResolution, vec2(0.001), vec2(0.999));
       vec3 pigment = texture2D(tStill, tailUv).rgb;
@@ -230,7 +230,7 @@ float revealLayer(vec2 px, float cell, float layer, float from, float spread, fl
       vec2 rel = px - centre;
       vec2 local = vec2(dot(rel, dir), dot(rel, vec2(-dir.y, dir.x)));
       if (abs(local.x) > halfLen + 4.0 || abs(local.y) > halfWid * 1.4 + 4.0) continue;
-      float a = strokeMask(local, halfLen, halfWid, easeInOut(grown), rnd, halfWid * 0.28, 0.35, 0.5);
+      float a = strokeMask(local, halfLen, halfWid, easeInOut(grown), rnd, halfWid * 0.4, 0.35, 0.5);
       if (a > best) {
         best = a;
         runDir = dir;
@@ -255,8 +255,8 @@ vec3 soften(sampler2D image, vec2 uv, float radius) {
 
 void main() {
   vec2 px = vUv * uResolution;
-  // The card we leave goes soft as it is smudged, so it melts rather than breaks up.
-  vec3 colour = soften(tSmudge, vUv, 6.0 * smoothstep(0.1, 0.6, uT));
+  // The card we leave stays sharp (only its smudge strokes are soft).
+  vec3 colour = texture2D(tSmudge, vUv).rgb;
 
   // Big strokes first (11% of the card's height), then smaller ones that fill the gaps.
   float big = uResolution.y * 0.11;
@@ -265,13 +265,12 @@ void main() {
   shown = max(shown, revealLayer(px, big * 0.6, 2.0, 0.6, 0.25, 0.4, runDir));
 
   if (shown > 0.0) {
-    // The next card arrives soft and sharpens as the last strokes land.
-    float soft = 1.0 - smoothstep(0.62, 0.95, uT);
-    vec3 next = soften(tNext, vUv, soft * 7.0);
-    // A wet edge: near a stroke's edge, the new paint is smeared along the stroke.
-    float edge = shown * (1.0 - shown) * 4.0;
-    vec3 smeared = soften(tNext, vUv - runDir * edge * 16.0 / uResolution, 4.0);
-    next = mix(next, smeared, edge * 0.8);
+    // The next card is sharp. Only a stroke's soft edge is blurred and smeared a little
+    // along the stroke, like wet paint, so the strokes never look hard-cut.
+    vec3 next = texture2D(tNext, vUv).rgb;
+    float edge = 1.0 - smoothstep(0.0, 0.85, shown);
+    vec3 smeared = soften(tNext, vUv - runDir * edge * 10.0 / uResolution, 5.0 * edge);
+    next = mix(next, smeared, edge);
     colour = mix(colour, next, shown);
   }
 

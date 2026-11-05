@@ -132,14 +132,16 @@ keep code readable with friendly comments.
   is a share of it), the same in both styles: freeze (the spin stops, the finished painting
   becomes a still), smudge (0 to 55%: big strokes, at least 9% of the card's height, sweep out
   from the ingredient in a wave, crossing each other, each dragging the paint along its path
-  in a feedback loop, while the old card softly blurs), reveal (45 to 100%: strokes about 11%
-  of the card's height, crossing in three directions, paint the next card in from the middle
-  outward with feathered edges and a wet smear; it arrives soft and sharpens), and the last
+  in a feedback loop), reveal (45 to 100%: strokes about 11% of the card's height, crossing
+  in three directions, paint the next card in from the middle outward), and the last
   frame is exactly the live view. Each stroke travels for about half a second with an
   ease-in-out (movement on screen). The panel's name changes as the reveal begins (a 100 ms
   fade and blur), and the button looks busy while a swap plays. User feedback that shaped
   it: smudge strokes were too small, all one way and all at once; reveal strokes were
-  massive, spiky and all one way (audited with the `improve-animations` skill). Clicks during a swap are ignored; resizing mid-swap jumps to the end; with
+  massive, spiky and all one way (audited with the `improve-animations` skill). **Blur only
+  on the strokes, never the whole card** (the user): smudge strokes have wide feathered edges
+  and soften the paint they drag; reveal strokes blur and smear only at their soft edges,
+  over a sharp new card. Clicks during a swap are ignored; resizing mid-swap jumps to the end; with
   reduced motion it is a 200 ms opacity fade instead. `styleLab.filmstrip(times?, to?)` (dev)
   plays it frame by frame at 60 fps and returns stills, for tuning. Buttons press to
   scale(0.97) and hover only on real pointers (from the `emil-design-eng` skill).
