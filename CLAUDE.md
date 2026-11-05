@@ -309,6 +309,10 @@ you drag or zoom, the Paint sliders hidden and Light (Strength, Tone bands) show
 picks one of six painters (Monet, Cézanne, Sargent, Van Gogh, Seurat, Degas; names hidden),
 stroke fixes (no pale halo round the outline, no straight cut-offs or saw-tooth ends while
 the view turns, calmer backdrops). Surface-pinned strokes were tried and rejected.
+Later the same day (merged to `main` 2026-11-05): the painted Shuffle transition (smudge,
+then paint the next card in with dry-brush strokes, the spin never stopping), the next
+ingredient prepared in the background, the `#perf` frame meter, and Emil Kowalski's design
+and animation skills in `.claude/skills/`. The user confirmed it runs smoothly on their Mac.
 
 ## Planned for later sessions (not built yet)
 Cut forms (slice the whole form and cap the cut), the whole-and-cut layout,
