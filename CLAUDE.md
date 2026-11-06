@@ -184,6 +184,11 @@ keep code readable with friendly comments.
   (`shownRecently` in `main.ts`) and picks only from ingredients not seen lately (`pickFresh`
   in `registry.ts`): it holds back all but the three seen longest ago, at most seven
   (`holdBack`), so with ten ingredients nothing comes back within eight shuffles.
+  **Preview first pick** (the user, 2026-11-06, for working sessions only): a build with
+  `VITE_PREVIEW_NEXT=<id>` sends the first Shuffle to that ingredient (`pickNext` in `main.ts`),
+  so the private preview page opens the one being worked on in one click. The preview is built
+  with it (the scratchpad's publish script takes `NEXT=<id>`); Vercel builds `main` without it,
+  so the main link always shuffles at random.
   Reset keeps that room. No physics, no multi-ingredient table on this branch.
 
 ## Tech

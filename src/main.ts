@@ -103,6 +103,21 @@ function applyRoom(entry: IngredientEntry): void {
 const shownRecently: string[] = [subject.entry.spec.id];
 
 /**
+ * The ingredient the first Shuffle goes to, for previews only: the preview page is built with
+ * VITE_PREVIEW_NEXT set to the ingredient being worked on, so one click shows it. Vercel builds
+ * main without it, so the main link always shuffles at random.
+ */
+let previewNext: string | undefined = import.meta.env.VITE_PREVIEW_NEXT || undefined;
+
+/** The next ingredient for Shuffle: the preview's one first (once), then one not seen lately. */
+function pickNext(): IngredientEntry {
+  const wanted = previewNext ? findIngredient(previewNext) : undefined;
+  previewNext = undefined;
+  if (wanted && wanted.spec.id !== subject.entry.spec.id) return wanted;
+  return pickFresh(shownRecently);
+}
+
+/**
  * Put an ingredient on stage: build its form, paint it with its family,
  * switch the room, and frame it from the starting view.
  *
@@ -237,7 +252,7 @@ function prepareNext(delay = 1000): void {
     whenIdle(() => {
       if (transitioning) return void (preparing = false);
       let t = performance.now();
-      const next = pickFresh(shownRecently);
+      const next = pickNext();
       const built = createSubject(next, look);
       built.update(settings, true);
       prepTimes.build = performance.now() - t;
@@ -268,7 +283,7 @@ function takePrepared(): { next: IngredientEntry; built: Subject; ready: boolean
   prepared = null;
   if (job && job.next.spec.id !== subject.entry.spec.id) return job;
   job?.built.dispose();
-  const next = pickFresh(shownRecently);
+  const next = pickNext();
   const built = createSubject(next, look);
   built.update(settings, true);
   return { next, built, ready: false };
@@ -538,7 +553,7 @@ if (import.meta.env.DEV) {
         /** How long the last background preparation took (ms), and whether one is ready. */
         prepared: () => ({ ...prepTimes, next: prepared?.next.spec.id ?? null, ready: prepared?.ready ?? false }),
         filmstrip: (times = [0, 0.3, 0.6, 0.9, 1.2, 1.5, 1.8, 2.1, 2.4], to?: string) => {
-          const next = (to && findIngredient(to)) || pickFresh(shownRecently);
+          const next = (to && findIngredient(to)) || pickNext();
           swapFrameTimes.length = 0;
           const fresh = createSubject(next, look);
           fresh.update(settings, true);
