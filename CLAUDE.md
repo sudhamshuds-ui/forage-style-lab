@@ -519,6 +519,10 @@ stood upright and carried the wall colour down past the horizon. Now they lie le
 (`nearObject` in `paintShader.ts`), the wet-in-wet pick-up works all along a stroke (not only at
 its ends), and the level passes along the horizon are slimmer.
 
+Merged to `main` 2026-11-06: the horizon strokes, the watermelon (after five rounds of the
+user's feedback), Shuffle without repeats, and the preview-only first pick. Next: the steak, then
+the chicken drumstick.
+
 ## Planned for later sessions (not built yet)
 Cut forms (slice the whole form and cap the cut), the whole-and-cut layout,
 the light cases, patterns inside highlights and shadows, sparkles, soft body
