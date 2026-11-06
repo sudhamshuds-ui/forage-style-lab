@@ -153,7 +153,8 @@ Each registry entry can also carry, beside the spec and builder:
 - **Tell the story with the ingredient, not a tool**: a knife's scrape and the curl it took say "butter" at a glance, with no utensil on the card. A small part like the curl is listed in `SMALL_PARTS` (left out of the real size); turn it so its most telling side (the curl's spiral end) faces the camera.
 - **A pair built in the form** (watermelon): when a layout needs something the cluster layout cannot do (a lean), build the members in the form, each resting on the table on its own. Repeat the hero's role for the second body, so both get the skin, the highlight and contact spots.
 - **Balance**: every piece must rest the way it really would. A wedge on its curved rind only stands straight up; to lean one, lay it on a flat cut side.
-- **Gradients between layers** (flesh to rind): paint them in the shader from a map on the body (like the `melon` skin), not as separate bands, which give hard edges.
+- **Lifted skins** (rinds) are drawn in front of their body automatically; without it they flickered as a sawtooth on tight curves.
+- **Gradients between layers** (flesh to rind): soft and wide like a wash (the user preferred it to crisp edges);: paint them in the shader from a map on the body (like the `melon` skin), not as separate bands, which give hard edges.
 - **Seeds and dots**: few, irregular, never two above one (a face). Make them small raised beads, not flat stickers.
 - **Translucent flesh** (melon, citrus): glow in the shadows, more at thin places, and faint things seen inside by sampling under the surface along the line of sight (see `CLAUDE.md`, "Translucent flesh"). Keep it faint.
 - **Rim glints and pale layers**: the rim glint is painted in the body's highlight colour; on a gradient into a rind it draws a coloured line, so switch it off (`rimGlints: false`).

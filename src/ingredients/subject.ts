@@ -139,6 +139,14 @@ class FormSubject implements Subject {
         // A prop lying flat on the table (the butter's paper) sits right on the floor's plane, and
         // the two flickered in and out of each other (the floor's contact shadow speckled
         // through). Drawn a hair in front of the floor, like a decal, it always wins.
+        // A skin lifted off its body (a cheese or melon rind) sits a hair above it, and on a
+        // tight curve the two flickered in and out of each other in steps (a sawtooth edge on
+        // the watermelon's rind, the user, 2026-11-06). It is always drawn in front, like a decal.
+        if (piece.keepNormals) {
+          material.polygonOffset = true;
+          material.polygonOffsetFactor = -1;
+          material.polygonOffsetUnits = -4;
+        }
         if (PROPS.includes(piece.role)) {
           material.polygonOffset = true;
           material.polygonOffsetFactor = -2;

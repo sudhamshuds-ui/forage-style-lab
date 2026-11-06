@@ -444,6 +444,15 @@ there); the flesh-to-rind gradient has crisp, wandering wet edges (blush, then t
 mottled green, a few red granules reaching into the pale) instead of one wide muddy blur; the rind
 shell has its own map and skin `melonRind` (kind 11: wavy, broken dark stripes running across
 the slab, mottling, pale specks); and **translucency** (see below).
+Then (the user's third round, 2026-11-06): the flesh-to-rind blend is **one soft gradient** again
+(the crisp wet edges went too far): red pales to pink, then cream, yellow-green and green in wide
+overlapping steps, with only a slight wander; a **chalky pastel texture** after the user's
+reference (dry-brush scratches of paler colour along the fibres broken by a paper grain, deeper
+red flecks, tiny pale grains; measured by arc length so marks never bunch at the point); stronger
+**translucency** (more glow in the shadows, at thin places, and where light comes through from
+behind). Lifted skins (`keepNormals` pieces: the melon's and cheese's rinds) are drawn a hair in
+front of their body (a polygon offset in `subject.ts`): on the rind's tight curve they flickered
+into the flesh as a sawtooth edge.
 Next, one at a time with feedback: steak, chicken drumstick (whole forms only; cut forms later).
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
