@@ -315,8 +315,8 @@ if (kind > 0 && amount > 0.0) {
     float warp = (fbm3(objectPos * 6.0) - 0.5) * 0.6;
     float stripe = smoothstep(0.1, 0.55, sin(arc * 34.0 / max(q.x, 0.5) + warp * 7.0));
     rindLab.x -= stripe * 0.07;
-    float ease1 = smoothstep(0.6, 0.84, t);
-    float ease2 = smoothstep(0.76, 0.88, t);
+    float ease1 = smoothstep(0.66, 0.86, t);
+    float ease2 = smoothstep(0.8, 0.9, t);
     float ease3 = smoothstep(0.88, 0.95, t);
     float ease4 = smoothstep(0.92, 0.98, t);
     float ease5 = smoothstep(0.965, 0.995, t);

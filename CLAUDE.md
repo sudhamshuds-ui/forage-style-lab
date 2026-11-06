@@ -462,7 +462,7 @@ Then (the user's fourth round, 2026-11-06): **the separate shell is switched off
 in `forms/watermelon.ts`: its edge read as a hard ledge on the faces); the flesh's gradient now
 runs on into the dark rind with its wavy stripes. **Deep reds**: big soft patches of riper,
 darker, richer flesh. **A smoother, creamier gradient** (wide eased steps, a generous cream band,
-the chalky texture quieter there). **Contact spots per body** for multi-body forms (each wedge on
+the chalky texture quieter there; then narrowed a little, the user: blush from 0.66, cream from 0.8). **Contact spots per body** for multi-body forms (each wedge on
 its own, only where it rests: measured as one shape, a spot landed under the rind's arch). The
 translucent glow stays on the red flesh (orange glow on the green turned brown). **Highlights on
 a skin's own colour**: a new shader value `highlightOwn` (set by a skin) lets the highlight take the
