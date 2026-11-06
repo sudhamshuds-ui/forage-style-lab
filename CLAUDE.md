@@ -458,6 +458,16 @@ red flecks, tiny pale grains; measured by arc length so marks never bunch at the
 behind). Lifted skins (`keepNormals` pieces: the melon's and cheese's rinds) are drawn a hair in
 front of their body (a polygon offset in `subject.ts`): on the rind's tight curve they flickered
 into the flesh as a sawtooth edge.
+Then (the user's fourth round, 2026-11-06): **the separate shell is switched off** (`WITH_SHELL`
+in `forms/watermelon.ts`: its edge read as a hard ledge on the faces); the flesh's gradient now
+runs on into the dark rind with its wavy stripes. **Deep reds**: big soft patches of riper,
+darker, richer flesh. **A smoother, creamier gradient** (wide eased steps, a generous cream band,
+the chalky texture quieter there). **Contact spots per body** for multi-body forms (each wedge on
+its own, only where it rests: measured as one shape, a spot landed under the rind's arch). The
+translucent glow stays on the red flesh (orange glow on the green turned brown). **Highlights on
+a skin's own colour**: a new shader value `highlightOwn` (set by a skin) lets the highlight take the
+surface's own colour lightened instead of the palette's (the matte melon's red-tinged highlight
+read as tan on the green rind).
 Next, one at a time with feedback: steak, chicken drumstick (whole forms only; cut forms later).
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):

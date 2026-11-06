@@ -245,10 +245,13 @@ if (kind > 0 && amount > 0.0) {
     float edgeOn = pow(1.0 - max(dot(N, V), 0.0), 2.0);
     float thin = max(edgeOn * 0.8, 1.0 - smoothstep(0.05, 0.3, q.x));
     float through = pow(max(dot(V, -L), 0.0), 2.0) * 0.6;
-    float glow = clamp(inside * 0.7 + thin * 0.35 + through, 0.0, 0.85) * amount;
+    // Only the red flesh glows: the rind is not translucent, and the warm glow on green turned
+    // muddy brown along the rind's edge.
+    float fleshOnly = 1.0 - smoothstep(0.8, 0.92, q.x);
+    float glow = clamp(inside * 0.7 + thin * 0.35 + through, 0.0, 0.85) * amount * fleshOnly;
     lab = mix(lab, deep, glow);
-    lab.x += (inside * 0.08 + thin * 0.06 + through * 0.08) * amount;
-    lab.yz *= 1.0 + inside * 0.15 * amount;
+    lab.x += (inside * 0.08 + thin * 0.06 + through * 0.08) * amount * fleshOnly;
+    lab.yz *= 1.0 + inside * 0.15 * amount * fleshOnly;
     // 2. Seeds inside, seen vaguely through the flesh: a scatter of seeds sampled a little way
     //    under the surface, along the line of sight, so they shift gently as the melon turns,
     //    like looking into it. Only in the ring where a melon keeps its seeds. Fainter deeper in.
@@ -273,37 +276,60 @@ if (kind > 0 && amount > 0.0) {
     vec3 chalk = lab;
     chalk.x += 0.09;
     chalk.yz *= 0.72;
-    lab = mix(lab, chalk, dry * 0.65 * show);
+    // Quieter toward the rind, so the gradient there melts instead of speckling.
+    lab = mix(lab, chalk, dry * 0.65 * show * (1.0 - smoothstep(0.7, 0.88, q.x) * 0.8));
     float fleck = smoothstep(0.62, 0.8, valueNoise3(vec3(arc * 40.0, q.x * 9.0, 9.0))) * smoothstep(0.5, 0.8, paper);
     lab = shadeOwn(lab, fleck * 0.55 * show);
     float mottle = fbm3(p * 0.12) - 0.5;
     lab = mottle > 0.0 ? shadeOwn(lab, mottle * 0.8 * show) : lab - vec3(mottle * 0.05, 0.0, 0.0);
+    // Deep reds: big soft patches where the flesh is riper, darker and richer (toward wine, not
+    // toward orange), strongest in the heart of the slice.
+    float ripe = smoothstep(0.52, 0.75, fbm3(objectPos * 2.2 + 21.0)) * (1.0 - smoothstep(0.55, 0.8, q.x));
+    vec3 wine = lab;
+    wine.x -= 0.11;
+    wine.yz *= 1.18;
+    wine.yz = mat2(cos(-0.12), sin(-0.12), -sin(-0.12), cos(-0.12)) * wine.yz;
+    lab = mix(lab, wine, ripe * 0.75 * amount);
     float grain = 1.0 - smoothstep(0.04, 0.1, skinCells(p * 1.3));
     lab.x += grain * 0.05 * show;
-    // 4. Toward the rind, one soft gradient, like a watercolour wash: the red pales into pink,
-    //    then cream, then yellow-green, then the rind's green. Wide overlapping steps, so the
-    //    colours melt into each other; the boundary still wanders a little, never ruler-round.
-    //    Every colour is shaded like the flesh under it (the same step in lightness from the
-    //    flesh's base), so the wash turns with the light.
-    float wander = (valueNoise3(vec3(arc * 12.0, q.x * 6.0, 7.0)) - 0.5) * 0.025;
+    // 4. Toward the rind, one soft gradient, like a watercolour wash: the red eases into pink,
+    //    then a generous band of cream, then yellow-green, light green and finally the dark rind
+    //    with its stripes. Wide, eased, overlapping steps, so the colours melt into each other;
+    //    the boundary wanders only a little. Every colour is shaded like the flesh under it (the
+    //    same step in lightness from the flesh's base), so the wash turns with the light.
+    float wander = (valueNoise3(vec3(arc * 10.0, q.x * 5.0, 7.0)) - 0.5) * 0.02;
     float t = q.x + wander;
     float shade = lab.x - linearToOklab(uBaseColour).x;
     vec3 blush = lab;
-    blush.x += 0.06;
-    blush.yz *= 0.6;
+    blush.x += 0.07;
+    blush.yz *= 0.55;
     vec3 pale = linearToOklab(uMelonPale);
     pale.x += shade * 0.7;
     vec3 green = linearToOklab(uMelonGreen);
     green.x += shade * 0.8;
-    vec3 lime = mix(pale, green, 0.45);
-    float gm = fbm3(p * 0.3 + 4.0) - 0.5;
-    green.x += gm * 0.05;
-    lab = mix(lab, blush, smoothstep(0.7, 0.86, t));
-    lab = mix(lab, pale, smoothstep(0.82, 0.9, t));
-    lab = mix(lab, lime, smoothstep(0.88, 0.94, t));
-    lab = mix(lab, green, smoothstep(0.92, 0.98, t));
-    // The chalky scratches carry on lightly over the pale and green, so the wash stays one surface.
-    lab.x += dry * 0.03 * show * smoothstep(0.8, 0.9, t);
+    vec3 lime = mix(pale, green, 0.4);
+    // The dark rind: deeper green, with wavy broken stripes running across the slab.
+    vec3 rindLab = green;
+    rindLab.x -= 0.08;
+    rindLab.yz *= 1.1;
+    float warp = (fbm3(objectPos * 6.0) - 0.5) * 0.6;
+    float stripe = smoothstep(0.1, 0.55, sin(arc * 34.0 / max(q.x, 0.5) + warp * 7.0));
+    rindLab.x -= stripe * 0.07;
+    float ease1 = smoothstep(0.6, 0.84, t);
+    float ease2 = smoothstep(0.76, 0.88, t);
+    float ease3 = smoothstep(0.88, 0.95, t);
+    float ease4 = smoothstep(0.92, 0.98, t);
+    float ease5 = smoothstep(0.965, 0.995, t);
+    lab = mix(lab, blush, ease1 * ease1 * (3.0 - 2.0 * ease1));
+    lab = mix(lab, pale, ease2);
+    lab = mix(lab, lime, ease3);
+    lab = mix(lab, green, ease4);
+    lab = mix(lab, rindLab, ease5);
+    // Highlights on the green take the green's own colour, not the flesh's red-tinged one.
+    highlightOwn = ease3;
+    // The chalky scratches carry on lightly over the pale and green, so the wash stays one
+    // surface, but quieter there, so the colours melt rather than speckle.
+    lab.x += dry * 0.02 * show * ease2;
   } else if (kind == 11) {
     // A melon's green rind shell. Its map: x runs across the slice (-1 to 1 = the melon's
     // angle), y across the slab's thickness (0 to 1). Watermelon stripes: wavy, broken dark

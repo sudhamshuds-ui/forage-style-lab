@@ -116,7 +116,7 @@ if (uHighlightShape > 6.5) {
   float glint = smoothstep(0.93, 0.95, facingLight) * smoothstep(3.0, 8.0, curvature);
   glint *= smoothstep(0.4, 0.48, valueNoise3(objectPos * 11.0)) * uRimGlints;
   highlightMask = max(amount, glint) * lightMask; // no highlight inside a cast shadow
-  colour = mix(colour, uHighlightColour, highlightMask);
+  colour = mix(colour, mix(uHighlightColour, mix(colour, vec3(1.0), 0.45), highlightOwn), highlightMask);
 } else {
 
 // 1. The shape, drawn flat on this plane around the anchor spot.
@@ -136,7 +136,7 @@ float glint = smoothstep(0.93, 0.95, facingLight) * smoothstep(3.0, 8.0, curvatu
 glint *= smoothstep(0.4, 0.48, valueNoise3(objectPos * 11.0)) * uRimGlints;
 
 highlightMask = max(shapeMask, glint) * lightMask;
-colour = mix(colour, uHighlightColour, highlightMask);
+colour = mix(colour, mix(uHighlightColour, mix(colour, vec3(1.0), 0.45), highlightOwn), highlightMask);
 }
 `,
   update(settings, context) {

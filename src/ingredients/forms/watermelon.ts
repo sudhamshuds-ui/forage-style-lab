@@ -23,7 +23,8 @@ import { wedgeDistance, type WedgeShape } from './kit/wedge';
  *
  * The flesh's colours, from red through a pale band into the green rind, are one soft
  * gradient painted by the shader (the `melon` skin), from a map on the flesh: x runs from the
- * melon's centre (0) to the outside (1). Only the outermost dark skin is a separate shell.
+ * melon's centre (0) to the outside (1), on into the dark rind and its stripes (the separate
+ * shell piece is switched off: WITH_SHELL).
  *
  * Pieces, like layers in a pre-comp (the Style Lab paints each one):
  *   flesh_glow  one closed slab per wedge (the first is the hero; both get its skin)
@@ -42,6 +43,12 @@ const THICK = 4;
 const HALF_ANGLE = 0.42;
 /** How far in from the outside the dark rind shell reaches (cm). */
 const SHELL = 0.32;
+/**
+ * The separate dark-green shell piece is switched off (the user, 2026-11-06: its edge read as a
+ * hard ledge on the faces). The flesh's own gradient now runs on into the dark rind and its
+ * stripes (the melon skin). Set true to bring the shell back.
+ */
+const WITH_SHELL = false;
 
 /**
  * Each wedge: how it is tipped about its point (radians), turned, where its point stands (cm),
@@ -171,7 +178,7 @@ export const buildWatermelon: FormBuilder = ({ state, seed }) => {
 
   const pieces: FormPiece[] = [
     ...flesh.map((geometry) => ({ role: 'flesh_glow', geometry })),
-    { role: 'rind', geometry: mergeGeometries(shells), doubleSided: true, keepNormals: true },
+    ...(WITH_SHELL ? [{ role: 'rind', geometry: mergeGeometries(shells), doubleSided: true, keepNormals: true }] : []),
     { role: 'seeds', geometry: mergeGeometries(seeds) },
   ];
   return finishPieces(pieces);

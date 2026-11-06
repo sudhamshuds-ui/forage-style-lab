@@ -1,4 +1,4 @@
-import { Box3, Color, Group, Mesh, Sphere, Vector3, type ShaderMaterial } from 'three';
+import { Box3, Color, Group, Mesh, Sphere, Vector3, type BufferAttribute, type ShaderMaterial } from 'three';
 import type { Settings } from '../params';
 import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
@@ -204,6 +204,26 @@ class FormSubject implements Subject {
     const spotsEach = Math.max(1, Math.floor(MAX_CONTACTS / members.length));
     for (const member of members) {
       member.updateMatrix();
+      // A form with several bodies (the watermelon's two wedges) gets contact spots for each body
+      // on its own, from only the part that rests on the table: measured as one shape, a spot
+      // landed under the rind's arch, where nothing touches (the user, 2026-11-06).
+      const bodies = member.children.filter((o): o is Mesh => o instanceof Mesh && o.name === member.children[0].name);
+      if (bodies.length > 1) {
+        const each = Math.max(1, Math.floor(spotsEach / bodies.length));
+        for (const mesh of bodies) {
+          const position = mesh.geometry.getAttribute('position') as BufferAttribute;
+          const step = Math.max(1, Math.floor(position.count / 800));
+          const points: Vector3[] = [];
+          for (let i = 0; i < position.count; i += step) points.push(new Vector3().fromBufferAttribute(position, i));
+          const all = transformed(points, member);
+          const low = Math.min(...all.map((p) => p.y));
+          const size = new Box3().setFromPoints(all).getSize(new Vector3());
+          // Only what lies within a sliver of the table (a few percent of the body's size).
+          const foot = all.filter((p) => p.y < low + Math.max(size.x, size.y, size.z) * 0.04);
+          this.contacts.push(...footprintSpots(foot.length >= 10 ? foot : all, each));
+        }
+        continue;
+      }
       let body = transformed(samplePoints(member, 'body', 600), member);
       // A tall piece (the watermelon's wedges, standing on their rind) only meets the table at its
       // foot: measured from the whole outline, a leaning wedge put a contact spot on the floor

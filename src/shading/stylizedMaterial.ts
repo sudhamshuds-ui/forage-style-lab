@@ -114,6 +114,10 @@ void main() {
 
   float tone = 0.5;
   float highlightMask = 0.0;
+  // How much a highlight should take the surface's own colour (lightened) instead of the
+  // palette's highlight colour: a skin sets it where it paints a different colour (a melon's
+  // green rind on red flesh, where the red-tinged highlight turned tan).
+  float highlightOwn = 0.0;
   vec3 colour = uBaseColour;
 
   // Cast shadows falling on this surface (a sepal on its berry, one berry on the next):

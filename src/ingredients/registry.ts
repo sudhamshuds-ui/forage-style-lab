@@ -325,6 +325,7 @@ export const REGISTRY: IngredientEntry[] = [
       // The pair as it stands (each wedge about 16 cm from point to rind, 3 cm thick).
       size_cm: [18.9, 14.6, 11.4],
       // The pale band is part of the flesh's gradient (the `melon` skin), not a piece.
+      // 'rind' is the separate shell, switched off (WITH_SHELL): the flesh's gradient paints it.
       parts: ['flesh:glow', 'rind@leaf', 'seeds@ink'],
       light_case: 'cut-juicy',
       notes:
