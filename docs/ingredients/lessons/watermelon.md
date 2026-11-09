@@ -34,7 +34,7 @@ feedback in a cloud session (recorded in those notes, not in the user's own word
   Claude's note: its edge read as a hard ledge on the faces; the flesh's gradient runs on into the dark rind (`WITH_SHELL` in `forms/watermelon.ts` brings it back).
 
 ## Recurring errors
-- **Contact spots only where a piece rests** (watermelon, bread).
+- **Contact spots only where a piece rests** (watermelon, baguette).
   Claude's note: measured as one shape, a spot landed under the rind's arch; spots now come per body, from its foot, sized to its width there.
 - **Lifted skins flicker on tight curves** (watermelon, cheese).
   Claude's note: the rind flickered into the flesh as a sawtooth; lifted skins are drawn a hair in front of their body.
