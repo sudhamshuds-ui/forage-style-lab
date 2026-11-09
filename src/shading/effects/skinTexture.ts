@@ -158,6 +158,10 @@ if (kind > 0 && amount > 0.0) {
     float dimpleToward = 1.0 - smoothstep(0.0, 0.45, skinCells(p + L * 0.2));
     float emboss = (dimple - dimpleToward) * show;
     lab = emboss > 0.0 ? lab + vec3(emboss * 0.1, 0.0, 0.0) : shadeOwn(lab, -emboss * 0.9);
+    // The dimples break the berry's shine: no sheen in the pits, small glints on their lit rims.
+    highlightBumpy = amount;
+    highlightBreak = dimple * amount;
+    highlightGlint = smoothstep(0.04, 0.2, emboss) * (1.0 - smoothstep(0.1, 0.2, d));
     // The seed itself: a clear pale-gold fleck in the dimple.
     float seed = 1.0 - smoothstep(0.1, 0.16, d);
     vec3 gold = linearToOklab(mix(uHighlightColour, uGlowColour, 0.5) * vec3(1.0, 0.92, 0.6));

@@ -105,6 +105,18 @@ if (uHighlightShape > 6.5) {
   float tooth = valueNoise3(objectPos * 16.0) * 0.6 + valueNoise3(objectPos * 41.0) * 0.4;
   sheen *= smoothstep(0.25, 0.55, tooth + (sheen - 0.5) * 0.8);
   float amount = sheen * 0.38;
+  if (highlightBumpy > 0.0) {
+    // A bumpy skin (a strawberry's seed dimples, set by the skin) never shines as one smooth
+    // patch: on its broad faces the sheen above became a big, flat, candy-like blob (the user,
+    // 2026-11-09). Instead: a faint sheen that thins out gradually from its core, skipping in
+    // the dimples, with small glints on the dimple rims that face the light.
+    float soft = smoothstep(start - 0.004, 1.0, facingLight);
+    soft *= soft;
+    soft *= smoothstep(0.3, 0.36, tooth + soft * 0.3);
+    soft *= 1.0 - smoothstep(0.15, 0.6, highlightBreak);
+    float glintZone = smoothstep(start - 0.035, start + 0.015, facingLight);
+    amount = mix(amount, max(soft * 0.22, highlightGlint * glintZone * 0.85), highlightBumpy);
+  }
   if (uHighlightShape > 7.5) {
     // Dry speckle: a fainter sheen, plus small pale specks in a wider area around it.
     float zone = smoothstep(start - 0.05, start + 0.01, facingLight);
@@ -116,7 +128,10 @@ if (uHighlightShape > 6.5) {
   float glint = smoothstep(0.93, 0.95, facingLight) * smoothstep(3.0, 8.0, curvature);
   glint *= smoothstep(0.4, 0.48, valueNoise3(objectPos * 11.0)) * uRimGlints;
   highlightMask = max(amount, glint) * lightMask; // no highlight inside a cast shadow
-  colour = mix(colour, mix(uHighlightColour, mix(colour, vec3(1.0), 0.45), highlightOwn), highlightMask);
+  // On a bumpy skin the sheen leans toward the surface's own colour lightened, so it reads as
+  // light on that surface (a warm, pale red on a strawberry), not a separate pastel sticker.
+  vec3 ownLight = mix(colour, vec3(1.0), 0.45);
+  colour = mix(colour, mix(uHighlightColour, ownLight, max(highlightOwn, 0.35 * highlightBumpy)), highlightMask);
 } else {
 
 // 1. The shape, drawn flat on this plane around the anchor spot.

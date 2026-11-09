@@ -55,7 +55,13 @@ keep code readable with friendly comments.
 - **Facets are retired.** Every form is smooth and rounded, the apple included (the hidden
   Faceted switch is off). No stamped dabs on the apple. Highlights are
   soft and believable (Soft sheen, Dry speckle); the hard window shapes are kept but not
-  the default and never picked by Randomize.
+  the default and never picked by Randomize. **Bumpy skins break their shine** (2026-11-09,
+  the user: the strawberry's highlight read as "glossy candy flat"): a skin can set
+  `highlightBumpy`, `highlightBreak` and `highlightGlint` (`stylizedMaterial.ts`); the seed
+  skin does, so the strawberry gets a faint sheen that thins out from its core, skips in the
+  seed dimples, and small glints on the dimple rims, tinted toward the berry's own colour.
+  Every other ingredient keeps the Soft sheen as it was (trying the new sheen on all of them
+  made the apple's highlight vanish and the orange's a scratchy mark).
 - Style direction: **digital gouache with watercolour glazes, softly lit**. Shapes first
   (about 70% calm shapes, 30% marks): each tone area is one calm shape with soft colour
   bleeding inside it; brush marks only where the form turns. Edges crisp on the lit side

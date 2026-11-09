@@ -118,6 +118,13 @@ void main() {
   // palette's highlight colour: a skin sets it where it paints a different colour (a melon's
   // green rind on red flesh, where the red-tinged highlight turned tan).
   float highlightOwn = 0.0;
+  // A bumpy skin breaks the shine (a strawberry's seed dimples): a skin sets highlightBreak where
+  // the surface dips (the sheen skips there) and highlightGlint on the little rims that face the
+  // light (tiny sparks inside the sheen), so a dimpled fruit never shows one smooth glossy patch.
+  float highlightBreak = 0.0;
+  float highlightGlint = 0.0;
+  // 1 on a bumpy skin: its shine is mostly those glints, over a faint sheen.
+  float highlightBumpy = 0.0;
   vec3 colour = uBaseColour;
 
   // Cast shadows falling on this surface (a sepal on its berry, one berry on the next):
