@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Group, Mesh } from 'three';
+import { Group, Matrix3, Mesh, Vector3, type BufferAttribute } from 'three';
 import { buildStrawberry } from './forms/strawberry';
 import { seedFromId, seededRandom } from './forms/kit/random';
 import { LAYOUT_COUNT, arrangeCluster, closerThan, minDistance, samplePoints, transformed } from './layout';
@@ -35,6 +35,48 @@ describe('cluster layout', () => {
       const nearest = Math.min(...points.slice(0, i).map((other) => minDistance(points[i], other)));
       expect(nearest).toBeGreaterThanOrEqual(gap * 0.999);
       expect(nearest).toBeLessThan(gap + cmToUnits(0.05));
+    }
+  });
+
+  it('never sinks one berry into another (checked on every vertex, from inside too)', () => {
+    // Points that are close is not enough: once two surfaces cross, sample points can all be
+    // far apart while a berry sits a centimetre inside its neighbour (the user saw this).
+    const { members } = cluster();
+    const body = (g: Group) => {
+      g.updateMatrix();
+      const mesh = g.children[0] as Mesh;
+      const pos = mesh.geometry.getAttribute('position') as BufferAttribute;
+      const nor = mesh.geometry.getAttribute('normal') as BufferAttribute;
+      const turn = new Matrix3().getNormalMatrix(g.matrix);
+      const points: Vector3[] = [];
+      const normals: Vector3[] = [];
+      for (let i = 0; i < pos.count; i++) {
+        points.push(new Vector3().fromBufferAttribute(pos, i).applyMatrix4(g.matrix));
+        normals.push(new Vector3().fromBufferAttribute(nor, i).applyMatrix3(turn).normalize());
+      }
+      return { points, normals };
+    };
+    const bodies = members.map(body);
+    for (let i = 0; i < bodies.length; i++) {
+      for (let j = 0; j < bodies.length; j++) {
+        if (i === j) continue;
+        let deepest = 0;
+        for (const p of bodies[i].points) {
+          let best = Infinity;
+          let k = -1;
+          bodies[j].points.forEach((q, n) => {
+            const d = p.distanceToSquared(q);
+            if (d < best) {
+              best = d;
+              k = n;
+            }
+          });
+          // Only near the other's surface (its far side faces away and would read as inside).
+          if (Math.sqrt(best) > cmToUnits(1)) continue;
+          deepest = Math.max(deepest, -p.clone().sub(bodies[j].points[k]).dot(bodies[j].normals[k]));
+        }
+        expect(deepest, `berry ${i} into ${j}`).toBeLessThan(cmToUnits(0.03));
+      }
     }
   });
 

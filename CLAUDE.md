@@ -117,7 +117,11 @@ keep code readable with friendly comments.
   picks 'out' (berries, default) or 'front' (broccoli: each stalk's cut end fans diagonally
   toward the camera, choosing the side that fans away from the others, so stalks show and
   never cross). `matte: true` keeps the body's highlight quiet (broccoli). Touching is checked
-  on dense samples (1500 per body), and with 'front' the parts are solid (stalks never pass
+  on dense samples (1500 per body) **with their outward directions** (`BodyGrid` in `layout.ts`):
+  a point counts as touching when it is closer than the gap to a neighbour's surface *or inside
+  it*. Until 2026-11-09 only point-to-point closeness was checked, and the strawberries sank up
+  to 1.1 cm into each other (the user's screenshot): once surfaces cross, no two sample points
+  need to be near. A test now checks every vertex for this, and with 'front' the parts are solid (stalks never pass
   through each other); with 'out' soft parts (sepals) may brush. An entry may carry its own
   triangle `budget` when its archetype's does not fit (the 32 cm baguette: 9k). The branching triangle
   budget is 18k, not board 07's 12k (a bumpier crown, asked for by the user).

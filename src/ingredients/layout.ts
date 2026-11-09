@@ -1,4 +1,4 @@
-import { Mesh, Vector3, type BufferAttribute, type Group } from 'three';
+import { Matrix3, Mesh, Vector3, type BufferAttribute, type Group } from 'three';
 import { signed } from './forms/kit/random';
 import type { Layout } from './registry';
 
@@ -61,6 +61,10 @@ export function arrangeCluster(members: Group[], options: ClusterOptions): void 
   const stemEnds = options.stemEnds ?? 'out';
   // Dense enough that a lump between two sample points cannot sink into a neighbour.
   const bodies = members.map((member) => samplePoints(member, 'body', 1500));
+  // The same body points with their outward directions, to tell "touching from outside" from
+  // "sunk inside" (see BodyGrid).
+  const surfaces = members.map((member) => sampleSurface(member, 1500));
+  const placedSurfaces: Surface[] = [];
   const parts = members.map((member) => samplePoints(member, 'parts', 800));
   // Broccoli stalks are solid: they may not pass through each other. Strawberry sepals are
   // soft and may brush.
@@ -91,6 +95,8 @@ export function arrangeCluster(members: Group[], options: ClusterOptions): void 
       const direction = new Vector3(Math.cos(angle), 0, Math.sin(angle));
       const otherBodies = placedBodies.flat();
       const otherParts = placedParts.flat();
+      // The bodies already placed, ready to ask "is this point inside one of them?".
+      const insideOthers = new BodyGrid(placedSurfaces);
       // Turn the member to face `facing`, then slide it in until it just touches.
       const placeFacing = (facing: number) => {
         member.rotation.set(0, out ? Math.atan2(out.z, out.x) - facing : signed(random) * Math.PI, 0);
@@ -101,7 +107,7 @@ export function arrangeCluster(members: Group[], options: ClusterOptions): void 
           // Bodies just touch. Parts never sink into a body; soft parts (sepals) may brush each
           // other, solid ones (stalks) may not.
           return (
-            !closerThan(body, otherBodies, gap) &&
+            !insideOthers.reaches(body, gap) &&
             !closerThan(own, otherBodies, gap * 0.5) &&
             !closerThan(body, otherParts, gap * 0.5) &&
             !(solidParts && closerThan(own, otherParts, gap * 0.5))
@@ -140,6 +146,7 @@ export function arrangeCluster(members: Group[], options: ClusterOptions): void 
     }
     placedBodies.push(transformed(bodies[index], member));
     placedParts.push(transformed(parts[index], member));
+    placedSurfaces.push(transformedSurface(surfaces[index], member));
   });
 
   // Centre the group on its footprint, so the framing sees it as one subject.
@@ -178,6 +185,121 @@ export function samplePoints(member: Group, which: 'body' | 'parts' = 'body', bu
     for (let i = 0; i < position.count; i += step) points.push(new Vector3().fromBufferAttribute(position, i));
   }
   return points;
+}
+
+/** Points on a member's body with the way the surface faces there (outward). */
+export interface Surface {
+  points: Vector3[];
+  normals: Vector3[];
+}
+
+/** Body points with their outward directions, in the member's own space (like samplePoints). */
+export function sampleSurface(member: Group, budget = SAMPLES): Surface {
+  const meshes = member.children.filter((o): o is Mesh => o instanceof Mesh);
+  const isBody = (mesh: Mesh) => mesh === meshes[0] || (mesh.name !== '' && mesh.name === meshes[0].name);
+  const chosen = meshes.filter(isBody);
+  let total = 0;
+  for (const mesh of chosen) total += mesh.geometry.getAttribute('position').count;
+  const step = Math.max(1, Math.floor(total / budget));
+  const surface: Surface = { points: [], normals: [] };
+  for (const mesh of chosen) {
+    if (!mesh.geometry.getAttribute('normal')) mesh.geometry.computeVertexNormals();
+    const position = mesh.geometry.getAttribute('position') as BufferAttribute;
+    const normal = mesh.geometry.getAttribute('normal') as BufferAttribute;
+    for (let i = 0; i < position.count; i += step) {
+      surface.points.push(new Vector3().fromBufferAttribute(position, i));
+      surface.normals.push(new Vector3().fromBufferAttribute(normal, i).normalize());
+    }
+  }
+  return surface;
+}
+
+/** A surface moved by a member's turn, size and position (directions only turn). */
+export function transformedSurface(surface: Surface, member: Group): Surface {
+  member.updateMatrix();
+  const turn = new Matrix3().getNormalMatrix(member.matrix);
+  return {
+    points: surface.points.map((p) => p.clone().applyMatrix4(member.matrix)),
+    normals: surface.normals.map((n) => n.clone().applyMatrix3(turn).normalize()),
+  };
+}
+
+/**
+ * The bodies already placed, sorted into a grid of little boxes, so a point can quickly ask
+ * whether it has reached one of them: is it closer than the gap to a body's surface, or past
+ * it, inside? For each point we find the nearest surface point and check which side of the
+ * surface the point is on (its outward direction there).
+ *
+ * Why not just "closer than the gap to any surface point": once two surfaces cross, no two
+ * sample points need to be near each other, so a berry slid in by big steps could end up
+ * sunk a centimetre into its neighbour and still count as clear (the user's screenshot,
+ * 2026-11-09). Wherever two bodies cross, some points sit just inside the other's surface,
+ * and those are caught here.
+ */
+export class BodyGrid {
+  private readonly cells = new Map<string, number[]>();
+  private readonly points: Vector3[] = [];
+  private readonly normals: Vector3[] = [];
+  private readonly cell: number;
+
+  constructor(surfaces: Surface[]) {
+    for (const s of surfaces) {
+      this.points.push(...s.points);
+      this.normals.push(...s.normals);
+    }
+    // How far apart neighbouring surface points are, roughly: the box's surface shared out.
+    const min = new Vector3(Infinity, Infinity, Infinity);
+    const max = new Vector3(-Infinity, -Infinity, -Infinity);
+    for (const p of this.points) {
+      min.min(p);
+      max.max(p);
+    }
+    const size = max.clone().sub(min);
+    const area = 2 * (size.x * size.y + size.y * size.z + size.z * size.x);
+    const spacing = Math.sqrt(area / Math.max(1, this.points.length));
+    // A point further than this from every surface point is clear of the surface.
+    this.cell = Math.max(spacing * 3, 1e-6);
+    this.points.forEach((p, i) => {
+      const key = this.key(p, 0, 0, 0);
+      const list = this.cells.get(key);
+      if (list) list.push(i);
+      else this.cells.set(key, [i]);
+    });
+  }
+
+  private key(p: Vector3, dx: number, dy: number, dz: number): string {
+    return `${Math.floor(p.x / this.cell) + dx},${Math.floor(p.y / this.cell) + dy},${Math.floor(p.z / this.cell) + dz}`;
+  }
+
+  /** True if any of `points` is closer than `gap` to a placed body's surface, or inside it. */
+  reaches(points: Vector3[], gap: number): boolean {
+    if (this.points.length === 0) return false;
+    const offset = new Vector3();
+    for (const p of points) {
+      let best = Infinity;
+      let nearest = -1;
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dz = -1; dz <= 1; dz++) {
+            const list = this.cells.get(this.key(p, dx, dy, dz));
+            if (!list) continue;
+            for (const i of list) {
+              const d = p.distanceToSquared(this.points[i]);
+              if (d < best) {
+                best = d;
+                nearest = i;
+              }
+            }
+          }
+        }
+      }
+      if (nearest < 0) continue;
+      // How far outside the surface the point is (negative: inside).
+      const outside = offset.copy(p).sub(this.points[nearest]).dot(this.normals[nearest]);
+      if (outside < gap) return true;
+    }
+    return false;
+  }
 }
 
 /** Which way (on the table) a member's small parts sit from its body: its stem end. */
