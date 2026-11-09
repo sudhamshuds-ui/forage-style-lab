@@ -142,32 +142,78 @@ Each registry entry can also carry, beside the spec and builder:
 
 ## Lessons learned (read before building)
 
-- **Distance fields and surface nets** (branching, wedge): the meshing grid should never line up with a flat face (start it at odd offsets), and any bevel must span about two grid cells, or edges come out saw-toothed. Smooth the mesh with `relaxOnSurface` so long angled edges are clean.
-- **Holes and cavities** (cheese eyes): put a bubble's centre a little under the face, so it opens as a deep hole with an overhanging rim and a shadowed inside. A shallow dish reads as a pale spot.
-- **Never machine-perfect**: cut faces get a very gentle seeded wobble and the outline a few round bites, so it looks cut by hand. Keep the table face flat.
-- **A rind, crust or skin is part of the same surface**: build the whole piece once and lift the region off as a thin skin (`liftRegion`, keeping the normals), never a separate slab (it reads as a cushion stuck on).
-- **Sheets on a surface** (labels): float them a hair off the surface; when a sheet wraps all the way round, its two ends must meet exactly (a tiny gap shows as a dark line).
-- **Printed artwork** (labels): draw it in code as a two-tone stencil and let the shader paint the ink with the ground's light and shadow. Our own design in the spirit of a reference, never a copy of a real brand or an artist's marks; keep it simple (the user removed borders, dots and repeated icons).
-- **References** are for form: a signed painting or a real brand's pack is never copied.
-- **Small bumps read as damage**: in the painted shading, a little drip or bead becomes a dark notch (a chip). Make a melt or a swelling broad and soft, or leave it out.
-- **Tell the story with the ingredient, not a tool**: a knife's scrape and the curl it took say "butter" at a glance, with no utensil on the card. A small part like the curl is listed in `SMALL_PARTS` (left out of the real size); turn it so its most telling side (the curl's spiral end) faces the camera.
-- **A pair built in the form** (watermelon): when a layout needs something the cluster layout cannot do (a lean), build the members in the form, each resting on the table on its own. Repeat the hero's role for the second body, so both get the skin, the highlight and contact spots.
-- **Balance**: every piece must rest the way it really would. A wedge on its curved rind only stands straight up; to lean one, lay it on a flat cut side.
-- **Lifted skins** (rinds) are drawn in front of their body automatically; without it they flickered as a sawtooth on tight curves.
-- **Gradients between layers** (flesh to rind): soft and wide like a wash (the user preferred it to crisp edges);: paint them in the shader from a map on the body (like the `melon` skin), not as separate bands, which give hard edges.
-- **Seeds and dots**: few, irregular, never two above one (a face). Make them small raised beads, not flat stickers.
-- **Translucent flesh** (melon, citrus): glow in the shadows, more at thin places, and faint things seen inside by sampling under the surface along the line of sight (see `CLAUDE.md`, "Translucent flesh"). Keep it faint.
-- **Rim glints and pale layers**: the rim glint is painted in the body's highlight colour; on a gradient into a rind it draws a coloured line, so switch it off (`rimGlints: false`).
-- **Rind, band, peel layers**: lift each off the body's own surface by distance (`liftRegion`); the board's "separate shell" is its own layer without a seam.
-- **Flat marks on a face** (seeds): lift them clear of any wobble in the face, or they vanish under it.
-- **Local changes stay local**: a softened corner rounds only the top of that corner; rounding its whole upright edge hid a face of the block.
-- **Anything lying flat on the table** (a paper sheet) must be a prop, or it flickers with the floor.
-- **Keep deformations gentle**: a softened corner reads at about half what first seems needed (the butter's sag went from 1.2 to 0.6 cm). Start small; the user can always ask for more.
-- **Pale yellows** (butter, cheese, lemon): the shader cools their shadows the warm way, through orange; if a yellow shows lime edges, check that rule (`turnHueTowardCool`) before changing the family.
+Sorted by the four things the user looks at. Each rule names the ingredients that taught it; the
+full story (first try, what the user said, where we ended) is in `docs/ingredients/lessons/{id}.md`.
+`/forage-brand` keeps this list current after every approved ingredient: merge, never duplicate.
+
+### Colour (colours, textures, gradients)
+
+- **The ingredient keeps its own colours; only the room changes** (apple). Randomize never touches colour.
+- **Softly lit, never blasted by sun** (apple, lemon): Light strength pulls lit and shadow toward the base, so no lit side bleaches toward white. The room complements the subject and stays muted, never candy.
+- **Shadows are a mix of colours, never grey** (apple), in the ingredient's own temperature: pale ingredients take less of the violet and pink (`shadowTint`: cheese 0.35, butter 0.4, melon 0.3), or they read as stains (cheese).
+- **Pale yellows turn warm in shadow, through orange, never lime** (butter); if a yellow shows green edges, check `turnHueTowardCool` before changing the family.
+- **Texture marks darken toward the ingredient's own shade, never grey or black** (lemon): `shadeOwn`. Lettering is deep plum, never black (sauce).
+- **Every ingredient gets its own skin texture** (lemon, orange), and it must read at card size (strawberry seeds).
+- **Close relatives must still read apart**: berries are cooler and more magenta than the apple (strawberry); cheese is buttery, not lemon (cheese); butter is paler and fresher than cheese (butter); a melon is juicy coral, not candy pink (watermelon).
+- **Small parts share one natural leaf green and need tone, veins and a paler underside** (orange, strawberry).
+- **Warm and varied, never one flat colour**: a crust is many browns with blotches and specks (baguette); flesh has deeper, riper patches (watermelon).
+- **Gradients between layers are one soft, wide wash** (watermelon): painted in the shader from a map on the body, never separate bands with edges.
+- **Translucent flesh glows in its shadows and thin places, with faint things seen inside** (watermelon; reuse for citrus). Keep the glow on the flesh's own colour.
+- **Highlights are believable touches of light, never graphic shapes** (apple); one main highlight per object, small parts quiet (orange); matte where the real thing is matte (broccoli, baguette, cheese, butter, watermelon). **A bumpy skin breaks its shine** into a faint sheen and small glints (strawberry). On a different-coloured layer the highlight takes the surface's own colour (watermelon).
+
+### Composition (several pieces)
+
+- **Every piece rests the way it really would** (broccoli, watermelon): broccoli lies on its side; a wedge on its curved rind only stands upright, so to lean one, lay it on a flat cut side.
+- **A cluster is an odd triangle, balanced from every side** (strawberry): hero in front, two behind, stem ends out, bodies just touching. Never a row; a symmetric pinwheel looked worse.
+- **Pieces never pass through each other** (broccoli, strawberry).
+- **Group shadows follow the five shadow rules** in `CLAUDE.md` (strawberry).
+- **Turn the most telling side toward the camera or the light** (sauce label, cheese point, butter curl's spiral end); a long ingredient lies on a diagonal (baguette).
+- **Tell the story with the ingredient, not a tool** (butter): the curl, not a knife. What it rests on is a prop (`PROPS`).
+- **A pair the cluster layout cannot make is built in the form** (watermelon), each body resting on its own and repeating the hero's role.
+
+### Form (believable, aesthetic, consistent)
+
+- **Smooth and rounded, no facets** (apple); hard edges only where the real thing has them, each with a small bevel (sauce).
+- **Never geometrically perfect** (strawberry, cheese, baguette): lobed, bent off centre, round bites on edges, gentle wobble in faces, cuts varied and spread out with pointed tips. Keep the table face flat.
+- **Push the signature feature until it reads** (broccoli crown bumps, about 70% more than the first try; sauce bottle length).
+- **Make it the version people picture** (baguette over boule; the boule is kept as `loaf`).
+- **Real size, framed by the card** (strawberry).
+- **Keep deformations gentle: start at about half** (butter). Local changes stay local. Small drips and beads read as damage: make swellings broad or leave them out.
+- **A rind, crust or skin is part of the same surface** (cheese, watermelon): lift it off with `liftRegion`, never a separate slab or shell (a slab read as a cushion, a shell as a ledge).
+- **Holes are deep with an overhanging rim** (cheese); seeds and dots are few, irregular, never a face, raised a little (watermelon).
+- **Printed artwork is our own two-tone stencil, kept simple** (sauce): never a copy of a brand or an artist.
+- **Sheets and marks sit just off their surface** (sauce, watermelon): a label floats a hair off the bottle, its two ends meeting exactly; flat marks (seeds) lift clear of any wobble in the face, or they vanish under it.
+- **Distance fields and surface nets** (broccoli, cheese): start the grid at odd offsets, bevels span about two cells, smooth with `relaxOnSurface`.
+
+### Recurring errors
+
+These come back on almost every ingredient. The pre-check list below is how to catch them first.
+
+- Bodies sinking into each other: sample points apart is not the same as not overlapping (strawberry).
+- Flicker where two surfaces sit at the same depth: leaves and sheets at table height (broccoli, butter), lifted skins on tight curves (watermelon).
+- Contact shadows that do not follow the footprint (baguette, watermelon) or reach past the cast shadow (strawberry).
+- Rim glints drawing hard white or coloured lines on narrow tubes and pale layers (sauce, watermelon).
+- Shadow dashes where a flat surface meets a body (butter); patches, seams and halos where layers meet (apple).
+- Saw-toothed bevels on meshed forms (cheese); ledges in a lumpy crown (broccoli).
+- A highlight that becomes one flat pale patch or a dashed line along an edge (strawberry, butter, apple).
+- A wrapped sheet's ends not meeting (sauce).
 
 ## Pre-check before showing an ingredient
 
-(Filled by `/forage-brand`: the errors that kept coming back, to check before the user sees a new ingredient.)
+Run through this before the user sees a new ingredient (and after each round of changes). Look from
+all four sides and from above, in both styles, not just the front. Items marked *(could be
+automated)* are candidates for a test later.
+
+1. **No overlap**: no body inside another, checked on every vertex, not by sample distance; parts never sink into a body. *(could be automated: `layout.test.ts` does it for clusters)*
+2. **Resting for real**: every piece sits on the table the way it physically could; nothing floats. *(could be automated)*
+3. **No flicker**: anything lying flat at table height is a prop; lifted skins and leaves never shimmer while orbiting.
+4. **Contact shadows**: inside the cast shadow, following each piece's footprint, none under an arch or beside a long piece. Look from above. *(could be automated)*
+5. **Shadow colour**: never grey, lime or pink-stained; check `shadowTint` for pale ingredients and the warm turn for yellows.
+6. **Highlights**: one main highlight, soft and broken; no flat pale patch, no white or coloured rim lines (`rimGlints`), no dashed line along an edge.
+7. **Edges**: no sawtooth on bevels or rinds, no seam, halo or gap where layers meet, wrapped sheets close.
+8. **Texture**: the ingredient's own skin reads at card size; specks lean to its own shade; marks never bunch at a tip.
+9. **Silhouette and size**: the solid-black silhouette still names it; `styleLab.report()` within 10% of `size_cm`; triangles within budget. *(automated: `forms.test.ts`)*
+10. **Lessons**: reread this file's lessons for the ingredient's archetype and colour family.
 
 ## Workflow
 
@@ -185,7 +231,7 @@ Each registry entry can also carry, beside the spec and builder:
 5. Build the remaining requested forms (cuts) with the slicing tool.
 6. Line-up check: show the new ingredient next to the apple and the egg at real size.
 7. Run `npm test` and `npm run build`, then commit with a short message naming the ingredient and forms.
-8. Keep the guidelines in step: once the user approves the ingredient, run `/forage-brand {id}` (`.claude/skills/forage-brand/SKILL.md`). It writes the ingredient's lessons record, updates this file (lessons, pre-check list, families, kit, settings) and the project notes (`CLAUDE.md`), and proposes the Figma board changes, applied after one OK.
+8. Keep the guidelines in step: once the user approves the ingredient, run `/forage-brand {id}` (`.claude/skills/forage-brand/SKILL.md`). It writes the ingredient's lessons record, updates this file (lessons, pre-check list, families, kit, settings) and the project notes (`CLAUDE.md`), and proposes the Figma board changes, applied after one OK. This file also lives on claude.ai as the user's `forage-ingredient` skill: after it changes, rebuild `docs/ingredients/forage-ingredient.zip` and remind the user to upload it there.
 
 ## Card framing (handled by the Style Lab, listed so forms suit it)
 
