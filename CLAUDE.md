@@ -20,6 +20,10 @@ keep code readable with friendly comments.
   muted (not candy) surroundings. `02` and `03` support them; `90-avoid-stroke-clutter.png`
   shows what must never happen. `references/apple` is the old direction (kept for history);
   `references/ui` is the tool's look. Design: `docs/superpowers/specs/2026-10-17-painterly-design.md`.
+- **After the user approves an ingredient**, run `/forage-brand {id}`
+  (`.claude/skills/forage-brand/SKILL.md`) on its branch before merging: it turns the rounds of
+  feedback into lessons (colour, composition, form, recurring errors) in
+  `docs/ingredients/lessons/{id}.md`, the ingredient guide and the Figma boards (one OK for Figma).
 - No brand mark and no toast on the page (removed 2026-11-05): just the card and the panel.
 - The panel is deliberately small: the ingredient's name and Shuffle ingredient in the
   head; Style (Playful strokes, and Randomize only while it is on); Light (Strength, Tone bands: chosen 2026-11-04 because each makes a clear
@@ -277,6 +281,8 @@ keep code readable with friendly comments.
   calyx), which may stick out, and props (the butter's paper). "Faces point outward" is checked by each closed piece's signed
   volume (positive), which works for bent tubes too. `apple/` builds the procedural apple (body, stem, leaf). No model files.
 - `src/dev/checks.ts` has the dev-only report, silhouette, line-up and check sheet.
+- `docs/ingredients/lessons/` holds one lessons record per finished ingredient and its approved
+  painting (`img/`); `src/docs.test.ts` checks the records and the guide.
 - `src/shading/` is the stylized 3D shader, built from a stack of effect modules:
   `effect.ts` (interface, shared GLSL values, FrameContext), `stylizedMaterial.ts`,
   `effects/index.ts` (ordered stack), `chunks/` (OKLab colour maths, noise).

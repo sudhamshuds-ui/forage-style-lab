@@ -165,6 +165,10 @@ Each registry entry can also carry, beside the spec and builder:
 - **Keep deformations gentle**: a softened corner reads at about half what first seems needed (the butter's sag went from 1.2 to 0.6 cm). Start small; the user can always ask for more.
 - **Pale yellows** (butter, cheese, lemon): the shader cools their shadows the warm way, through orange; if a yellow shows lime edges, check that rule (`turnHueTowardCool`) before changing the family.
 
+## Pre-check before showing an ingredient
+
+(Filled by `/forage-brand`: the errors that kept coming back, to check before the user sees a new ingredient.)
+
 ## Workflow
 
 1. Read the spec. Restate the archetype recipe and plan in two or three plain sentences.
@@ -181,7 +185,7 @@ Each registry entry can also carry, beside the spec and builder:
 5. Build the remaining requested forms (cuts) with the slicing tool.
 6. Line-up check: show the new ingredient next to the apple and the egg at real size.
 7. Run `npm test` and `npm run build`, then commit with a short message naming the ingredient and forms.
-8. Keep the guidelines in step: this file (families, kit, settings, lessons) and the project notes (`CLAUDE.md`). New families and archetype recipes are also candidates for the Figma boards (04 and 07); ask before editing Figma.
+8. Keep the guidelines in step: once the user approves the ingredient, run `/forage-brand {id}` (`.claude/skills/forage-brand/SKILL.md`). It writes the ingredient's lessons record, updates this file (lessons, pre-check list, families, kit, settings) and the project notes (`CLAUDE.md`), and proposes the Figma board changes, applied after one OK.
 
 ## Card framing (handled by the Style Lab, listed so forms suit it)
 
