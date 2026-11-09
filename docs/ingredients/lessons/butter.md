@@ -11,7 +11,7 @@ Sources: commits 1b6d19f..d01ec72, CLAUDE.md notes (2026-11-05). Built in a clou
 
 ## Composition
 - **Tell the story with the ingredient, not a tool** (butter).
-  Claude's note: the user chose a curl of butter over a butter knife (no metal, no precedent of tools on every card).
+  Claude's note: the user chose a knife's scrape and the curl it took over a butter knife (no metal, no precedent of tools on every card); later the scrape was switched off and the curl stayed.
   Ended on: the curl lies on the paper with its spiral end turned toward the camera (side on, it read as a log).
 - **What an ingredient rests on is a prop** (butter).
   Claude's note: the creased paper wrapper is a prop, left out of the size and the subject zone.

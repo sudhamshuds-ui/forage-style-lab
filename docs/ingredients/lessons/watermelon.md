@@ -6,7 +6,7 @@ feedback in a cloud session (recorded in those notes, not in the user's own word
 ## Colour
 - **Gradients between layers are one soft, wide wash** (watermelon).
   First try: separate bands, then crisp wet edges.
-  Claude's note: the user preferred a soft gradient; crisp edges went too far. Ended on red to pink to cream to yellow-green to green in wide overlapping steps, with a generous, then slightly narrower, cream band, painted from a map on the body (`melon` skin).
+  Claude's note: the user preferred a soft gradient; crisp edges went too far. Ended on red to pink to cream to yellow-green to green in wide overlapping steps, with a generous, then slightly narrower, cream band (the user: blush from 0.66, cream from 0.8), painted from a map on the body (`melon` skin).
   Why: flesh fades into rind; bands with edges read as stripes of paint.
 - **Juicy, not candy** (watermelon).
   Claude's note: the first melon family read candy-pink; it became a juicier coral-red, with big soft patches of deeper, riper red.

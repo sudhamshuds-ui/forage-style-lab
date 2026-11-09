@@ -42,6 +42,13 @@ describe('style lessons', () => {
     }
   });
 
+  it('the guide never teaches what the user rejected: seeds are beads, not flat marks', () => {
+    // The watermelon's flat seed stickers were replaced by glossy beads half sunk in (the user, 2026-11-06).
+    const text = Object.values(guide)[0];
+    expect(text).not.toContain('flat marks (seeds)');
+    expect(text).toContain('glossy beads half sunk in');
+  });
+
   it('the guide has a pre-check section', () => {
     expect(Object.values(guide)[0]).toContain('## Pre-check before showing an ingredient');
   });

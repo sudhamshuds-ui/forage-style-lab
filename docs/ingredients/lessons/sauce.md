@@ -4,8 +4,8 @@ Sources: commits 0d13cc2..a694361, CLAUDE.md notes (2026-11-05). Built in a clou
 feedback is recorded in those notes, not in their own words.
 
 ## Colour
-- **Lettering is deep plum, never black; labels are shaded like the ground they sit on** (sauce).
-  Claude's note: the label's ink comes from the `paper` family on a `chili` ground and is shaded with the light.
+- **Lettering is never black; labels are shaded like the ground they sit on** (sauce).
+  Claude's note: the printed label's ink is cream (`paper`) on a `chili` ground, shaded with the light; the switched-off layered label used deep plum `ink` marks (abstract, never real letters, never reading as a face).
   Why: pure black ink punches a hole in a soft painting.
 
 ## Composition
@@ -16,6 +16,8 @@ feedback is recorded in those notes, not in their own words.
 - **Elongate until it reads as the thing** (sauce).
   Claude's note: the user asked twice for a longer bottle (12 to 13.2 to 15 cm); a squat bottle read as a jar.
   Why: proportion is identity for vessels.
+- **Shape the silhouette like the reference before adding detail** (sauce).
+  Claude's note: the user's first round: the body flares toward its base (about 11% narrower at the shoulders, a soft triangle), the cap is narrower at the bottom by the collar, and the shoulder runs into the neck with a softer fillet. The label keeps its size as the bottle grows, centred a little higher.
 - **Crisp edges where the real thing is crisp, with a small bevel** (sauce).
   Claude's note: the user asked for sharper edges; square shoulders and crisp base, cap and collar, each with a small bevel.
   Why: soft is the default, but glass and caps have edges; a bevel catches a line of light.

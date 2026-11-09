@@ -152,7 +152,7 @@ full story (first try, what the user said, where we ended) is in `docs/ingredien
 - **Softly lit, never blasted by sun** (apple, lemon): Light strength pulls lit and shadow toward the base, so no lit side bleaches toward white. The room complements the subject and stays muted, never candy.
 - **Shadows are a mix of colours, never grey** (apple), in the ingredient's own temperature: pale ingredients take less of the violet and pink (`shadowTint`: cheese 0.35, butter 0.4, melon 0.3), or they read as stains (cheese).
 - **Pale yellows turn warm in shadow, through orange, never lime** (butter); if a yellow shows green edges, check `turnHueTowardCool` before changing the family.
-- **Texture marks darken toward the ingredient's own shade, never grey or black** (lemon): `shadeOwn`. Lettering is deep plum, never black (sauce).
+- **Texture marks darken toward the ingredient's own shade, never grey or black** (lemon): `shadeOwn`. Lettering and dark marks are never black: use the ingredient's own deep shade (plum `ink`), or a light ink on a coloured ground (sauce).
 - **Every ingredient gets its own skin texture** (lemon, orange), and it must read at card size (strawberry seeds).
 - **Close relatives must still read apart**: berries are cooler and more magenta than the apple (strawberry); cheese is buttery, not lemon (cheese); butter is paler and fresher than cheese (butter); a melon is juicy coral, not candy pink (watermelon).
 - **Small parts share one natural leaf green and need tone, veins and a paler underside** (orange, strawberry).
@@ -180,9 +180,9 @@ full story (first try, what the user said, where we ended) is in `docs/ingredien
 - **Real size, framed by the card** (strawberry).
 - **Keep deformations gentle: start at about half** (butter). Local changes stay local. Small drips and beads read as damage: make swellings broad or leave them out.
 - **A rind, crust or skin is part of the same surface** (cheese, watermelon): lift it off with `liftRegion`, never a separate slab or shell (a slab read as a cushion, a shell as a ledge).
-- **Holes are deep with an overhanging rim** (cheese); seeds and dots are few, irregular, never a face, raised a little (watermelon).
+- **Holes are deep with an overhanging rim** (cheese); seeds and dots are few, irregular, never a face: glossy beads half sunk in, never flat stickers (watermelon).
 - **Printed artwork is our own two-tone stencil, kept simple** (sauce): never a copy of a brand or an artist.
-- **Sheets and marks sit just off their surface** (sauce, watermelon): a label floats a hair off the bottle, its two ends meeting exactly; flat marks (seeds) lift clear of any wobble in the face, or they vanish under it.
+- **Sheets and marks sit just off their surface** (sauce, watermelon): a label floats a hair off the bottle, its two ends meeting exactly; anything meant to sit on a face clears any wobble in it, or it vanishes under it.
 - **Distance fields and surface nets** (broccoli, cheese): start the grid at odd offsets, bevels span about two cells, smooth with `relaxOnSurface`.
 
 ### Recurring errors

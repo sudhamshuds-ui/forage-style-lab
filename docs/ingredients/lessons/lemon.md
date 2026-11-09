@@ -5,7 +5,7 @@ Sources: session "3D ingredient forms" (2026-11-04), commits 9a3b6d4..6920f5b.
 ## Colour
 - **Soft light for every ingredient, never blasted** (lemon).
   First try: the apple's strong light on the lemon.
-  User said: "does this blasted lighting look good for every ingredient, isnt the lighting very strong?" and chose "D, soft light".
+  User said: "does this blasted lighting look good for every ingredient, isnt the lighting very strong?" and chose option D (soft light).
   Ended on: Light strength 55 pulls lit and shadow colours toward the base (OKLab), so no lit side bleaches toward white.
   Why: pale and yellow ingredients wash out first under strong light.
 - **Texture marks darken toward the ingredient's own shade, never grey or black** (lemon).
