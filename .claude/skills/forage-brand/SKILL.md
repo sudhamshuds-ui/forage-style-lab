@@ -74,12 +74,15 @@ new board:
 
 | Board | Node | What it gets |
 |---|---|---|
-| 02 Six rules ("Never" strip) | 61:2 | new never-again rules |
-| 04 Warm subject, cool room | 63:2 | colour families added since, colour lessons |
-| 06 Composition and size | 64:2 | layouts as built, composition lessons |
-| 07 Ingredient system | 67:2 | kit recipes as built, form lessons |
-| 08 The first 12 | 68:2 | the final painting beside the reference, spec text as built |
-| 09 How Claude Code builds a form | 69:2 | the pre-check list |
+| 02 Six rules ("Never" strip) | 61:2 | new never-again rules: the second row of Never items (pointer fields to the lessons record) |
+| 04 Warm subject, cool room | 63:2 | a new whole-ingredient family as a row in Families (clone a row), a part-only family as a card in "Part-only families", colour lessons as cards in "Colour lessons" |
+| 06 Composition and size | 64:2 | the layout cards' "Built:" lines, the ingredient table row, composition lessons as cards in "Composition lessons" |
+| 07 Ingredient system | 67:2 | the archetype card's "Built:" line and recipe text, form lessons as cards in "Form lessons" |
+| 08 The first 12 | 68:2 | the final painting beside the reference ("Pictures" row), spec text as built; an ingredient with no card (the hot sauce) gets one cloned from a built card |
+| 09 How Claude Code builds a form | 69:2 | the "Pre-check" card (04) |
+
+When a lessons grid is full (four cards a row), clone its last row and fill it. The boards are auto
+layout: they grow taller on their own and push the boards below down.
 
 Each lesson carries a small ingredient tag. Show the user a short list, board by board, including
 any board that has to grow taller, and ask once.
