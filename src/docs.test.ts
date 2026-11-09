@@ -1,44 +1,48 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
  * Checks on the style lessons (/forage-brand): every ingredient's lessons record is sorted into
  * the four lenses the user asked for, the guide keeps its pre-check list, and no em dash slips
  * into any of it (a project rule for every word we write).
+ *
+ * The files are loaded as text the way Vite loads them (this is a browser project, so the test
+ * does not reach for Node's file tools).
  */
 
-const LESSONS = 'docs/ingredients/lessons';
-const GUIDE = 'docs/ingredients/forage-ingredient/SKILL.md';
-const SKILL = '.claude/skills/forage-brand/SKILL.md';
+const lessons = import.meta.glob('/docs/ingredients/lessons/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+const guide = import.meta.glob('/docs/ingredients/forage-ingredient/SKILL.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+const skill = import.meta.glob('/.claude/skills/forage-brand/SKILL.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+
 const LENSES = ['## Colour', '## Composition', '## Form', '## Recurring errors'];
 
 /** Every ingredient's lessons record (not the template or the pending Figma list). */
-function records(): string[] {
-  if (!existsSync(LESSONS)) return [];
-  return readdirSync(LESSONS)
-    .filter((f) => f.endsWith('.md') && f !== 'README.md' && f !== 'figma-pending.md')
-    .map((f) => join(LESSONS, f));
+function records(): [string, string][] {
+  return Object.entries(lessons).filter(([path]) => !path.endsWith('/README.md') && !path.endsWith('/figma-pending.md'));
 }
 
 describe('style lessons', () => {
+  it('finds the template, the guide and the skill', () => {
+    expect(Object.keys(lessons).some((p) => p.endsWith('/README.md'))).toBe(true);
+    expect(Object.keys(guide)).toHaveLength(1);
+    expect(Object.keys(skill)).toHaveLength(1);
+  });
+
   it('every lessons record has the four lens headings in order', () => {
-    for (const file of records()) {
-      const text = readFileSync(file, 'utf8');
-      const at = LENSES.map((heading) => text.split('\n').findIndex((line) => line.trim() === heading));
-      expect(at.every((i) => i >= 0), `${file} is missing a lens heading`).toBe(true);
-      expect([...at].sort((a, b) => a - b), `${file} has its lenses out of order`).toEqual(at);
+    for (const [path, text] of records()) {
+      const lines = text.split('\n').map((line) => line.trim());
+      const at = LENSES.map((heading) => lines.indexOf(heading));
+      expect(at.every((i) => i >= 0), `${path} is missing a lens heading`).toBe(true);
+      expect([...at].sort((a, b) => a - b), `${path} has its lenses out of order`).toEqual(at);
     }
   });
 
   it('no em dashes in the lessons, the guide or the skill', () => {
-    for (const file of [...records(), join(LESSONS, 'README.md'), GUIDE, SKILL]) {
-      expect(existsSync(file), `${file} should exist`).toBe(true);
-      expect(readFileSync(file, 'utf8').includes('—'), `${file} has an em dash`).toBe(false);
+    for (const [path, text] of [...Object.entries(lessons), ...Object.entries(guide), ...Object.entries(skill)]) {
+      expect(text.includes('—'), `${path} has an em dash`).toBe(false);
     }
   });
 
   it('the guide has a pre-check section', () => {
-    expect(readFileSync(GUIDE, 'utf8')).toContain('## Pre-check before showing an ingredient');
+    expect(Object.values(guide)[0]).toContain('## Pre-check before showing an ingredient');
   });
 });

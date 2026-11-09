@@ -342,148 +342,54 @@ keeps its colours, soft + vivid rooms complementing it), Randomize leaves colour
 soft sheen and dry speckle highlights, facets back, facet shards and granular fill instead
 of dabs. Style switch: Playful strokes repaints the refined look with bold strokes (a
 kid's painting) while keeping all of it underneath.
-Ingredient forms (branch `ingredient-forms`): facets retired (smooth apple), key light
-upper left, the registry, colour families, form kit (lathe and round recipe), card
-framing, Shuffle ingredient, soft light (Light strength), skin textures, the lemon, the
-orange (calyx, stem, leaf), the strawberry (a cluster of three) and the cluster layout,
-the broccoli (one head lying down with crown and cut end on the table, a crown of about 115
-lumps meshed with surface nets, a ribbed stalk with leaf scars forking into finger-like
-branches, a leaf resting on the table; the egg was skipped), the baguette (board 08's
-bread card: a long loaf on a diagonal, four varied, spread-out slashes with pointed tips and
-pale crumb pieces in them, in the warmer `baked` crust family; the round boule with a scored cross is kept as its `loaf` form for later, and a white
-sandwich loaf comes later as its own ingredient, "toast"),
-dev checks. Family rooms may sit 70 to 180
-degrees from the ingredient (board 04's own pairings, kept by choice). The sauce bottle
-(2026-11-05, the user's idea, before the cheese: "condiments I'm planning to have"; reference in
-Figma, node 81:5 "sauce ref", a painting signed Tikisso: used for the form only), the first
-`contained` ingredient: a hot sauce bottle, 6.5 x 15 cm (made longer twice), built with the new vessel kit
-(`forms/kit/vessel.ts`: `revolve` a profile standing up, with a `roundedSquare` or `ribs`
-cross-section, and `wrapSheet` for labels, rectangles or ovals), pieces sauce_glow, glass
-base, collar, ridged cap and a layered label; turned -25 so the label faces the light; its own
-triangle budget (14k). User feedback (2026-11-05), all done: the body flares toward its base (a
-soft triangle, 11% narrower at the shoulders), the cap is narrower at the bottom by the collar,
-and the label is layered like the reference: a red wrap round the front (`wrap@red`), a gold
-frame and two gold marks on the top band (`frame@gold`), a cream panel (`label@paper`), a small
-red seal (`seal@crimson`) and dark brush marks in two columns like lettering (`marks@ink`,
-abstract, never real letters, arranged so they never read as a face). Then (same day, the
-user): **the label is switched off** (a plain bottle; `WITH_LABEL` in `forms/sauce.ts` brings it
-back, its parts stay listed in the registry), the bottle is 1.2 cm longer (`LONGER`), the
-shoulder runs into the neck with a softer fillet, and the bottle **skips rim glints** (registry
-`rimGlints: false`, passed to the shader through `FrameContext.rimGlints`): its narrow neck
-faced the light and caught a glint as a hard white bar, which the user saw as a glitch. Rim
-glints on every other ingredient are unchanged. Then (the user): **sharper edges** (squareness
-6.5, square shoulders, crisp base, cap and collar edges, each with a small bevel) and a
-**printed hot sauce label** in the spirit of the user's reference (a real brand's bottle, so
-our own design, never a copy): one sheet wrapped all the way round the body with its own map
-(`wrapSheet` `mapped`), the artwork drawn in code as a two-tone stencil
-(`src/shading/labelArt.ts`: hand-lettered HOT SAUCE with a flame, a small chili at the bottom
-left of SAUCE with breathing room, a thin line top and bottom; the sides and back plain, the
-user's choice after trying zig-zag borders, dots, triangles, small repeated flames and a
-composition of big cropped flames and a chili), painted by a new skin kind `label` (`LABEL_SKIN`: cream
-ink from the `paper` family on the label's `chili` ground, the ink shaded like the ground).
-Any piece named `label` with a map gets it (`subject.ts`). The label's two ends meet
-exactly at the back (a hair-thin gap showed as a dark line). The label keeps its size as the
-bottle grows, centred a little higher. The old layered label's cream panel is now `panel`. More condiments to come. The cheese (2026-11-05, board 08's card: a
-12 cm wedge, four to six round holes, some cut open on the faces), the first `wedge`
-ingredient: a new wedge kit (`forms/kit/wedge.ts`: a slice of a wheel as a distance field,
-`roundedIntersection` for soft-bevelled edges, standing on its triangle with the point at the
-origin), holes as round bubbles whose centres sit a little under a face so each opens as a deep
-hole with an overhanging rim and a shadowed inside (shallow dishes read as pale spots), plus
-round bites centred on the edges (top, bottom, the point) so the outline is never a straight
-line, and a very gentle seeded wobble in the faces (0.07 cm, off the table face). One piece,
-meshed with surface nets and smoothed with the new `relaxOnSurface` (points relaxed toward
-their neighbours and pulled back onto the surface, so long edges at an angle to the grid come
-out clean, no terracing). **The rind is the back of that same surface** (the user: a separate
-rind slab looked like a cushion stuck on the back), lifted off as a thin skin with the new
-`liftRegion` (clipped exactly along a line in the middle of the back bevel, 0.012 cm off the
-surface, keeping the cheese's normals via the piece's `keepNormals`, so it shades with no seam).
-**Shadow tint**: a registry `shadowTint` (0 to 1, through `FrameContext.shadowTint`) scales the
-shadow's violet and pink patches per ingredient; the cheese takes 0.35, or its shadows read as
-pink stains on a pale yellow. Every other ingredient is unchanged. The bevel spans about two grid
-cells (narrower made saw-toothed edges). New families: `cheese` (paler, buttery, warm caramel
-shadow; board 08 says Yellow, the lemon's yellow read acidic) and part-only `rind`. Turned 50 so
-the point comes toward the front left. Its own budget (10k). The form test's "faces point
-outward" rule of thumb asks 85% for wedges (hole insides rightly face inward). The butter
-(2026-11-05, board 08's card: "on a creased paper sheet, one top corner softened and slumping",
-12 x 4 x 6 cm), the first `block` ingredient: a new block kit (`forms/kit/block.ts`), the block
-as rounded distances meshed with surface nets and relaxed like the cheese (rounding 0.6, cell
-0.3), pillowy faces (a 0.06 cm seeded wobble), and the top front right corner softened: it
-sags 1.2 cm, rounds over (only at the top; rounding its whole upright edge hid the end of the
-block) and spreads at its foot into a small pool, with two broad melt flows running down from
-it (small drips with beads read as chips, so they were dropped). Under it, its wrapper as a
-prop (`paper@parchment`): flat under the block, flaps rising about a centimetre out where they
-were folded up the sides (the front one flat), diagonal creases where they meet, a few seeded
-crumples, lifted edges, the back left corner curling up. Turned -40 (the long side to the light,
-the soft corner toward the camera), matte (a loud highlight ran along the long top edge as a
-dashed white line), a very faint pore skin, shadowTint 0.4. Then (the user chose it over a
-butter knife, which would have brought in metal and a precedent of tools on every card): a
-knife's scrape across the top (a trough 0.85 cm deep where it runs out over the front edge, so
-it notches the outline, with soft ripples) and the curl it took off, lying on the paper in
-front with its rolled spiral end turned toward the camera (side on, it read as a little log):
-the piece `curl`, a small part like a stem, so left out of the real size. Then (the user, after
-seeing it on main): **the scrape is switched off** ("dont keep this dug up thing on top", the
-top is as before; `WITH_SCRAPE` in `forms/butter.ts` brings it back) and the curl stays. Then
-(the user): **the melt is about half** (sag 0.6, rounding 0.8, spread 0.25, gentler flows, a
-smaller pool; the block 11.4 x 5.5 so it still measures 12 x 6). Its own budget (12k). The shader's
-cool-shadow rule (`turnHueTowardCool`) now sends a yellow (within about 30 degrees of yellow)
-always the warm way round, through orange: just past yellow, the long way went through green and
-the butter got lime edges (the lemon is unchanged; a few of the cheese's shadows turn warmer).
-The watermelon (2026-11-06, board 08's card, chosen before the steak by the user): two
-triangular wedges from a round melon, point up, standing on the curved rind, the front one
-leaning over toward the back one (turned about its own point, so its rind still rests on the
-table). The pair is built in the form (`forms/watermelon.ts`, layout `solo`), because the
-shared cluster layout cannot lean a piece. Each wedge is a rounded slab from the wedge kit
-(`wedgeDistance`, 16 cm, 3 cm thick, half angle 0.42, rounding 0.75, cell 0.36), meshed with
-surface nets and stood up. "Rind is a separate green shell. Pale band between flesh and rind
-glows": both are skins lifted off the slab's own surface (`liftRegion`, like the cheese rind),
-`rind@leaf` and `band:glow@pale-green`. Seeds: flat teardrops on both cut faces (`seeds@ink`,
-deep plum, never black), lifted clear of the faces' gentle wobble. New whole-ingredient family
-`melon` (a wetter, pinker coral-crimson than the apple's red; rooms Seafoam, Sage morning).
-Skin: pale sparkling flecks (`seeds` at 1.6 mm), shadowTint 0.5 (with all the violet the flesh
-read magenta), budget 18k. Shared changes: a form may repeat its hero's role for a second
-body (the two wedges both get the hero's skin and highlight, `subject.ts`, and both count as
-the body for contact spots, `samplePoints`); a tall piece's contact spots come from its foot
-only (its lowest quarter), or a leaning wedge put a spot under its top.
-Then (the user's notes and a reference painting, 2026-11-06): **balance**: a wedge on its curved
-rind can only rest upright, so the front wedge now lies on a straight cut side (stable) with its
-rind up on the left and its point to the right, and the back one stands upright behind and to the
-right; **thicker** (4 cm); **fewer seeds** (2 or 3 a face, never in a face-like triangle) as
-glossy beads half sunk into the flesh, not flat stickers; **the flesh fades into the rind** as one
-soft gradient painted by a new skin kind `melon` (`skinTexture.ts`, kind 10, from a map on the
-flesh: distance from the melon's centre): red, a creamy pale band (`pale-green` lit), then green
-(`green` base), each shaded like the flesh, with wandering edges; only a thin dark shell
-(`rind@leaf`, 0.32 cm) is a separate piece. The separate `band` piece is gone. **Translucent**: the
-glow colour soaks into the flesh's darker tones; **grain**: faint fibres fanning from the centre,
-mottling, wet crystals and tiny pits; **finer mesh** (cell 0.28, rounding 0.62, budget 30k). The
-melon family is a juicier coral-red (the first read candy-pink), shadowTint 0.3, matte (a glossy
-white streak ran along the edges).
-Then (the user's second round, 2026-11-06): contact spots in a row are sized to the piece's
-width where each sits (`footprintSpots`: a full-size spot by the lying wedge's narrow tip poked out
-past its outline; helps the baguette too); no rim glints (`rimGlints: false`: they drew a salmon
-line just inside the rind); the grain fibres fade out toward the tip (they bunched into streaks
-there); the flesh-to-rind gradient has crisp, wandering wet edges (blush, then the pale band, then
-mottled green, a few red granules reaching into the pale) instead of one wide muddy blur; the rind
-shell has its own map and skin `melonRind` (kind 11: wavy, broken dark stripes running across
-the slab, mottling, pale specks); and **translucency** (see below).
-Then (the user's third round, 2026-11-06): the flesh-to-rind blend is **one soft gradient** again
-(the crisp wet edges went too far): red pales to pink, then cream, yellow-green and green in wide
-overlapping steps, with only a slight wander; a **chalky pastel texture** after the user's
-reference (dry-brush scratches of paler colour along the fibres broken by a paper grain, deeper
-red flecks, tiny pale grains; measured by arc length so marks never bunch at the point); stronger
-**translucency** (more glow in the shadows, at thin places, and where light comes through from
-behind). Lifted skins (`keepNormals` pieces: the melon's and cheese's rinds) are drawn a hair in
-front of their body (a polygon offset in `subject.ts`): on the rind's tight curve they flickered
-into the flesh as a sawtooth edge.
-Then (the user's fourth round, 2026-11-06): **the separate shell is switched off** (`WITH_SHELL`
-in `forms/watermelon.ts`: its edge read as a hard ledge on the faces); the flesh's gradient now
-runs on into the dark rind with its wavy stripes. **Deep reds**: big soft patches of riper,
-darker, richer flesh. **A smoother, creamier gradient** (wide eased steps, a generous cream band,
-the chalky texture quieter there; then narrowed a little, the user: blush from 0.66, cream from 0.8). **Contact spots per body** for multi-body forms (each wedge on
-its own, only where it rests: measured as one shape, a spot landed under the rind's arch). The
-translucent glow stays on the red flesh (orange glow on the green turned brown). **Highlights on
-a skin's own colour**: a new shader value `highlightOwn` (set by a skin) lets the highlight take the
-surface's own colour lightened instead of the palette's (the matte melon's red-tinged highlight
-read as tan on the green rind).
+Ingredient forms (branch `ingredient-forms`, merged 2026-11-05, and on `main` since): facets
+retired, key light upper left, the registry, colour families, the form kit, card framing,
+Shuffle ingredient, soft light (Light strength), skin textures, dev checks. Each ingredient's
+story (what was tried, what the user said, where we ended) is in its lessons record,
+`docs/ingredients/lessons/{id}.md`, and the general rules are in the ingredient guide
+(`docs/ingredients/forage-ingredient/SKILL.md`). What is still in force:
+- **Apple**: procedural (`apple/`), smooth, the hidden Shape and Colour groups. See `lessons/apple.md`.
+- **Lemon**: pebbled skin, golden specks (`shadeOwn`). See `lessons/lemon.md`.
+- **Orange**: calyx star, thin stem and leaf in `leaf` green; Overcast room at 172 degrees (family
+  rooms may sit 70 to 180 degrees away, board 04's own pairings, kept by choice). See `lessons/orange.md`.
+- **Strawberry**: `crimson`, a cluster of three (layout approved as is), seeds in lit dimples, a
+  dimpled shine (`highlightBumpy`). See `lessons/strawberry.md`.
+- **Broccoli**: one head lying down, crown and cut end on the table, about 115 lumps (surface
+  nets), ribbed stalk with finger branches, a leaf on the table; 18k budget. The egg was skipped.
+  See `lessons/broccoli.md`.
+- **Baguette** (board 08's bread card): a long loaf on a diagonal, four slashes with crumb,
+  `baked` family, 9k budget. The round boule is kept as its `loaf` form; a white sandwich loaf
+  comes later as "toast". See `lessons/baguette.md`.
+- **Hot sauce** (the user's idea; reference Figma node 81:5, a painting signed Tikisso, used for
+  the form only): 6.5 x 15 cm (`LONGER`), sharp bevelled edges, the printed label
+  (`WITH_PRINTED_LABEL`, art in `src/shading/labelArt.ts`, our own design; sides and back plain),
+  the older layered label switched off (`WITH_LABEL`, its parts still listed in the registry; its
+  cream panel is `panel`), turn -25, `rimGlints: false`, 14k budget. More condiments to come.
+  See `lessons/sauce.md`.
+- **Cheese**: a 12 cm wedge, deep holes, round bites, the rind lifted off its own surface,
+  `cheese` and `rind` families, turn 50, shadowTint 0.35, 10k budget. See `lessons/cheese.md`.
+- **Butter**: a block on its creased paper (a prop), the soft corner melting at about half, the
+  curl on the paper, the scrape on top switched off (`WITH_SCRAPE`), turn -40, matte,
+  shadowTint 0.4, 12k budget. See `lessons/butter.md`.
+- **Watermelon**: two wedges built in the form (one lying on a cut side, one standing), 4 cm
+  thick, the `melon` skin's soft flesh-to-rind gradient with stripes, translucency and a chalky
+  texture, seed beads, the separate rind shell switched off (`WITH_SHELL`), matte, no rim glints,
+  shadowTint 0.3, 30k budget. See `lessons/watermelon.md`.
+
+Shared mechanisms added along the way (code hooks other ingredients reuse):
+- Registry look settings: `turn`, `skin`, `matte`, `rimGlints` (via `FrameContext.rimGlints`),
+  `shadowTint` (via `FrameContext.shadowTint`), `budget`, `stemEnds`.
+- Kit: `vessel.ts` (`revolve`, `roundedSquare`, `ribs`, `wrapSheet` with `mapped`), `wedge.ts`
+  (`wedgeDistance`, `roundedIntersection`), `block.ts` (`blockSides`, `paperSheet`, `fold`,
+  `crease`), `relaxOnSurface`, `liftRegion` (a skin lifted off a body, with `keepNormals`).
+- `subject.ts`: lifted skins and props are drawn a hair in front (polygon offset); any piece named
+  `label` with a map gets the label skin, `crumb` the crumb skin, a leaf map the leaf skin; a form
+  may repeat its hero's role for a second body (skin, highlight, contact spots per body, each
+  from its foot only).
+- Shader: `turnHueTowardCool` sends yellows the warm way round; a skin can set `highlightOwn`
+  (highlight in the surface's own colour) and `highlightBumpy`, `highlightBreak`,
+  `highlightGlint` (a dimpled shine); the `melon` and `melonRind` skins (kinds 10, 11).
+- Form tests: "faces point outward" asks 85% for wedges (hole insides rightly face inward).
 Next, one at a time with feedback: steak, chicken drumstick (whole forms only; cut forms later).
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
@@ -501,43 +407,27 @@ Fixed on `main` (2026-11-05): the painter note ("After Sargent") still showed al
 now says `.painter-note[hidden] { display: none }`. The ingredient guide
 (`docs/ingredients/forage-ingredient/SKILL.md`) is kept in step with the code: families, kit,
 look settings and lessons, updated with each new ingredient. The butter (with its curl; the
-scrape on top switched off) merged to `main` the same day. Next on the list: soften the backdrop strokes at the
-horizon the painterly way (level strokes along the line, strokes picking up the colour under
-them as they cross, the line found from the room itself), not by blurring.
+scrape on top switched off) merged to `main` the same day.
 
-## Where we left off (2026-11-05, end of the office session)
-Everything is on `main` (Vercel deploys it). Next, in order:
-1. **Horizon strokes**: built on branch `horizon-strokes` (2026-11-05), waiting for the
-   user's review. The horizon is found from the room (`roomHorizonUv` in `background.ts`: the
-   spot straight behind the ingredient where the shader's table-to-wall mix is halfway,
-   projected onto the card each frame; the hidden Horizon setting is only the fallback). In
-   `paintShader.ts`: room strokes lie level in a band around it (`horizonBand`, reaching a
-   little further down onto the table), wall slabs keep their diagonals above it; room strokes
-   follow clear colour edges in the room (`roomEdge`); a stroke whose centre lands on a thin
-   feature (the light's rainbow fringe) loads the room's colour around it instead of painting
-   a block; and room strokes pick up the colour under them toward their ends (wet-in-wet),
-   gently near the horizon and only for clear changes elsewhere. A first try that picked up
-   every small change flattened the wall's slabs into the underpainting: keep the thresholds.
-   Strokes that cannot reach a pixel are skipped before any measuring (cheaper). Checked
-   with all six painters on the apple, strawberries and baguette.
-2. **Steak** (block archetype, board 08's card; read it in Figma first), then chicken drumstick,
-   watermelon wedge. Update `docs/ingredients/forage-ingredient/SKILL.md` with each one.
-3. Open question from the user: "the camera still pauses spinning mid transition". CPU frame
-   times measured 1 to 5 ms, so it was not found; ask whether the wall and table keep moving
-   during the pause (a perceptual pause) or everything freezes (a real stall: use `#perf`).
-4. Ask before editing the Figma boards (new families for board 04, kit recipes for 07).
+Horizon strokes (Playful strokes, merged to `main` 2026-11-06): the horizon is found from the
+room (`roomHorizonUv` in `background.ts`: the spot straight behind the ingredient where the
+table-to-wall mix is halfway, projected each frame; the hidden Horizon setting is only the
+fallback). In `paintShader.ts` room strokes lie level in a band around it (`horizonBand`) and
+right beside the ingredient (`nearObject`), wall slabs keep their diagonals above it, strokes
+follow clear colour edges in the room (`roomEdge`), a stroke landing on a thin feature (the
+light's rainbow fringe) loads the room's colour, and room strokes pick up the colour under them
+(wet-in-wet). A pick-up that reacted to every small change flattened the wall's slabs: keep the
+thresholds.
+
+## Where we are (2026-11-09)
+On `main`: everything above, plus the strawberry fixes (no overlap, a dimpled shine). Vercel
+deploys `main`. Next: the steak (block archetype, board 08's card; read it in Figma first), then
+the chicken drumstick, each followed by `/forage-brand`. Open question from the user: "the
+camera still pauses spinning mid transition" (CPU frames measured 1 to 5 ms; ask whether the
+wall and table keep moving during the pause, or everything freezes: then use `#perf`).
 Workflow the user expects: work on a branch, push it and publish the preview (the private
-claude.ai page "Forage Style Lab"), merge to `main` only when the user says so.
-
-Horizon follow-up (2026-11-06, the user still saw a block with a toothy top beside the apple):
-room strokes right beside the ingredient followed the soft edge just outside its outline,
-stood upright and carried the wall colour down past the horizon. Now they lie level there
-(`nearObject` in `paintShader.ts`), the wet-in-wet pick-up works all along a stroke (not only at
-its ends), and the level passes along the horizon are slimmer.
-
-Merged to `main` 2026-11-06: the horizon strokes, the watermelon (after five rounds of the
-user's feedback), Shuffle without repeats, and the preview-only first pick. Next: the steak, then
-the chicken drumstick.
+claude.ai page "Forage Style Lab", built with `VITE_PREVIEW_NEXT=<id>`), merge to `main` only
+when the user says so.
 
 ## Planned for later sessions (not built yet)
 Cut forms (slice the whole form and cap the cut), the whole-and-cut layout,
