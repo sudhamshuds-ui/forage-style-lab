@@ -354,26 +354,29 @@ export const REGISTRY: IngredientEntry[] = [
       id: 'steak',
       name: 'Steak',
       archetype: 'block',
-      family: 'pink-raw',
+      // Board 08 says Pink and raw; a deeper beef red, like the user's references.
+      family: 'beef',
       layout: 'solo',
-      show: 'One raw steak, fat cap along one edge, a few marbling shapes on top.',
+      show: 'One raw tomahawk steak lying flat, its long rib bone reaching out, the fat rim and muscle seams on the cut face.',
       forms: ['whole', 'strips', 'cubes', 'mince'],
       scale: 'L',
-      size_cm: [20, 3, 12],
-      parts: ['meat', 'fat@fat'],
+      // A tomahawk: the ribeye and its long bone (the card's 20 cm is the meat alone).
+      size_cm: [37, 4.8, 14],
+      parts: ['meat', 'fat@fat', 'bone@bone'],
       notes:
-        'Board 08: raw. An organic outline (wider at one end, a waist, a notch where a bone sat), a gently domed soft top, bulging sides. A pale fat cap along the back edge as its own part, lifted off the meat. Marbling and grain are a shader texture (marbled skin), never geometry.',
+        'The user chose a tomahawk (2026-11-10, two references). A thick ribeye eye (a rounded square) tapering into a neck of meat along a long, slightly curved rib bone whose knobby tip rests on the table. A pale fat rim round the top edge and upper sides, lifted off the meat. Muscle sections with pale fat seams and fine marbling are a shader texture (marbled skin), never geometry.',
     },
     form: buildSteak,
     // Three-quarter view, the fat rim at the back left toward the key light (as on the card).
-    turn: 20,
+    // The bone reaching back to the right, the cut face toward the camera.
+    turn: 25,
     skin: { kind: 'marbled', size_mm: 6, amount: 0.85 },
     // Pink and raw: a little of the shadow's violet and pink, or the meat reads purple.
     shadowTint: 0.3,
     // No rim glints: they drew a blocky white streak along the top's soft edge.
     rimGlints: false,
     // A meshed slab and its fat skin.
-    budget: [2000, 18000],
+    budget: [2000, 24000],
   },
 ];
 

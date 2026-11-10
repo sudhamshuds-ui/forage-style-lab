@@ -368,6 +368,27 @@ if (kind > 0 && amount > 0.0) {
     float where = smoothstep(0.38, 0.6, fbm3(objectPos * 1.1 + 11.0));
     float vein = smoothstep(0.91, 0.98, ridge) * broken * where;
     float fleck = (1.0 - smoothstep(0.06, 0.12, skinCells(p * 0.5 + 9.0))) * where;
+    // Muscle seams (a ribeye): the cut face falls into a few big muscle sections, separated by
+    // pale fat seams of uneven width, where two neighbouring cells of a large, warped cell
+    // pattern meet. Only on faces looking up (the cut face), not down the sides.
+    // Large cells: a few big sections across the eye, never a regular net.
+    vec3 cp = objectPos * 0.62 + vec3(fbm3(objectPos * 1.2), 0.0, fbm3(objectPos * 1.2 + 4.0)) * 0.55;
+    vec2 cellXZ = cp.xz;
+    vec2 base = floor(cellXZ);
+    float f1 = 8.0;
+    float f2 = 8.0;
+    for (int ix = -1; ix <= 1; ix++)
+    for (int iz = -1; iz <= 1; iz++) {
+      vec2 c = base + vec2(float(ix), float(iz));
+      vec2 pt = c + vec2(hash13(vec3(c, 1.0)), hash13(vec3(c, 7.0))) * 0.8 + 0.1;
+      float dd = length(cellXZ - pt);
+      if (dd < f1) { f2 = f1; f1 = dd; } else if (dd < f2) { f2 = dd; }
+    }
+    // Uneven width: thin in places, swelling into fat pockets in others, and broken here and there.
+    float seamWidth = 0.02 + 0.12 * smoothstep(0.35, 0.8, valueNoise3(objectPos * 1.8));
+    float seam = (1.0 - smoothstep(seamWidth, seamWidth + 0.04, f2 - f1)) * smoothstep(0.35, 0.75, N.y);
+    seam *= smoothstep(0.2, 0.45, valueNoise3(objectPos * 2.5 + 2.0));
+    vein = max(vein, seam);
     float fat = clamp(max(vein, fleck), 0.0, 1.0);
     vec3 fatLab = linearToOklab(uMelonPale);
     fatLab.x += (lab.x - linearToOklab(uBaseColour).x) * 0.6;

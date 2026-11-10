@@ -379,17 +379,18 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
   texture, seed beads, the separate rind shell switched off (`WITH_SHELL`), matte, no rim glints,
   shadowTint 0.3, 30k budget. See `lessons/watermelon.md`.
 
-- **Steak** (in progress on branch `steak`, 2026-11-10; board 08's card: raw, 20 x 12 x 3 cm,
-  Pink and raw, block): a slab (surface nets) with an irregular cut outline after the card (a
-  hand-placed polygon of 16 seeded corners, straight-ish wavering sides, a lobe at the right end,
-  a notch at the front; the first smooth oval read as a bean, the user: "a bit jagged"); thicker at the back than the front, so the top slopes toward the low camera (flat, it
-  read as a thin disc); only the top edge rounded, the underside flush on the table (a rounded
-  bottom edge showed a dashed contact line); the fat cap along the back edge lifted off the meat
-  (`fat@fat`, a new part-only family, pinker than ivory so it stands apart from a cream table;
-  wrapped round an end it read as a blunt cap); marbling and grain painted by a new skin kind
-  `marbled` (kind 12: a few long, broken, streaky veins in a few places and some flecks, in the
-  fat's colour; a dense lace read as a busy pattern); turn 20, shadowTint 0.3, no rim glints,
-  18k budget. Note: `patch` is a reserved word in GLSL.
+- **Steak** (in progress on branch `steak`, 2026-11-10): board 08's card (raw, Pink and raw,
+  block, 20 x 12 x 3 cm). A plain slab read as a bean, then a jagged outline as shapeless ("this
+  doesnt look aesthetic"); the user chose a **tomahawk** from two references. Now: a thick ribeye
+  eye (a lumpy rounded square) tapering into a long neck of meat along the bone, a long, slightly
+  curved rib bone (`bone@bone`, a sweep, flatter than round) dipping so its knobby tip rests on the
+  table; the fat rim lifted off the meat round the eye only (`fat@fat`; covering the neck it read as
+  a paddle) and only down the upper wall; the underside flush on the table; the `marbled` skin
+  (kind 12) adds muscle seams: a large warped cell pattern whose borders are pale fat seams of
+  uneven width (small cells read as a giraffe net), on up-facing faces only, plus long broken
+  veins and flecks. New families `beef` (deeper than Pink and raw) and part-only `bone`; size
+  37 x 4.8 x 14 (the card's 20 cm was the meat alone), turn 25, shadowTint 0.3, no rim glints,
+  24k budget. `patch` is a reserved word in GLSL.
 
 Shared mechanisms added along the way (code hooks other ingredients reuse):
 - Registry look settings: `turn`, `skin`, `matte`, `rimGlints` (via `FrameContext.rimGlints`),

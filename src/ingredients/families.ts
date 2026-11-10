@@ -25,6 +25,8 @@ export type FamilyId =
   | 'cream-crust'
   | 'pink-raw'
   | 'fat'
+  | 'beef'
+  | 'bone'
   | 'stalk'
   | 'leaf'
   | 'pale-green'
@@ -204,6 +206,19 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Melon',
     colours: { lit: '#ff8f74', base: '#e4473d', shadow: '#962f45', glow: '#ff6e4f', highlight: '#ffe6dc' },
     rooms: ['seafoam', 'sage-morning'],
+  },
+  // Not on board 04 yet (added 2026-11-10, the tomahawk steak): raw beef, deeper and redder
+  // than Pink and raw (the user's references), going to a wine-plum in shadow, never brown.
+  beef: {
+    name: 'Beef',
+    colours: { lit: '#ee7a6e', base: '#bd3540', shadow: '#741f3c', glow: '#e64a43', highlight: '#fbe0dc' },
+    rooms: ['seafoam', 'sage-morning'],
+  },
+  // Not a board 04 family: only for parts (a rib bone). Ivory going to a warm tan, never grey.
+  bone: {
+    name: 'Bone',
+    colours: { lit: '#f8eedb', base: '#e6d0aa', shadow: '#a98a70', glow: '#f0d6a8', highlight: '#fffaf0' },
+    rooms: [],
   },
   // Not a board 04 family: only for parts (a steak's fat cap, later bacon and ham). Raw fat:
   // a creamy ivory leaning pink (warm enough to stand apart from a cream table), never pure white, with a soft rosy shadow, never grey.

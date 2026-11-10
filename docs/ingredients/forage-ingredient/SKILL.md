@@ -77,6 +77,7 @@ The live values are in `src/ingredients/families.ts` (the source of truth; this 
 | cheese | #fff1bf | #f3d273 | #c48a45 | #ffbf4a | #fffaf0 | Seafoam, Heather | cheese (off-board; board 08 says Yellow, which read acidic) |
 | butter | #fff7d2 | #f6e092 | #d4b08f | #ffcf66 | #fffdf2 | Heather, Seafoam | butter (off-board; board 08 says Yellow, kept apart from the cheese) |
 | melon | #ff8f74 | #e4473d | #962f45 | #ff6e4f | #ffe6dc | Seafoam, Sage morning | watermelon flesh (off-board; board 08 says Red, the apple's red is a skin) |
+| beef | #ee7a6e | #bd3540 | #741f3c | #e64a43 | #fbe0dc | Seafoam, Sage morning | steak (off-board; deeper than Pink and raw) |
 | pink-raw | #f6a493 | #d4544f | #8c3150 | #ff7a66 | #fbe4dc | Seafoam, Sage morning | |
 
 **Part-only families** (never a whole ingredient, no rooms; a part names one with `@`, e.g. `stem@stalk`):
@@ -93,6 +94,7 @@ The live values are in `src/ingredients/families.ts` (the source of truth; this 
 | gold | #f2d688 | #d2a64a | #8c5a3a | #f0c25a | #fff6d8 | printed gold |
 | ink | #6e3b4c | #45222f | #2e1523 | #7a3a4a | #8f6070 | lettering (deep plum, never black) |
 | rind | #fde5a4 | #eabd66 | #ae7a52 | #f6c25a | #fff6e0 | a cheese's rind |
+| bone | #f8eedb | #e6d0aa | #a98a70 | #f0d6a8 | #fffaf0 | a rib bone (ivory to warm tan, never grey) |
 | fat | #fbe4da | #eec6ba | #bf8f96 | #f6c0ae | #fff6f2 | raw fat (a steak's fat cap; marbling is painted in its lit colour) |
 | parchment | #fdfbf6 | #efebe4 | #c4bccf | #f4ecdc | #ffffff | a butter wrapper, baking parchment (whiter and cooler than `paper`) |
 
