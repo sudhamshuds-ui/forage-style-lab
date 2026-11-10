@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forage UI variants</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="proto">
+    <!--
+      A prototype page: the real Style Lab runs underneath (same ids as index.html), its
+      parameter panel is hidden, and each variant draws its own small UI around the card.
+    -->
+    <div class="app">
+      <main class="stage-area">
+        <div class="proto-layout" id="proto-layout">
+          <div class="card" id="card">
+            <canvas id="canvas" aria-label="3D view of the ingredient"></canvas>
+            <div class="proto-over" id="slot-over"></div>
+          </div>
+          <div class="proto-side" id="slot-side"></div>
+          <div class="proto-below" id="slot-below"></div>
+        </div>
+        <p class="hint">Drag to rotate. Scroll or pinch to zoom.</p>
+      </main>
+
+      <aside class="panel" aria-hidden="true">
+        <div class="panel-head">
+          <h2 id="ingredient-name">Apple</h2>
+          <button type="button" class="btn btn-shuffle" id="btn-shuffle-ingredient" tabindex="-1">Shuffle ingredient</button>
+        </div>
+        <div class="panel-body">
+          <section class="palette" id="palette"></section>
+          <div id="pane"></div>
+        </div>
+        <div class="panel-foot">
+          <button type="button" class="btn" id="btn-reset" tabindex="-1">Reset</button>
+        </div>
+      </aside>
+    </div>
+
+    <nav class="proto-picker" data-position="top" aria-label="Prototype variants">
+      <span class="proto-picker-highlight" aria-hidden="true"></span>
+      <button class="proto-picker-item" data-active aria-current="true">Dock</button>
+      <button class="proto-picker-item">Placard</button>
+      <button class="proto-picker-item">Dial</button>
+      <span class="proto-picker-divider" aria-hidden="true"></span>
+      <button class="proto-picker-item proto-picker-replay" aria-label="Replay animation (R)">↻</button>
+    </nav>
+
+    <script type="module" src="/src/prototypes/ui/harness.ts"></script>
+  </body>
+</html>

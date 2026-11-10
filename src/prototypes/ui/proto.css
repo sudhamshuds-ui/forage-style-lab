@@ -1,0 +1,568 @@
+/*
+ * The UI variants. The card is the hero: bigger than on the main page, the parameter panel
+ * hidden, and each variant adds only a little UI. Tokens come from src/style.css.
+ * Motion follows the house rules: ease-out on the way in, under 300 ms, transform and
+ * opacity only, buttons press to 0.97, hover only on real pointers.
+ */
+
+.proto {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --card-w: min(calc(100vw - 48px), calc((100svh - 230px) * 0.75), 640px);
+}
+.proto .app {
+  display: block;
+}
+.proto .panel,
+.proto .hint {
+  display: none;
+}
+.proto .stage-area {
+  min-height: 100svh;
+  padding: 76px 24px 32px;
+}
+.proto .card {
+  width: var(--card-w);
+}
+
+.proto-layout {
+  display: grid;
+  grid-template-columns: var(--card-w);
+  justify-content: center;
+  row-gap: 18px;
+}
+.proto-layout[data-variant='placard'] {
+  --card-w: min(calc(100vw - 48px), calc((100svh - 300px) * 0.75), 600px);
+}
+.proto-layout[data-variant='dial'] {
+  grid-template-columns: var(--card-w) auto;
+  column-gap: 28px;
+  align-items: center;
+}
+.proto-side:empty,
+.proto-below:empty {
+  display: none;
+}
+.proto-below {
+  grid-column: 1;
+}
+/* The layer on top of the card lets drags through to the 3D view, except on its own buttons. */
+.proto-over {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.proto-over > * {
+  pointer-events: auto;
+}
+
+/* Names fade and blur as the picture changes (the app's own 100 ms timing). */
+.dock-name,
+.plac-name,
+.dial-name {
+  transition: opacity 100ms ease, filter 100ms ease;
+}
+.is-changing {
+  opacity: 0;
+  filter: blur(2px);
+}
+
+/* Shared button feel. */
+.proto-layout button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.proto-layout button:focus-visible,
+.dial-track:focus-visible {
+  outline: 2px solid rgba(31, 30, 28, 0.45);
+  outline-offset: 2px;
+}
+.proto-layout button:active {
+  transform: scale(0.97);
+}
+[data-busy] {
+  opacity: 0.55;
+  cursor: progress !important;
+}
+
+/* Entrances: a short rise and fade, so a variant arrives rather than pops. */
+@keyframes proto-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.dock-wrap,
+.plac,
+.dial-name,
+.dial-shuffle,
+.dial {
+  animation: proto-in 240ms var(--ease-out) both;
+}
+
+/* ================================================================= Dock */
+
+.dock-wrap {
+  position: absolute !important;
+  left: 50%;
+  bottom: 18px;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 24px);
+  pointer-events: none !important;
+}
+.dock-wrap > * {
+  pointer-events: auto;
+}
+.dock,
+.dock-styles {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset,
+    0 6px 20px rgba(40, 32, 20, 0.12);
+  border-radius: 999px;
+}
+.dock {
+  gap: 6px;
+  padding: 5px 5px 5px 16px;
+}
+.dock-name {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 4ch;
+}
+.dock-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: rgba(31, 30, 28, 0.12);
+}
+.dock-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-weight: 500;
+  transition: background-color 150ms ease-out;
+}
+.switch-track {
+  position: relative;
+  width: 28px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(31, 30, 28, 0.18);
+  transition: background-color 180ms ease-out;
+}
+.switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 180ms var(--ease-out);
+}
+[aria-checked='true'] > .switch-track {
+  background: var(--ink);
+}
+[aria-checked='true'] > .switch-track .switch-knob {
+  transform: translateX(12px);
+}
+.dock-shuffle {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff !important;
+  transition: transform 120ms ease-out;
+}
+.dock-styles {
+  gap: 2px;
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-width: 100%;
+  opacity: 0;
+  transform: translateY(6px) scale(0.98);
+  transform-origin: bottom center;
+  transition:
+    opacity 180ms ease-out,
+    transform 220ms var(--ease-out);
+}
+.dock-styles[data-open] {
+  opacity: 1;
+  transform: none;
+}
+.dock-chip {
+  flex: none;
+  height: 28px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2) !important;
+  font-size: 12px !important;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+.dock-chip[aria-checked='true'] {
+  background: var(--ink);
+  color: #fff !important;
+}
+
+/* ================================================================= Placard */
+
+.plac {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 4px;
+}
+.plac-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.plac-name {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.plac-shuffle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(40, 32, 20, 0.05);
+  transition: background-color 150ms ease-out, transform 120ms ease-out;
+}
+.plac-rule {
+  height: 1px;
+  background: var(--line);
+}
+.seg {
+  position: relative;
+  display: flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--control);
+}
+.seg-thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(40, 32, 20, 0.12);
+  transition: transform 220ms var(--ease-out);
+}
+.seg[data-value='true'] .seg-thumb {
+  transform: translateX(100%);
+}
+.seg-item {
+  position: relative;
+  width: 92px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-3) !important;
+  font-weight: 500;
+  transition: color 150ms ease-out;
+}
+.seg-item[aria-checked='true'] {
+  color: var(--ink) !important;
+}
+.plac-step {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity 180ms ease-out,
+    transform 220ms var(--ease-out);
+}
+.plac-step[data-open] {
+  opacity: 1;
+  transform: none;
+}
+.plac-arrow {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-2) !important;
+  font-size: 20px !important;
+  line-height: 1;
+  transition: background-color 150ms ease-out;
+}
+.plac-style {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+  text-align: right;
+}
+.plac-style.is-new {
+  animation: plac-swap 200ms var(--ease-out);
+}
+@keyframes plac-swap {
+  from {
+    opacity: 0.2;
+  }
+}
+.plac-style-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+.plac-style-note {
+  color: var(--ink-3);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+/* ================================================================= Dial */
+
+.dial-name {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  pointer-events: none !important;
+}
+.dial-shuffle {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  translate: -50% 0;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.78);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset,
+    0 8px 22px rgba(40, 32, 20, 0.16);
+  transition: transform 120ms ease-out;
+}
+.dial-shuffle svg {
+  width: 22px;
+  height: 22px;
+  transform: rotate(var(--turn, 0deg));
+  transition: transform 300ms var(--ease-out);
+}
+.dial {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.dial-end {
+  padding-left: 4px;
+  color: var(--ink-3);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dial-track {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 8px 4px 4px;
+  border-radius: 12px;
+  touch-action: none;
+  cursor: pointer;
+}
+.dial-line {
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  left: 13px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--control-fill);
+}
+.dial-stop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 28px;
+}
+.dial-dot {
+  width: 20px;
+  display: grid;
+  place-items: center;
+}
+.dial-dot::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+.dial-label {
+  color: var(--ink-3);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 150ms ease-out;
+}
+.dial-stop[data-active] .dial-label {
+  color: var(--ink);
+}
+.dial-knob {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 3px var(--page);
+  transition: transform 200ms var(--ease-out);
+  pointer-events: none;
+}
+.dial-track[data-dragging] .dial-knob {
+  transition-duration: 90ms;
+}
+
+/* Hover only where there is a real pointer. */
+@media (hover: hover) and (pointer: fine) {
+  .dock-switch:hover {
+    background: rgba(31, 30, 28, 0.06);
+  }
+  .dock-chip:not([aria-checked='true']):hover {
+    background: rgba(31, 30, 28, 0.06);
+  }
+  .plac-shuffle:hover {
+    background: var(--control);
+  }
+  .plac-arrow:hover {
+    background: var(--control);
+  }
+  .seg-item:not([aria-checked='true']):hover,
+  .dial-stop:hover .dial-label {
+    color: var(--ink-2) !important;
+  }
+}
+
+/* Narrow screens: the dial lies flat under the card. */
+@media (max-width: 760px) {
+  .proto {
+    --card-w: min(calc(100vw - 32px), calc((100svh - 260px) * 0.75));
+  }
+  .proto .stage-area {
+    padding: 68px 16px 24px;
+  }
+  .proto-layout[data-variant='dial'] {
+    grid-template-columns: var(--card-w);
+    row-gap: 18px;
+  }
+  .dial {
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    max-width: var(--card-w);
+  }
+  .dial-track {
+    flex-direction: row;
+  }
+  .dial-stop {
+    flex-direction: column;
+    height: auto;
+    gap: 4px;
+  }
+  .dial-line {
+    top: 13px;
+    bottom: auto;
+    left: 18px;
+    right: 18px;
+    width: auto;
+    height: 2px;
+  }
+  .dial-dot {
+    height: 20px;
+  }
+  .dial-label {
+    font-size: 11px;
+  }
+  .plac-row--style {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock-wrap,
+  .plac,
+  .dial-name,
+  .dial-shuffle,
+  .dial {
+    animation-name: proto-fade;
+  }
+  .dock-styles,
+  .plac-step {
+    transform: none !important;
+  }
+  .dial-knob,
+  .seg-thumb,
+  .switch-knob,
+  .dial-shuffle svg {
+    transition: none;
+  }
+  .is-changing {
+    filter: none;
+  }
+}
+@keyframes proto-fade {
+  from {
+    opacity: 0;
+  }
+}

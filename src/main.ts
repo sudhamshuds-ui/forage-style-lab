@@ -585,3 +585,16 @@ if (import.meta.env.DEV) {
     });
   });
 }
+
+/**
+ * A small handle for the UI prototypes page (prototypes/ui.html): the live settings and a
+ * redraw, so a prototype's own buttons can switch the style and the painter. The main page
+ * never imports it.
+ */
+export const app = {
+  settings,
+  redraw: () => {
+    pane.refresh();
+    onSettingsChanged();
+  },
+};
