@@ -30,6 +30,8 @@ No Blender and no model files by default. Blender through MCP is only a fallback
 5. Cast shadow is a clear shape: the form must sit flat on the table at y = 0.
 6. Soft, broken highlights (shader). Forms carry no gloss.
 
+7. **No crisp lines** (the user, 2026-11-10): where colours meet inside an ingredient (fat and meat, flesh and rind, seams, veins, bands), the edge fades over a soft band like wet paint. Crisp edges only in a few deliberate, niche places: the lit side of the outline, the cast shadow's edge, printed artwork (a label).
+
 Never: ink outlines, a white void, candy sun-blasted rooms, uniform stroke clutter.
 
 References come in four paint families. Only family A (soft-light gouache) decides the paint. Families B (impasto oil), C (watercolour on white) and D (inked illustration) are for form, cut and grouping only. Reference files are named with the letter, e.g. `lemon_C_half-cut.png`.

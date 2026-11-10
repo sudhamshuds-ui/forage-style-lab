@@ -56,6 +56,11 @@ keep code readable with friendly comments.
   individual colours. Randomize never changes colours.
 - **Idle spin is on by default**: a slow turntable that pauses while you drag the view and
   eases back in 1.5 seconds after you last drag or zoom (`Stage.setIdleSpin`; Scene > Idle spin, hidden).
+- **No crisp lines** (the user, 2026-11-10, a rule for every ingredient): where one colour meets
+  another inside an ingredient (fat and meat, flesh and rind, a seam, a vein, a band), the edge
+  fades over a soft band like wet paint, never a crisp cut-out line. Crisp edges are kept only for
+  a few niche places, each a deliberate choice: the lit side of the outline and the cast shadow's
+  edge (the style direction), and printed artwork such as the hot sauce label.
 - **Facets are retired.** Every form is smooth and rounded, the apple included (the hidden
   Faceted switch is off). No stamped dabs on the apple. Highlights are
   soft and believable (Soft sheen, Dry speckle); the hard window shapes are kept but not
@@ -406,7 +411,11 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
   warped cells), thin and break in places and swell into rounded fat pockets where three sections
   meet; their edges are ragged; a little pink bleeds into the fat at its edges; and the whole cut
   gets the watermelon's chalky dry-brush texture (pale scratches along the grain broken by a paper
-  grain, deeper red flecks) plus a creamy speckle in the fat. Then (the user: "it looks too realistic, can we stick
+  grain, deeper red flecks) plus a creamy speckle in the fat. Then (the user: "too realistic", then "no, revert back
+  to previous version, just maybe work on this hard edge of the fat"): a shapes-first rewrite was
+  tried and rejected, the organic seams came back with soft edges (seams fade over a wide band,
+  pockets too, veins softened, more of the meat's pink in the fat's edge). This gave the rule
+  "no crisp lines" (Rules, above). Then (the user: "it looks too realistic, can we stick
   to our stylized style", pointing at the marbling and textures): the `marbled` skin was rewritten
   shapes-first. No fibre lines, thin veins, specks or ragged edges. The cut face is a few big
   sections, each one calm shape in its own slightly different red with a soft wash; smooth,
