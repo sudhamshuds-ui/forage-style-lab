@@ -120,6 +120,7 @@ uniform vec2 uResolution;
 uniform float uT;
 uniform float uSeconds;
 uniform vec2 uCentre;
+uniform vec2 uSeed; // a new one every click: which strokes this shuffle paints
 uniform float uStep;
 uniform float uCell;
 uniform float uRound;
@@ -162,8 +163,8 @@ void main() {
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       vec2 id = base + vec2(float(i), float(j));
-      vec4 rnd = hash42(id + 17.3 + fl * 41.9);
-      vec4 rnd2 = hash42(id * 1.37 + 3.3 + fl * 13.7);
+      vec4 rnd = hash42(id + uSeed + 17.3 + fl * 41.9);
+      vec4 rnd2 = hash42(id * 1.37 + uSeed + 3.3 + fl * 13.7);
       vec2 centre = (id + 0.15 + 0.7 * rnd.yz - shift) * cell;
       // A wave out from the ingredient, loosened with some randomness: the first half
       // of the transition (uT 0..0.5). Each stroke takes 0.45 to 0.7 seconds.
@@ -224,6 +225,7 @@ uniform vec2 uResolution;
 uniform float uT;
 uniform float uSeconds;
 uniform vec2 uCentre;
+uniform vec2 uSeed; // a new one every click: which strokes this shuffle paints
 
 ${strokeGLSL}
 
@@ -236,8 +238,8 @@ float revealLayer(vec2 px, float cell, float layer, float from, float spread, fl
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       vec2 id = base + vec2(float(i), float(j));
-      vec4 rnd = hash42(id + layer * 23.1);
-      vec4 rnd2 = hash42(id * 1.37 + layer * 7.7 + 5.1);
+      vec4 rnd = hash42(id + uSeed + layer * 23.1);
+      vec4 rnd2 = hash42(id * 1.37 + uSeed + layer * 7.7 + 5.1);
       vec2 centre = (id + 0.15 + 0.7 * rnd.yz) * cell;
       // The same wave as the smudge: the new card is painted in from the middle outward.
       float start = from + spread * (0.6 * waveOrder(centre / uResolution) + 0.4 * rnd.x);

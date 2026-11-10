@@ -74,6 +74,7 @@ export class ShuffleTransition {
         uT: { value: 0 },
         uSeconds: { value: TRANSITION_SECONDS },
         uCentre: { value: new Vector2(0.5, 0.5) },
+        uSeed: { value: new Vector2(0, 0) },
         uStep: { value: 1 },
         uCell: { value: 20 },
         uRound: { value: 0 },
@@ -92,6 +93,7 @@ export class ShuffleTransition {
         uT: { value: 0 },
         uSeconds: { value: TRANSITION_SECONDS },
         uCentre: { value: new Vector2(0.5, 0.5) },
+        uSeed: { value: new Vector2(0, 0) },
       },
       vertexShader: transitionVertexShader,
       fragmentShader: compositeFragmentShader,
@@ -150,6 +152,11 @@ export class ShuffleTransition {
     this.firstFrame = true;
     this.smudgeMaterial.uniforms.uCell.value = cell;
     this.smudgeMaterial.uniforms.uRound.value = round;
+    // A new seed every click (the user, 2026-11-10): every stroke's place, angle, length and
+    // timing is rolled from it, so no two shuffles paint the same strokes. Same feel each time.
+    const seed = new Vector2(Math.random() * 1000, Math.random() * 1000);
+    (this.smudgeMaterial.uniforms.uSeed.value as Vector2).copy(seed);
+    (this.compositeMaterial.uniforms.uSeed.value as Vector2).copy(seed);
   }
 
   /** Where the ingredient sits on screen (0..1): the smudge and the reveal spread out from there. */
