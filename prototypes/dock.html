@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forage dock variants</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="dockp">
+    <!--
+      A React prototype page: the real Style Lab runs underneath (same ids as index.html), its
+      parameter panel is hidden, and React draws the dock on the card (#dock-root) and the
+      variant picker (#picker-root).
+    -->
+    <div class="app">
+      <main class="stage-area">
+        <div class="card" id="card">
+          <canvas id="canvas" aria-label="3D view of the ingredient"></canvas>
+          <div class="dock-root" id="dock-root"></div>
+        </div>
+      </main>
+
+      <aside class="panel" aria-hidden="true">
+        <div class="panel-head">
+          <h2 id="ingredient-name">Apple</h2>
+          <button type="button" class="btn btn-shuffle" id="btn-shuffle-ingredient" tabindex="-1">Shuffle ingredient</button>
+        </div>
+        <div class="panel-body">
+          <section class="palette" id="palette"></section>
+          <div id="pane"></div>
+        </div>
+        <div class="panel-foot">
+          <button type="button" class="btn" id="btn-reset" tabindex="-1">Reset</button>
+        </div>
+      </aside>
+    </div>
+    <div id="picker-root"></div>
+
+    <script type="module" src="/src/prototypes/dock/main.tsx"></script>
+  </body>
+</html>

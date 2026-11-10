@@ -1,0 +1,444 @@
+/*
+ * The dock variants (React). The card is the hero; the dock floats on its bottom edge.
+ * House motion rules (emil-design-eng): ease-out on the way in, under 300 ms, transform,
+ * opacity and a little blur only, presses to 0.97, hover only on real pointers, exits
+ * faster than entrances.
+ */
+
+.dockp {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --glass: rgba(255, 255, 255, 0.74);
+  --glass-line: rgba(255, 255, 255, 0.55);
+  --hair: rgba(31, 30, 28, 0.1);
+  --card-w: min(calc(100vw - 32px), calc((100svh - 120px) * 0.75), 700px);
+}
+.dockp .app {
+  display: block;
+}
+.dockp .panel {
+  display: none;
+}
+.dockp .stage-area {
+  min-height: 100svh;
+  padding: 76px 16px 24px;
+}
+.dockp .card {
+  width: var(--card-w);
+}
+
+/* The layer over the card: drags pass through to the 3D view, except on the dock. */
+.dock-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.dk-enter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  display: flex;
+  justify-content: center;
+  padding: 0 12px;
+  animation: dk-in 260ms var(--ease-out) both;
+}
+@keyframes dk-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+/* ------------------------------------------------------------ The dock surface */
+
+.dk {
+  pointer-events: auto;
+  max-width: 100%;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px var(--glass-line) inset,
+    0 1px 2px rgba(40, 32, 20, 0.06),
+    0 10px 30px rgba(40, 32, 20, 0.14);
+  color: var(--ink);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+.dk-row,
+.dk--pop,
+.dk--step {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 5px 5px 16px;
+  min-height: 48px;
+}
+.dk--pop,
+.dk--step {
+  border-radius: 999px;
+}
+.dk--morph {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dk-name {
+  position: relative;
+  display: inline-grid;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.dk-name-text {
+  grid-area: 1 / 1;
+  display: inline-block;
+}
+.dk-sep {
+  flex: none;
+  width: 1px;
+  height: 18px;
+  margin: 0 8px 0 10px;
+  background: var(--hair);
+}
+
+/* Buttons share one press. */
+.dk button,
+.dk [role='radio'],
+.dk-switch-label,
+.dk-pop [role='radio'] {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.dk button,
+.dk-pop [role='radio'],
+.dk-shuffle {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  cursor: pointer;
+  transition: transform 140ms ease-out, background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+}
+.dk button:active,
+.dk-shuffle:active {
+  transform: scale(0.97);
+}
+.dk :focus-visible,
+.dk-pop :focus-visible {
+  outline: 2px solid rgba(31, 30, 28, 0.4);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------ Shuffle */
+
+.dk-shuffle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-left: 2px;
+  border-radius: 50%;
+}
+.dk .dk-shuffle--dark {
+  background: var(--ink);
+  color: #fff;
+}
+.dk-shuffle-icon {
+  display: grid;
+  transition: transform 300ms var(--ease-out);
+}
+.dk-shuffle[data-busy] {
+  opacity: 0.5;
+  cursor: progress;
+}
+.dk-tip {
+  padding: 5px 9px;
+  border-radius: 7px;
+  background: var(--ink);
+  color: #fff;
+  font: 500 12px var(--font);
+  transform-origin: var(--transform-origin);
+  transition: opacity 125ms ease-out, transform 125ms ease-out;
+}
+.dk-tip[data-starting-style],
+.dk-tip[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.97);
+}
+.dk-tip[data-instant] {
+  transition-duration: 0ms;
+}
+
+/* ------------------------------------------------------------ Painterly switch */
+
+.dk-switch-label {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 12px 0 8px;
+  border-radius: 999px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.dk-switch {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(31, 30, 28, 0.18);
+  cursor: pointer;
+  transition: background-color 180ms ease;
+}
+.dk-switch[data-checked] {
+  background: var(--ink);
+}
+.dk-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
+  transition: transform 200ms var(--ease-out);
+}
+.dk-switch-thumb[data-checked] {
+  transform: translateX(12px);
+}
+
+/* ------------------------------------------------------------ Morph: the chips row */
+
+.dk-styles-wrap {
+  display: flex;
+  flex-direction: column;
+}
+.dk-chips {
+  display: flex;
+  gap: 2px;
+  padding: 6px 6px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.dk-chip {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 150ms ease, transform 140ms ease-out;
+}
+.dk-chip:active {
+  transform: scale(0.97);
+}
+.dk-chip[data-checked] {
+  color: #fff;
+}
+.dk-chip-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--ink);
+}
+.dk-chip-text {
+  position: relative;
+}
+.dk-rule {
+  height: 1px;
+  margin: 0 14px;
+  background: var(--hair);
+}
+
+/* ------------------------------------------------------------ Popover */
+
+.dk-brush {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 13px 0 11px;
+  border-radius: 999px;
+  background: transparent;
+  font-weight: 500;
+}
+.dk-brush[data-on] {
+  background: rgba(31, 30, 28, 0.07);
+}
+.dk-brush[data-popup-open] {
+  background: rgba(31, 30, 28, 0.1);
+}
+.dk-pop {
+  width: 280px;
+  padding: 6px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(31, 30, 28, 0.06),
+    0 16px 40px rgba(40, 32, 20, 0.18);
+  color: var(--ink);
+  font: 13px var(--font);
+  transform-origin: var(--transform-origin);
+  transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+}
+.dk-pop[data-starting-style] {
+  opacity: 0;
+  transform: scale(0.96) translateY(4px);
+}
+.dk-pop[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.98);
+  transition-duration: 120ms;
+}
+.dk-pop-head {
+  padding: 4px 2px 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--hair);
+}
+.dk-pop-head .dk-switch-label {
+  width: 100%;
+}
+.dk-pop-list {
+  display: flex;
+  flex-direction: column;
+}
+.dk-pop-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 11px;
+  background: transparent;
+  text-align: left;
+}
+.dk-pop-check {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--ink-3) inset;
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+.dk-pop-item[data-checked] .dk-pop-check {
+  background: var(--ink);
+  box-shadow: none;
+}
+.dk-pop-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.dk-pop-name {
+  font-weight: 600;
+}
+.dk-pop-note {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+/* ------------------------------------------------------------ Stepper */
+
+.dk-stepper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: 2px;
+}
+.dk-arrow {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-2) !important;
+}
+.dk-step-name {
+  display: inline-grid;
+  justify-items: center;
+  min-width: 72px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.dk-step-name > * {
+  grid-area: 1 / 1;
+}
+
+/* ------------------------------------------------------------ Hover, only for real pointers */
+
+@media (hover: hover) and (pointer: fine) {
+  .dk-switch-label:hover,
+  .dk-brush:hover,
+  .dk-arrow:hover {
+    background: rgba(31, 30, 28, 0.06);
+  }
+  .dk-chip:not([data-checked]):hover {
+    color: var(--ink);
+  }
+  .dk-pop-item:hover {
+    background: rgba(31, 30, 28, 0.05);
+  }
+  .dk .dk-shuffle--dark:hover {
+    background: #34322f;
+  }
+}
+
+/* Small screens: the name gives way first. */
+@media (max-width: 420px) {
+  .dk-row,
+  .dk--pop,
+  .dk--step {
+    padding-left: 13px;
+  }
+  .dk-sep {
+    margin: 0 4px 0 6px;
+  }
+  .dk-brush-label {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dk-enter {
+    animation-name: dk-fade;
+  }
+  .dk-shuffle-icon,
+  .dk-switch-thumb {
+    transition: none;
+  }
+  .dk-pop[data-starting-style],
+  .dk-pop[data-ending-style] {
+    transform: none;
+  }
+}
+@keyframes dk-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Morph: when the dock widens for the styles, Shuffle keeps to the right edge. */
+.dk--morph .dk-row .dk-shuffle {
+  margin-left: auto;
+}
