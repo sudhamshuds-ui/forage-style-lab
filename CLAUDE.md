@@ -380,8 +380,9 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
   shadowTint 0.3, 30k budget. See `lessons/watermelon.md`.
 
 - **Steak** (in progress on branch `steak`, 2026-11-10; board 08's card: raw, 20 x 12 x 3 cm,
-  Pink and raw, block): an organic slab (surface nets), wider at one end, a waist, a notch at the
-  back; thicker at the back than the front, so the top slopes toward the low camera (flat, it
+  Pink and raw, block): a slab (surface nets) with an irregular cut outline after the card (a
+  hand-placed polygon of 16 seeded corners, straight-ish wavering sides, a lobe at the right end,
+  a notch at the front; the first smooth oval read as a bean, the user: "a bit jagged"); thicker at the back than the front, so the top slopes toward the low camera (flat, it
   read as a thin disc); only the top edge rounded, the underside flush on the table (a rounded
   bottom edge showed a dashed contact line); the fat cap along the back edge lifted off the meat
   (`fat@fat`, a new part-only family, pinker than ivory so it stands apart from a cream table;

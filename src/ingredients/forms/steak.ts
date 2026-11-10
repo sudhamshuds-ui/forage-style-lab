@@ -10,8 +10,9 @@ import { roundedIntersection } from './kit/wedge';
  * a few marbling shapes." L, 20 x 12 x 3 cm, Pink and raw.
  *
  * What makes it a raw steak, not a slab of salmon, a slice of ham or a cushion:
- *   - an organic outline: wider at one end, a gentle waist and a notch on the far side
- *     (the bone side of a cut), lumpy all round, never a rounded rectangle,
+ *   - an irregular cut outline, like the card: straight-ish sides meeting at softened corners,
+ *     a lobe at one end and a notch in the near side where a bone sat (a smooth oval read as a
+ *     bean), never a rounded rectangle,
  *   - a flat underside resting on the table and a gently domed, softly uneven top, thicker at
  *     the back (the fat side) than the front, so the top slopes toward the camera, thinner at
  *     the edges, the side walls slightly bulging, its edges softly rounded (it is soft meat),
@@ -41,26 +42,39 @@ export const buildSteak: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Steak: the "${state}" form is not built yet (the whole steak only for now).`);
 
   const random = seededRandom(seed ^ 0x57ea4);
-  // The outline's lumps: a few slow waves round the edge (seeded, the same on every load).
-  const lumps = Array.from({ length: 4 }, (_, i) => ({ k: i + 2, a: (0.025 + random() * 0.03) / (1 + i * 0.4), phase: random() * Math.PI * 2 }));
   // The top's gentle unevenness.
   const bumps = Array.from({ length: 3 }, () => ({ kx: 0.25 + random() * 0.3, kz: 0.3 + random() * 0.4, phase: random() * Math.PI * 2 }));
 
   /**
-   * The outline, as a distance on the table (cm, negative inside): an oval, wider at its right
-   * end and narrower at its left, with a waist, a notch on the near (+z) side, and lumps.
+   * The outline, as a distance on the table (cm, negative inside). After the card (the user,
+   * 2026-11-10: "very rounded, make it similar to the ref, a bit jagged"): a cut of meat, not an
+   * oval. Straight-ish sides meeting at corners (only softened a little, it is soft meat), a
+   * lobe at the right end, and a notch in the near side where a bone sat. The corners are placed
+   * by hand (x along the steak, z toward the camera, cm), nudged a little by the seed, and every
+   * side wavers gently.
    */
+  const corners: [number, number][] = [
+    [-9.4, 2.4], [-9.7, -1.2], [-7.9, -4.4], [-4.6, -5.5], [-0.6, -5.1], [3.4, -6.1],
+    [7.1, -5.5], [9.3, -3.1], [9.6, 0.7], [8.1, 4.2], [5.1, 5.6], [2.7, 4.9],
+    [1.3, 3.0], [-0.3, 4.3], [-3.5, 5.3], [-7.1, 4.9],
+  ].map(([x, z]) => [x + (random() - 0.5) * 0.5, z + (random() - 0.5) * 0.5]);
+  const waver = Array.from({ length: 2 }, () => ({ k: 0.9 + random() * 0.8, phase: random() * Math.PI * 2 }));
   const outline = (x: number, z: number) => {
-    // Wider at the right end, narrower at the left: the oval's half width changes along x.
-    const halfWidth = HALF_WIDTH * (1 + 0.14 * (x / HALF_LENGTH)) * (1 - 0.07 * Math.exp(-((x + 1.5) ** 2) / 10));
-    const qx = x / HALF_LENGTH;
-    const qz = z / halfWidth;
-    const angle = Math.atan2(qz, qx);
-    let r = 1;
-    for (const l of lumps) r += l.a * Math.sin(l.k * angle + l.phase);
-    // The notch on the far side, a little left of centre (where a bone sat).
-    r -= 0.13 * Math.exp(-((angle + 1.75) ** 2) / 0.04);
-    return (Math.hypot(qx, qz) - r) * Math.min(HALF_LENGTH, halfWidth) * 1.05;
+    // Distance to the polygon (its nearest side), negative inside.
+    let d = Infinity;
+    let inside = false;
+    for (let i = 0, j = corners.length - 1; i < corners.length; j = i++) {
+      const [ax, az] = corners[j];
+      const [bx, bz] = corners[i];
+      const ex = bx - ax;
+      const ez = bz - az;
+      const t = Math.max(0, Math.min(1, ((x - ax) * ex + (z - az) * ez) / (ex * ex + ez * ez)));
+      d = Math.min(d, Math.hypot(x - ax - ex * t, z - az - ez * t));
+      if ((az > z) !== (bz > z) && x < ((bx - ax) * (z - az)) / (bz - az) + ax) inside = !inside;
+    }
+    let edge = inside ? -d : d;
+    for (const w of waver) edge += 0.12 * Math.sin(w.k * (x + 0.7 * z) + w.phase);
+    return edge;
   };
 
   /** The top's height (cm): domed, thinner toward the edges, softly uneven. */
