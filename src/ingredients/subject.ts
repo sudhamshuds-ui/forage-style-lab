@@ -169,6 +169,8 @@ class FormSubject implements Subject {
             (material.uniforms.uMelonPale.value as Color).set(FAMILIES['pale-green'].colours.lit);
             (material.uniforms.uMelonGreen.value as Color).set(FAMILIES.green.colours.base);
           }
+          // A marbled steak: the marbling is painted in the fat's colour.
+          if (entry.skin.kind === 'marbled') (material.uniforms.uMelonPale.value as Color).set(FAMILIES.fat.colours.lit);
         }
         // Crumb (bread inside a slash) gets the crumb skin: holes, streaks, a toasted rim.
         else if (piece.role === 'crumb') setSkin(material, CRUMB_SKIN);

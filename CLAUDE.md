@@ -379,6 +379,17 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
   texture, seed beads, the separate rind shell switched off (`WITH_SHELL`), matte, no rim glints,
   shadowTint 0.3, 30k budget. See `lessons/watermelon.md`.
 
+- **Steak** (in progress on branch `steak`, 2026-11-10; board 08's card: raw, 20 x 12 x 3 cm,
+  Pink and raw, block): an organic slab (surface nets), wider at one end, a waist, a notch at the
+  back; thicker at the back than the front, so the top slopes toward the low camera (flat, it
+  read as a thin disc); only the top edge rounded, the underside flush on the table (a rounded
+  bottom edge showed a dashed contact line); the fat cap along the back edge lifted off the meat
+  (`fat@fat`, a new part-only family, pinker than ivory so it stands apart from a cream table;
+  wrapped round an end it read as a blunt cap); marbling and grain painted by a new skin kind
+  `marbled` (kind 12: a few long, broken, streaky veins in a few places and some flecks, in the
+  fat's colour; a dense lace read as a busy pattern); turn 20, shadowTint 0.3, no rim glints,
+  18k budget. Note: `patch` is a reserved word in GLSL.
+
 Shared mechanisms added along the way (code hooks other ingredients reuse):
 - Registry look settings: `turn`, `skin`, `matte`, `rimGlints` (via `FrameContext.rimGlints`),
   `shadowTint` (via `FrameContext.shadowTint`), `budget`, `stemEnds`.

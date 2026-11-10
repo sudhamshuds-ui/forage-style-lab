@@ -24,6 +24,7 @@ export type FamilyId =
   | 'green'
   | 'cream-crust'
   | 'pink-raw'
+  | 'fat'
   | 'stalk'
   | 'leaf'
   | 'pale-green'
@@ -203,6 +204,13 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Melon',
     colours: { lit: '#ff8f74', base: '#e4473d', shadow: '#962f45', glow: '#ff6e4f', highlight: '#ffe6dc' },
     rooms: ['seafoam', 'sage-morning'],
+  },
+  // Not a board 04 family: only for parts (a steak's fat cap, later bacon and ham). Raw fat:
+  // a creamy ivory leaning pink (warm enough to stand apart from a cream table), never pure white, with a soft rosy shadow, never grey.
+  fat: {
+    name: 'Fat',
+    colours: { lit: '#fbe4da', base: '#eec6ba', shadow: '#bf8f96', glow: '#f6c0ae', highlight: '#fff6f2' },
+    rooms: [],
   },
   'pink-raw': {
     name: 'Pink and raw',

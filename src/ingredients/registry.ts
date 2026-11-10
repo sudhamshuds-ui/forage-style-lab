@@ -8,6 +8,7 @@ import { buildSauce } from './forms/sauce';
 import { buildCheese } from './forms/cheese';
 import { buildButter } from './forms/butter';
 import { buildWatermelon } from './forms/watermelon';
+import { buildSteak } from './forms/steak';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
@@ -347,6 +348,32 @@ export const REGISTRY: IngredientEntry[] = [
     rimGlints: false,
     // Two finely meshed slabs (so their edges stay smooth), their shells and seeds.
     budget: [2000, 30000],
+  },
+  {
+    spec: {
+      id: 'steak',
+      name: 'Steak',
+      archetype: 'block',
+      family: 'pink-raw',
+      layout: 'solo',
+      show: 'One raw steak, fat cap along one edge, a few marbling shapes on top.',
+      forms: ['whole', 'strips', 'cubes', 'mince'],
+      scale: 'L',
+      size_cm: [20, 3, 12],
+      parts: ['meat', 'fat@fat'],
+      notes:
+        'Board 08: raw. An organic outline (wider at one end, a waist, a notch where a bone sat), a gently domed soft top, bulging sides. A pale fat cap along the back edge as its own part, lifted off the meat. Marbling and grain are a shader texture (marbled skin), never geometry.',
+    },
+    form: buildSteak,
+    // Three-quarter view, the fat rim at the back left toward the key light (as on the card).
+    turn: 20,
+    skin: { kind: 'marbled', size_mm: 6, amount: 0.85 },
+    // Pink and raw: a little of the shadow's violet and pink, or the meat reads purple.
+    shadowTint: 0.3,
+    // No rim glints: they drew a blocky white streak along the top's soft edge.
+    rimGlints: false,
+    // A meshed slab and its fat skin.
+    budget: [2000, 18000],
   },
 ];
 

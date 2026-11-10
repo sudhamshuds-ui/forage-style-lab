@@ -41,7 +41,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -102,7 +102,7 @@ export const skinTexture: ShaderEffect = {
 uniform vec4 uSkin; // x: kind (see SKIN_KINDS), y: cells per scene unit, z: amount
 uniform sampler2D uLabelMap; // a label's artwork: white = ink, black = the ground
 uniform vec3 uLabelInk;      // the ink colour (cream)
-uniform vec3 uMelonPale;     // a melon's pale band, between flesh and rind
+uniform vec3 uMelonPale;     // a melon's pale band, between flesh and rind (also a steak's marbling)
 uniform vec3 uMelonGreen;    // a melon's green rind
 
 // Distance to the nearest of a scatter of points (one per cell): a cellular
@@ -350,6 +350,30 @@ if (kind > 0 && amount > 0.0) {
     lab.yz *= 1.0 + mottle * 0.25 * amount;
     float speck = 1.0 - smoothstep(0.05, 0.11, skinCells(p * 1.4));
     lab = mix(lab, linearToOklab(uLitColour), speck * 0.45 * show);
+  } else if (kind == 12) {
+    // Marbled (raw steak): the meat's grain and its marbling.
+    // 1. The grain: faint fibres running one way across the cut, and soft darker patches.
+    float grain = valueNoise3(vec3(objectPos.x * 3.0, objectPos.y * 3.0, objectPos.z * 22.0)) - 0.5;
+    lab.x += grain * 0.04 * show;
+    float blotch = fbm3(p * 0.09 + 3.0) - 0.5;
+    lab = blotch > 0.0 ? shadeOwn(lab, blotch * 0.9 * show) : lab - vec3(blotch * 0.05, 0.0, 0.0);
+    // 2. Marbling, like the card: a few long, streaky pale veins running mostly one way across
+    //    the cut (stretched noise, gently warped), each thin and broken, in a few places only;
+    //    plus a few small fat flecks. Painted in the fat's own colour (uMelonPale here), shaded
+    //    like the meat under it. A dense lace of veins read as a busy pattern, never meat.
+    vec3 w = vec3(objectPos.x * 1.1, objectPos.y * 2.0, objectPos.z * 3.6);
+    w.z += (fbm3(objectPos * 1.4) - 0.5) * 2.2;
+    float ridge = 1.0 - abs(2.0 * valueNoise3(w) - 1.0);
+    float broken = smoothstep(0.35, 0.6, valueNoise3(objectPos * vec3(4.0, 4.0, 1.5) + 3.0));
+    float where = smoothstep(0.38, 0.6, fbm3(objectPos * 1.1 + 11.0));
+    float vein = smoothstep(0.91, 0.98, ridge) * broken * where;
+    float fleck = (1.0 - smoothstep(0.06, 0.12, skinCells(p * 0.5 + 9.0))) * where;
+    float fat = clamp(max(vein, fleck), 0.0, 1.0);
+    vec3 fatLab = linearToOklab(uMelonPale);
+    fatLab.x += (lab.x - linearToOklab(uBaseColour).x) * 0.6;
+    fatLab.yz = mix(fatLab.yz, lab.yz, 0.18);
+    lab = mix(lab, fatLab, fat * 0.85 * amount);
+    highlightOwn = max(highlightOwn, fat);
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

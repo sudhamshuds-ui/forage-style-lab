@@ -93,6 +93,7 @@ The live values are in `src/ingredients/families.ts` (the source of truth; this 
 | gold | #f2d688 | #d2a64a | #8c5a3a | #f0c25a | #fff6d8 | printed gold |
 | ink | #6e3b4c | #45222f | #2e1523 | #7a3a4a | #8f6070 | lettering (deep plum, never black) |
 | rind | #fde5a4 | #eabd66 | #ae7a52 | #f6c25a | #fff6e0 | a cheese's rind |
+| fat | #fbe4da | #eec6ba | #bf8f96 | #f6c0ae | #fff6f2 | raw fat (a steak's fat cap; marbling is painted in its lit colour) |
 | parchment | #fdfbf6 | #efebe4 | #c4bccf | #f4ecdc | #ffffff | a butter wrapper, baking parchment (whiter and cooler than `paper`) |
 
 Colours live in data (the registry), never in the form. Shadows always shift hue (never grey or near black). A whole-ingredient family needs five colours and rooms **70 to 180 degrees** away on the colour wheel (board 04 says 70 to 150, but its own pairings go further; kept by choice, tested in `registry.test.ts`).
@@ -109,7 +110,7 @@ Forms are built from a shared kit in `src/ingredients/forms/kit/`. Create a kit 
 | branching | broccoli | `crown.ts` (blobs blended as a distance field), `surfaceNets.ts` (distance field to clean mesh), `sweep.ts` for stalks | solo | 6k to 18k (raised from 12k for a bumpier crown) |
 | wedge | cheese, watermelon | `wedge.ts` (a slice of a wheel as a distance field, `roundedIntersection` for bevelled edges), meshed with `surfaceNets`, smoothed with `relaxOnSurface`, rind lifted off with `liftRegion` | solo | 2k to 5k (cheese has its own 10k) |
 | contained | hot sauce | `vessel.ts`: `revolve` (a profile spun standing up, with a `roundedSquare` or `ribs` cross-section), `wrapSheet` (a sheet hugging a vessel: labels, rectangles or ovals, `mapped` for printed artwork) | solo | vessel + 1k (sauce has its own 16k) |
-| block | butter (steak next) | `block.ts`: `blockSides` (a box as distances, rounded with `roundedIntersection`, meshed with `surfaceNets` and `relaxOnSurface`), `paperSheet` with `fold` and `crease` for a creased sheet under it; fat, marbling as separate pieces | solo, three-quarter view | 1k to 4k (butter has its own 12k: a meshed block, its curl and its paper) |
+| block | butter, steak | `block.ts`: `blockSides` (a box as distances, rounded with `roundedIntersection`, meshed with `surfaceNets` and `relaxOnSurface`), `paperSheet` with `fold` and `crease` for a creased sheet under it; fat, marbling as separate pieces | solo, three-quarter view | 1k to 4k (butter has its own 12k: a meshed block, its curl and its paper) |
 | leafy | (not yet) | a shaped plane with a gentle curl and a little thickness | small pile | 1k to 3k |
 
 Only add a ninth archetype when three or more ingredients need it.
