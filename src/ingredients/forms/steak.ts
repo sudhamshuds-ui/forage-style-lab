@@ -33,7 +33,8 @@ const EYE = { halfX: 7.5, halfZ: 6.5 };
 /** How thick the steak is (cm). */
 const HEIGHT = 4.5;
 /** The neck of meat along the bone: from the eye out to here (x, cm), tapering. */
-const NECK_END = 16;
+/** Shortened (the user: more bone should show). */
+const NECK_END = 13.5;
 /** The bone: its radius, and how far it runs (x, cm). */
 const BONE_RADIUS = 1.25;
 const BONE_END = 29;
@@ -109,8 +110,10 @@ export const buildSteak: FormBuilder = ({ state, seed }) => {
     if (x > NECK_END - 6 && x < NECK_END + 4 && y < boneY + BONE_RADIUS * 3 && Math.abs(z + 2.8) < BONE_RADIUS * 3.5) {
       const { d: r, t } = nearBone(probe.set(x, y, z));
       const along = (t / 0.45) * (bonePath.getLength() * 0.45);
-      const sleeveEnd = NECK_END - (NECK_END - 4.5) + 2.5;
-      const thick = BONE_RADIUS * (1.9 - 0.85 * smoothstep(0, sleeveEnd, along));
+      // The sleeve ends just past the neck (it ran 2.5 cm along the bone; the user wanted more
+      // bare bone), thinning quickly.
+      const sleeveEnd = 4.5 + 0.8;
+      const thick = BONE_RADIUS * (1.7 - 0.6 * smoothstep(0, sleeveEnd, along));
       const sleeve = along > sleeveEnd ? Infinity : r - thick;
       d = smoothMin(d, sleeve, 1.2);
     }
@@ -132,7 +135,12 @@ export const buildSteak: FormBuilder = ({ state, seed }) => {
     const x = pos.getX(i);
     const z = pos.getZ(i);
     const neck = smoothstep(4, 9, x);
-    uv[2 * i] = -outline(x, z) + neck * 6;
+    // On the side walls, fat only along the back edge (the fat cap side): round the front it made
+    // a pink stripe along the near wall that read as wrapped oddly (the user, 2026-11-10). The
+    // top keeps its soft rim all round the eye.
+    const share = pos.getY(i) / topAt(x, z);
+    const frontWall = smoothstep(-1.5, 1.5, z) * (1 - smoothstep(0.8, 0.95, share));
+    uv[2 * i] = -outline(x, z) + neck * 6 + frontWall * 6;
     uv[2 * i + 1] = pos.getY(i) / topAt(x, z);
   }
   mesh.setAttribute('uv', new BufferAttribute(uv, 2));
