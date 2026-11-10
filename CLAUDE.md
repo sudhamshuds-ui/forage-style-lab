@@ -406,7 +406,14 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
   warped cells), thin and break in places and swell into rounded fat pockets where three sections
   meet; their edges are ragged; a little pink bleeds into the fat at its edges; and the whole cut
   gets the watermelon's chalky dry-brush texture (pale scratches along the grain broken by a paper
-  grain, deeper red flecks) plus a creamy speckle in the fat. `patch` is a reserved word in GLSL.
+  grain, deeper red flecks) plus a creamy speckle in the fat. Then (the user: "it looks too realistic, can we stick
+  to our stylized style", pointing at the marbling and textures): the `marbled` skin was rewritten
+  shapes-first. No fibre lines, thin veins, specks or ragged edges. The cut face is a few big
+  sections, each one calm shape in its own slightly different red with a soft wash; smooth,
+  soft-edged seams that fade out in places and swell into pockets where sections meet; one
+  designed curved cap seam about 2.6 cm in from the edge (the classic ribeye picture: eye and cap);
+  the soft fat rim; and only a light chalky texture. Small cells read as a turtle-shell net, very
+  large ones as random patches: about 0.4 per cm, with the cap seam leading. `patch` is a reserved word in GLSL.
 
 Shared mechanisms added along the way (code hooks other ingredients reuse):
 - Registry look settings: `turn`, `skin`, `matte`, `rimGlints` (via `FrameContext.rimGlints`),
