@@ -97,7 +97,7 @@ The live values are in `src/ingredients/families.ts` (the source of truth; this 
 | ink | #6e3b4c | #45222f | #2e1523 | #7a3a4a | #8f6070 | lettering (deep plum, never black) |
 | rind | #fde5a4 | #eabd66 | #ae7a52 | #f6c25a | #fff6e0 | a cheese's rind |
 | bone | #f8eedb | #e6d0aa | #a98a70 | #f0d6a8 | #fffaf0 | a rib bone (ivory to warm tan, never grey) |
-| fat | #fbe4da | #eec6ba | #bf8f96 | #f6c0ae | #fff6f2 | raw fat (a steak's fat cap; marbling is painted in its lit colour) |
+| fat | #fbe4da | #eec6ba | #bf8f96 | #f6c0ae | #fff6f2 | raw fat: the steak's fat rim, seams and marbling are painted in its lit colour (no fat piece) |
 | parchment | #fdfbf6 | #efebe4 | #c4bccf | #f4ecdc | #ffffff | a butter wrapper, baking parchment (whiter and cooler than `paper`) |
 
 Colours live in data (the registry), never in the form. Shadows always shift hue (never grey or near black). A whole-ingredient family needs five colours and rooms **70 to 180 degrees** away on the colour wheel (board 04 says 70 to 150, but its own pairings go further; kept by choice, tested in `registry.test.ts`).
@@ -114,7 +114,7 @@ Forms are built from a shared kit in `src/ingredients/forms/kit/`. Create a kit 
 | branching | broccoli | `crown.ts` (blobs blended as a distance field), `surfaceNets.ts` (distance field to clean mesh), `sweep.ts` for stalks | solo | 6k to 18k (raised from 12k for a bumpier crown) |
 | wedge | cheese, watermelon | `wedge.ts` (a slice of a wheel as a distance field, `roundedIntersection` for bevelled edges), meshed with `surfaceNets`, smoothed with `relaxOnSurface`, rind lifted off with `liftRegion` | solo | 2k to 5k (cheese has its own 10k) |
 | contained | hot sauce | `vessel.ts`: `revolve` (a profile spun standing up, with a `roundedSquare` or `ribs` cross-section), `wrapSheet` (a sheet hugging a vessel: labels, rectangles or ovals, `mapped` for printed artwork) | solo | vessel + 1k (sauce has its own 16k) |
-| block | butter, steak | `block.ts`: `blockSides` (a box as distances, rounded with `roundedIntersection`, meshed with `surfaceNets` and `relaxOnSurface`), `paperSheet` with `fold` and `crease` for a creased sheet under it; fat, marbling as separate pieces | solo, three-quarter view | 1k to 4k (butter has its own 12k: a meshed block, its curl and its paper) |
+| block | butter, steak | `block.ts`: `blockSides` (a box as distances, rounded with `roundedIntersection`, meshed with `surfaceNets` and `relaxOnSurface`), `paperSheet` with `fold` and `crease` for a creased sheet under it; for a cut of meat, an outline as a distance meshed with `surfaceNets`, a bone as a `sweep` with the meat joined round it (a smooth union); fat and marbling painted by the `marbled` skin from a map on the meat | solo, three-quarter view | 1k to 4k (butter has its own 12k, steak 24k) |
 | leafy | (not yet) | a shaped plane with a gentle curl and a little thickness | small pile | 1k to 3k |
 
 Only add a ninth archetype when three or more ingredients need it.
@@ -136,7 +136,7 @@ Only add a ninth archetype when three or more ingredients need it.
 Each registry entry can also carry, beside the spec and builder:
 
 - `turn`: degrees on stage, measured from the camera (0 shows the form's front, +Z).
-- `skin`: the peel texture the shader paints (`pebbled`, `pores`, `streaks`, `seeds`, `florets`, `crust`; `crumb`, `leaf` and `label` are set automatically by piece name).
+- `skin`: the peel texture the shader paints (`pebbled`, `pores`, `streaks`, `seeds`, `florets`, `crust`, `melon`, `marbled`; `crumb`, `leaf`, `label` and `melonRind` are set automatically by piece name). `marbled` (steak) paints marbling, muscle seams and a soft fat rim in the `fat` family's colour, from a map on the meat (uv x: cm in from the edge, y: height as a share of the top).
 - `matte: true`: a quiet highlight on the hero (broccoli, bread, cheese).
 - `rimGlints: false`: skip the rim glints (a narrow tube facing the light, like a bottle's neck, catches them as a hard white bar).
 - `shadowTint` (0 to 1, default 1): how much of the shadow's violet and pink patches it takes (a pale cheese takes 0.35, or its shadows read as pink stains).
@@ -159,16 +159,17 @@ full story (first try, what the user said, where we ended) is in `docs/ingredien
 - **Pale yellows turn warm in shadow, through orange, never lime** (butter); if a yellow shows green edges, check `turnHueTowardCool` before changing the family.
 - **Texture marks darken toward the ingredient's own shade, never grey or black** (lemon): `shadeOwn`. Lettering and dark marks are never black: use the ingredient's own deep shade (plum `ink`), or a light ink on a coloured ground (sauce).
 - **Every ingredient gets its own skin texture** (lemon, orange), and it must read at card size (strawberry seeds).
-- **Close relatives must still read apart**: berries are cooler and more magenta than the apple (strawberry); cheese is buttery, not lemon (cheese); butter is paler and fresher than cheese (butter); a melon is juicy coral, not candy pink (watermelon).
+- **Close relatives must still read apart**: berries are cooler and more magenta than the apple (strawberry); cheese is buttery, not lemon (cheese); butter is paler and fresher than cheese (butter); a melon is juicy coral, not candy pink (watermelon); raw beef is a deep red, deeper than Pink and raw (steak).
 - **Small parts share one natural leaf green and need tone, veins and a paler underside** (orange, strawberry).
-- **Warm and varied, never one flat colour**: a crust is many browns with blotches and specks (baguette); flesh has deeper, riper patches (watermelon).
+- **Warm and varied, never one flat colour**: a crust is many browns with blotches and specks (baguette); flesh has deeper, riper patches (watermelon). The same light chalky dry-brush texture carries across cut faces (watermelon, steak). Marbling is a few shapes, never a lace: big sections with wandering seams that swell into pockets (steak).
 - **Gradients between layers are one soft, wide wash** (watermelon): painted in the shader from a map on the body, never separate bands with edges.
+- **No crisp lines where colours meet inside an ingredient** (steak, watermelon): fat and meat, flesh and rind, seams, veins and bands fade over a soft band like wet paint. Crisp edges only in a few deliberate places: the lit outline, the cast shadow, printed art. When the user says "too realistic", soften the edges first; do not redraw the shapes as a diagram (steak).
 - **Translucent flesh glows in its shadows and thin places, with faint things seen inside** (watermelon; reuse for citrus). Keep the glow on the flesh's own colour.
 - **Highlights are believable touches of light, never graphic shapes** (apple); one main highlight per object, small parts quiet (orange); matte where the real thing is matte (broccoli, baguette, cheese, butter, watermelon). **A bumpy skin breaks its shine** into a faint sheen and small glints (strawberry). On a different-coloured layer the highlight takes the surface's own colour (watermelon).
 
 ### Composition (several pieces)
 
-- **Every piece rests the way it really would** (broccoli, watermelon): broccoli lies on its side; a wedge on its curved rind only stands upright, so to lean one, lay it on a flat cut side.
+- **Every piece rests the way it really would** (broccoli, watermelon, steak): broccoli lies on its side; a wedge on its curved rind only stands upright, so to lean one, lay it on a flat cut side; a tomahawk's bone dips so its knob rests on the table.
 - **A cluster is an odd triangle, balanced from every side** (strawberry): hero in front, two behind, stem ends out, bodies just touching. Never a row; a symmetric pinwheel looked worse.
 - **Pieces never pass through each other** (broccoli, strawberry).
 - **Group shadows follow the five shadow rules** in `CLAUDE.md` (strawberry).
@@ -181,7 +182,8 @@ full story (first try, what the user said, where we ended) is in `docs/ingredien
 - **Smooth and rounded, no facets** (apple); hard edges only where the real thing has them, each with a small bevel (sauce).
 - **Never geometrically perfect** (strawberry, cheese, baguette): lobed, bent off centre, round bites on edges, gentle wobble in faces, cuts varied and spread out with pointed tips. Keep the table face flat.
 - **Push the signature feature until it reads** (broccoli crown bumps, about 70% more than the first try; sauce bottle length).
-- **Make it the version people picture** (baguette over boule; the boule is kept as `loaf`).
+- **Make it the version people picture** (baguette over boule, the boule kept as `loaf`; a tomahawk over a shapeless slab, from the user's references, steak).
+- **Where two parts join, one grows out of the other** (steak): the meat wraps up round the bone in a short, thinning sleeve. **Ends are shaped, never flat-cut** (steak bone's knob). **A layer sits only where the real thing has it** (steak fat on the back wall, not wrapped all round). **A flat ingredient tilts its top toward the low camera** (steak).
 - **Real size, framed by the card** (strawberry).
 - **Keep deformations gentle: start at about half** (butter). Local changes stay local. Small drips and beads read as damage: make swellings broad or leave them out.
 - **A rind, crust or skin is part of the same surface** (cheese, watermelon): lift it off with `liftRegion`, never a separate slab or shell (a slab read as a cushion, a shell as a ledge).
@@ -197,11 +199,13 @@ These come back on almost every ingredient. The pre-check list below is how to c
 - Bodies sinking into each other: sample points apart is not the same as not overlapping (strawberry).
 - Flicker where two surfaces sit at the same depth: leaves and sheets at table height (broccoli, butter), lifted skins on tight curves (watermelon).
 - Contact shadows that do not follow the footprint (baguette, watermelon) or reach past the cast shadow (strawberry).
-- Rim glints drawing hard white or coloured lines on narrow tubes and pale layers (sauce, watermelon).
-- Shadow dashes where a flat surface meets a body (butter); patches, seams and halos where layers meet (apple).
+- Rim glints drawing hard white or coloured lines on narrow tubes, pale layers and soft edges (sauce, watermelon, steak).
+- Shadow dashes where a flat surface meets a body (butter), or under a rounded bottom edge: a flat-bottomed body sits flush (steak); patches, seams and halos where layers meet (apple).
 - Saw-toothed bevels on meshed forms (cheese); ledges in a lumpy crown (broccoli).
 - A highlight that becomes one flat pale patch or a dashed line along an edge (strawberry, butter, apple).
 - A wrapped sheet's ends not meeting (sauce).
+- Crisp lines where colours meet inside an ingredient (steak, watermelon).
+- A slow build (heavy work inside a distance field) stalling Shuffle: sample curves once; keep builds under about 0.3 s (steak).
 
 ## Pre-check before showing an ingredient
 
@@ -215,7 +219,7 @@ automated)* are candidates for a test later.
 4. **Contact shadows**: inside the cast shadow, following each piece's footprint, none under an arch or beside a long piece. Look from above. *(could be automated)*
 5. **Shadow colour**: never grey, lime or pink-stained; check `shadowTint` for pale ingredients and the warm turn for yellows.
 6. **Highlights**: one main highlight, soft and broken; no flat pale patch, no white or coloured rim lines (`rimGlints`), no dashed line along an edge.
-7. **Edges**: no sawtooth on bevels or rinds, no seam, halo or gap where layers meet, wrapped sheets close.
+7. **Edges**: no sawtooth on bevels or rinds, no seam, halo or gap where layers meet, wrapped sheets close; no crisp line where colours meet inside the ingredient (only the lit outline, the cast shadow, printed art).
 8. **Texture**: the ingredient's own skin reads at card size; specks lean to its own shade; marks never bunch at a tip.
 9. **Silhouette and size**: the solid-black silhouette still names it; `styleLab.report()` within 10% of `size_cm`; triangles within budget. *(automated: `forms.test.ts`)*
 10. **Lessons**: reread this file's lessons for the ingredient's archetype and colour family.

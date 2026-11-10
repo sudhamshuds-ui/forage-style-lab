@@ -384,45 +384,13 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
   texture, seed beads, the separate rind shell switched off (`WITH_SHELL`), matte, no rim glints,
   shadowTint 0.3, 30k budget. See `lessons/watermelon.md`.
 
-- **Steak** (in progress on branch `steak`, 2026-11-10): board 08's card (raw, Pink and raw,
-  block, 20 x 12 x 3 cm). A plain slab read as a bean, then a jagged outline as shapeless ("this
-  doesnt look aesthetic"); the user chose a **tomahawk** from two references. Now: a thick ribeye
-  eye (a lumpy rounded square) tapering into a long neck of meat along the bone, a long, slightly
-  curved rib bone (`bone@bone`, a sweep, flatter than round) dipping so its knobby tip rests on the
-  table; the fat rim lifted off the meat round the eye only (`fat@fat`; covering the neck it read as
-  a paddle) and only down the upper wall; the underside flush on the table; the `marbled` skin
-  (kind 12) adds muscle seams: a large warped cell pattern whose borders are pale fat seams of
-  uneven width (small cells read as a giraffe net), on up-facing faces only, plus long broken
-  veins and flecks. New families `beef` (deeper than Pink and raw) and part-only `bone`; size
-  37 x 4.8 x 14 (the card's 20 cm was the meat alone), turn 25, shadowTint 0.3, no rim glints,
-  24k budget. Then (the user: "the fat layer is just too harsh", the bone and its join "more
-  similar to ref"): the separate fat piece is gone; the fat rim is painted by the `marbled` skin as
-  a soft gradient from a map on the meat (uv x = cm in from the edge, y = height share), full at
-  the edge and fading over about a centimetre with a cloudy inner line, down the upper wall only;
-  the meat wraps up round the bone in a sleeve that thins along it (a smooth union with a tube
-  round the bone's first stretch), so the bone grows out of the meat; the bone follows a gentle
-  curve, slimmer in the middle, swelling into a flared, rounded knob (never a flat-cut end),
-  flatter than round with a slight twist. The bone's path is sampled once: asking the curve inside
-  the distance field took about a second to build (now 0.23 s). Then (the user: more bone, "the fat just
-  wraps wierd"): the neck ends at 13.5 cm and the meat sleeve only 0.8 cm past it, so more bare
-  bone shows; on the side walls the fat shows only along the back edge (round the front it made a
-  pink stripe), the top keeps its soft rim all round the eye. Then (the user: "try making the shapes of the fat
-  different, give it similar treatment as the watermelon"): the muscle seams wander (strongly
-  warped cells), thin and break in places and swell into rounded fat pockets where three sections
-  meet; their edges are ragged; a little pink bleeds into the fat at its edges; and the whole cut
-  gets the watermelon's chalky dry-brush texture (pale scratches along the grain broken by a paper
-  grain, deeper red flecks) plus a creamy speckle in the fat. Then (the user: "too realistic", then "no, revert back
-  to previous version, just maybe work on this hard edge of the fat"): a shapes-first rewrite was
-  tried and rejected, the organic seams came back with soft edges (seams fade over a wide band,
-  pockets too, veins softened, more of the meat's pink in the fat's edge). This gave the rule
-  "no crisp lines" (Rules, above). Then (the user: "it looks too realistic, can we stick
-  to our stylized style", pointing at the marbling and textures): the `marbled` skin was rewritten
-  shapes-first. No fibre lines, thin veins, specks or ragged edges. The cut face is a few big
-  sections, each one calm shape in its own slightly different red with a soft wash; smooth,
-  soft-edged seams that fade out in places and swell into pockets where sections meet; one
-  designed curved cap seam about 2.6 cm in from the edge (the classic ribeye picture: eye and cap);
-  the soft fat rim; and only a light chalky texture. Small cells read as a turtle-shell net, very
-  large ones as random patches: about 0.4 per cm, with the cap seam leading. `patch` is a reserved word in GLSL.
+- **Steak**: a tomahawk (the user's references; board 08's card said a raw slab): a ribeye eye and
+  meaty neck (surface nets), a long curved rib bone (`bone@bone`, a sweep) with the meat wrapping
+  up round it in a short sleeve, its knob resting on the table; the fat rim, organic seams with
+  pockets and marbling painted softly by the `marbled` skin (kind 12, no fat piece) in the `fat`
+  colour; `beef` family, 37 x 5.2 x 14 cm, turn 25, shadowTint 0.3, no rim glints, 24k budget.
+  The shapes-first marbling was tried and rejected (it is in history, commit edb98e7). See
+  `lessons/steak.md`.
 
 Shared mechanisms added along the way (code hooks other ingredients reuse):
 - Registry look settings: `turn`, `skin`, `matte`, `rimGlints` (via `FrameContext.rimGlints`),
@@ -436,9 +404,11 @@ Shared mechanisms added along the way (code hooks other ingredients reuse):
   from its foot only).
 - Shader: `turnHueTowardCool` sends yellows the warm way round; a skin can set `highlightOwn`
   (highlight in the surface's own colour) and `highlightBumpy`, `highlightBreak`,
-  `highlightGlint` (a dimpled shine); the `melon` and `melonRind` skins (kinds 10, 11).
+  `highlightGlint` (a dimpled shine); the `melon`, `melonRind` and `marbled` skins (kinds 10 to
+  12); the material knows the camera in its own space (`vObjectCamera`). `patch` is a reserved
+  word in GLSL.
 - Form tests: "faces point outward" asks 85% for wedges (hole insides rightly face inward).
-Next, one at a time with feedback: steak, chicken drumstick (whole forms only; cut forms later).
+Next, one at a time with feedback: the chicken drumstick (whole forms only; cut forms later).
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after
@@ -467,12 +437,12 @@ light's rainbow fringe) loads the room's colour, and room strokes pick up the co
 (wet-in-wet). A pick-up that reacted to every small change flattened the wall's slabs: keep the
 thresholds.
 
-## Where we are (2026-11-09)
-On `main`: everything above, plus the strawberry fixes (no overlap, a dimpled shine). Vercel
-deploys `main`. Next: the steak (block archetype, board 08's card; read it in Figma first), then
-the chicken drumstick, each followed by `/forage-brand`. Open question from the user: "the
-camera still pauses spinning mid transition" (CPU frames measured 1 to 5 ms; ask whether the
-wall and table keep moving during the pause, or everything freezes: then use `#perf`).
+## Where we are (2026-11-10)
+On `main`: everything above, including the steak (a tomahawk), the baguette fix, random Shuffle
+strokes and the "no crisp lines" rule. Vercel deploys `main`. Next: the chicken drumstick, then
+`/forage-brand`. Open question from the user: "the camera still pauses spinning mid transition"
+(CPU frames measured 1 to 5 ms; ask whether the wall and table keep moving during the pause, or
+everything freezes: then use `#perf`).
 Workflow the user expects: work on a branch, push it and publish the preview (the private
 claude.ai page "Forage Style Lab", built with `VITE_PREVIEW_NEXT=<id>`), merge to `main` only
 when the user says so.
