@@ -27,3 +27,7 @@ Sources: session "3D ingredient forms" (2026-11-04), commits d913ad5..1e0a285.
 - **Contact shadows follow the footprint, never one big circle** (baguette).
   Claude's note: one round contact spot poked out as a blob beside the long loaf; spots now follow each piece's footprint, a row along a long piece.
   Why: a shadow that does not match the shape reads as a separate object.
+- **A part set into another follows the real surface, never an ideal one** (baguette).
+  User said: "we have one artifact in the bread btw" (2026-11-09: a pale shard at a slash tip).
+  Ended on: the crumb placed by the crust's real height, stopping short of each groove's tips and sinking there; rim glints off; broader, rolled slash lips on a finer mesh (no sawtooth).
+  Why: the loaf is a little lopsided, so the crumb's tips poked through where the ideal shape sat higher than the real crust.
