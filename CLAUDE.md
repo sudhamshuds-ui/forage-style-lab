@@ -401,7 +401,12 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
   the distance field took about a second to build (now 0.23 s). Then (the user: more bone, "the fat just
   wraps wierd"): the neck ends at 13.5 cm and the meat sleeve only 0.8 cm past it, so more bare
   bone shows; on the side walls the fat shows only along the back edge (round the front it made a
-  pink stripe), the top keeps its soft rim all round the eye. `patch` is a reserved word in GLSL.
+  pink stripe), the top keeps its soft rim all round the eye. Then (the user: "try making the shapes of the fat
+  different, give it similar treatment as the watermelon"): the muscle seams wander (strongly
+  warped cells), thin and break in places and swell into rounded fat pockets where three sections
+  meet; their edges are ragged; a little pink bleeds into the fat at its edges; and the whole cut
+  gets the watermelon's chalky dry-brush texture (pale scratches along the grain broken by a paper
+  grain, deeper red flecks) plus a creamy speckle in the fat. `patch` is a reserved word in GLSL.
 
 Shared mechanisms added along the way (code hooks other ingredients reuse):
 - Registry look settings: `turn`, `skin`, `matte`, `rimGlints` (via `FrameContext.rimGlints`),

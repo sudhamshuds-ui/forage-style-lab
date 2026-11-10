@@ -368,27 +368,36 @@ if (kind > 0 && amount > 0.0) {
     float where = smoothstep(0.38, 0.6, fbm3(objectPos * 1.1 + 11.0));
     float vein = smoothstep(0.91, 0.98, ridge) * broken * where;
     float fleck = (1.0 - smoothstep(0.06, 0.12, skinCells(p * 0.5 + 9.0))) * where;
-    // Muscle seams (a ribeye): the cut face falls into a few big muscle sections, separated by
-    // pale fat seams of uneven width, where two neighbouring cells of a large, warped cell
-    // pattern meet. Only on faces looking up (the cut face), not down the sides.
-    // Large cells: a few big sections across the eye, never a regular net.
-    vec3 cp = objectPos * 0.62 + vec3(fbm3(objectPos * 1.2), 0.0, fbm3(objectPos * 1.2 + 4.0)) * 0.55;
-    vec2 cellXZ = cp.xz;
+    // Muscle seams (a ribeye, like the user's references): the cut face falls into a few big
+    // muscle sections. Their borders are pale fat seams that wander (strongly warped), thin in
+    // places and gone in others, and swell into rounded fat pockets where three sections meet.
+    // Only on faces looking up (the cut face), not down the sides.
+    vec3 warp = vec3(fbm3(objectPos * 0.9), 0.0, fbm3(objectPos * 0.9 + 4.0));
+    vec2 cellXZ = (objectPos * 0.55 + warp * 0.9).xz;
     vec2 base = floor(cellXZ);
     float f1 = 8.0;
     float f2 = 8.0;
+    float f3 = 8.0;
     for (int ix = -1; ix <= 1; ix++)
     for (int iz = -1; iz <= 1; iz++) {
       vec2 c = base + vec2(float(ix), float(iz));
       vec2 pt = c + vec2(hash13(vec3(c, 1.0)), hash13(vec3(c, 7.0))) * 0.8 + 0.1;
       float dd = length(cellXZ - pt);
-      if (dd < f1) { f2 = f1; f1 = dd; } else if (dd < f2) { f2 = dd; }
+      if (dd < f1) { f3 = f2; f2 = f1; f1 = dd; }
+      else if (dd < f2) { f3 = f2; f2 = dd; }
+      else if (dd < f3) { f3 = dd; }
     }
-    // Uneven width: thin in places, swelling into fat pockets in others, and broken here and there.
-    float seamWidth = 0.02 + 0.12 * smoothstep(0.35, 0.8, valueNoise3(objectPos * 1.8));
-    float seam = (1.0 - smoothstep(seamWidth, seamWidth + 0.04, f2 - f1)) * smoothstep(0.35, 0.75, N.y);
-    seam *= smoothstep(0.2, 0.45, valueNoise3(objectPos * 2.5 + 2.0));
-    vein = max(vein, seam);
+    float up = smoothstep(0.35, 0.75, N.y);
+    // The seam: its width wanders along it, and its edge is ragged (a fine noise nudges it).
+    float ragged = (valueNoise3(objectPos * 9.0) - 0.5) * 0.05;
+    float seamWidth = 0.015 + 0.09 * smoothstep(0.3, 0.85, valueNoise3(objectPos * 1.4 + 6.0));
+    float seam = 1.0 - smoothstep(seamWidth, seamWidth + 0.03, f2 - f1 + ragged);
+    seam *= smoothstep(0.25, 0.5, valueNoise3(objectPos * 2.0 + 2.0));
+    // Pockets: where three sections meet (all three distances close), a rounded blob of fat.
+    float junction = (f3 - f1) + (f2 - f1);
+    float pocket = 1.0 - smoothstep(0.12, 0.2, junction + ragged * 2.0);
+    pocket *= step(0.45, hash13(vec3(floor(cellXZ * 2.0), 3.0)));
+    vein = max(vein, max(seam, pocket) * up);
     // The fat rim, from the meat's map (x: cm in from the edge, y: height as a share of the top):
     // a soft gradient, never a hard band. Full at the edge, fading over about a centimetre into
     // the meat with a wandering, cloudy inner line, and down the side wall only near the top.
@@ -401,8 +410,25 @@ if (kind > 0 && amount > 0.0) {
     vec3 fatLab = linearToOklab(uMelonPale);
     fatLab.x += (lab.x - linearToOklab(uBaseColour).x) * 0.6;
     fatLab.yz = mix(fatLab.yz, lab.yz, 0.18);
+    // Where fat meets meat, a little pink bleeds into the fat (never a cut-out white shape).
+    fatLab = mix(fatLab, lab, (1.0 - fat) * 0.5);
     lab = mix(lab, fatLab, fat * 0.85 * amount);
     highlightOwn = max(highlightOwn, fat);
+    // 3. A chalky, dry-brush texture over the whole cut, like the watermelon's: pale scratches
+    //    running along the grain, broken by a paper grain; deeper red flecks between them; and
+    //    on the fat, a creamy speckle so it is never a flat shape.
+    float paperGrain = valueNoise3(objectPos * 90.0);
+    float scratch = valueNoise3(vec3(objectPos.x * 2.5, objectPos.y * 6.0, objectPos.z * 40.0));
+    scratch *= valueNoise3(vec3(objectPos.x * 1.2, objectPos.y * 4.0, objectPos.z * 12.0) + 5.0);
+    float dry = smoothstep(0.3, 0.55, scratch) * smoothstep(0.35, 0.65, paperGrain);
+    vec3 chalk = lab;
+    chalk.x += 0.08;
+    chalk.yz *= 0.75;
+    lab = mix(lab, chalk, dry * 0.55 * show * (1.0 - fat * 0.6));
+    float redFleck = smoothstep(0.64, 0.82, valueNoise3(vec3(objectPos.x * 6.0, objectPos.y * 6.0, objectPos.z * 30.0) + 9.0)) * smoothstep(0.5, 0.8, paperGrain);
+    lab = shadeOwn(lab, redFleck * 0.5 * show * (1.0 - fat));
+    float cream = (valueNoise3(objectPos * 40.0 + 3.0) - 0.5) * fat;
+    lab.x += cream * 0.06 * amount;
   }
   colour = max(oklabToLinear(lab), 0.0);
 }
