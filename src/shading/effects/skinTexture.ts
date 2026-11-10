@@ -389,6 +389,14 @@ if (kind > 0 && amount > 0.0) {
     float seam = (1.0 - smoothstep(seamWidth, seamWidth + 0.04, f2 - f1)) * smoothstep(0.35, 0.75, N.y);
     seam *= smoothstep(0.2, 0.45, valueNoise3(objectPos * 2.5 + 2.0));
     vein = max(vein, seam);
+    // The fat rim, from the meat's map (x: cm in from the edge, y: height as a share of the top):
+    // a soft gradient, never a hard band. Full at the edge, fading over about a centimetre into
+    // the meat with a wandering, cloudy inner line, and down the side wall only near the top.
+    vec2 rq = vSurfaceUv;
+    float wanderRim = (fbm3(objectPos * 2.2 + 5.0) - 0.5) * 0.9;
+    float rim = 1.0 - smoothstep(0.15, 1.5, rq.x + wanderRim);
+    rim *= smoothstep(0.35, 0.8, rq.y);
+    vein = max(vein, rim);
     float fat = clamp(max(vein, fleck), 0.0, 1.0);
     vec3 fatLab = linearToOklab(uMelonPale);
     fatLab.x += (lab.x - linearToOklab(uBaseColour).x) * 0.6;

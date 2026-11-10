@@ -1,8 +1,8 @@
-import { Vector3 } from 'three';
+import { BufferAttribute, CatmullRomCurve3, Vector3 } from 'three';
 import { smoothMin, smoothstep } from './kit/lathe';
 import { finishPieces, type FormBuilder } from './kit/piece';
 import { seededRandom } from './kit/random';
-import { liftRegion, relaxOnSurface, surfaceNets } from './kit/surfaceNets';
+import { relaxOnSurface, surfaceNets } from './kit/surfaceNets';
 import { sweepGeometry } from './kit/sweep';
 import { roundedIntersection } from './kit/wedge';
 
@@ -23,7 +23,8 @@ import { roundedIntersection } from './kit/wedge';
  *
  * Pieces, like layers in a pre-comp (the Style Lab paints each one):
  *   meat  the ribeye and its neck, one piece (a distance field meshed with surface nets)
- *   fat   the fat rim, lifted off the meat's own surface (like the cheese's rind), no seam
+ *   (the fat rim is painted on the meat by the shader as a soft gradient, the `marbled` skin;
+ *   a lifted fat piece had a harsh edge)
  *   bone  the rib bone, a sweep (a tube along a curve)
  */
 
@@ -39,8 +40,6 @@ const BONE_END = 29;
 /** How round the top edges are, and the meshing grid (cm). */
 const ROUNDING = 0.8;
 const CELL = 0.32;
-/** How far in from the edge the fat rim reaches on the top (cm). */
-const FAT = 0.65;
 
 export const buildSteak: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Steak: the "${state}" form is not built yet (the whole steak only for now).`);
@@ -75,61 +74,89 @@ export const buildSteak: FormBuilder = ({ state, seed }) => {
     return HEIGHT * (0.9 + 0.1 * (1 - edge * edge)) * (1 - 0.5 * neck);
   };
 
+  // The bone's path (cm): it leaves the neck low and level, then curves gently (bowing toward
+  // the back, then back out) to its tip, which rests on the table, like the references.
+  const boneY = topAt(NECK_END, -2.6) * 0.42;
+  const bonePath = new CatmullRomCurve3([
+    new Vector3(NECK_END - 4.5, boneY, -2.4),
+    new Vector3(NECK_END, boneY, -2.6),
+    new Vector3(NECK_END + 5, boneY * 0.85, -3.6),
+    new Vector3(NECK_END + 10, boneY * 0.65, -3.9),
+    new Vector3(BONE_END, BONE_RADIUS * 1.25, -3.2),
+  ]);
+  /** Distance from (x, y, z) to the bone's line near the neck, and how far along it (0..1). */
+  // Sampled once (asking the curve for points inside the distance field was far too slow).
+  const boneSamples = Array.from({ length: 49 }, (_, i) => bonePath.getPointAt((i / 48) * 0.45));
+  const nearBone = (p: Vector3) => {
+    let best = Infinity;
+    let at = 0;
+    for (let i = 0; i < boneSamples.length; i++) {
+      const d = boneSamples[i].distanceToSquared(p);
+      if (d < best) { best = d; at = (i / 48) * 0.45; }
+    }
+    return { d: Math.sqrt(best), t: at };
+  };
+  const probe = new Vector3();
+
   const meat = (x: number, y: number, z: number) => {
     const bulge = 0.2 * Math.sin(Math.PI * Math.min(1, Math.max(0, y / HEIGHT)));
     // Only the top edge is rounded; the underside meets the table flush (a rounded bottom edge
     // showed the floor's contact shade as a dashed line round it).
-    return Math.max(roundedIntersection([y - topAt(x, z), outline(x, z) - bulge], ROUNDING), -y);
+    let d = roundedIntersection([y - topAt(x, z), outline(x, z) - bulge], ROUNDING);
+    // Where bone meets meat (the references): the meat wraps up round the bone in a sleeve that
+    // thins along it and runs out a little way past the neck, so the bone grows out of the meat
+    // instead of poking out of a flat edge.
+    if (x > NECK_END - 6 && x < NECK_END + 4 && y < boneY + BONE_RADIUS * 3 && Math.abs(z + 2.8) < BONE_RADIUS * 3.5) {
+      const { d: r, t } = nearBone(probe.set(x, y, z));
+      const along = (t / 0.45) * (bonePath.getLength() * 0.45);
+      const sleeveEnd = NECK_END - (NECK_END - 4.5) + 2.5;
+      const thick = BONE_RADIUS * (1.9 - 0.85 * smoothstep(0, sleeveEnd, along));
+      const sleeve = along > sleeveEnd ? Infinity : r - thick;
+      d = smoothMin(d, sleeve, 1.2);
+    }
+    return Math.max(d, -y);
   };
 
   const min = new Vector3(-EYE.halfX - 1.613, -0.617, -EYE.halfZ - 1.409);
-  const max = new Vector3(NECK_END + 1.6, HEIGHT + 0.8, EYE.halfZ + 1.4);
+  const max = new Vector3(NECK_END + 4.6, HEIGHT + 0.8, EYE.halfZ + 1.4);
   const mesh = relaxOnSurface(surfaceNets(meat, min, max, CELL), meat, CELL);
   mesh.computeVertexNormals();
 
-  // The fat rim: a band round the edge on the top, and down the upper part of the side walls.
-  const fat = liftRegion(
-    mesh,
-    (x, y, z) => {
-      const wander = 0.3 * Math.sin(0.8 * x + 1.1) + 0.2 * Math.sin(1.7 * z + 0.4);
-      // Round the eye only: the neck along the bone stays red meat (all fat, it read as a paddle).
-      const band = FAT * (1 - smoothstep(4, 9, x)) + wander * (1 - smoothstep(4, 9, x)) + outline(x, z) - 0.3 * smoothstep(4, 9, x);
-      // Only the upper part of the wall: down to half way, the front read as a thick white slab.
-      const high = y - topAt(x, z) * 0.7;
-      return Math.min(band, high);
-    },
-    0.012,
-  );
+  // The fat rim is painted by the shader as a soft gradient (the user, 2026-11-10: the lifted fat
+  // layer's hard edge was "just too harsh"). Its map on the meat: x is how far in from the edge
+  // (cm), y the height as a share of the top, so the shader can fade the fat in from the edge and
+  // down the upper wall. The neck along the bone stays red meat.
+  const pos = mesh.getAttribute('position');
+  const uv = new Float32Array(pos.count * 2);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const z = pos.getZ(i);
+    const neck = smoothstep(4, 9, x);
+    uv[2 * i] = -outline(x, z) + neck * 6;
+    uv[2 * i + 1] = pos.getY(i) / topAt(x, z);
+  }
+  mesh.setAttribute('uv', new BufferAttribute(uv, 2));
 
-  // The bone: from inside the neck out to its tip, a gentle curve, dipping down so its knobby
-  // tip rests on the table.
-  const boneY = topAt(NECK_END, -2.6) * 0.5;
-  const tipZ = -4.6;
-  const points = [
-    new Vector3(NECK_END - 4, boneY, -2.4),
-    new Vector3(NECK_END, boneY, -2.6),
-    new Vector3((NECK_END + BONE_END) / 2, (boneY + BONE_RADIUS * 1.3) / 2 + 0.2, (-2.6 + tipZ) / 2 - 0.3),
-    new Vector3(BONE_END, BONE_RADIUS * 1.3, tipZ),
-  ];
+  // The bone, after the references: slender in the middle, swelling toward a flared, rounded
+  // knob at its end (never a flat-cut stick), flatter than round, its start buried in the meat.
   const bone = sweepGeometry({
-    points,
-    // Even along its length, swelling into a rounded knob at the tip; its start is buried in
-    // the meat.
+    points: bonePath.getSpacedPoints(12),
     radius: (t) => {
-      const knob = 1 + 0.3 * smoothstep(0.82, 0.97, t);
-      const tipRound = Math.sqrt(Math.max(0, 1 - Math.max(0, (t - 0.97) / 0.03) ** 2));
-      const startRound = Math.sqrt(Math.min(1, t / 0.04));
-      return BONE_RADIUS * knob * tipRound * startRound;
+      const waist = 1 - 0.18 * Math.sin(Math.PI * smoothstep(0.15, 0.8, t));
+      const knob = 1 + 0.4 * smoothstep(0.78, 0.93, t);
+      // A rounded end over the last 8%, and a rounded start inside the meat.
+      const tip = Math.sqrt(Math.max(0, 1 - Math.max(0, (t - 0.92) / 0.08) ** 2));
+      const start = Math.sqrt(Math.min(1, t / 0.05));
+      return BONE_RADIUS * waist * knob * tip * start;
     },
-    rings: 48,
-    segments: 18,
-    // A rib bone is flatter than round.
-    around: (_t, a) => 1 / Math.hypot(Math.cos(a), Math.sin(a) / 0.75),
+    rings: 64,
+    segments: 20,
+    // Flatter than round, turning a little along its length.
+    around: (t, a) => 1 / Math.hypot(Math.cos(a + t * 0.6), Math.sin(a + t * 0.6) / 0.72),
   });
 
   return finishPieces([
     { role: 'meat', geometry: mesh },
-    { role: 'fat', geometry: fat, doubleSided: true, keepNormals: true },
     { role: 'bone', geometry: bone },
   ]);
 };

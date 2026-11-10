@@ -361,8 +361,9 @@ export const REGISTRY: IngredientEntry[] = [
       forms: ['whole', 'strips', 'cubes', 'mince'],
       scale: 'L',
       // A tomahawk: the ribeye and its long bone (the card's 20 cm is the meat alone).
-      size_cm: [37, 4.8, 14],
-      parts: ['meat', 'fat@fat', 'bone@bone'],
+      size_cm: [37.2, 5.2, 14.1],
+      // The fat rim is painted on the meat (marbled skin), not a separate piece.
+      parts: ['meat', 'bone@bone'],
       notes:
         'The user chose a tomahawk (2026-11-10, two references). A thick ribeye eye (a rounded square) tapering into a neck of meat along a long, slightly curved rib bone whose knobby tip rests on the table. A pale fat rim round the top edge and upper sides, lifted off the meat. Muscle sections with pale fat seams and fine marbling are a shader texture (marbled skin), never geometry.',
     },

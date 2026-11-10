@@ -390,7 +390,15 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
   uneven width (small cells read as a giraffe net), on up-facing faces only, plus long broken
   veins and flecks. New families `beef` (deeper than Pink and raw) and part-only `bone`; size
   37 x 4.8 x 14 (the card's 20 cm was the meat alone), turn 25, shadowTint 0.3, no rim glints,
-  24k budget. `patch` is a reserved word in GLSL.
+  24k budget. Then (the user: "the fat layer is just too harsh", the bone and its join "more
+  similar to ref"): the separate fat piece is gone; the fat rim is painted by the `marbled` skin as
+  a soft gradient from a map on the meat (uv x = cm in from the edge, y = height share), full at
+  the edge and fading over about a centimetre with a cloudy inner line, down the upper wall only;
+  the meat wraps up round the bone in a sleeve that thins along it (a smooth union with a tube
+  round the bone's first stretch), so the bone grows out of the meat; the bone follows a gentle
+  curve, slimmer in the middle, swelling into a flared, rounded knob (never a flat-cut end),
+  flatter than round with a slight twist. The bone's path is sampled once: asking the curve inside
+  the distance field took about a second to build (now 0.23 s). `patch` is a reserved word in GLSL.
 
 Shared mechanisms added along the way (code hooks other ingredients reuse):
 - Registry look settings: `turn`, `skin`, `matte`, `rimGlints` (via `FrameContext.rimGlints`),
