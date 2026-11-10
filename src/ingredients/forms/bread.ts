@@ -140,8 +140,10 @@ export const buildLongLoaf: FormBuilder = ({ seed }) => {
     lopsided: 0.4,
     random,
     flatBase: 0.5,
-    rings: 68,
-    segments: 46,
+    // Fine enough that the slashes' raised lips, running across the mesh at an angle, come out
+    // as smooth ridges (68 x 46 made them sawtooth, the user, 2026-11-09).
+    rings: 130,
+    segments: 80,
     // The lathe's cos side becomes height (y): squash it into a soft oval.
     crossSection: (_u, angle) => 1 - (1 - squash) * Math.cos(angle) ** 2,
   });
@@ -169,6 +171,11 @@ export const buildLongLoaf: FormBuilder = ({ seed }) => {
   };
 
   const position = crust.getAttribute('position') as BufferAttribute;
+  // The crust's real top, before it is slashed: the lathe's loaf is a little lopsided and bent,
+  // so the ideal `top` above can sit higher than the real crust. A crumb placed by the ideal
+  // poked its pointed tip up through the crust as a pale shard (the user, 2026-11-09). This
+  // height map, from the crust's own points, places the crumb by the real surface instead.
+  const realTop = crustHeights(position);
   const p = new Vector3();
   const flat = new Vector2();
   const outward = new Vector3();
@@ -189,7 +196,9 @@ export const buildLongLoaf: FormBuilder = ({ seed }) => {
       const width = slash.width * Math.max(0.05, 1 - t * t);
       const depth = SLASH.depth * (1 - t * t);
       const groove = Math.exp(-((across / width) ** 2));
-      const lip = Math.exp(-(((Math.abs(across) - width * 2) / (width * 0.9)) ** 2));
+      // A broad, rolled lip: a narrow one was a knife-edge ridge, and the tone bands zigzagged
+      // across it as sawtooth teeth (the user, 2026-11-09).
+      const lip = Math.exp(-(((Math.abs(across) - width * 2.2) / (width * 1.5)) ** 2));
       push = Math.min(push, lip * depth * 0.45 - groove * depth);
     }
     if (!Number.isFinite(push)) continue;
@@ -203,10 +212,10 @@ export const buildLongLoaf: FormBuilder = ({ seed }) => {
   // The crumb in each slash: a pale almond, sunk into the groove and bent to the loaf's curve.
   const crumbs = slashes.map((slash) => {
     const piece = roundBody({
-      halfLength: slash.length / 2 - 0.3,
+      halfLength: slash.length / 2 - 0.7,
       // A pointed almond (a lens, not a capsule): straight-ish sides meeting at sharp tips.
       radius: (x) => {
-        const t = Math.min(1, Math.abs(x) / (slash.length / 2 - 0.3));
+        const t = Math.min(1, Math.abs(x) / (slash.length / 2 - 0.7));
         return slash.width * 1.35 * (1 - t * t);
       },
       lying: true,
@@ -223,8 +232,14 @@ export const buildLongLoaf: FormBuilder = ({ seed }) => {
     for (let i = 0; i < cp.count; i++) {
       const x = cp.getX(i) + slash.centre.x;
       const z = cp.getZ(i) + slash.centre.y;
-      // Sit just under the lips, following the top's curve along the slash.
-      cp.setXYZ(i, x, cp.getY(i) + top(x, z) - SLASH.depth * 0.55, z);
+      // Sit just under the lips, following the real top's curve along the slash. Toward the
+      // pointed tips (where the groove runs out) it sinks deeper, and it stops short of the groove's
+      // own tips (a tip that reached the groove's end showed as a pale shard), so the tip always
+      // ends under the crust, never on it.
+      const local = new Vector2(x, z).sub(slash.centre);
+      const t = Math.min(1, Math.abs(local.dot(slash.along)) / (slash.length / 2));
+      const height = Math.min(top(x, z), realTop(x, z));
+      cp.setXYZ(i, x, cp.getY(i) + height - SLASH.depth * (0.55 + 0.6 * smoothstep(0.45, 0.9, t)), z);
     }
     cp.needsUpdate = true;
     return piece;
@@ -237,6 +252,39 @@ export const buildLongLoaf: FormBuilder = ({ seed }) => {
     { role: 'crumb', geometry: crumb },
   ]);
 };
+
+/**
+ * A height map of a lying loaf's top: for any (x, z), how high its upper surface is, from its own
+ * points (the highest in each small cell of a grid, blended over the nearest cells).
+ */
+function crustHeights(position: BufferAttribute): (x: number, z: number) => number {
+  const CELL = 0.5;
+  const cells = new Map<string, { x: number; y: number; z: number }>();
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i);
+    const y = position.getY(i);
+    const z = position.getZ(i);
+    if (y <= 0) continue;
+    const key = `${Math.floor(x / CELL)},${Math.floor(z / CELL)}`;
+    const best = cells.get(key);
+    if (!best || y > best.y) cells.set(key, { x, y, z });
+  }
+  return (x, z) => {
+    const cx = Math.floor(x / CELL);
+    const cz = Math.floor(z / CELL);
+    let weight = 0;
+    let sum = 0;
+    for (let dx = -2; dx <= 2; dx++)
+      for (let dz = -2; dz <= 2; dz++) {
+        const c = cells.get(`${cx + dx},${cz + dz}`);
+        if (!c) continue;
+        const w = 1 / (0.05 + (c.x - x) ** 2 + (c.z - z) ** 2);
+        weight += w;
+        sum += c.y * w;
+      }
+    return weight > 0 ? sum / weight : Infinity;
+  };
+}
 
 /** Bread: the long loaf by default (`whole`, `baguette`), or the round loaf (`loaf`). */
 export const buildBread: FormBuilder = (options) => {

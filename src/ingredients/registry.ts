@@ -218,7 +218,10 @@ export const REGISTRY: IngredientEntry[] = [
     turn: 35,
     skin: { kind: 'crust', size_mm: 10, amount: 0.9 },
     matte: true,
-    budget: [2000, 9000],
+    // No rim glints: the slashes' raised lips are tight ridges, and the glint lit their facets as
+    // pale shards round the slashes (the user, 2026-11-09).
+    rimGlints: false,
+    budget: [2000, 24000],
   },
   {
     spec: {
