@@ -80,3 +80,5 @@ User said: "give the strokes more time and shorten the wash". The four layers of
 strokes now start close together (a fourth layer of fine strokes fills the gaps), and the
 wash is a short last touch at the very end. Still (frames 1.1 to 2.35 s):
 `img/2026-11-11-transition-round4-paint-in-longer-strokes.jpg`.
+User said: "no revert paint in to prev version". Reverted to round 3 (three layers, the
+longer wash); round 4 is kept here and in history (commit 1e14783).
