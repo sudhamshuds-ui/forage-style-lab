@@ -21,7 +21,11 @@ describe('skin texture', () => {
       expect(skin.amount, spec.id).toBeGreaterThanOrEqual(0);
       expect(skin.amount, spec.id).toBeLessThanOrEqual(1);
     }
-    const looks = REGISTRY.map(({ skin }) => `${skin.kind}/${skin.size_mm}`);
+    // Variations of one ingredient (`onion`, `onion-pair`, `onion-cut`) share its skin: count each
+    // ingredient once.
+    const seen = new Map<string, string>();
+    for (const { spec, skin } of REGISTRY) seen.set(spec.id.split('-')[0], `${skin.kind}/${skin.size_mm}`);
+    const looks = [...seen.values()];
     expect(new Set(looks).size).toBe(looks.length);
   });
 });

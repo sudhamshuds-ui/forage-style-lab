@@ -109,12 +109,14 @@ const shownRecently: string[] = [subject.entry.spec.id];
  * VITE_PREVIEW_NEXT set to the ingredient being worked on, so one click shows it. Vercel builds
  * main without it, so the main link always shuffles at random.
  */
-let previewNext: string | undefined = import.meta.env.VITE_PREVIEW_NEXT || undefined;
+// It may also be a short list (`onion,onion-pair,onion-cut`): the first clicks show each in turn,
+// handy for comparing variations.
+const previewNext: string[] = (import.meta.env.VITE_PREVIEW_NEXT || '').split(',').map((id: string) => id.trim()).filter(Boolean);
 
-/** The next ingredient for Shuffle: the preview's one first (once), then one not seen lately. */
+/** The next ingredient for Shuffle: the preview's ones first (once each), then one not seen lately. */
 function pickNext(): IngredientEntry {
-  const wanted = previewNext ? findIngredient(previewNext) : undefined;
-  previewNext = undefined;
+  const id = previewNext.shift();
+  const wanted = id ? findIngredient(id) : undefined;
   if (wanted && wanted.spec.id !== subject.entry.spec.id) return wanted;
   return pickFresh(shownRecently);
 }

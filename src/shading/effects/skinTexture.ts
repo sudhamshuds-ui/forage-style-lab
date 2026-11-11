@@ -558,6 +558,7 @@ if (kind > 0 && amount > 0.0) {
     // root to neck even though the onion lies tipped on its side.
     vec2 q = vSurfaceUv;
     vec3 cm = vOwnPos;
+    vec3 litLab = lab;
     float shadeStep = lab.x - linearToOklab(uBaseColour).x;
     vec3 papery = linearToOklab(uMelonPale);
     papery.x += shadeStep * 0.75;
@@ -621,6 +622,36 @@ if (kind > 0 && amount > 0.0) {
     chalk.x += 0.05;
     chalk.yz *= 0.85;
     lab = mix(lab, chalk, chalkAmt * 0.35 * show);
+    // 7. A cut face (a cut half; its map's y is how far in from the rim, 0 rim to 1 centre): rings
+    //    of pale, juicy flesh, each layer edged in violet, the outer layers more violet, a small
+    //    pale core. The rings wander a little and vary in width, and every edge is soft (like the
+    //    reference's watercolour rings). It meets the skin at the rim in the skin's own violet.
+    float cut = smoothstep(0.0, 0.004, q.y);
+    if (cut > 0.0) {
+      float r = 1.0 - q.y;
+      // Uneven layers: wider and narrower rings, gently wobbling, never a target.
+      float ringWobble = (fbm3(cm * 0.7 + 21.0) - 0.5) * 0.7;
+      float layers = pow(r, 0.85) * 7.0 + 0.35 * sin(r * 19.0 + 1.0) + ringWobble;
+      float d = min(fract(layers), 1.0 - fract(layers));
+      // Each layer's violet edge: a bold band (a third of the layer or so), soft at its sides.
+      float edgeWidth = 0.2 + 0.14 * valueNoise3(cm * 1.4 + 3.0);
+      float edge = 1.0 - smoothstep(edgeWidth * 0.45, edgeWidth, d);
+      vec3 flesh = mix(linearToOklab(uHighlightColour), linearToOklab(uLitColour), 0.12);
+      flesh.yz *= 0.45;
+      flesh.x += shadeStep * 0.7;
+      vec3 violet = litLab;
+      violet.yz *= 1.05;
+      // The outer layers hold more of the violet; the core is pale.
+      flesh = mix(flesh, violet, smoothstep(0.6, 1.0, r) * 0.3);
+      vec3 ringLab = mix(flesh, violet, edge * mix(0.7, 0.95, smoothstep(0.3, 0.9, r)));
+      // The outermost layer is the skin itself, a band of violet round the rim.
+      ringLab = mix(ringLab, violet, smoothstep(0.9, 0.98, r));
+      // Juicy: a faint glow in its shadows, and a little of the shared chalky texture.
+      ringLab = mix(ringLab, linearToOklab(uGlowColour), (1.0 - tone) * 0.15);
+      
+      lab = mix(lab, ringLab, cut);
+      highlightOwn = max(highlightOwn, cut);
+    }
   }
   colour = max(oklabToLinear(lab), 0.0);
 }
