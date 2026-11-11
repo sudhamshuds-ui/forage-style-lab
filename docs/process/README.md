@@ -93,7 +93,10 @@ Merged to `main` (2026-11-11). Then: "can we make it so, the paint icon circle e
 pill when selected, hence showing the arrow?". Off: a round brush button, no arrow. On: it
 turns dark and stretches into the pill (260 ms, strong ease-out), the arrow fading in just
 after; the hidden arrow cannot be reached by keyboard. Still (off, then on):
-`img/2026-11-11-brush-circle-to-pill.jpg`.
+`img/2026-11-11-brush-circle-to-pill.jpg`. Merged to `main`.
+Then: "this is missing?" (the drag hint). It faded out after the first drag, a touch added
+from find-animation-opportunities, so it looked missing: it now always stays, worded as in
+the user's Figma (no full stop).
 
 ## The Shuffle transition
 

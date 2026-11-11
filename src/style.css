@@ -283,9 +283,4 @@ body {
 .lab .hint {
   color: #8c8880;
   font: 400 13px 'Geist', var(--font);
-  transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-/* First visit only: once the view has been dragged, the hint has done its job. */
-.lab .hint.is-done {
-  opacity: 0;
 }

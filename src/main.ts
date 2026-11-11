@@ -466,8 +466,8 @@ if (barRoot) {
     },
   });
 }
-// The drag hint is for the first visit: it fades out once the view has been dragged.
-canvas.addEventListener('pointerdown', () => document.getElementById('hint')?.classList.add('is-done'), { once: true });
+// The drag hint stays under the card (the user, 2026-11-11: fading it after the first drag
+// made it look missing).
 
 /** Scale and place the framing layer so the subject fills the card's subject zone. */
 function reframe(): void {

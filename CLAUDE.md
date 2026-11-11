@@ -27,8 +27,8 @@ keep code readable with friendly comments.
 - **The page** (the user's design, 2026-11-11; explored in `prototypes/brush.html`, see
   `docs/process/README.md`): a white page, "Forage pantry" in Geist Serif (Heart, free, SIL OFL,
   `src/ui/fonts/`) above a square-cornered card with no shadow (5:6, 15% smaller than the first cut for more
-  white round it, `--card-w` in `style.css`), the drag hint below (it
-  fades after the first drag). The title is in the dark ink. The controls are an Apple-style glass
+  white round it, `--card-w` in `style.css`), the drag hint below (always
+  shown; fading it after the first drag made it look missing). The title is in the dark ink. The controls are an Apple-style glass
   (the `apple-design` skill: frosted with a colour lift, a bright top edge, a hairline, a shadow
   sized to the surface; solid with reduced transparency). On the card, `src/ui/styleBar.tsx` (React, base-ui Menu): "New
   ingredient" (Shuffle) and the brush, a split button: the brush half switches the painterly look
