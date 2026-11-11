@@ -80,6 +80,12 @@ design (`index.html`, `src/ui/styleBar.tsx`); the old panel is hidden behind `#p
 Still: `img/2026-11-11-real-page.jpg`.
 Then: "can we decrease the total size by 15%...i want more negative space". The card is 15%
 smaller (on phones it still takes the full width). Still: `img/2026-11-11-real-page-smaller.jpg`.
+Then: "make forage pantry the dark ink. can we make the glass like apple? /apple-design on
+overall". The title is in the dark ink with slightly tighter tracking; the controls became an
+Apple-style material (stronger blur and colour lift, a bright top edge, a hairline, a shadow
+sized to the surface; the menu thicker, materialising from the arrow with scale and blur;
+solid with reduced transparency, outlined with more contrast). Stills:
+`img/2026-11-11-apple-glass-page.jpg`, `img/2026-11-11-apple-glass-menu.jpg`.
 
 ## The Shuffle transition
 

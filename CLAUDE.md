@@ -28,7 +28,9 @@ keep code readable with friendly comments.
   `docs/process/README.md`): a white page, "Forage pantry" in Geist Serif (Heart, free, SIL OFL,
   `src/ui/fonts/`) above a square-cornered card with no shadow (5:6, 15% smaller than the first cut for more
   white round it, `--card-w` in `style.css`), the drag hint below (it
-  fades after the first drag). On the card, `src/ui/styleBar.tsx` (React, base-ui Menu): "New
+  fades after the first drag). The title is in the dark ink. The controls are an Apple-style glass
+  (the `apple-design` skill: frosted with a colour lift, a bright top edge, a hairline, a shadow
+  sized to the surface; solid with reduced transparency). On the card, `src/ui/styleBar.tsx` (React, base-ui Menu): "New
   ingredient" (Shuffle) and the brush, a split button: the brush half switches the painterly look
   (Playful strokes), the arrow opens the painters by name (Sargent, Monet, Degas, Cézanne,
   Seurat, Van Gogh); picking one paints like that painter and switches the look on. No

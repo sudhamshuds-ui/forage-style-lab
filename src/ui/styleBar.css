@@ -1,5 +1,10 @@
 /*
  * The controls on the card (styleBar.tsx). Glass pills over the painting, Geist type.
+ * The glass follows Apple's materials (the apple-design skill, 2026-11-11): a light, frosted
+ * layer (strong blur, a colour lift so the painting glows through), a bright top edge where
+ * light catches it, a fine outline, and a soft shadow sized to the surface (the menu, bigger,
+ * reads as thicker). With reduced transparency it turns solid; with more contrast it gets an
+ * outline you can see.
  * Motion (emil-design-eng): presses to 0.97, the menu grows from its arrow (180 ms in,
  * 120 ms out), hover only on real pointers, reduced motion keeps the fades only.
  */
@@ -18,11 +23,21 @@
   align-items: center;
   gap: 6px;
   pointer-events: auto;
-  --glass: rgba(255, 255, 255, 0.74);
+  --glass: rgba(255, 255, 255, 0.56);
+  /* The material: a soft sheen on top, the light edge, the hairline and a small shadow. */
+  --glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.06) 60%);
+  --glass-edge:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.55),
+    0 0 0 0.5px rgba(31, 30, 28, 0.08),
+    0 1px 2px rgba(40, 32, 20, 0.06),
+    0 6px 18px rgba(40, 32, 20, 0.1);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 .sb button {
+  /* Text on glass: a touch heavier and a hair wider, so it stays legible over the painting. */
   font: 500 14px 'Geist', var(--font);
+  letter-spacing: 0.005em;
   color: var(--ink);
   border: 0;
   cursor: pointer;
@@ -36,16 +51,17 @@
 }
 .sb-new,
 .sb-split {
-  background: var(--glass);
-  -webkit-backdrop-filter: blur(14px) saturate(1.3);
-  backdrop-filter: blur(14px) saturate(1.3);
+  background: var(--glass-sheen), var(--glass);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: var(--glass-edge);
 }
 .sb-new {
   height: 38px;
   padding: 0 18px;
   border-radius: 999px;
   white-space: nowrap;
-  transition: transform 160ms ease-out, opacity 150ms ease, background-color 150ms ease;
+  transition: transform 100ms ease-out, opacity 150ms ease, background-color 150ms ease;
 }
 .sb-new[data-busy] {
   opacity: 0.55;
@@ -70,6 +86,7 @@
 .sb .sb-brush[aria-pressed='true'] {
   background: var(--ink);
   color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 .sb-more {
   display: grid;
@@ -87,6 +104,7 @@
 .sb-brush:active,
 .sb-more:active {
   transform: scale(0.97);
+  transition-duration: 100ms;
 }
 
 /* The painters: a list grown from the arrow. */
@@ -94,25 +112,37 @@
   min-width: 150px;
   padding: 5px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.86);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  backdrop-filter: blur(18px) saturate(1.4);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1) 50%),
+    rgba(255, 255, 255, 0.66);
+  -webkit-backdrop-filter: blur(30px) saturate(190%);
+  backdrop-filter: blur(30px) saturate(190%);
   box-shadow:
-    0 0 0 1px rgba(31, 30, 28, 0.06),
-    0 12px 32px rgba(40, 32, 20, 0.16);
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.6),
+    0 0 0 0.5px rgba(31, 30, 28, 0.1),
+    0 2px 6px rgba(40, 32, 20, 0.06),
+    0 16px 40px rgba(40, 32, 20, 0.16);
   color: var(--ink);
   font: 500 13px 'Geist', var(--font);
   transform-origin: var(--transform-origin);
-  transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1), transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+  /* It materialises: scale and a little blur arrive together with the fade, from the arrow. */
+  transition:
+    opacity 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    filter 180ms cubic-bezier(0.23, 1, 0.32, 1);
+  filter: blur(0px); /* an explicit resting value, so the blur always clears */
   outline: none;
 }
 .sb-menu[data-starting-style] {
   opacity: 0;
-  transform: scale(0.96);
+  transform: scale(0.94);
+  filter: blur(4px);
 }
 .sb-menu[data-ending-style] {
   opacity: 0;
-  transform: scale(0.98);
+  transform: scale(0.97);
+  filter: blur(2px);
   transition-duration: 120ms;
 }
 .sb-item {
@@ -153,5 +183,25 @@
   .sb-menu[data-starting-style],
   .sb-menu[data-ending-style] {
     transform: none;
+    filter: none;
+  }
+}
+/* Reduced transparency: frosted becomes solid, the blur goes. */
+@media (prefers-reduced-transparency: reduce) {
+  .sb-new,
+  .sb-split,
+  .sb-menu {
+    background: #ffffff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+/* More contrast: near-solid, with an outline you can see. */
+@media (prefers-contrast: more) {
+  .sb-new,
+  .sb-split,
+  .sb-menu {
+    background: #ffffff;
+    box-shadow: 0 0 0 1px var(--ink);
   }
 }
