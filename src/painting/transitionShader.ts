@@ -477,21 +477,27 @@ void main() {
     // the stroke's spine (so the colour runs the length of the stroke, streaked by its
     // bristles), blurred more for the big early strokes and less for the later, smaller
     // ones: blocked in first, then refined, like a painter working.
+    // The strokes get most of the reveal (the user, 2026-11-11: "give the strokes more
+    // time and shorten the wash"): four layers starting close together, the last one
+    // fine strokes that fill the gaps, so the card is nearly painted before the wash.
     vec4 i1 = vec4(0.0);
     vec4 i2 = vec4(0.0);
     vec4 i3 = vec4(0.0);
-    float a1 = revealLayer(px, big, 1.0, 0.45, 0.26, 0.5, runDir, i1);
-    float a2 = revealLayer(px, big * 0.7, 2.0, 0.52, 0.26, 0.45, runDir, i2);
-    float a3 = revealLayer(px, big * 0.45, 3.0, 0.6, 0.24, 0.4, runDir, i3);
+    vec4 i4 = vec4(0.0);
+    float a1 = revealLayer(px, big, 1.0, 0.45, 0.18, 0.5, runDir, i1);
+    float a2 = revealLayer(px, big * 0.7, 2.0, 0.5, 0.2, 0.45, runDir, i2);
+    float a3 = revealLayer(px, big * 0.45, 3.0, 0.55, 0.2, 0.4, runDir, i3);
+    float a4 = revealLayer(px, big * 0.3, 4.0, 0.6, 0.18, 0.35, runDir, i4);
     if (a1 > 0.0) colour = mix(colour, strokePaint(i1, big * 0.22), a1);
     if (a2 > 0.0) colour = mix(colour, strokePaint(i2, big * 0.12), a2);
     if (a3 > 0.0) colour = mix(colour, strokePaint(i3, big * 0.05), a3);
-    // The last touches: a soft wash of the next picture fills the gaps, slightly
-    // blurred at first, then everything settles on the live picture.
+    if (a4 > 0.0) colour = mix(colour, strokePaint(i4, big * 0.025), a4);
+    // The last touch, short: a soft wash of the next picture closes any gaps left,
+    // then everything settles on the live picture.
     float looseFront = valueNoise3(vec3(px / uResolution.y * 5.0, 1.3)) - 0.5;
-    float wash = smoothstep(0.0, 0.12, uT - (0.74 + 0.14 * waveOrder(vUv)) + looseFront * 0.1);
-    if (wash > 0.0) colour = mix(colour, soften(tNext, vUv, 6.0 * (1.0 - smoothstep(0.8, 0.97, uT))), wash);
-    colour = mix(colour, texture2D(tNext, vUv).rgb, smoothstep(0.9, 1.0, uT));
+    float wash = smoothstep(0.0, 0.06, uT - (0.86 + 0.06 * waveOrder(vUv)) + looseFront * 0.04);
+    if (wash > 0.0) colour = mix(colour, soften(tNext, vUv, 4.0 * (1.0 - smoothstep(0.9, 0.98, uT))), wash);
+    colour = mix(colour, texture2D(tNext, vUv).rgb, smoothstep(0.94, 1.0, uT));
     gl_FragColor = vec4(colour, 1.0);
     #include <colorspace_fragment>
     return;

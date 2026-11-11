@@ -74,3 +74,9 @@ Paint in: the dry brush, but each reveal stroke carries paint picked up from the
 picture along its length, big blurry strokes first, then smaller, sharper ones, then a
 soft wash and the live picture. The smudge also lays down a little more of the old
 card's own colour. Still: `img/2026-11-11-transition-round3-paint-in.jpg`.
+
+### Round 4 (2026-11-11): more strokes, less wash
+User said: "give the strokes more time and shorten the wash". The four layers of paint
+strokes now start close together (a fourth layer of fine strokes fills the gaps), and the
+wash is a short last touch at the very end. Still (frames 1.1 to 2.35 s):
+`img/2026-11-11-transition-round4-paint-in-longer-strokes.jpg`.
