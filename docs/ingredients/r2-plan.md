@@ -82,16 +82,14 @@ built with as little review as possible. That is the test of the ultimate goal.
 3. **One review sheet** to the user: the starting view in both looks, four sides, above and low.
 4. **/forage-brand** after approval, as before. Each new kit tool goes into the guide's kit table.
 
-## Decisions for the user
+## Decisions (the user, 2026-11-11)
 
-1. **Rooms for 24 ingredients.** "Every ingredient its own room" with 24 means twelve more rooms,
-   and only teal-green to blue-lilac pass for warm subjects. Options: (a) twelve more rooms;
-   (b) rooms may repeat, but never on two ingredients that look alike and never twice in a row
-   in Shuffle; (c) a warm room family for the cool subjects (blueberries, grapes, red onion), which
-   also changes the room rules.
-2. **Blueberries**: a loose pile on the table (recommended first), or in the plastic punnet like
-   the reference (clear plastic is a new, hard material; better later).
-3. **Avocado**: two halves as in the reference (one with the pit), or one whole and one half.
-4. **Fried egg**: the board said "all raw"; the egg is the first cooked state. Keep it?
-5. **Milk carton**: our own label design, in the spirit of the reference (white with a green
-   print), never a copy of its brand.
+1. **Rooms may repeat**, but never on two ingredients that look alike, and never twice in a row
+   in Shuffle (to build with the first repeat).
+2. **Blueberries: a loose pile.** Containers (a punnet, a box) are a separate tool, later on the
+   roadmap.
+3. **Avocado: one whole and one half** (the half with its pit).
+4. **The fried egg is an exception** to "all raw": "everything raw sometimes isnt appetizing".
+   The user is also thinking about the raw meat's colours (steak, chicken): either keep them raw
+   but more appetizing, or show them cooked. Open, to decide later.
+5. **Milk carton: packaging.** For now our own label, like the hot sauce's, simply saying "Milk".

@@ -135,7 +135,7 @@ The live values are in `src/ingredients/families.ts` (the source of truth; this 
 | fat | #fbe4da | #eec6ba | #bf8f96 | #f6c0ae | #fff6f2 | raw fat: the steak's fat rim, seams and marbling are painted in its lit colour (no fat piece) |
 | parchment | #fdfbf6 | #efebe4 | #c4bccf | #f4ecdc | #ffffff | a butter wrapper, baking parchment (whiter and cooler than `paper`) |
 
-**Every ingredient opens in its own room** (the user, 2026-11-11): no two ingredients share a first room. Most ingredients are warm, so the rule allows only teal-greens and blues to lilacs; twelve soft rooms (`src/palettes.ts`) differ in hue, lightness and table. A new ingredient takes a room no other ingredient opens in, or a new soft room is added.
+**Rooms may repeat, with care** (the user, 2026-11-11): the first twelve ingredients each open in their own room; from round 2 a room may be reused, but never on two ingredients that look alike, and never twice in a row in Shuffle. Most ingredients are warm, so the rule allows only teal-greens and blues to lilacs (twelve soft rooms in `src/palettes.ts`).
 
 Colours live in data (the registry), never in the form. Shadows always shift hue (never grey or near black). A whole-ingredient family needs five colours and rooms **70 to 180 degrees** away on the colour wheel (board 04 says 70 to 150, but its own pairings go further; kept by choice, tested in `registry.test.ts`).
 

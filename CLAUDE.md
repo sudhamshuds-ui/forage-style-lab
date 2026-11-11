@@ -74,8 +74,9 @@ keep code readable with friendly comments.
   outline); backdrop strokes come in mixed sizes, with capped colour shifts and quieter
   patterns, so the room stays calm and never reads as polka dots or wallpaper.
 - The ingredient keeps its **own natural colours** (the apple is red; hidden Colour group).
-  Every ingredient opens in a room of its own (its family's first room; no two share one, the
-  user 2026-11-11).
+  The first twelve ingredients each open in a room of their own (the family's first room); from
+  round 2 rooms may repeat, never on two look-alike ingredients and never twice in a row in
+  Shuffle (the user, 2026-11-11). Round 2 plan: `docs/ingredients/r2-plan.md`.
   The user picks a **room combo** (wall, table, ambient and bounce light, cast shadow), not
   individual colours. Randomize never changes colours.
 - **Idle spin is on by default**: a slow turntable that pauses while you drag the view and
