@@ -75,7 +75,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   yellow: {
     name: 'Yellow',
     colours: { lit: '#fff0a3', base: '#f2c94c', shadow: '#b0866a', glow: '#ffc94a', highlight: '#fffbe8' },
-    rooms: ['seafoam'],
+    rooms: ['dusk', 'seafoam'],
   },
   green: {
     name: 'Green',
@@ -114,7 +114,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   baked: {
     name: 'Baked crust',
     colours: { lit: '#f8c98c', base: '#df8a47', shadow: '#94443a', glow: '#ee7b34', highlight: '#fff0d8' },
-    rooms: ['sage-morning', 'overcast'],
+    rooms: ['celadon', 'sage-morning'],
   },
   // Not a board 04 family: the pale cream of bread crumb, showing in a loaf's slashes (and later
   // on a cut slice). Shadow a warm taupe, never grey.
@@ -129,7 +129,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   sauce: {
     name: 'Sauce',
     colours: { lit: '#cf4a3e', base: '#8e1b2b', shadow: '#4c1534', glow: '#e8452f', highlight: '#f8d9d2' },
-    rooms: ['linen', 'heather'],
+    rooms: ['spruce', 'linen'],
   },
   // Not a board 04 family: only for parts (a bottle's thick glass base, later jars). Pale and
   // cool, a hint of lilac, the shadow a soft mauve, never grey.
@@ -151,7 +151,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   cheese: {
     name: 'Cheese',
     colours: { lit: '#fff1bf', base: '#f3d273', shadow: '#c48a45', glow: '#ffbf4a', highlight: '#fffaf0' },
-    rooms: ['seafoam', 'heather'],
+    rooms: ['mist', 'seafoam'],
   },
   // Not a board 04 family: only for parts (a cheese's rind, along the wedge's curved back). Just
   // a little deeper and warmer than the paste (a loud orange slab read wrong), going to a warm
@@ -189,7 +189,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   butter: {
     name: 'Butter',
     colours: { lit: '#fff7d2', base: '#f6e092', shadow: '#d4b08f', glow: '#ffcf66', highlight: '#fffdf2' },
-    rooms: ['heather', 'seafoam'],
+    rooms: ['lavender', 'heather'],
   },
   // Not a board 04 family: only for parts (a butter wrapper, baking parchment). Whiter and
   // cooler than the cream paper of a label, its creases going to a soft lilac in shadow (never
@@ -213,7 +213,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   beef: {
     name: 'Beef',
     colours: { lit: '#ee7a6e', base: '#bd3540', shadow: '#741f3c', glow: '#e64a43', highlight: '#fbe0dc' },
-    rooms: ['seafoam', 'sage-morning'],
+    rooms: ['iris', 'seafoam'],
   },
   // Not a board 04 family: only for parts (a rib bone). Ivory going to a warm tan, never grey.
   bone: {
@@ -235,7 +235,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   poultry: {
     name: 'Poultry',
     colours: { lit: '#fde5d6', base: '#f2bca3', shadow: '#ad6676', glow: '#f49a7c', highlight: '#fff6ef' },
-    rooms: ['seafoam', 'sage-morning'],
+    rooms: ['thistle', 'seafoam'],
   },
   'pink-raw': {
     name: 'Pink and raw',

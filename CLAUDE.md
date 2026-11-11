@@ -74,6 +74,8 @@ keep code readable with friendly comments.
   outline); backdrop strokes come in mixed sizes, with capped colour shifts and quieter
   patterns, so the room stays calm and never reads as polka dots or wallpaper.
 - The ingredient keeps its **own natural colours** (the apple is red; hidden Colour group).
+  Every ingredient opens in a room of its own (its family's first room; no two share one, the
+  user 2026-11-11).
   The user picks a **room combo** (wall, table, ambient and bounce light, cast shadow), not
   individual colours. Randomize never changes colours.
 - **Idle spin is on by default**: a slow turntable that pauses while you drag the view and
@@ -493,7 +495,8 @@ Chicken line under "Done so far"). On `steak-melon`: the steak's rounder eye and
 seeds left out of Playful strokes. Two shared fixes came with the drumstick: outline pixels are no
 longer read as cast shadow (`shadowMaskAt`, a dashed line round pale ingredients) and the floor has
 no normal bias plus a hair of `FLOOR_BIAS` (a pale sliver at the contact; more bias made the butter
-paper's scribbles worse). Open question from the user: most ingredients sit in a pale teal room.
+paper's scribbles worse). Every ingredient now opens in its own room (the user: most sat in the
+same pale teal): six new soft rooms (Mist, Iris, Lavender, Celadon, Spruce, Thistle), twelve in all.
 
 ## Earlier (2026-11-11, evening)
 New ingredient's fill loading state is on `main` (branch `ui-loading`), with the loading-state

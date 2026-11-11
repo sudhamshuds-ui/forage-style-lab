@@ -105,16 +105,16 @@ The live values are in `src/ingredients/families.ts` (the source of truth; this 
 | red | #f78e64 | #ce5249 | #843d56 | #ed6531 | #f5e5d3 | Linen, Heather | apple |
 | crimson | #f4766a | #cf2c44 | #7a1e4b | #f2544a | #fbe1dc | Sage morning, Linen | strawberry (off-board) |
 | orange | #ffb36b | #f0812f | #b0484a | #ff9a2e | #fff0d9 | Overcast, Dusk | orange |
-| yellow | #fff0a3 | #f2c94c | #b0866a | #ffc94a | #fffbe8 | Seafoam | lemon |
+| yellow | #fff0a3 | #f2c94c | #b0866a | #ffc94a | #fffbe8 | Dusk, Seafoam | lemon |
 | green | #c8de8a | #73a24c | #3c6f66 | #b5d65a | #eef5d8 | Heather, Linen | broccoli |
 | cream-crust | #fbe6c4 | #e0ad73 | #9a6a63 | #f2b45e | #fff6e6 | Sage morning, Overcast | |
-| baked | #f8c98c | #df8a47 | #94443a | #ee7b34 | #fff0d8 | Sage morning, Overcast | baguette (off-board) |
-| sauce | #cf4a3e | #8e1b2b | #4c1534 | #e8452f | #f8d9d2 | Linen, Heather | hot sauce (off-board) |
-| cheese | #fff1bf | #f3d273 | #c48a45 | #ffbf4a | #fffaf0 | Seafoam, Heather | cheese (off-board; board 08 says Yellow, which read acidic) |
-| butter | #fff7d2 | #f6e092 | #d4b08f | #ffcf66 | #fffdf2 | Heather, Seafoam | butter (off-board; board 08 says Yellow, kept apart from the cheese) |
+| baked | #f8c98c | #df8a47 | #94443a | #ee7b34 | #fff0d8 | Celadon, Sage morning | baguette (off-board) |
+| sauce | #cf4a3e | #8e1b2b | #4c1534 | #e8452f | #f8d9d2 | Spruce, Linen | hot sauce (off-board) |
+| cheese | #fff1bf | #f3d273 | #c48a45 | #ffbf4a | #fffaf0 | Mist, Seafoam | cheese (off-board; board 08 says Yellow, which read acidic) |
+| butter | #fff7d2 | #f6e092 | #d4b08f | #ffcf66 | #fffdf2 | Lavender, Heather | butter (off-board; board 08 says Yellow, kept apart from the cheese) |
 | melon | #ff8f74 | #e4473d | #962f45 | #ff6e4f | #ffe6dc | Seafoam, Sage morning | watermelon flesh (off-board; board 08 says Red, the apple's red is a skin) |
-| beef | #ee7a6e | #bd3540 | #741f3c | #e64a43 | #fbe0dc | Seafoam, Sage morning | steak (off-board; deeper than Pink and raw) |
-| poultry | #fde5d6 | #f2bca3 | #ad6676 | #f49a7c | #fff6ef | Seafoam, Sage morning | chicken (off-board; board 08 says Pink and raw, a deep salmon; raw skin is far paler) |
+| beef | #ee7a6e | #bd3540 | #741f3c | #e64a43 | #fbe0dc | Iris, Seafoam | steak (off-board; deeper than Pink and raw) |
+| poultry | #fde5d6 | #f2bca3 | #ad6676 | #f49a7c | #fff6ef | Thistle, Seafoam | chicken (off-board; board 08 says Pink and raw, a deep salmon; raw skin is far paler) |
 | pink-raw | #f6a493 | #d4544f | #8c3150 | #ff7a66 | #fbe4dc | Seafoam, Sage morning | |
 
 **Part-only families** (never a whole ingredient, no rooms; a part names one with `@`, e.g. `stem@stalk`):
@@ -134,6 +134,8 @@ The live values are in `src/ingredients/families.ts` (the source of truth; this 
 | bone | #f8eedb | #e6d0aa | #a98a70 | #f0d6a8 | #fffaf0 | a rib bone (ivory to warm tan, never grey) |
 | fat | #fbe4da | #eec6ba | #bf8f96 | #f6c0ae | #fff6f2 | raw fat: the steak's fat rim, seams and marbling are painted in its lit colour (no fat piece) |
 | parchment | #fdfbf6 | #efebe4 | #c4bccf | #f4ecdc | #ffffff | a butter wrapper, baking parchment (whiter and cooler than `paper`) |
+
+**Every ingredient opens in its own room** (the user, 2026-11-11): no two ingredients share a first room. Most ingredients are warm, so the rule allows only teal-greens and blues to lilacs; twelve soft rooms (`src/palettes.ts`) differ in hue, lightness and table. A new ingredient takes a room no other ingredient opens in, or a new soft room is added.
 
 Colours live in data (the registry), never in the form. Shadows always shift hue (never grey or near black). A whole-ingredient family needs five colours and rooms **70 to 180 degrees** away on the colour wheel (board 04 says 70 to 150, but its own pairings go further; kept by choice, tested in `registry.test.ts`).
 

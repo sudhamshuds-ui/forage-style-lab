@@ -95,9 +95,9 @@ function checkRoom(p: Palette, fruitHex: string): void {
 }
 
 describe('room combos', () => {
-  it('has six soft rooms (Linen first) and three vivid ones', () => {
+  it('has twelve soft rooms (Linen first) and three vivid ones', () => {
     expect(PALETTES[0].id).toBe('linen');
-    expect(PALETTES.filter((p) => p.family === 'soft').length).toBe(6);
+    expect(PALETTES.filter((p) => p.family === 'soft').length).toBe(12);
     expect(PALETTES.filter((p) => p.family === 'vivid').length).toBe(3);
   });
 

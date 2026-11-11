@@ -135,6 +135,87 @@ export const PALETTES: Palette[] = [
       frame: '#817e88',
     },
   },
+  // Six more soft rooms (the user, 2026-11-11: "give each ingredient a different room"; most
+  // ingredients are warm, so the rule kept landing on the same teal). Only hues from teal-green
+  // to blue-lilac pass the rules, so they also differ in lightness and in their tables.
+  {
+    id: 'mist',
+    name: 'Mist',
+    family: 'soft',
+    colours: {
+      wall: '#bdd4e9',
+      table: '#e9e0d3',
+      ambient: '#bad1e7',
+      bounce: '#caa27c',
+      castShadow: '#5c7ea0',
+      frame: '#757b81',
+    },
+  },
+  {
+    id: 'iris',
+    name: 'Iris',
+    family: 'soft',
+    colours: {
+      wall: '#8e94c4',
+      table: '#decdc0',
+      ambient: '#8d90c2',
+      bounce: '#caa27c',
+      castShadow: '#55567f',
+      frame: '#787a82',
+    },
+  },
+  {
+    id: 'lavender',
+    name: 'Lavender',
+    family: 'soft',
+    colours: {
+      wall: '#d7cfec',
+      table: '#f0e1d9',
+      ambient: '#d5cbe9',
+      bounce: '#caa27c',
+      castShadow: '#8777a1',
+      frame: '#7b7981',
+    },
+  },
+  {
+    id: 'celadon',
+    name: 'Celadon',
+    family: 'soft',
+    colours: {
+      wall: '#b4d9bc',
+      table: '#eae0cd',
+      ambient: '#aed6ba',
+      bounce: '#caa27c',
+      castShadow: '#548064',
+      frame: '#757c77',
+    },
+  },
+  {
+    id: 'spruce',
+    name: 'Spruce',
+    family: 'soft',
+    colours: {
+      wall: '#78a397',
+      table: '#dad0bf',
+      ambient: '#72a096',
+      bounce: '#caa27c',
+      castShadow: '#276459',
+      frame: '#737d7a',
+    },
+  },
+  {
+    id: 'thistle',
+    name: 'Thistle',
+    family: 'soft',
+    colours: {
+      wall: '#ad9dbd',
+      table: '#e5d3cd',
+      ambient: '#ac99ba',
+      bounce: '#caa27c',
+      castShadow: '#70587e',
+      frame: '#7c7880',
+    },
+  },
   {
     id: 'periwinkle',
     name: 'Periwinkle',
