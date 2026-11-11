@@ -127,6 +127,9 @@ uniform float uRound;
 // Which transition style (prototype variants): 0 dry brush (the default), 1 sweep,
 // 2 dabs, 3 swirl, 4 feather burn, 5 brush burn (no strokes: the burns live in the composite).
 uniform float uStyle;
+// Paint in (prototype, 2026-11-11): the strokes carry real paint. Here, a little more of
+// the old card's own colour is laid down as they smudge it.
+uniform float uPaintIn;
 
 ${strokeGLSL}
 
@@ -241,7 +244,7 @@ void main() {
       // ...and lays down a little pigment picked up where it started.
       vec2 tailUv = clamp((centre - dir * halfLen * 0.9) / uResolution, vec2(0.001), vec2(0.999));
       vec3 pigment = texture2D(tStill, tailUv).rgb;
-      vec3 c = mix(dragged, pigment, 0.06 * min(uStep, 2.0));
+      vec3 c = mix(dragged, pigment, mix(0.06, 0.16, uPaintIn) * min(uStep, 2.0));
 
       if (start > bestKey) {
         bestKey = start;
@@ -268,13 +271,19 @@ uniform float uSeconds;
 uniform vec2 uCentre;
 uniform vec2 uSeed; // a new one every click: which strokes this shuffle paints
 uniform float uStyle; // see the smudge shader
+// Paint in: the next card is painted in stroke by stroke, each stroke carrying colour
+// picked up from the next picture (coarse first, then finer), instead of each stroke
+// uncovering the finished picture underneath.
+uniform float uPaintIn;
 
 ${strokeGLSL}
 
 // How much of the next card the reveal strokes have uncovered here, and which way
 // the nearest stroke runs (for the wet smear at its edge).
 // from, spread: when this layer's strokes start (shares of uT); seconds: each stroke's travel.
-float revealLayer(vec2 px, float cell, float layer, float from, float spread, float seconds, inout vec2 runDir) {
+// info: for the stroke covering this pixel, the point on its spine (uv) level with the
+// pixel, how far across the stroke it is (-1..1), and a random number for the stroke.
+float revealLayer(vec2 px, float cell, float layer, float from, float spread, float seconds, inout vec2 runDir, inout vec4 info) {
   vec2 cells = vec2(cell);
   if (uStyle > 0.5 && uStyle < 1.5) cells = vec2(2.6, 0.95) * cell; // sweep: long rows
   else if (uStyle > 1.5 && uStyle < 2.5) cells = vec2(cell * 0.5); // dabs: small
@@ -331,6 +340,7 @@ float revealLayer(vec2 px, float cell, float layer, float from, float spread, fl
       if (a > best) {
         best = a;
         runDir = dir;
+        info = vec4((centre + dir * local.x) / uResolution, local.y / max(halfWid, 1.0), rnd.w);
       }
     }
   }
@@ -348,6 +358,15 @@ vec3 soften(sampler2D image, vec2 uv, float radius) {
     sum += texture2D(image, uv + vec2(cos(a), sin(a)) * r * texel).rgb;
   }
   return sum / 9.0;
+}
+
+// The paint one stroke lays down at this pixel: the next picture picked up along the
+// stroke's spine (blur: how coarse, pixels), streaked by the bristles across it and
+// nudged a little lighter or darker per stroke, like paint never mixed quite evenly.
+vec3 strokePaint(vec4 info, float blur) {
+  vec3 c = soften(tNext, clamp(info.xy, vec2(0.001), vec2(0.999)), blur);
+  float bristle = noise1(info.z * 9.0 + info.w * 53.0) * 0.6 + noise1(info.z * 23.0 + info.w * 17.0) * 0.4;
+  return c * (0.95 + 0.08 * bristle + 0.05 * (info.w - 0.5));
 }
 
 // Smooth noise in a few octaves (big shapes plus finer detail), 0..1.
@@ -452,9 +471,34 @@ void main() {
   // then smaller ones that fill the gaps.
   float big = uResolution.y * 0.16;
   vec2 runDir = vec2(1.0, 0.0);
-  float shown = revealLayer(px, big, 1.0, 0.45, 0.26, 0.5, runDir);
-  shown = max(shown, revealLayer(px, big * 0.7, 2.0, 0.52, 0.26, 0.45, runDir));
-  shown = max(shown, revealLayer(px, big * 0.45, 3.0, 0.6, 0.24, 0.4, runDir));
+  vec4 info = vec4(0.0);
+  if (uPaintIn > 0.5) {
+    // Paint in: each layer of strokes lays down paint taken from the next picture along
+    // the stroke's spine (so the colour runs the length of the stroke, streaked by its
+    // bristles), blurred more for the big early strokes and less for the later, smaller
+    // ones: blocked in first, then refined, like a painter working.
+    vec4 i1 = vec4(0.0);
+    vec4 i2 = vec4(0.0);
+    vec4 i3 = vec4(0.0);
+    float a1 = revealLayer(px, big, 1.0, 0.45, 0.26, 0.5, runDir, i1);
+    float a2 = revealLayer(px, big * 0.7, 2.0, 0.52, 0.26, 0.45, runDir, i2);
+    float a3 = revealLayer(px, big * 0.45, 3.0, 0.6, 0.24, 0.4, runDir, i3);
+    if (a1 > 0.0) colour = mix(colour, strokePaint(i1, big * 0.22), a1);
+    if (a2 > 0.0) colour = mix(colour, strokePaint(i2, big * 0.12), a2);
+    if (a3 > 0.0) colour = mix(colour, strokePaint(i3, big * 0.05), a3);
+    // The last touches: a soft wash of the next picture fills the gaps, slightly
+    // blurred at first, then everything settles on the live picture.
+    float looseFront = valueNoise3(vec3(px / uResolution.y * 5.0, 1.3)) - 0.5;
+    float wash = smoothstep(0.0, 0.12, uT - (0.74 + 0.14 * waveOrder(vUv)) + looseFront * 0.1);
+    if (wash > 0.0) colour = mix(colour, soften(tNext, vUv, 6.0 * (1.0 - smoothstep(0.8, 0.97, uT))), wash);
+    colour = mix(colour, texture2D(tNext, vUv).rgb, smoothstep(0.9, 1.0, uT));
+    gl_FragColor = vec4(colour, 1.0);
+    #include <colorspace_fragment>
+    return;
+  }
+  float shown = revealLayer(px, big, 1.0, 0.45, 0.26, 0.5, runDir, info);
+  shown = max(shown, revealLayer(px, big * 0.7, 2.0, 0.52, 0.26, 0.45, runDir, info));
+  shown = max(shown, revealLayer(px, big * 0.45, 3.0, 0.6, 0.24, 0.4, runDir, info));
   // A soft wash follows behind the strokes, spreading out from the middle with a
   // loose, noisy front, so the gaps the strokes missed melt away instead of
   // lingering as sharp shards of the old card.

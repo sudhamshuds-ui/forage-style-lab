@@ -443,6 +443,13 @@ strokes and the "no crisp lines" rule. Vercel deploys `main`. Next: the chicken 
 `/forage-brand`. Open question from the user: "the camera still pauses spinning mid transition"
 (CPU frames measured 1 to 5 ms; ask whether the wall and table keep moving during the pause, or
 everything freezes: then use `#perf`).
+**Keep every iteration** (the user, 2026-11-11, for a case study later): prototype pages
+(`prototypes/*.html`) and their published previews are never deleted, even after a winner
+is picked (this overrides the prototype skill's clean-up step). Each round goes into the
+process log, `docs/process/README.md`: the date, the variants, a still in
+`docs/process/img/`, the preview link and the user's words. Transition styles are compared
+on the "Forage shuffle transitions" preview (https://claude.ai/artifact/6wUDJ3pRuMPaGyK3TYve4Z,
+`prototypes/transition.html`; republish it after each change).
 Workflow the user expects: work on a branch, push it and publish the preview (the private
 claude.ai page "Forage Style Lab", built with `VITE_PREVIEW_NEXT=<id>`), merge to `main` only
 when the user says so.

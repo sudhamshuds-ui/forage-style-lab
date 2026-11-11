@@ -594,7 +594,7 @@ if (import.meta.env.DEV) {
 export const app = {
   settings,
   /** Pick the Shuffle transition's style (0 is the approved dry brush; see transition.ts). */
-  setTransitionStyle: (style: number) => transition.setStyle(style),
+  setTransitionStyle: (style: number, paintIn = false) => transition.setStyle(style, paintIn),
   redraw: () => {
     pane.refresh();
     onSettingsChanged();

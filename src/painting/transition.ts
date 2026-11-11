@@ -79,6 +79,7 @@ export class ShuffleTransition {
         uCell: { value: 20 },
         uRound: { value: 0 },
         uStyle: { value: 0 },
+        uPaintIn: { value: 0 },
       },
       vertexShader: transitionVertexShader,
       fragmentShader: smudgeFragmentShader,
@@ -96,6 +97,7 @@ export class ShuffleTransition {
         uCentre: { value: new Vector2(0.5, 0.5) },
         uSeed: { value: new Vector2(0, 0) },
         uStyle: { value: 0 },
+        uPaintIn: { value: 0 },
       },
       vertexShader: transitionVertexShader,
       fragmentShader: compositeFragmentShader,
@@ -166,9 +168,12 @@ export class ShuffleTransition {
    * 0 dry brush (the approved one), 1 sweep, 2 dabs, 3 swirl, 4 feather burn,
    * 5 brush burn (corner to corner).
    */
-  setStyle(style: number): void {
+  setStyle(style: number, paintIn = false): void {
     this.smudgeMaterial.uniforms.uStyle.value = style;
     this.compositeMaterial.uniforms.uStyle.value = style;
+    // Paint in (with the dry brush): the reveal paints the next card stroke by stroke.
+    this.smudgeMaterial.uniforms.uPaintIn.value = paintIn ? 1 : 0;
+    this.compositeMaterial.uniforms.uPaintIn.value = paintIn ? 1 : 0;
   }
 
   /** Where the ingredient sits on screen (0..1): the smudge and the reveal spread out from there. */
