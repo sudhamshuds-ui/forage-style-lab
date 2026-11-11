@@ -74,6 +74,11 @@ Also: "for camera, i want this to be the default zoom" (a screenshot zoomed out)
 starts at 10.2 units instead of 8.6, while each ingredient is still sized from 8.6, so it keeps
 its size in the room and the room shows round it. Still: `img/2026-11-11-camera-further-back.jpg`.
 
+### Decision (2026-11-11): Names, and the real page
+User said: "names, go ahead and make it the real page". The Style Lab's main page now has this
+design (`index.html`, `src/ui/styleBar.tsx`); the old panel is hidden behind `#panel`.
+Still: `img/2026-11-11-real-page.jpg`.
+
 ## The Shuffle transition
 
 ### Before (2026-11-05): the dry brush

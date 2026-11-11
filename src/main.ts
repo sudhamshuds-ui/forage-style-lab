@@ -18,6 +18,8 @@ import { Painter, type PaintFrame } from './painting/painter';
 import { REVEAL_STARTS, ShuffleTransition } from './painting/transition';
 import { createPanel } from './ui/panel';
 import { setupActions } from './ui/actions';
+import { mountStyleBar } from './ui/styleBar';
+import { paintLike } from './randomize';
 
 /**
  * Entry point: builds the scene, the painter, the panel and the buttons,
@@ -358,10 +360,13 @@ function swapFrame(current: Swap, delta: number): boolean {
 }
 
 const shuffleButton = document.getElementById('btn-shuffle-ingredient');
+/** Whoever shows a Shuffle button (the style bar on the card) listens here for the busy state. */
+const busyListeners = new Set<(busy: boolean) => void>();
 /** While a swap plays the button looks busy, so an ignored click is never a mystery. */
 function setBusy(busy: boolean): void {
   shuffleButton?.classList.toggle('is-busy', busy);
   shuffleButton?.setAttribute('aria-busy', String(busy));
+  for (const listener of busyListeners) listener(busy);
 }
 
 function finishTransition(): void {
@@ -396,7 +401,8 @@ function showFrameMeter(): void {
   readout.textContent = text;
 }
 
-shuffleButton?.addEventListener('click', () => {
+/** Shuffle ingredient: the painted transition to the next ingredient (see transition.ts). */
+function shuffleIngredient(): void {
   if (swapping) return;
   swapping = true;
   const { next, built, ready } = takePrepared();
@@ -423,7 +429,45 @@ shuffleButton?.addEventListener('click', () => {
   stage.takeOver((delta) => {
     if (swapFrame(current, delta)) finishTransition();
   });
-});
+}
+shuffleButton?.addEventListener('click', shuffleIngredient);
+
+/*
+ * The page's controls (the user's design, 2026-11-11): on the card, "New ingredient" and the
+ * brush (a split button: the brush switches the painterly look, the arrow opens the painters).
+ * The old parameter panel is hidden, not deleted: add #panel to the address to bring it back
+ * for fine-tuning.
+ */
+const panelElement = document.querySelector<HTMLElement>('.panel');
+if (panelElement && /panel/.test(location.hash)) {
+  panelElement.hidden = false;
+  document.querySelector('.app')?.classList.add('with-panel');
+}
+const barRoot = document.getElementById('bar-root');
+if (barRoot) {
+  mountStyleBar(barRoot, {
+    shuffle: shuffleIngredient,
+    onBusy: (listener) => {
+      busyListeners.add(listener);
+      return () => busyListeners.delete(listener);
+    },
+    painterly: () => settings.brush.classic,
+    painter: () => settings.brush.painter,
+    setPainterly: (on) => {
+      settings.brush.classic = on;
+      pane.refresh();
+      onSettingsChanged('brush');
+    },
+    setPainter: (id) => {
+      Object.assign(settings.brush, paintLike(id));
+      settings.brush.classic = true;
+      pane.refresh();
+      onSettingsChanged('brush');
+    },
+  });
+}
+// The drag hint is for the first visit: it fades out once the view has been dragged.
+canvas.addEventListener('pointerdown', () => document.getElementById('hint')?.classList.add('is-done'), { once: true });
 
 /** Scale and place the framing layer so the subject fills the card's subject zone. */
 function reframe(): void {

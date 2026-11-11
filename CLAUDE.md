@@ -24,8 +24,19 @@ keep code readable with friendly comments.
   (`.claude/skills/forage-brand/SKILL.md`) on its branch before merging: it turns the rounds of
   feedback into lessons (colour, composition, form, recurring errors) in
   `docs/ingredients/lessons/{id}.md`, the ingredient guide and the Figma boards (one OK for Figma).
-- No brand mark and no toast on the page (removed 2026-11-05): just the card and the panel.
-- The panel is deliberately small: the ingredient's name and Shuffle ingredient in the
+- **The page** (the user's design, 2026-11-11; explored in `prototypes/brush.html`, see
+  `docs/process/README.md`): a white page, "Forage pantry" in Geist Serif (Heart, free, SIL OFL,
+  `src/ui/fonts/`) above a square-cornered card with no shadow (5:6), the drag hint below (it
+  fades after the first drag). On the card, `src/ui/styleBar.tsx` (React, base-ui Menu): "New
+  ingredient" (Shuffle) and the brush, a split button: the brush half switches the painterly look
+  (Playful strokes), the arrow opens the painters by name (Sargent, Monet, Degas, Cézanne,
+  Seurat, Van Gogh); picking one paints like that painter and switches the look on. No
+  ingredient name and no descriptions on the page. Söhne (the hint in the user's Figma) needs a
+  paid web licence from Klim, so the hint and controls use Geist for now. No brand mark and no
+  toast (removed 2026-11-05).
+- **The old panel is hidden, not deleted**: add `#panel` to the address (then reload) to bring it
+  back for fine-tuning. Shuffle and the name still run through it behind the scenes.
+  What it held: the panel is deliberately small: the ingredient's name and Shuffle ingredient in the
   head; Style (Playful strokes, and Randomize only while it is on); Light (Strength, Tone bands: chosen 2026-11-04 because each makes a clear
   visible change); plus Reset (Copy settings was removed, 2026-11-05).
   **Hidden, not deleted** (still working, in `src/params.ts`): the Paint group (Brushiness,
@@ -222,7 +233,9 @@ keep code readable with friendly comments.
   Reset keeps that room. No physics, no multi-ingredient table on this branch.
 
 ## Tech
-- Vite + TypeScript + Three.js (WebGL, not WebGPU for now). No React.
+- Vite + TypeScript + Three.js (WebGL, not WebGPU for now). React (with base-ui, motion, clsx)
+  only for the controls on the card (`src/ui/styleBar.tsx`, mounted from `main.ts` with a small
+  API) and the prototype pages; the Style Lab itself is plain TypeScript.
 - Tweakpane 4 for the panel, re-skinned in `src/ui/panel.css`.
 - Three.js reference skills are installed in `.claude/skills/` (shaders and
   postprocessing are the relevant ones). They target Three r160; this project uses r186.
@@ -445,7 +458,11 @@ light's rainbow fringe) loads the room's colour, and room strokes pick up the co
 (wet-in-wet). A pick-up that reacted to every small change flattened the wall's slabs: keep the
 thresholds.
 
-## Where we are (2026-11-11)
+## Where we are (2026-11-11, later)
+The real page now has the user's design (branch `ui-brush`): the controls on the card, the
+painters by name, the camera starting further back. Not merged to `main` until the user says so.
+
+## Earlier on 2026-11-11
 The UI and transition prototypes (branch `ui-variants`, merged 2026-11-11): React is set up for
 the prototype pages only (`prototypes/`, base-ui, motion, clsx); the Style Lab itself is still
 plain TypeScript and its panel is unchanged. The user is editing the dock UI in Figma (page

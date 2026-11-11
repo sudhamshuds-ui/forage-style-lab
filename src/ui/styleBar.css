@@ -1,0 +1,157 @@
+/*
+ * The controls on the card (styleBar.tsx). Glass pills over the painting, Geist type.
+ * Motion (emil-design-eng): presses to 0.97, the menu grows from its arrow (180 ms in,
+ * 120 ms out), hover only on real pointers, reduced motion keeps the fades only.
+ */
+
+.bar-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* drags pass through to the 3D view, except on the controls */
+}
+.sb {
+  position: absolute;
+  left: 50%;
+  bottom: 36px;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+  --glass: rgba(255, 255, 255, 0.74);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+.sb button {
+  font: 500 14px 'Geist', var(--font);
+  color: var(--ink);
+  border: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.sb button:focus-visible {
+  outline: 2px solid rgba(31, 30, 28, 0.45);
+  outline-offset: 2px;
+}
+.sb-new,
+.sb-split {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+}
+.sb-new {
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: transform 160ms ease-out, opacity 150ms ease, background-color 150ms ease;
+}
+.sb-new[data-busy] {
+  opacity: 0.55;
+  cursor: progress;
+}
+.sb-split {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding-right: 4px;
+  border-radius: 999px;
+}
+.sb-brush {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background-color 150ms ease, color 150ms ease, transform 160ms ease-out;
+}
+.sb .sb-brush[aria-pressed='true'] {
+  background: var(--ink);
+  color: #fff;
+}
+.sb-more {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 30px;
+  border-radius: 999px;
+  background: transparent;
+  transition: background-color 150ms ease, transform 160ms ease-out;
+}
+.sb-more[data-popup-open] {
+  background: rgba(31, 30, 28, 0.08);
+}
+.sb-new:active,
+.sb-brush:active,
+.sb-more:active {
+  transform: scale(0.97);
+}
+
+/* The painters: a list grown from the arrow. */
+.sb-menu {
+  min-width: 150px;
+  padding: 5px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(31, 30, 28, 0.06),
+    0 12px 32px rgba(40, 32, 20, 0.16);
+  color: var(--ink);
+  font: 500 13px 'Geist', var(--font);
+  transform-origin: var(--transform-origin);
+  transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1), transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+  outline: none;
+}
+.sb-menu[data-starting-style] {
+  opacity: 0;
+  transform: scale(0.96);
+}
+.sb-menu[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.98);
+  transition-duration: 120ms;
+}
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+.sb-item[data-highlighted] {
+  background: rgba(31, 30, 28, 0.06);
+}
+.sb-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--ink-3) inset;
+}
+.sb-item[data-checked] .sb-dot {
+  background: var(--ink);
+  box-shadow: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sb-new:hover {
+    background: rgba(255, 255, 255, 0.86);
+  }
+  .sb-brush[aria-pressed='false']:hover,
+  .sb-more:hover {
+    background: rgba(31, 30, 28, 0.06);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-menu[data-starting-style],
+  .sb-menu[data-ending-style] {
+    transform: none;
+  }
+}
