@@ -24,6 +24,8 @@
   gap: 6px;
   pointer-events: auto;
   --glass: rgba(255, 255, 255, 0.56);
+  /* Hover: the glass brightens (the same on every control). */
+  --glass-hover: rgba(255, 255, 255, 0.78);
   /* The material: a soft sheen on top, the light edge, the hairline and a small shadow. */
   --glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.06) 60%);
   --glass-edge:
@@ -51,7 +53,9 @@
 }
 .sb-new,
 .sb-split {
-  background: var(--glass-sheen), var(--glass);
+  /* Colour and sheen kept apart, so hover can brighten the colour smoothly. */
+  background-image: var(--glass-sheen);
+  background-color: var(--glass);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
   box-shadow: var(--glass-edge);
@@ -117,7 +121,8 @@
   transition: background-color 200ms ease, box-shadow 200ms ease, color 200ms ease;
 }
 .sb .sb-split[data-on] {
-  background: rgba(31, 30, 28, 0.9);
+  background-image: none;
+  background-color: rgba(31, 30, 28, 0.9);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.16),
     0 0 0 0.5px rgba(31, 30, 28, 0.4),
@@ -213,12 +218,10 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .sb-new:hover {
-    background: rgba(255, 255, 255, 0.86);
-  }
-  .sb-brush[aria-pressed='false']:hover,
-  .sb-more:hover {
-    background: rgba(31, 30, 28, 0.06);
+  /* The glass brightens under the pointer, the same on New ingredient and the brush. */
+  .sb-new:hover,
+  .sb-split:not([data-on]):hover {
+    background-color: var(--glass-hover);
   }
   .sb .sb-split[data-on] .sb-brush:hover,
   .sb .sb-split[data-on] .sb-more:hover {
