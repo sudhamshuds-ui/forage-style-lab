@@ -680,6 +680,11 @@ if (import.meta.env.DEV) {
  */
 export const app = {
   settings,
+  /** Put an ingredient on stage straight away by id (the variations page's picker). */
+  show: (id: string) => {
+    const entry = findIngredient(id);
+    if (entry && entry.spec.id !== subject.entry.spec.id) showIngredient(entry);
+  },
   /** Pick the Shuffle transition's style (0 is the approved dry brush; see transition.ts). */
   setTransitionStyle: (style: number, paintIn = false) => transition.setStyle(style, paintIn),
   redraw: () => {

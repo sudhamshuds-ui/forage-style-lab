@@ -1,0 +1,61 @@
+<!doctype html>
+<!-- data-loader: New ingredient's loading state while a swap plays (the fill, chosen
+     2026-11-11; the others live on prototypes/loading.html). -->
+<html lang="en" data-loader="fill">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forage variations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="lab">
+    <div class="app">
+      <main class="stage-area">
+        <div class="lab-column">
+          <h1 class="lab-title">Forage pantry</h1>
+          <div class="card" id="card">
+            <canvas id="canvas" aria-label="3D view of the ingredient"></canvas>
+            <!-- The controls on the card: New ingredient and the brush (src/ui/styleBar.tsx). -->
+            <div class="bar-root" id="bar-root"></div>
+          </div>
+          <p class="hint" id="hint">Drag to rotate. Scroll or pinch to zoom</p>
+        </div>
+      </main>
+
+      <!--
+        The old parameter panel: hidden, not deleted (add #panel to the address to bring it
+        back for fine-tuning). Shuffle and the name still run through it behind the scenes.
+      -->
+      <aside class="panel" aria-label="Parameters" hidden>
+        <div class="panel-head">
+          <h2 id="ingredient-name" aria-live="polite">Apple</h2>
+          <span class="panel-meta">Ingredient</span>
+          <button type="button" class="btn btn-shuffle" id="btn-shuffle-ingredient">Shuffle ingredient</button>
+        </div>
+        <div class="panel-body">
+          <section class="palette" id="palette"></section>
+          <div id="pane"></div>
+        </div>
+        <div class="panel-foot">
+          <button type="button" class="btn" id="btn-reset">Reset</button>
+        </div>
+      </aside>
+    </div>
+
+    <!--
+      A prototype page for comparing an ingredient's variations (the user, 2026-11-11: "like we
+      did for ui so i can toggle and view them"): the real page underneath, the picker on top.
+      Keys 1 to 9 and the arrows switch; the choice is kept in the address (?v=2).
+    -->
+    <nav class="proto-picker" data-position="top" aria-label="Variations">
+      <span class="proto-picker-highlight" aria-hidden="true"></span>
+    </nav>
+
+    <script type="module" src="/src/prototypes/variants/harness.ts"></script>
+  </body>
+</html>

@@ -197,3 +197,19 @@ longer wash); round 4 is kept here and in history (commit 1e14783).
 User said: "make paint in the default and merge to main, also in the shuffle artifact,
 remove current and keep paint in". Paint in (round 3) is now the Shuffle transition in the
 app; Current is off the prototype page (its look is still in history and in round 1's still).
+
+## Ingredient variations (round 2: the red onion)
+
+A new prototype page, `prototypes/variants.html` (the user, 2026-11-11: "can u make the
+variations as a seperate artifact...like we did for ui so i can toggle and view them"): the
+real Forage pantry page with a picker on top that puts each variation on stage. Preview:
+https://claude.ai/artifact/55HwqsWQhxZuUno2Ci94XQ ("Forage variations"). Later ingredients'
+variations go on the same page (`VARIANTS` in `src/prototypes/variants/harness.ts`).
+
+### Red onion (2026-11-11)
+First built standing, then tipped on its side after the user's watercolour reference ("some
+more ref for the form and colours. also the details for top and bottom and line textures").
+User said: "i think keep it upright and one variation with 2 onions(1up 1 side) and 1 variation
+with 1 full 1 cut". Three arrangements: Upright, Pair (one standing, one on its side, just
+touching) and Whole and cut (the first cut face: pale rings edged in violet). Still (top: the
+soft look, bottom: Playful strokes): `img/2026-11-11-onion-variations.png`.
