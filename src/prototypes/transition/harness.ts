@@ -47,6 +47,8 @@ function setActive(i: number): void {
 items.forEach((el, i) => el.addEventListener('click', () => setActive(i)));
 replay.addEventListener('click', shuffle);
 window.addEventListener('resize', moveHighlight);
+// The font arrives after the first layout: measure the highlight again once it has.
+void document.fonts.ready.then(moveHighlight);
 document.addEventListener('keydown', (e) => {
   const target = e.target as HTMLElement;
   if (/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName) || target.isContentEditable) return;

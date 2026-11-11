@@ -69,3 +69,8 @@
   font-size: 12.5px;
   line-height: 1.45;
 }
+
+/* Two-word styles (Feather burn, Brush burn) stay on one line in the picker. */
+.proto-picker-item {
+  white-space: nowrap;
+}
