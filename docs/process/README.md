@@ -54,6 +54,16 @@ with `find-animation-opportunities`. The slider drives one "how painterly" amoun
 | Scrub | No slider at rest: tap to switch, drag up or down on the button; a ring shows how much | `img/2026-11-11-ui-round3-scrub.jpg` |
 | Bar | The brush beside "New ingredient"; switching on slides a short slider out of it | `img/2026-11-11-ui-round3-bar.jpg` |
 
+### Round 4 (2026-11-11): Bar, the brush as a switch
+User said: "i like bar layout, lets remove the slider stuff. the bottom padding can be
+increased", and asked how to use Geist Serif and Söhne. The brush is now a plain on and off
+switch beside "New ingredient" (on: today's default strokes), 36 px up from the card's bottom
+edge. The title is in Geist Serif Heart, the cut picked in Figma: it is free (Vercel's Geist
+family, SIL Open Font License), so it is hosted with the page
+(`src/prototypes/fonts/`). Söhne is a paid font (Klim Type Foundry; the file used the trial
+"Test Söhne"): it needs a web licence before it can be used, so the hint stays in Geist.
+Round 3's slider variants stay on the picker. Still: `img/2026-11-11-ui-round4-bar.jpg`.
+
 ## The Shuffle transition
 
 ### Before (2026-11-05): the dry brush

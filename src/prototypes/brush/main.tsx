@@ -5,7 +5,7 @@ import { StrictMode, useCallback, useEffect, useLayoutEffect, useRef, useState }
 import { createRoot } from 'react-dom/client';
 import { createPortal } from 'react-dom';
 import { MotionConfig } from 'motion/react';
-import { Bar, Grow, NewIngredient, Scrub } from './variants';
+import { Bar, Grow, NewIngredient, Scrub, Toggle } from './variants';
 
 /**
  * UI round 3 harness. The picker (harness chrome, PICKER.md) flips between the three ways the
@@ -14,10 +14,13 @@ import { Bar, Grow, NewIngredient, Scrub } from './variants';
  * frames 4 to 6); Bar puts both at the bottom (frames 1 and 2).
  */
 
+// The user's pick first (Bar, the brush as a plain switch); round 3's slider variants stay
+// on the picker for the process record.
 const VARIANTS = [
+  { name: 'Bar', Component: Toggle, pill: false },
   { name: 'Grow', Component: Grow, pill: true },
   { name: 'Scrub', Component: Scrub, pill: true },
-  { name: 'Bar', Component: Bar, pill: false },
+  { name: 'Bar + slider', Component: Bar, pill: false },
 ];
 
 const initial = Math.min(VARIANTS.length, Math.max(1, parseInt(new URLSearchParams(location.search).get('v') ?? '', 10) || 1)) - 1;

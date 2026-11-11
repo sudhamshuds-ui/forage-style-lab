@@ -175,6 +175,30 @@ export function Scrub() {
   );
 }
 
+/* ------------------------------------------------------------------ Bar (toggle only) */
+
+/**
+ * The user's pick (2026-11-11): the Bar layout, with the brush as a plain switch for the
+ * painterly look (no slider), and more room under it. On paints with today's default strokes.
+ */
+export function Toggle() {
+  const brush = usePainterlyAmount();
+  return (
+    <div className="br-bar">
+      <NewIngredient />
+      <button
+        type="button"
+        className="br-icon br-glass"
+        aria-pressed={brush.on}
+        aria-label="Painterly"
+        onClick={brush.toggle}
+      >
+        <BrushIcon />
+      </button>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ Bar */
 
 export function Bar() {
