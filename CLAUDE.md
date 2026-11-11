@@ -26,7 +26,8 @@ keep code readable with friendly comments.
   `docs/ingredients/lessons/{id}.md`, the ingredient guide and the Figma boards (one OK for Figma).
 - **The page** (the user's design, 2026-11-11; explored in `prototypes/brush.html`, see
   `docs/process/README.md`): a white page, "Forage pantry" in Geist Serif (Heart, free, SIL OFL,
-  `src/ui/fonts/`) above a square-cornered card with no shadow (5:6), the drag hint below (it
+  `src/ui/fonts/`) above a square-cornered card with no shadow (5:6, 15% smaller than the first cut for more
+  white round it, `--card-w` in `style.css`), the drag hint below (it
   fades after the first drag). On the card, `src/ui/styleBar.tsx` (React, base-ui Menu): "New
   ingredient" (Shuffle) and the brush, a split button: the brush half switches the painterly look
   (Playful strokes), the arrow opens the painters by name (Sargent, Monet, Degas, Cézanne,

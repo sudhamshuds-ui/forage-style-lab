@@ -244,7 +244,9 @@ body {
   background: #ffffff;
 }
 .lab {
-  --card-w: min(calc(100vw - 32px), calc((100svh - 170px) * 5 / 6), 700px);
+  /* 15% smaller than it first was (the user, 2026-11-11: "i want more negative space");
+     on phones the card still takes the full width. */
+  --card-w: min(calc(100vw - 32px), calc((100svh - 170px) * 5 / 6 * 0.85), 595px);
 }
 .lab .app {
   display: block;

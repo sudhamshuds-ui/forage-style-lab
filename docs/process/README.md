@@ -78,6 +78,8 @@ its size in the room and the room shows round it. Still: `img/2026-11-11-camera-
 User said: "names, go ahead and make it the real page". The Style Lab's main page now has this
 design (`index.html`, `src/ui/styleBar.tsx`); the old panel is hidden behind `#panel`.
 Still: `img/2026-11-11-real-page.jpg`.
+Then: "can we decrease the total size by 15%...i want more negative space". The card is 15%
+smaller (on phones it still takes the full width). Still: `img/2026-11-11-real-page-smaller.jpg`.
 
 ## The Shuffle transition
 
