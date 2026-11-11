@@ -89,6 +89,11 @@ solid with reduced transparency, outlined with more contrast). Stills:
 Then: "i think the whole brush pill should become black when clicked, instead of just the
 icon". While the painterly look is on, the whole brush pill turns a dark tinted glass (brush
 and arrow white), easing in over 200 ms. Still: `img/2026-11-11-brush-pill-on.jpg`.
+Merged to `main` (2026-11-11). Then: "can we make it so, the paint icon circle expands into a
+pill when selected, hence showing the arrow?". Off: a round brush button, no arrow. On: it
+turns dark and stretches into the pill (260 ms, strong ease-out), the arrow fading in just
+after; the hidden arrow cannot be reached by keyboard. Still (off, then on):
+`img/2026-11-11-brush-circle-to-pill.jpg`.
 
 ## The Shuffle transition
 

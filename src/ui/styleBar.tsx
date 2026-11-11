@@ -57,7 +57,8 @@ function StyleBar({ api }: { api: StyleBarApi }) {
       <button type="button" className="sb-new" data-busy={busy || undefined} aria-busy={busy} onClick={() => !busy && api.shuffle()}>
         New ingredient
       </button>
-      {/* While the painterly look is on, the whole pill turns dark (brush and arrow together). */}
+      {/* Off: a round brush button. On: it turns dark and stretches into a pill, showing the
+          arrow that opens the painters (the user, 2026-11-11). */}
       <div className="sb-split" data-on={on || undefined}>
         <button
           type="button"
@@ -71,32 +72,36 @@ function StyleBar({ api }: { api: StyleBarApi }) {
         >
           <BrushIcon />
         </button>
-        <Menu.Root>
-          <Menu.Trigger className="sb-more" aria-label="Painting style">
-            <Chevron />
-          </Menu.Trigger>
-          <Menu.Portal>
-            <Menu.Positioner side="top" align="end" sideOffset={10}>
-              <Menu.Popup className="sb-menu">
-                <Menu.RadioGroup
-                  value={on ? painter : null}
-                  onValueChange={(id: string) => {
-                    api.setPainter(id);
-                    setPainter(id);
-                    setOn(true);
-                  }}
-                >
-                  {MENU_PAINTERS.map((p) => (
-                    <Menu.RadioItem key={p.id} value={p.id} className="sb-item" closeOnClick>
-                      <span className="sb-dot" aria-hidden="true" />
-                      {p.name}
-                    </Menu.RadioItem>
-                  ))}
-                </Menu.RadioGroup>
-              </Menu.Popup>
-            </Menu.Positioner>
-          </Menu.Portal>
-        </Menu.Root>
+        <div className="sb-more-wrap" inert={!on}>
+          <div className="sb-more-clip">
+            <Menu.Root>
+              <Menu.Trigger className="sb-more" aria-label="Painting style">
+                <Chevron />
+              </Menu.Trigger>
+              <Menu.Portal>
+                <Menu.Positioner side="top" align="end" sideOffset={10}>
+                  <Menu.Popup className="sb-menu">
+                    <Menu.RadioGroup
+                      value={on ? painter : null}
+                      onValueChange={(id: string) => {
+                        api.setPainter(id);
+                        setPainter(id);
+                        setOn(true);
+                      }}
+                    >
+                      {MENU_PAINTERS.map((p) => (
+                        <Menu.RadioItem key={p.id} value={p.id} className="sb-item" closeOnClick>
+                          <span className="sb-dot" aria-hidden="true" />
+                          {p.name}
+                        </Menu.RadioItem>
+                      ))}
+                    </Menu.RadioGroup>
+                  </Menu.Popup>
+                </Menu.Positioner>
+              </Menu.Portal>
+            </Menu.Root>
+          </div>
+        </div>
       </div>
     </div>
   );

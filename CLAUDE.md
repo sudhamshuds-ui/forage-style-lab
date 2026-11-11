@@ -32,7 +32,8 @@ keep code readable with friendly comments.
   (the `apple-design` skill: frosted with a colour lift, a bright top edge, a hairline, a shadow
   sized to the surface; solid with reduced transparency). On the card, `src/ui/styleBar.tsx` (React, base-ui Menu): "New
   ingredient" (Shuffle) and the brush, a split button: the brush half switches the painterly look
-  (Playful strokes; while on, the whole pill turns dark), the arrow opens the painters by name (Sargent, Monet, Degas, Cézanne,
+  (Playful strokes; off it is a round button, on it turns dark and stretches into a pill
+  showing the arrow), the arrow opens the painters by name (Sargent, Monet, Degas, Cézanne,
   Seurat, Van Gogh); picking one paints like that painter and switches the look on. No
   ingredient name and no descriptions on the page. Söhne (the hint in the user's Figma) needs a
   paid web licence from Klim, so the hint and controls use Geist for now. No brand mark and no
