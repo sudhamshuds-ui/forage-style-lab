@@ -163,7 +163,8 @@ export class ShuffleTransition {
 
   /**
    * Which style of transition (the prototype page flips between them; the app uses 0):
-   * 0 dry brush (the approved one), 1 sweep, 2 dabs, 3 swirl, 4 feather burn.
+   * 0 dry brush (the approved one), 1 sweep, 2 dabs, 3 swirl, 4 feather burn,
+   * 5 brush burn (corner to corner).
    */
   setStyle(style: number): void {
     this.smudgeMaterial.uniforms.uStyle.value = style;

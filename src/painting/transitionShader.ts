@@ -125,7 +125,7 @@ uniform float uStep;
 uniform float uCell;
 uniform float uRound;
 // Which transition style (prototype variants): 0 dry brush (the default), 1 sweep,
-// 2 dabs, 3 swirl, 4 feather burn (no strokes: the burn lives in the composite).
+// 2 dabs, 3 swirl, 4 feather burn, 5 brush burn (no strokes: the burns live in the composite).
 uniform float uStyle;
 
 ${strokeGLSL}
@@ -370,7 +370,9 @@ float easeInOutSoft(float t) {
 // Feather burn (the user's reference): no brush strokes. A soft front with a hairy,
 // grainy edge spreads out from the ingredient, first melting the old card into a
 // smear of itself, then burning through to the next card.
-vec3 featherBurn(vec2 px) {
+// brush = 0: the feather burn, out from the ingredient. brush = 1: the brush burn,
+// corner to corner (a random corner each click), its edge made of dry-brush streaks.
+vec3 featherBurn(vec2 px, float brush) {
   vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
   vec2 d = (vUv - uCentre) * aspect;
   vec2 outward = normalize(d + 1e-4) / aspect; // in uv, pointing away from the ingredient
@@ -383,6 +385,24 @@ vec3 featherBurn(vec2 px) {
   float hair = valueNoise3(vec3(px.x * 0.45, px.y * 0.45, uSeed.x * 0.1));
   float streak = valueNoise3(vec3(length(d) * 22.0, atan(d.y, d.x) * 40.0, uSeed.y * 0.1));
   field += (hair - 0.5) * 0.05 + (streak - 0.5) * 0.06;
+  if (brush > 0.5) {
+    // Which corner it starts from: one of four, picked by this click's seed.
+    float pick = floor(fract(uSeed.x * 0.618 + uSeed.y * 0.382) * 4.0);
+    vec2 from = vec2(mod(pick, 2.0), floor(pick / 2.0));
+    vec2 travel = normalize((vec2(1.0) - 2.0 * from) * aspect);
+    vec2 p = (vUv - from) * aspect;
+    float span = dot(aspect, abs(travel));
+    float along = dot(p, travel) / span; // 0 at the starting corner, 1 at the far one
+    float across = dot(p, vec2(-travel.y, travel.x));
+    // The front is a row of broad brush tongues, each pushed ahead by its own amount,
+    // with bristle streaks running the way the brush travels.
+    float tongues = valueNoise3(vec3(across * 5.0, along * 0.8, uSeed.y * 0.05));
+    float bristles = noise1(across * uResolution.y * 0.09 + uSeed.x) * 0.6 + noise1(across * uResolution.y * 0.23 + uSeed.y) * 0.4;
+    float dragLen = valueNoise3(vec3(across * 40.0, along * 2.0, 5.0));
+    field = 0.78 * along + 0.16 * tongues + 0.06 + (bristles - 0.5) * 0.09 + (dragLen - 0.5) * 0.05;
+    outward = travel / aspect;
+    streak = bristles;
+  }
   float feather = 0.09;
   // Two fronts on the same shape: the melt (0 to 45%), then the reveal (45 to 100%).
   // Steady fronts (a burn creeps at an even pace), easing only at the very ends.
@@ -406,7 +426,7 @@ vec3 featherBurn(vec2 px) {
   // The edge of the reveal: a grainy, feathered band where the next card is soft too.
   float band = 1.0 - abs(2.0 * show - 1.0);
   float grain = valueNoise3(vec3(px * 0.7, 3.3)) - 0.5;
-  show = clamp(show + grain * band * 0.8, 0.0, 1.0);
+  show = clamp(show + grain * band * mix(0.8, 0.5, brush), 0.0, 1.0);
   vec3 next = texture2D(tNext, vUv).rgb;
   vec3 nextSoft = soften(tNext, vUv + outward * band * 10.0 / uResolution.y, 5.0 * band);
   colour = mix(colour, mix(next, nextSoft, band), show);
@@ -419,7 +439,7 @@ vec3 featherBurn(vec2 px) {
 void main() {
   vec2 px = vUv * uResolution;
   if (uStyle > 3.5) {
-    vec3 burnt = mix(featherBurn(px), texture2D(tNext, vUv).rgb, smoothstep(0.9, 1.0, uT));
+    vec3 burnt = mix(featherBurn(px, step(4.5, uStyle)), texture2D(tNext, vUv).rgb, smoothstep(0.9, 1.0, uT));
     gl_FragColor = vec4(burnt, 1.0);
     #include <colorspace_fragment>
     return;

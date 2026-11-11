@@ -10,11 +10,11 @@ import { shuffle, watchBusy } from '../ui/shared';
  */
 
 const STYLES = [
-  { name: 'Current', about: 'Dry brush: long strokes smudge the card in a wave from the ingredient, then paint the next one in, crossing three ways.' },
-  { name: 'Sweep', about: 'Wide strokes in rows, top to bottom, each row the other way, like a wall painted back and forth.' },
-  { name: 'Dabs', about: 'Short, round, loaded dabs scattered everywhere, like Monet: the card dissolves into touches of colour.' },
-  { name: 'Swirl', about: 'Strokes stir round the ingredient in a spiral, then the next card is painted in, circling outward.' },
-  { name: 'Feather burn', about: 'No strokes: a soft, hairy, grainy front melts the old card into a smear, then burns through to the next.' },
+  { name: 'Current', style: 0, about: 'Dry brush: long strokes smudge the card in a wave from the ingredient, then paint the next one in, crossing three ways.' },
+  { name: 'Sweep', style: 1, about: 'Wide strokes in rows, top to bottom, each row the other way, like a wall painted back and forth.' },
+  { name: 'Swirl', style: 3, about: 'Strokes stir round the ingredient in a spiral, then the next card is painted in, circling outward.' },
+  { name: 'Feather burn', style: 4, about: 'No strokes: a soft, hairy, grainy front melts the old card into a smear, then burns through to the next.' },
+  { name: 'Brush burn', style: 5, about: 'The burn, corner to corner (a random corner each click), its edge made of dry-brush streaks.' },
 ];
 
 const picker = document.querySelector('.proto-picker') as HTMLElement;
@@ -38,7 +38,7 @@ function setActive(i: number): void {
     else el.removeAttribute('aria-current');
   });
   moveHighlight();
-  app.setTransitionStyle(i);
+  app.setTransitionStyle(STYLES[i].style);
   const url = new URL(location.href);
   url.searchParams.set('v', String(i + 1));
   history.replaceState(null, '', url);
