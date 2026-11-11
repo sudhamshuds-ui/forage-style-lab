@@ -437,17 +437,17 @@ export const REGISTRY: IngredientEntry[] = [
       archetype: 'round',
       family: 'onion',
       layout: 'solo',
-      show: 'One whole red onion standing on its root end, its dry papery neck tip leaning to one side.',
+      show: 'One whole red onion lying tipped on its side, the root tuft low on the left, the short twisted neck curling up on the right.',
       forms: ['whole', 'half', 'rings', 'diced'],
       scale: 'M',
-      size_cm: [8, 10.2, 8],
-      // `tip` is the dry papery neck tip (two or three twisted ribbons).
-      parts: ['bulb:glow', 'tip@papery'],
+      size_cm: [8.5, 9, 8],
+      // `tip` is the dry papery neck tip (twisted ribbons), `roots` the dry root tuft.
+      parts: ['bulb:glow', 'tip@papery', 'roots@papery'],
       notes:
-        'Round 2. A squat, lopsided bulb, widest a little above the middle, standing on a soft root pit; concave shoulders sweeping up into a narrow neck; a dry, twisted, papery tip leaning to one side. Fine pale veins from root to neck, papery flakes, the root patch and the neck drying toward its tip are a shader texture (the onion skin), never geometry.',
+        'Round 2, after the user\'s watercolour reference. A round, lopsided globe lying tipped on its side; full shoulders pulling up into a short twisted neck whose dry papery tip curls over; a tuft of dry roots. Fine darker lines and soft bands from root to neck, papery flakes, the root patch and the neck drying toward its tip are a shader texture (the onion skin), never geometry.',
     },
     form: buildOnion,
-    turn: 20,
+    turn: 0,
     skin: { kind: 'onion', size_mm: 2, amount: 0.85 },
     // A quiet, satin sheen: the full one lit pale, flat patches on the bulb.
     matte: true,

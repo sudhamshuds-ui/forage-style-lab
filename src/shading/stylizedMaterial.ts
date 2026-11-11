@@ -28,10 +28,15 @@ const vertexShader = /* glsl */ `
 varying vec3 vWorldNormal;
 varying vec3 vWorldPos;
 varying vec3 vObjectPos;
+varying vec3 vOwnPos;
 // A leaf's own map: x runs from stalk (0) to tip (1), y across (0.5 is the centre vein).
 varying vec2 vSurfaceUv;
 // The camera, in the object's own space: lets translucent flesh be looked into (melon seeds).
 varying vec3 vObjectCamera;
+// Optional: each point in the ingredient's own upright frame (cm, its axis along y), for a form
+// that is tipped over on stage (the red onion lies on its side), so marks that run round its
+// axis still follow it. Pieces without it read (0, 0, 0).
+attribute vec3 ownPos;
 
 void main() {
   #include <beginnormal_vertex>
@@ -43,6 +48,7 @@ void main() {
 
   vObjectPos = position;
   vSurfaceUv = uv;
+  vOwnPos = ownPos;
   vObjectCamera = (inverse(modelMatrix) * vec4(cameraPosition, 1.0)).xyz;
   vec4 worldPos = modelMatrix * vec4(position, 1.0);
   vWorldPos = worldPos.xyz;
@@ -78,6 +84,7 @@ uniform vec3 uGlowColour;
 varying vec3 vWorldNormal;
 varying vec3 vWorldPos;
 varying vec3 vObjectPos;
+varying vec3 vOwnPos;
 varying vec2 vSurfaceUv;
 varying vec3 vObjectCamera;
 

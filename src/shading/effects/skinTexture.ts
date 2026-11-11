@@ -553,54 +553,67 @@ if (kind > 0 && amount > 0.0) {
     float pore = 1.0 - smoothstep(0.05, 0.12, skinCells(p));
     lab = shadeOwn(lab, pore * 0.25 * show * (1.0 - cap));
   } else if (kind == 15) {
-    // Onion (red onion). Its map: x is the height as a share of the onion (0 root, 1 neck top).
-    // The veins run round the axis by angle, the axis being the onion's up direction.
+    // Onion (red onion). Its map: x is the height as a share of the onion (0 root, 1 neck top),
+    // and vOwnPos is each point in the upright onion (cm, axis along y), so the lines run from
+    // root to neck even though the onion lies tipped on its side.
     vec2 q = vSurfaceUv;
-    vec3 cm = objectPos * 3.8169;
+    vec3 cm = vOwnPos;
     float shadeStep = lab.x - linearToOklab(uBaseColour).x;
     vec3 papery = linearToOklab(uMelonPale);
     papery.x += shadeStep * 0.75;
-    // 1. A faint glow in the darker purples (the skin is a little see-through).
+    // 1. A faint glow in the darker violets (the skin is a little see-through).
     float inside = (1.0 - tone) * amount;
     lab = mix(lab, linearToOklab(uGlowColour), inside * 0.25);
-    // 2. Bands from root to neck, like the onion's layers showing through: broad, soft stripes
-    //    of lighter dusty rose and deeper plum, of uneven width, wandering gently, plus a few
-    //    finer pale streaks. They fade toward the poles (where they gather), so they never bunch
-    //    into a star. Soft edges throughout, never crisp lines.
-    float angle = atan(objectPos.z, objectPos.x);
+    // 2. Like the reference: lines running from root to neck round the globe. Broad, soft bands
+    //    of lighter lilac and deeper violet underneath, and over them a few fine, darker violet
+    //    lines of uneven spacing, strength and length, wandering a little, fading toward the
+    //    poles (where they gather), so they never bunch into a star. Soft-edged, painted lines.
+    float angle = atan(cm.z, cm.x);
     float wander = (fbm3(cm * 0.5 + 2.0) - 0.5) * 0.9;
-    float veinAway = smoothstep(0.04, 0.22, q.x) * (1.0 - smoothstep(0.7, 0.86, q.x));
+    float lineAway = smoothstep(0.03, 0.2, q.x) * (1.0 - smoothstep(0.74, 0.88, q.x));
     float broad = sin(angle * 9.0 + wander * 2.0) * 0.6 + sin(angle * 5.0 + 2.3 + wander * 1.5) * 0.4;
-    float light = smoothstep(0.1, 0.8, broad);
-    float deep = smoothstep(0.15, 0.85, -broad);
-    vec3 roseLab = lab;
-    roseLab.x += 0.06;
-    roseLab.yz *= 0.8;
-    lab = mix(lab, roseLab, light * veinAway * 0.6 * show);
-    lab = shadeOwn(lab, deep * veinAway * 0.35 * show);
-    float streak = 1.0 - smoothstep(0.0, 0.22, abs(sin(angle * 21.0 + 1.3 + wander * 2.5)));
-    streak *= smoothstep(0.4, 0.7, valueNoise3(cm * 0.6 + 7.0));
+    vec3 lilac = lab;
+    lilac.x += 0.06;
+    lilac.yz *= 0.82;
+    lab = mix(lab, lilac, smoothstep(0.1, 0.8, broad) * lineAway * 0.55 * show);
+    lab = shadeOwn(lab, smoothstep(0.15, 0.85, -broad) * lineAway * 0.3 * show);
+    float lines = 0.0;
+    for (int i = 0; i < 2; i++) {
+      float n = i == 0 ? 13.0 : 7.0;
+      float off = i == 0 ? 0.4 : 2.9;
+      // Smooth arcs, like the reference: only a slow, gentle drift, never a wiggle.
+      float drift = (fbm3(vec3(cm.x * 0.12, q.x * 0.6, cm.z * 0.12) + float(i) * 4.0) - 0.5) * 1.2;
+      float l = 1.0 - smoothstep(0.0, i == 0 ? 0.12 : 0.15, abs(sin(angle * n * 0.5 + off + drift)));
+      // Each line its own strength, and broken here and there along its length.
+      l *= smoothstep(0.3, 0.6, valueNoise3(vec3(angle * n * 0.5 + off, q.x * 2.5, float(i) * 7.0)));
+      lines = max(lines, l);
+    }
+    lab = shadeOwn(lab, lines * lineAway * 0.65 * show);
+    lab.yz *= 1.0 + lines * lineAway * 0.15 * show;
+    // A few finer pale streaks between them, like the inner skin showing through.
+    float streak = 1.0 - smoothstep(0.0, 0.2, abs(sin(angle * 21.0 + 1.3 + wander * 2.5)));
+    streak *= smoothstep(0.45, 0.75, valueNoise3(cm * 0.6 + 7.0));
     vec3 streakLab = lab;
     streakLab.x += 0.05;
     streakLab.yz *= 0.75;
-    lab = mix(lab, streakLab, streak * veinAway * 0.5 * show);
-    // 3. Papery flakes: a few broad patches where the dry outer skin lifts and catches the
-    //    light, pale tan-pink with a soft, wandering edge (more of them near the root and the
-    //    shoulders, where onions shed most).
-    float flakeWhere = 0.6 + 0.4 * (1.0 - smoothstep(0.1, 0.35, q.x)) + 0.3 * smoothstep(0.55, 0.75, q.x);
-    float flake = smoothstep(0.58, 0.8, fbm3(cm * 0.45 + 13.0) * flakeWhere + 0.12);
-    vec3 flakeLab = mix(lab, papery, 0.55);
-    flakeLab.x += 0.02;
-    lab = mix(lab, flakeLab, flake * 0.8 * amount);
+    lab = mix(lab, streakLab, streak * lineAway * 0.45 * show);
+    highlightBreak = max(highlightBreak, lines * 0.6 * amount);
+    // 3. Papery flakes: a few broad patches where the dry outer skin catches the light, pale
+    //    tan-pink with a soft, wandering edge (more near the root and the neck, where onions shed).
+    float flakeWhere = 0.6 + 0.4 * (1.0 - smoothstep(0.1, 0.35, q.x)) + 0.4 * smoothstep(0.6, 0.8, q.x);
+    float flake = smoothstep(0.6, 0.82, fbm3(cm * 0.45 + 13.0) * flakeWhere + 0.12);
+    vec3 flakeLab = mix(lab, papery, 0.5);
+    lab = mix(lab, flakeLab, flake * 0.75 * amount);
     highlightOwn = max(highlightOwn, flake * 0.7);
-    // 4. The root patch: the trimmed root end, tan and papery, fading softly into the purple.
+    // 4. The root plate: tan and papery, fading softly into the violet.
     float root = 1.0 - smoothstep(0.02, 0.09, q.x + (valueNoise3(cm * 2.0) - 0.5) * 0.03);
     lab = mix(lab, shadeOwn(papery, 0.25), root * 0.85 * amount);
-    // 5. The neck dries toward its tip: purple, then rosy tan, then the papery tip's own colour,
-    //    so the neck and the tip meet in the same colour (never a crisp ring).
-    float dry = smoothstep(0.82, 0.97, q.x + (valueNoise3(cm * 1.5 + 4.0) - 0.5) * 0.04);
-    lab = mix(lab, papery, dry * amount);
-    // 6. The shared chalky dry-brush texture, along the veins (one hand paints every card).
+    // 5. The neck dries toward its tip: violet, then a warm rosy tan (the reference's orange
+    //    touches at the top), then the papery tip's own colour, so they meet in one colour.
+    float dry = smoothstep(0.8, 0.96, q.x + (valueNoise3(cm * 1.5 + 4.0) - 0.5) * 0.05);
+    vec3 warmTan = mix(papery, linearToOklab(uGlowColour), 0.25);
+    lab = mix(lab, warmTan, dry * amount);
+    // 6. The shared chalky dry-brush texture, along the lines (one hand paints every card).
     float paperGrain = valueNoise3(objectPos * 90.0);
     float scratch = valueNoise3(vec3(angle * 18.0, q.x * 3.0, 1.0)) * valueNoise3(vec3(angle * 6.0, q.x * 9.0, 5.0));
     float chalkAmt = smoothstep(0.3, 0.55, scratch) * smoothstep(0.35, 0.65, paperGrain);

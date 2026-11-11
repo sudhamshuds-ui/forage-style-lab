@@ -243,7 +243,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // the light, deep magenta-plum in shadow, never grey. Celadon (soft green) sits opposite.
   onion: {
     name: 'Onion',
-    colours: { lit: '#d996b4', base: '#943b6b', shadow: '#4f2050', glow: '#c24a7f', highlight: '#f4e2ea' },
+    colours: { lit: '#d79ad3', base: '#9a3f92', shadow: '#4a2164', glow: '#c24ea6', highlight: '#f5e4f4' },
     rooms: ['celadon', 'sage-morning'],
   },
   // Not a board 04 family: only for parts (an onion's dry, papery neck tip and outer skin; later
