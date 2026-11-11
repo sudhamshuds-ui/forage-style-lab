@@ -98,6 +98,15 @@ Then: "this is missing?" (the drag hint). It faded out after the first drag, a t
 from find-animation-opportunities, so it looked missing: it now always stays, worded as in
 the user's Figma (no full stop).
 
+### Loading states for New ingredient (2026-11-11)
+User said: "for the new ingredient button, when the transition is happening its greyed out
+currently. i want a cool loading state/animation for it. create variations for me /animate".
+Page: `prototypes/loading.html`, preview "Forage loading states". Five looks, all CSS
+animations timed from the swap's length: Brush fill (ink sweeps across like one stroke),
+Outline (an ink line once round the edge), Shimmer (a light passing along the label),
+Scribble (a squiggle drawn in the pill), Painting (the label becomes "Painting" with dots).
+Still (each at 25, 60 and 90% of the swap): `img/2026-11-11-loading-states.jpg`.
+
 ## The Shuffle transition
 
 ### Before (2026-11-05): the dry brush
