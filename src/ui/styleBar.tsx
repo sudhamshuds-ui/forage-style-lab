@@ -57,7 +57,8 @@ function StyleBar({ api }: { api: StyleBarApi }) {
       <button type="button" className="sb-new" data-busy={busy || undefined} aria-busy={busy} onClick={() => !busy && api.shuffle()}>
         New ingredient
       </button>
-      <div className="sb-split">
+      {/* While the painterly look is on, the whole pill turns dark (brush and arrow together). */}
+      <div className="sb-split" data-on={on || undefined}>
         <button
           type="button"
           className="sb-brush"

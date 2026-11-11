@@ -86,6 +86,9 @@ Apple-style material (stronger blur and colour lift, a bright top edge, a hairli
 sized to the surface; the menu thicker, materialising from the arrow with scale and blur;
 solid with reduced transparency, outlined with more contrast). Stills:
 `img/2026-11-11-apple-glass-page.jpg`, `img/2026-11-11-apple-glass-menu.jpg`.
+Then: "i think the whole brush pill should become black when clicked, instead of just the
+icon". While the painterly look is on, the whole brush pill turns a dark tinted glass (brush
+and arrow white), easing in over 200 ms. Still: `img/2026-11-11-brush-pill-on.jpg`.
 
 ## The Shuffle transition
 
