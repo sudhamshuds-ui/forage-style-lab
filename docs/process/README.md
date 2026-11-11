@@ -106,6 +106,18 @@ animations timed from the swap's length: Brush fill (ink sweeps across like one 
 Outline (an ink line once round the edge), Shimmer (a light passing along the label),
 Scribble (a squiggle drawn in the pill), Painting (the label becomes "Painting" with dots).
 Still (each at 25, 60 and 90% of the swap): `img/2026-11-11-loading-states.jpg`.
+Round 2. User said: "i want brush fill variation, and the painting variation but just with the
+3 dots animating. 1. for brush filled...start it the moment u click, the edge can be like a
+brush stroke? once it fully becomes black...have a shader transition back to the glass as
+well 2. for the 3 dots version, i want the new ingredient animating out and 3 dots animating
+in and vice versa after the transition is done". Brush fill: the ink starts on the click
+(a loading phase set before the swap reports busy), its leading edge a dry brush (thirty
+feathered bristles and specks, one sliding mask), and when the swap ends it dissolves back
+into glass through streaky noise (an SVG noise filter whose threshold sweeps over 480 ms).
+The first bristle edge read as a barcode: thinner, feathered bristles fixed it. Dots: the
+label slides up and out as three dots rise in and bob, and back again after. Also from the
+user: "the hover for brush icon and new ingredient are different, keep them consistent...glass
+brightens up?": both now brighten the glass. Still: `img/2026-11-11-loading-round2.jpg`.
 
 ## The Shuffle transition
 

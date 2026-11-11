@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState, type CSSProperties } from 'react';
+import { StrictMode, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Menu } from '@base-ui/react/menu';
 import { PAINTERS, findPainter } from '../painters';
@@ -48,11 +48,65 @@ const Chevron = () => (
   </svg>
 );
 
+/** How long the ink takes to dissolve back into glass after a swap (ms). */
+const DISSOLVE_MS = 480;
+
+/**
+ * New ingredient's loading phases (2026-11-11):
+ *   idle     the glass pill and its label
+ *   loading  from the instant of the click until the swap ends (the ink fills / the dots bob)
+ *   leaving  the ink dissolving back into glass (a noise filter), or the dots handing back
+ */
+type Phase = 'idle' | 'loading' | 'leaving';
+
+function useLoadingPhase(api: StyleBarApi, busy: boolean) {
+  const [phase, setPhase] = useState<Phase>('idle');
+  const sawBusy = useRef(false);
+  const threshold = useRef<SVGFEFuncAElement>(null);
+  // Start on the click itself, before the swap has even reported busy.
+  const start = () => {
+    sawBusy.current = false;
+    setPhase('loading');
+    api.shuffle();
+    // With reduced motion the swap is a quick fade that never reports busy: settle back.
+    window.setTimeout(() => {
+      if (!sawBusy.current) setPhase('idle');
+    }, 400);
+  };
+  useEffect(() => {
+    if (busy) {
+      sawBusy.current = true;
+      return;
+    }
+    if (phase !== 'loading' || !sawBusy.current) return;
+    // The swap is done: dissolve the ink. The noise filter's threshold sweeps from
+    // "everything opaque" to "nothing left", so the ink breaks up into grain and streaks.
+    setPhase('leaving');
+    const began = performance.now();
+    let frame = 0;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - began) / DISSOLVE_MS);
+      const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      threshold.current?.setAttribute('intercept', String(-1 - 5.5 * eased));
+      if (t < 1) frame = requestAnimationFrame(step);
+      else {
+        setPhase('idle');
+        threshold.current?.setAttribute('intercept', '-1');
+      }
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+    // phase is read once, when busy turns off
+  }, [busy]);
+  return { phase, start, threshold };
+}
+
 function StyleBar({ api }: { api: StyleBarApi }) {
   const [busy, setBusy] = useState(false);
   const [on, setOn] = useState(api.painterly);
   const [painter, setPainter] = useState(api.painter);
   useEffect(() => api.onBusy(setBusy), [api]);
+  const loading = useLoadingPhase(api, busy);
 
   return (
     <div className="sb">
@@ -66,9 +120,10 @@ function StyleBar({ api }: { api: StyleBarApi }) {
         type="button"
         className="sb-new"
         data-busy={busy || undefined}
+        data-phase={loading.phase}
         aria-busy={busy}
         style={{ '--swap': `${api.swapSeconds}s` } as CSSProperties}
-        onClick={() => !busy && api.shuffle()}
+        onClick={() => !busy && loading.phase === 'idle' && loading.start()}
       >
         <span className="sb-new-label">New ingredient</span>
         <span className="sb-new-fill" aria-hidden="true">
@@ -81,7 +136,24 @@ function StyleBar({ api }: { api: StyleBarApi }) {
         <span className="sb-new-dots" aria-hidden="true">
           Painting<i>.</i><i>.</i><i>.</i>
         </span>
+        <span className="sb-new-bob" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </span>
       </button>
+      {/* The ink's dissolve: grainy, streaky noise (wider than tall, like bristle marks)
+          used as a mask whose threshold sweeps while the ink leaves. */}
+      <svg className="sb-defs" width="0" height="0" aria-hidden="true" focusable="false">
+        <filter id="sb-dissolve" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.025 0.32" numOctaves={3} seed={7} result="noise" />
+          <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="grain" />
+          <feComponentTransfer in="grain" result="mask">
+            <feFuncA ref={loading.threshold} type="linear" slope="7" intercept="-1" />
+          </feComponentTransfer>
+          <feComposite in="SourceGraphic" in2="mask" operator="in" />
+        </filter>
+      </svg>
       {/* Off: a round brush button. On: it turns dark and stretches into a pill, showing the
           arrow that opens the painters (the user, 2026-11-11). */}
       <div className="sb-split" data-on={on || undefined}>

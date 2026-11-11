@@ -24,6 +24,8 @@
   gap: 6px;
   pointer-events: auto;
   --glass: rgba(255, 255, 255, 0.56);
+  /* Hover: the glass brightens (the same on every control). */
+  --glass-hover: rgba(255, 255, 255, 0.78);
   /* The material: a soft sheen on top, the light edge, the hairline and a small shadow. */
   --glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.06) 60%);
   --glass-edge:
@@ -51,7 +53,9 @@
 }
 .sb-new,
 .sb-split {
-  background: var(--glass-sheen), var(--glass);
+  /* Colour and sheen kept apart, so hover can brighten the colour smoothly. */
+  background-image: var(--glass-sheen);
+  background-color: var(--glass);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
   box-shadow: var(--glass-edge);
@@ -117,7 +121,8 @@
   transition: background-color 200ms ease, box-shadow 200ms ease, color 200ms ease;
 }
 .sb .sb-split[data-on] {
-  background: rgba(31, 30, 28, 0.9);
+  background-image: none;
+  background-color: rgba(31, 30, 28, 0.9);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.16),
     0 0 0 0.5px rgba(31, 30, 28, 0.4),
@@ -213,12 +218,10 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .sb-new:hover {
-    background: rgba(255, 255, 255, 0.86);
-  }
-  .sb-brush[aria-pressed='false']:hover,
-  .sb-more:hover {
-    background: rgba(31, 30, 28, 0.06);
+  /* The glass brightens under the pointer, the same on New ingredient and the brush. */
+  .sb-new:hover,
+  .sb-split:not([data-on]):hover {
+    background-color: var(--glass-hover);
   }
   .sb .sb-split[data-on] .sb-brush:hover,
   .sb .sb-split[data-on] .sb-more:hover {
@@ -263,6 +266,12 @@
  * swap's length (--swap) or loops gently, and falls back to the plain dim with reduced
  * motion. The button ignores clicks meanwhile, so nothing here needs to be interruptible.
  * =================================================================================== */
+.sb-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
 .sb-new {
   position: relative;
   isolation: isolate;
@@ -281,7 +290,8 @@
 .sb-new-fill,
 .sb-new-trace,
 .sb-new-scribble,
-.sb-new-dots {
+.sb-new-dots,
+.sb-new-bob {
   display: none;
 }
 .sb-new-label {
@@ -463,6 +473,117 @@
   }
 }
 
+/* --- Brush fill, round 2 (the user's pick): ink starts the instant you click, its leading edge
+       a dry brush (ragged bristle streaks), filling the pill as the swap plays; when the swap
+       is done it dissolves back into the glass through grainy, streaky noise (#sb-dissolve). */
+[data-loader='brush'] .sb-new[data-phase='loading'],
+[data-loader='brush'] .sb-new[data-phase='leaving'] {
+  opacity: 1;
+}
+[data-loader='brush'] .sb-new-fill {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(31, 30, 28, 0.92);
+  color: #fff;
+  visibility: hidden;
+  /* One mask, twice the pill's width: solid on its left half, the bristle edge in the middle,
+     clear on the right. Sliding it from right to left paints the pill in. */
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20200%20100%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22t%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23000%22/%3E%3Cstop%20offset%3D%220.55%22%20stop-color%3D%22%23000%22%20stop-opacity%3D%220.85%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23000%22%20stop-opacity%3D%220%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%22100.5%22%20height%3D%22100%22/%3E%3Crect%20x%3D%22101.3%22%20y%3D%22-0.1%22%20width%3D%2210.9%22%20height%3D%222.7%22%20rx%3D%221.4%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.9%22%20y%3D%223.3%22%20width%3D%2211.7%22%20height%3D%222.8%22%20rx%3D%221.4%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.7%22%20y%3D%226.8%22%20width%3D%228.2%22%20height%3D%223.2%22%20rx%3D%221.6%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.9%22%20y%3D%229.5%22%20width%3D%223.7%22%20height%3D%223.2%22%20rx%3D%221.6%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.8%22%20y%3D%2213.9%22%20width%3D%2213.5%22%20height%3D%223.5%22%20rx%3D%221.8%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.6%22%20y%3D%2216.3%22%20width%3D%224.0%22%20height%3D%221.6%22%20rx%3D%220.8%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.6%22%20y%3D%2219.6%22%20width%3D%2210.9%22%20height%3D%222.1%22%20rx%3D%221.0%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.5%22%20y%3D%2223.3%22%20width%3D%2213.9%22%20height%3D%223.3%22%20rx%3D%221.6%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.4%22%20y%3D%2226.7%22%20width%3D%227.7%22%20height%3D%222.9%22%20rx%3D%221.5%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.2%22%20y%3D%2230.6%22%20width%3D%2215.0%22%20height%3D%223.6%22%20rx%3D%221.8%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.1%22%20y%3D%2233.1%22%20width%3D%224.2%22%20height%3D%222.1%22%20rx%3D%221.0%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.2%22%20y%3D%2237.0%22%20width%3D%229.6%22%20height%3D%222.4%22%20rx%3D%221.2%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.5%22%20y%3D%2240.5%22%20width%3D%226.6%22%20height%3D%223.3%22%20rx%3D%221.6%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.5%22%20y%3D%2243.8%22%20width%3D%229.8%22%20height%3D%222.5%22%20rx%3D%221.3%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.1%22%20y%3D%2246.2%22%20width%3D%227.6%22%20height%3D%222.9%22%20rx%3D%221.4%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.4%22%20y%3D%2249.5%22%20width%3D%2215.9%22%20height%3D%222.3%22%20rx%3D%221.1%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.7%22%20y%3D%2252.9%22%20width%3D%224.0%22%20height%3D%222.1%22%20rx%3D%221.0%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.6%22%20y%3D%2257.0%22%20width%3D%2210.6%22%20height%3D%222.0%22%20rx%3D%221.0%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.8%22%20y%3D%2259.6%22%20width%3D%2213.9%22%20height%3D%223.1%22%20rx%3D%221.5%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.9%22%20y%3D%2262.9%22%20width%3D%227.6%22%20height%3D%222.4%22%20rx%3D%221.2%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.1%22%20y%3D%2267.2%22%20width%3D%2218.0%22%20height%3D%223.2%22%20rx%3D%221.6%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.2%22%20y%3D%2269.7%22%20width%3D%2213.9%22%20height%3D%222.4%22%20rx%3D%221.2%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.9%22%20y%3D%2272.9%22%20width%3D%227.4%22%20height%3D%223.6%22%20rx%3D%221.8%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.1%22%20y%3D%2277.0%22%20width%3D%224.2%22%20height%3D%222.3%22%20rx%3D%221.1%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.0%22%20y%3D%2279.5%22%20width%3D%2213.2%22%20height%3D%222.8%22%20rx%3D%221.4%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.4%22%20y%3D%2283.2%22%20width%3D%2211.2%22%20height%3D%222.5%22%20rx%3D%221.3%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.9%22%20y%3D%2286.8%22%20width%3D%225.6%22%20height%3D%223.3%22%20rx%3D%221.7%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.0%22%20y%3D%2290.5%22%20width%3D%226.2%22%20height%3D%223.2%22%20rx%3D%221.6%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.9%22%20y%3D%2293.6%22%20width%3D%2219.2%22%20height%3D%223.5%22%20rx%3D%221.7%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.3%22%20y%3D%2297.1%22%20width%3D%224.8%22%20height%3D%222.8%22%20rx%3D%221.4%22%20fill%3D%22url%28%23t%29%22/%3E%3Ccircle%20cx%3D%22103.6%22%20cy%3D%2294.4%22%20r%3D%220.6%22%20fill-opacity%3D%220.67%22/%3E%3Ccircle%20cx%3D%22107.1%22%20cy%3D%2281.1%22%20r%3D%220.9%22%20fill-opacity%3D%220.48%22/%3E%3Ccircle%20cx%3D%22105.8%22%20cy%3D%2271.2%22%20r%3D%220.5%22%20fill-opacity%3D%220.45%22/%3E%3Ccircle%20cx%3D%22111.9%22%20cy%3D%2283.8%22%20r%3D%220.9%22%20fill-opacity%3D%220.48%22/%3E%3Ccircle%20cx%3D%22117.7%22%20cy%3D%2221.6%22%20r%3D%220.5%22%20fill-opacity%3D%220.47%22/%3E%3Ccircle%20cx%3D%22110.1%22%20cy%3D%227.8%22%20r%3D%220.6%22%20fill-opacity%3D%220.52%22/%3E%3Ccircle%20cx%3D%22112.2%22%20cy%3D%2214.6%22%20r%3D%220.7%22%20fill-opacity%3D%220.75%22/%3E%3Ccircle%20cx%3D%22118.7%22%20cy%3D%2265.1%22%20r%3D%220.9%22%20fill-opacity%3D%220.61%22/%3E%3Ccircle%20cx%3D%22105.2%22%20cy%3D%225.4%22%20r%3D%220.5%22%20fill-opacity%3D%220.76%22/%3E%3Ccircle%20cx%3D%22114.2%22%20cy%3D%2294.4%22%20r%3D%220.5%22%20fill-opacity%3D%220.64%22/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20200%20100%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22t%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23000%22/%3E%3Cstop%20offset%3D%220.55%22%20stop-color%3D%22%23000%22%20stop-opacity%3D%220.85%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23000%22%20stop-opacity%3D%220%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%22100.5%22%20height%3D%22100%22/%3E%3Crect%20x%3D%22101.3%22%20y%3D%22-0.1%22%20width%3D%2210.9%22%20height%3D%222.7%22%20rx%3D%221.4%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.9%22%20y%3D%223.3%22%20width%3D%2211.7%22%20height%3D%222.8%22%20rx%3D%221.4%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.7%22%20y%3D%226.8%22%20width%3D%228.2%22%20height%3D%223.2%22%20rx%3D%221.6%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.9%22%20y%3D%229.5%22%20width%3D%223.7%22%20height%3D%223.2%22%20rx%3D%221.6%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.8%22%20y%3D%2213.9%22%20width%3D%2213.5%22%20height%3D%223.5%22%20rx%3D%221.8%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.6%22%20y%3D%2216.3%22%20width%3D%224.0%22%20height%3D%221.6%22%20rx%3D%220.8%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.6%22%20y%3D%2219.6%22%20width%3D%2210.9%22%20height%3D%222.1%22%20rx%3D%221.0%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.5%22%20y%3D%2223.3%22%20width%3D%2213.9%22%20height%3D%223.3%22%20rx%3D%221.6%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.4%22%20y%3D%2226.7%22%20width%3D%227.7%22%20height%3D%222.9%22%20rx%3D%221.5%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.2%22%20y%3D%2230.6%22%20width%3D%2215.0%22%20height%3D%223.6%22%20rx%3D%221.8%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.1%22%20y%3D%2233.1%22%20width%3D%224.2%22%20height%3D%222.1%22%20rx%3D%221.0%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.2%22%20y%3D%2237.0%22%20width%3D%229.6%22%20height%3D%222.4%22%20rx%3D%221.2%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.5%22%20y%3D%2240.5%22%20width%3D%226.6%22%20height%3D%223.3%22%20rx%3D%221.6%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.5%22%20y%3D%2243.8%22%20width%3D%229.8%22%20height%3D%222.5%22%20rx%3D%221.3%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.1%22%20y%3D%2246.2%22%20width%3D%227.6%22%20height%3D%222.9%22%20rx%3D%221.4%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.4%22%20y%3D%2249.5%22%20width%3D%2215.9%22%20height%3D%222.3%22%20rx%3D%221.1%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.7%22%20y%3D%2252.9%22%20width%3D%224.0%22%20height%3D%222.1%22%20rx%3D%221.0%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.6%22%20y%3D%2257.0%22%20width%3D%2210.6%22%20height%3D%222.0%22%20rx%3D%221.0%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.8%22%20y%3D%2259.6%22%20width%3D%2213.9%22%20height%3D%223.1%22%20rx%3D%221.5%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.9%22%20y%3D%2262.9%22%20width%3D%227.6%22%20height%3D%222.4%22%20rx%3D%221.2%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.1%22%20y%3D%2267.2%22%20width%3D%2218.0%22%20height%3D%223.2%22%20rx%3D%221.6%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.2%22%20y%3D%2269.7%22%20width%3D%2213.9%22%20height%3D%222.4%22%20rx%3D%221.2%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.9%22%20y%3D%2272.9%22%20width%3D%227.4%22%20height%3D%223.6%22%20rx%3D%221.8%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.1%22%20y%3D%2277.0%22%20width%3D%224.2%22%20height%3D%222.3%22%20rx%3D%221.1%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.0%22%20y%3D%2279.5%22%20width%3D%2213.2%22%20height%3D%222.8%22%20rx%3D%221.4%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22101.4%22%20y%3D%2283.2%22%20width%3D%2211.2%22%20height%3D%222.5%22%20rx%3D%221.3%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.9%22%20y%3D%2286.8%22%20width%3D%225.6%22%20height%3D%223.3%22%20rx%3D%221.7%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.0%22%20y%3D%2290.5%22%20width%3D%226.2%22%20height%3D%223.2%22%20rx%3D%221.6%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%2299.9%22%20y%3D%2293.6%22%20width%3D%2219.2%22%20height%3D%223.5%22%20rx%3D%221.7%22%20fill%3D%22url%28%23t%29%22/%3E%3Crect%20x%3D%22100.3%22%20y%3D%2297.1%22%20width%3D%224.8%22%20height%3D%222.8%22%20rx%3D%221.4%22%20fill%3D%22url%28%23t%29%22/%3E%3Ccircle%20cx%3D%22103.6%22%20cy%3D%2294.4%22%20r%3D%220.6%22%20fill-opacity%3D%220.67%22/%3E%3Ccircle%20cx%3D%22107.1%22%20cy%3D%2281.1%22%20r%3D%220.9%22%20fill-opacity%3D%220.48%22/%3E%3Ccircle%20cx%3D%22105.8%22%20cy%3D%2271.2%22%20r%3D%220.5%22%20fill-opacity%3D%220.45%22/%3E%3Ccircle%20cx%3D%22111.9%22%20cy%3D%2283.8%22%20r%3D%220.9%22%20fill-opacity%3D%220.48%22/%3E%3Ccircle%20cx%3D%22117.7%22%20cy%3D%2221.6%22%20r%3D%220.5%22%20fill-opacity%3D%220.47%22/%3E%3Ccircle%20cx%3D%22110.1%22%20cy%3D%227.8%22%20r%3D%220.6%22%20fill-opacity%3D%220.52%22/%3E%3Ccircle%20cx%3D%22112.2%22%20cy%3D%2214.6%22%20r%3D%220.7%22%20fill-opacity%3D%220.75%22/%3E%3Ccircle%20cx%3D%22118.7%22%20cy%3D%2265.1%22%20r%3D%220.9%22%20fill-opacity%3D%220.61%22/%3E%3Ccircle%20cx%3D%22105.2%22%20cy%3D%225.4%22%20r%3D%220.5%22%20fill-opacity%3D%220.76%22/%3E%3Ccircle%20cx%3D%22114.2%22%20cy%3D%2294.4%22%20r%3D%220.5%22%20fill-opacity%3D%220.64%22/%3E%3C/svg%3E");
+  -webkit-mask-size: 200% 100%;
+  mask-size: 200% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 100% 0;
+  mask-position: 100% 0;
+}
+[data-loader='brush'] .sb-new[data-phase='loading'] .sb-new-fill {
+  visibility: visible;
+  animation: sb-brush-in var(--swap, 2.4s) linear both;
+}
+[data-loader='brush'] .sb-new[data-phase='leaving'] .sb-new-fill {
+  visibility: visible;
+  -webkit-mask-position: 0 0;
+  mask-position: 0 0;
+  filter: url(#sb-dissolve);
+}
+@keyframes sb-brush-in {
+  /* A first touch of ink on the very first frame, then a steady stroke to the end. */
+  from {
+    -webkit-mask-position: 88% 0;
+    mask-position: 88% 0;
+  }
+  to {
+    -webkit-mask-position: 0 0;
+    mask-position: 0 0;
+  }
+}
+
+/* --- Dots, round 2 (the user's pick): "New ingredient" slides up and out, three dots rise
+       in and bob in turn; when the swap is done they hand back the same way. Transitions, so
+       a quick swap reverses cleanly from wherever it is. */
+[data-loader='bob'] .sb-new[data-busy] {
+  opacity: 1;
+}
+[data-loader='bob'] .sb-new-label {
+  transition:
+    transform 220ms cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    filter 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+[data-loader='bob'] .sb-new[data-phase='loading'] .sb-new-label {
+  transform: translateY(-10px);
+  opacity: 0;
+  filter: blur(2px);
+}
+[data-loader='bob'] .sb-new-bob {
+  display: flex;
+  gap: 5px;
+  transform: translateY(10px);
+  opacity: 0;
+  filter: blur(2px);
+  transition:
+    transform 220ms cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    filter 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+[data-loader='bob'] .sb-new[data-phase='loading'] .sb-new-bob {
+  transform: none;
+  opacity: 1;
+  filter: none;
+  transition-delay: 60ms;
+}
+[data-loader='bob'] .sb-new-bob i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+[data-loader='bob'] .sb-new[data-phase='loading'] .sb-new-bob i {
+  animation: sb-bob 0.9s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+}
+[data-loader='bob'] .sb-new[data-phase='loading'] .sb-new-bob i:nth-child(2) {
+  animation-delay: 0.12s;
+}
+[data-loader='bob'] .sb-new[data-phase='loading'] .sb-new-bob i:nth-child(3) {
+  animation-delay: 0.24s;
+}
+@keyframes sb-bob {
+  0%,
+  60%,
+  100% {
+    transform: none;
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
 /* Reduced motion: no sweeping or bouncing, just the plain dim. */
 @media (prefers-reduced-motion: reduce) {
   [data-loader] .sb-new[data-busy] {
@@ -480,5 +601,15 @@
   .sb-new-scribble,
   .sb-new-dots {
     display: none !important;
+  }
+  /* The dots still swap with the label, as a plain crossfade (no sliding). */
+  [data-loader='bob'] .sb-new[data-phase='loading'] .sb-new-label {
+    opacity: 0;
+    transform: none;
+  }
+  [data-loader='bob'] .sb-new-bob,
+  [data-loader='bob'] .sb-new[data-phase='loading'] .sb-new-bob i {
+    transform: none;
+    animation: none;
   }
 }
