@@ -15,7 +15,7 @@ import { REGISTRY, findIngredient, pickFresh, type IngredientEntry } from './ing
 import { createSubject, type Subject } from './ingredients/subject';
 import { PROPS } from './ingredients/forms/kit/checks';
 import { Painter, type PaintFrame } from './painting/painter';
-import { REVEAL_STARTS, ShuffleTransition } from './painting/transition';
+import { REVEAL_STARTS, ShuffleTransition, TRANSITION_SECONDS } from './painting/transition';
 import { createPanel } from './ui/panel';
 import { setupActions } from './ui/actions';
 import { mountStyleBar } from './ui/styleBar';
@@ -464,6 +464,7 @@ if (barRoot) {
       pane.refresh();
       onSettingsChanged('brush');
     },
+    swapSeconds: TRANSITION_SECONDS,
   });
 }
 // The drag hint stays under the card (the user, 2026-11-11: fading it after the first drag

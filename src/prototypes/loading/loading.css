@@ -1,0 +1,7 @@
+/* The loading-state prototype: the real page, with room above for the picker. */
+.proto-picker-item {
+  white-space: nowrap;
+}
+.lab .stage-area {
+  padding-top: 76px;
+}

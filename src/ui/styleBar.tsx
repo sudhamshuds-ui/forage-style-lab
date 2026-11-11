@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from 'react';
+import { StrictMode, useEffect, useState, type CSSProperties } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Menu } from '@base-ui/react/menu';
 import { PAINTERS, findPainter } from '../painters';
@@ -27,6 +27,8 @@ export interface StyleBarApi {
   painter: () => string;
   setPainterly: (on: boolean) => void;
   setPainter: (id: string) => void;
+  /** How long the Shuffle transition plays (seconds): the loading state lasts as long. */
+  swapSeconds: number;
 }
 
 /** The painters in the menu, calmest first; Sargent is today's default. */
@@ -54,8 +56,31 @@ function StyleBar({ api }: { api: StyleBarApi }) {
 
   return (
     <div className="sb">
-      <button type="button" className="sb-new" data-busy={busy || undefined} aria-busy={busy} onClick={() => !busy && api.shuffle()}>
-        New ingredient
+      {/*
+        While a swap plays, the button shows a loading state. Its layers (fill, trace, scribble,
+        dots) are hidden until one is chosen in CSS; the prototype page (prototypes/loading.html)
+        picks between them with data-loader on the page. --swap keeps them in step with the
+        transition's length.
+      */}
+      <button
+        type="button"
+        className="sb-new"
+        data-busy={busy || undefined}
+        aria-busy={busy}
+        style={{ '--swap': `${api.swapSeconds}s` } as CSSProperties}
+        onClick={() => !busy && api.shuffle()}
+      >
+        <span className="sb-new-label">New ingredient</span>
+        <span className="sb-new-fill" aria-hidden="true">
+          <span className="sb-new-label">New ingredient</span>
+        </span>
+        <span className="sb-new-trace" aria-hidden="true" />
+        <svg className="sb-new-scribble" viewBox="0 0 120 24" aria-hidden="true">
+          <path pathLength={1} d="M6 15c8-9 14-9 18-2s9 7 14-1 11-8 15 0 9 8 15 0 10-8 14 0 9 7 14-1 9-6 14 1" />
+        </svg>
+        <span className="sb-new-dots" aria-hidden="true">
+          Painting<i>.</i><i>.</i><i>.</i>
+        </span>
       </button>
       {/* Off: a round brush button. On: it turns dark and stretches into a pill, showing the
           arrow that opens the painters (the user, 2026-11-11). */}
