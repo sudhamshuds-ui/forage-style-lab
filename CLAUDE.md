@@ -34,7 +34,13 @@ keep code readable with friendly comments.
   ingredient" (Shuffle) and the brush, a split button: the brush half switches the painterly look
   (Playful strokes; off it is a round button, on it turns dark and stretches into a pill
   showing the arrow), the arrow opens the painters by name (Sargent, Monet, Degas, Cézanne,
-  Seurat, Van Gogh); picking one paints like that painter and switches the look on. No
+  Seurat, Van Gogh); picking one paints like that painter and switches the look on. While a swap plays, New
+  ingredient shows the **fill** loading state (chosen 2026-11-11; `data-loader="fill"` on
+  `<html>` in `index.html`, styles in `styleBar.css`): from the click, dark ink sweeps across the
+  pill with a slanted edge over the swap's length (`--swap`, cubic-bezier(0.77, 0, 0.175, 1)),
+  then fades back to glass with a gentle 600 ms ease-out. The other loading states (soft-edged
+  fill, brush fill with a noise dissolve, dots, outline, shimmer, scribble) stay on
+  `prototypes/loading.html`. Hover brightens the glass, the same on both controls. No
   ingredient name and no descriptions on the page. Söhne (the hint in the user's Figma) needs a
   paid web licence from Klim, so the hint and controls use Geist for now. No brand mark and no
   toast (removed 2026-11-05).
@@ -462,7 +468,11 @@ light's rainbow fringe) loads the room's colour, and room strokes pick up the co
 (wet-in-wet). A pick-up that reacted to every small change flattened the wall's slabs: keep the
 thresholds.
 
-## Where we are (2026-11-11, later)
+## Where we are (2026-11-11, evening)
+New ingredient's fill loading state is on `main` (branch `ui-loading`), with the loading-state
+prototypes. Next: the chicken drumstick.
+
+## Earlier (2026-11-11, later)
 The real page has the user's design (branch `ui-brush`, merged to `main` 2026-11-11): the
 controls on the card in Apple-style glass, the painters by name, the brush pill dark while on,
 the camera starting further back, the card 15% smaller. Next: the chicken drumstick.

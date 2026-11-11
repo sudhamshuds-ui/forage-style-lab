@@ -125,6 +125,9 @@ fade it gently 4. start the animation at the click". Fill (round 3): round 1's s
 exact easing, starting on the click; the edge a gradient broken by grain and short streaks
 (a noise filter baked into the sliding mask); a gentle 450 ms fade once black. Still (0, 30,
 50, 70, 100% and mid-fade): `img/2026-11-11-loading-round3-soft-fill.jpg`.
+Decision. User said: "its fine for the fill (round1) can u ease out the fade away from black
+back to normal and then merge it to main". The round 1 fill is the real button's loading
+state, now starting on the click, fading back to glass with a gentle 600 ms ease-out.
 
 ## The Shuffle transition
 
