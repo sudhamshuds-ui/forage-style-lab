@@ -120,6 +120,8 @@ class FormSubject implements Subject {
   private readonly palette: Palette;
   /** Each piece's material and its family colours, before the light softens them. */
   private readonly painted: { material: ShaderMaterial; palette: Palette }[] = [];
+  /** Pieces left out in Playful strokes (the registry's playfulHide). */
+  private readonly playfulHidden: Mesh[] = [];
 
   constructor(
     readonly entry: IngredientEntry,
@@ -203,6 +205,7 @@ class FormSubject implements Subject {
         else if (piece.geometry.getAttribute('uv')) setSkin(material, LEAF_SKIN);
         const mesh = new Mesh(piece.geometry, material);
         mesh.name = piece.role;
+        if (entry.playfulHide?.includes(piece.role)) this.playfulHidden.push(mesh);
         mesh.castShadow = true;
         // Catch shadows too: sepals on their berry, berries on each other.
         mesh.receiveShadow = true;
@@ -277,6 +280,7 @@ class FormSubject implements Subject {
 
   update(settings: Settings): boolean {
     for (const { material, palette } of this.painted) setPalette(material, softenPalette(palette, settings.light.strength));
+    for (const mesh of this.playfulHidden) mesh.visible = !settings.brush.classic;
     return false;
   }
 

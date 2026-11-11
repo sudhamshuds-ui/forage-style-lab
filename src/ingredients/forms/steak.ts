@@ -56,16 +56,29 @@ export const buildSteak: FormBuilder = ({ state, seed }) => {
     const angle = Math.atan2(qz, qx);
     let r = 1;
     for (const l of lumps) r += l.a * Math.sin(l.k * angle + l.phase);
-    const n = 2.6;
+    // More form round the eye (the user, 2026-11-11: seen from above its far end was a straight
+    // line): soft bulges at the far end's two corners (the ribeye's cap curving round), and a
+    // gentle dip along the near side, so the outline swells and turns like a real ribeye.
+    r += 0.12 * Math.exp((Math.cos(angle - (Math.PI + 0.55)) - 1) / 0.35);
+    r += 0.08 * Math.exp((Math.cos(angle - (Math.PI - 0.75)) - 1) / 0.25);
+    r -= 0.06 * Math.exp((Math.cos(angle - 1.75) - 1) / 0.1);
+    // And a broad, soft swell along the back (the fat cap side), so it never runs straight.
+    r += 0.07 * Math.exp((Math.cos(angle + Math.PI / 2 + 0.2) - 1) / 0.5);
+    // Round, never a rounded square (2.6 drew straight sides).
+    const n = 2.0;
     const eye = ((Math.abs(qx) ** n + Math.abs(qz) ** n) ** (1 / n) - r) * Math.min(EYE.halfX, EYE.halfZ);
     // The neck: a tapering strip from inside the eye out along the bone (+x), toward the back.
     const t = Math.max(0, Math.min(1, (x - 2) / (NECK_END - 2)));
-    const centreZ = -1.8 - 0.8 * t;
-    const half = 4.8 * (1 - t) ** 1.3 + 1.5 * t;
+    // Its back edge sits a little inside the eye's (lined up, the two made one long straight
+    // edge from the eye's far corner to the bone, the user 2026-11-11), so the eye swells past it.
+    const centreZ = -1.2 - 1.4 * t;
+    const half = 4.0 * (1 - t) ** 1.3 + 1.5 * t;
     const along = Math.max(2 - x, x - NECK_END, 0);
     const across = Math.abs(z - centreZ) - half;
     const neck = Math.hypot(along, Math.max(across, 0)) + Math.min(Math.max(across, -along), 0);
-    return smoothMin(eye, neck, 2.0);
+    // A narrower waist where the eye meets the neck (a wider blend made a straight line from the
+    // eye's far corner to the neck).
+    return smoothMin(eye, neck, 1.2);
   };
 
   /** The top's height (cm): a gently domed eye, the neck thinning toward the bone. */

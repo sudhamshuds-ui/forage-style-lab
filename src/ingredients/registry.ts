@@ -102,6 +102,12 @@ export interface IngredientEntry {
    * spots per place it rests, never a row along the whole length.
    */
   contactsFromFeet?: boolean;
+  /**
+   * Pieces left out in Playful strokes (the strokes pass repaints small dark parts as hard blocks
+   * that read as errors: the watermelon's seeds, the user 2026-11-11). They still show in the
+   * soft look.
+   */
+  playfulHide?: string[];
 }
 
 export const REGISTRY: IngredientEntry[] = [
@@ -353,6 +359,8 @@ export const REGISTRY: IngredientEntry[] = [
     matte: true,
     // No rim glints: they drew a salmon line along the edge just inside the rind.
     rimGlints: false,
+    // The seeds only in the soft look: the strokes turned them into black blocks (the user).
+    playfulHide: ['seeds'],
     // Two finely meshed slabs (so their edges stay smooth), their shells and seeds.
     budget: [2000, 30000],
   },
