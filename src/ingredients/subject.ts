@@ -179,6 +179,8 @@ class FormSubject implements Subject {
           }
           // A marbled steak: the marbling is painted in the fat's colour.
           if (entry.skin.kind === 'marbled') (material.uniforms.uMelonPale.value as Color).set(FAMILIES.fat.colours.lit);
+          // A red onion: its papery flakes, root patch and dry neck are painted in the papery tan.
+          if (entry.skin.kind === 'onion') (material.uniforms.uMelonPale.value as Color).set(FAMILIES.papery.colours.base);
           // Raw chicken: the pink meat (showing through, and bare on the shank) and the yellow fat.
           if (entry.skin.kind === 'poultry') {
             (material.uniforms.uMelonPale.value as Color).set(POULTRY_MEAT);

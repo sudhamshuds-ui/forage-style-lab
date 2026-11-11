@@ -34,9 +34,10 @@ export interface RoundOptions {
   random: () => number;
   /**
    * Optional soft pits at the poles (cm deep, cm wide). `ends` picks which:
-   * both (an orange), or only the end pole (a strawberry's calyx end, not its tip).
+   * both (an orange), only the end pole (a strawberry's calyx end, not its tip), or only the
+   * start pole (an onion's root end, not its neck).
    */
-  poleDimple?: { depth: number; width: number; ends?: 'both' | 'end' };
+  poleDimple?: { depth: number; width: number; ends?: 'both' | 'end' | 'start' };
   /** How much (cm) of the underside is gently flattened where it rests. */
   flatBase: number;
   /**
@@ -83,7 +84,8 @@ export function roundBody(options: RoundOptions): BufferGeometry {
       p.y += bendUp * bend;
       p.z += bendSide * bend;
       // Pole dimples: pull the points around each pole in toward the middle.
-      if (options.poleDimple && (options.poleDimple.ends !== 'end' || u > 0)) {
+      const ends = options.poleDimple?.ends ?? 'both';
+      if (options.poleDimple && (ends === 'both' || (ends === 'end' && u > 0) || (ends === 'start' && u < 0))) {
         const r = Math.hypot(p.y, p.z);
         const pit = options.poleDimple.depth * Math.exp(-((r / options.poleDimple.width) ** 2));
         p.x -= Math.sign(u) * pit;

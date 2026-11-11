@@ -25,6 +25,8 @@ export type FamilyId =
   | 'cream-crust'
   | 'pink-raw'
   | 'poultry'
+  | 'onion'
+  | 'papery'
   | 'fat'
   | 'beef'
   | 'bone'
@@ -236,6 +238,20 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Poultry',
     colours: { lit: '#fde5d6', base: '#f2bca3', shadow: '#ad6676', glow: '#f49a7c', highlight: '#fff6ef' },
     rooms: ['thistle', 'seafoam'],
+  },
+  // Not on board 04 yet (added 2026-11-11, round 2: the red onion): a red-violet, pink-lilac in
+  // the light, deep magenta-plum in shadow, never grey. Celadon (soft green) sits opposite.
+  onion: {
+    name: 'Onion',
+    colours: { lit: '#d996b4', base: '#943b6b', shadow: '#4f2050', glow: '#c24a7f', highlight: '#f4e2ea' },
+    rooms: ['celadon', 'sage-morning'],
+  },
+  // Not a board 04 family: only for parts (an onion's dry, papery neck tip and outer skin; later
+  // garlic). A pale tan with a rosy shadow, never grey or brown-grey.
+  papery: {
+    name: 'Papery',
+    colours: { lit: '#f4dfc6', base: '#dcb895', shadow: '#9c7268', glow: '#ebbd8e', highlight: '#fff5e8' },
+    rooms: [],
   },
   'pink-raw': {
     name: 'Pink and raw',

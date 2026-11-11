@@ -10,6 +10,7 @@ import { buildButter } from './forms/butter';
 import { buildWatermelon } from './forms/watermelon';
 import { buildSteak } from './forms/steak';
 import { buildChicken } from './forms/chicken';
+import { buildOnion } from './forms/onion';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
@@ -428,6 +429,34 @@ export const REGISTRY: IngredientEntry[] = [
     contactsFromFeet: true,
     // A finely meshed bulb (its groove and lumps) and a knuckle of two small knobs.
     budget: [2000, 18000],
+  },
+  {
+    spec: {
+      id: 'onion',
+      name: 'Red onion',
+      archetype: 'round',
+      family: 'onion',
+      layout: 'solo',
+      show: 'One whole red onion standing on its root end, its dry papery neck tip leaning to one side.',
+      forms: ['whole', 'half', 'rings', 'diced'],
+      scale: 'M',
+      size_cm: [8, 10.2, 8],
+      // `tip` is the dry papery neck tip (two or three twisted ribbons).
+      parts: ['bulb:glow', 'tip@papery'],
+      notes:
+        'Round 2. A squat, lopsided bulb, widest a little above the middle, standing on a soft root pit; concave shoulders sweeping up into a narrow neck; a dry, twisted, papery tip leaning to one side. Fine pale veins from root to neck, papery flakes, the root patch and the neck drying toward its tip are a shader texture (the onion skin), never geometry.',
+    },
+    form: buildOnion,
+    turn: 20,
+    skin: { kind: 'onion', size_mm: 2, amount: 0.85 },
+    // A quiet, satin sheen: the full one lit pale, flat patches on the bulb.
+    matte: true,
+    // A deep colour: about half the shadow's violet and pink patches (they sit close to its hue).
+    shadowTint: 0.5,
+    // No rim glints: the slim neck facing the light would catch a hard bar (sauce, steak).
+    rimGlints: false,
+    // A finely turned bulb (its veins follow the mesh) and three small ribbons.
+    budget: [2000, 12000],
   },
 ];
 

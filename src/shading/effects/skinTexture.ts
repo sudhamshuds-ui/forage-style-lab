@@ -33,6 +33,10 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  *    a few soft creases near its edge, and where the skin is pulled back, rosy meat with fine
  *    fibres and pale tendons. The skin fades into the meat over a wide, wandering band, never a
  *    crisp line. From the piece's map (x: cm along, y: cm inside the skin's edge).
+ *  - onion (red onion): fine, wandering pale veins from root to neck and a few darker ones,
+ *    papery flakes where the dry outer skin catches the light, a tan root patch, the neck drying
+ *    to papery tan toward its tip, a faint glow in the darker purples. From the bulb's map
+ *    (x: height as a share of the onion, 0 at the root).
  *  - knuckle (a bone's end, set automatically for a piece named `knuckle`): see KNUCKLE_SKIN.
  *  - leaf (sepals and leaves, set automatically): deeper at the stalk and
  *    lighter toward the tip, a pale centre vein, faint side veins, a slight
@@ -47,7 +51,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -548,6 +552,62 @@ if (kind > 0 && amount > 0.0) {
     // Fine pores in the bone, in its own shade.
     float pore = 1.0 - smoothstep(0.05, 0.12, skinCells(p));
     lab = shadeOwn(lab, pore * 0.25 * show * (1.0 - cap));
+  } else if (kind == 15) {
+    // Onion (red onion). Its map: x is the height as a share of the onion (0 root, 1 neck top).
+    // The veins run round the axis by angle, the axis being the onion's up direction.
+    vec2 q = vSurfaceUv;
+    vec3 cm = objectPos * 3.8169;
+    float shadeStep = lab.x - linearToOklab(uBaseColour).x;
+    vec3 papery = linearToOklab(uMelonPale);
+    papery.x += shadeStep * 0.75;
+    // 1. A faint glow in the darker purples (the skin is a little see-through).
+    float inside = (1.0 - tone) * amount;
+    lab = mix(lab, linearToOklab(uGlowColour), inside * 0.25);
+    // 2. Bands from root to neck, like the onion's layers showing through: broad, soft stripes
+    //    of lighter dusty rose and deeper plum, of uneven width, wandering gently, plus a few
+    //    finer pale streaks. They fade toward the poles (where they gather), so they never bunch
+    //    into a star. Soft edges throughout, never crisp lines.
+    float angle = atan(objectPos.z, objectPos.x);
+    float wander = (fbm3(cm * 0.5 + 2.0) - 0.5) * 0.9;
+    float veinAway = smoothstep(0.04, 0.22, q.x) * (1.0 - smoothstep(0.7, 0.86, q.x));
+    float broad = sin(angle * 9.0 + wander * 2.0) * 0.6 + sin(angle * 5.0 + 2.3 + wander * 1.5) * 0.4;
+    float light = smoothstep(0.1, 0.8, broad);
+    float deep = smoothstep(0.15, 0.85, -broad);
+    vec3 roseLab = lab;
+    roseLab.x += 0.06;
+    roseLab.yz *= 0.8;
+    lab = mix(lab, roseLab, light * veinAway * 0.6 * show);
+    lab = shadeOwn(lab, deep * veinAway * 0.35 * show);
+    float streak = 1.0 - smoothstep(0.0, 0.22, abs(sin(angle * 21.0 + 1.3 + wander * 2.5)));
+    streak *= smoothstep(0.4, 0.7, valueNoise3(cm * 0.6 + 7.0));
+    vec3 streakLab = lab;
+    streakLab.x += 0.05;
+    streakLab.yz *= 0.75;
+    lab = mix(lab, streakLab, streak * veinAway * 0.5 * show);
+    // 3. Papery flakes: a few broad patches where the dry outer skin lifts and catches the
+    //    light, pale tan-pink with a soft, wandering edge (more of them near the root and the
+    //    shoulders, where onions shed most).
+    float flakeWhere = 0.6 + 0.4 * (1.0 - smoothstep(0.1, 0.35, q.x)) + 0.3 * smoothstep(0.55, 0.75, q.x);
+    float flake = smoothstep(0.58, 0.8, fbm3(cm * 0.45 + 13.0) * flakeWhere + 0.12);
+    vec3 flakeLab = mix(lab, papery, 0.55);
+    flakeLab.x += 0.02;
+    lab = mix(lab, flakeLab, flake * 0.8 * amount);
+    highlightOwn = max(highlightOwn, flake * 0.7);
+    // 4. The root patch: the trimmed root end, tan and papery, fading softly into the purple.
+    float root = 1.0 - smoothstep(0.02, 0.09, q.x + (valueNoise3(cm * 2.0) - 0.5) * 0.03);
+    lab = mix(lab, shadeOwn(papery, 0.25), root * 0.85 * amount);
+    // 5. The neck dries toward its tip: purple, then rosy tan, then the papery tip's own colour,
+    //    so the neck and the tip meet in the same colour (never a crisp ring).
+    float dry = smoothstep(0.82, 0.97, q.x + (valueNoise3(cm * 1.5 + 4.0) - 0.5) * 0.04);
+    lab = mix(lab, papery, dry * amount);
+    // 6. The shared chalky dry-brush texture, along the veins (one hand paints every card).
+    float paperGrain = valueNoise3(objectPos * 90.0);
+    float scratch = valueNoise3(vec3(angle * 18.0, q.x * 3.0, 1.0)) * valueNoise3(vec3(angle * 6.0, q.x * 9.0, 5.0));
+    float chalkAmt = smoothstep(0.3, 0.55, scratch) * smoothstep(0.35, 0.65, paperGrain);
+    vec3 chalk = lab;
+    chalk.x += 0.05;
+    chalk.yz *= 0.85;
+    lab = mix(lab, chalk, chalkAmt * 0.35 * show);
   }
   colour = max(oklabToLinear(lab), 0.0);
 }
