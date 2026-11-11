@@ -584,6 +584,53 @@
   }
 }
 
+/* --- Fill, round 3 (the user's pick, 2026-11-11: "the first fill version, it was almost
+       perfect"): round 1's sweep and its exact easing, now starting on the click itself, with a
+       soft edge (a gradient broken by grain and short streaks, like the watermelon's chalky
+       texture, baked into the mask with a noise filter), and once the pill is black it fades
+       away gently. */
+[data-loader='soft'] .sb-new[data-phase='loading'],
+[data-loader='soft'] .sb-new[data-phase='leaving'] {
+  opacity: 1;
+}
+[data-loader='soft'] .sb-new-fill {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(31, 30, 28, 0.92);
+  color: #fff;
+  opacity: 0;
+  /* One mask, twice the pill's width: solid, then the grainy fade, then clear. Sliding it
+     from right to left paints the pill in; at rest it shows only the solid part. */
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20300%2038%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20x2%3D%22300%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220.5%22%20stop-color%3D%22%23000%22/%3E%3Cstop%20offset%3D%220.67%22%20stop-color%3D%22%23000%22%20stop-opacity%3D%220%22/%3E%3C/linearGradient%3E%3Cfilter%20id%3D%22n%22%20x%3D%220%22%20y%3D%220%22%20width%3D%221%22%20height%3D%221%22%20color-interpolation-filters%3D%22sRGB%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.06%200.42%22%20numOctaves%3D%224%22%20seed%3D%225%22%20result%3D%22t%22/%3E%3CfeColorMatrix%20in%3D%22t%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200%200%20%201.2%200%200%200%20-0.1%22%20result%3D%22na%22/%3E%3CfeComposite%20in%3D%22SourceAlpha%22%20in2%3D%22na%22%20operator%3D%22arithmetic%22%20k1%3D%220%22%20k2%3D%221.7%22%20k3%3D%220.9%22%20k4%3D%22-0.8%22/%3E%3C/filter%3E%3C/defs%3E%3Crect%20width%3D%22300%22%20height%3D%2238%22%20fill%3D%22url%28%23g%29%22%20filter%3D%22url%28%23n%29%22/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20300%2038%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20x2%3D%22300%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220.5%22%20stop-color%3D%22%23000%22/%3E%3Cstop%20offset%3D%220.67%22%20stop-color%3D%22%23000%22%20stop-opacity%3D%220%22/%3E%3C/linearGradient%3E%3Cfilter%20id%3D%22n%22%20x%3D%220%22%20y%3D%220%22%20width%3D%221%22%20height%3D%221%22%20color-interpolation-filters%3D%22sRGB%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.06%200.42%22%20numOctaves%3D%224%22%20seed%3D%225%22%20result%3D%22t%22/%3E%3CfeColorMatrix%20in%3D%22t%22%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200%200%20%201.2%200%200%200%20-0.1%22%20result%3D%22na%22/%3E%3CfeComposite%20in%3D%22SourceAlpha%22%20in2%3D%22na%22%20operator%3D%22arithmetic%22%20k1%3D%220%22%20k2%3D%221.7%22%20k3%3D%220.9%22%20k4%3D%22-0.8%22/%3E%3C/filter%3E%3C/defs%3E%3Crect%20width%3D%22300%22%20height%3D%2238%22%20fill%3D%22url%28%23g%29%22%20filter%3D%22url%28%23n%29%22/%3E%3C/svg%3E");
+  -webkit-mask-size: 200% 100%;
+  mask-size: 200% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 0 0;
+  mask-position: 0 0;
+  /* The gentle fade once the swap is done. */
+  transition: opacity 450ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+[data-loader='soft'] .sb-new[data-phase='loading'] .sb-new-fill {
+  opacity: 1;
+  transition: none;
+  animation: sb-soft-fill var(--swap, 2.4s) cubic-bezier(0.77, 0, 0.175, 1) both;
+}
+@keyframes sb-soft-fill {
+  from {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+  to {
+    -webkit-mask-position: 0 0;
+    mask-position: 0 0;
+  }
+}
+
 /* Reduced motion: no sweeping or bouncing, just the plain dim. */
 @media (prefers-reduced-motion: reduce) {
   [data-loader] .sb-new[data-busy] {

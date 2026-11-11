@@ -118,6 +118,13 @@ The first bristle edge read as a barcode: thinner, feathered bristles fixed it. 
 label slides up and out as three dots rise in and bob, and back again after. Also from the
 user: "the hover for brush icon and new ingredient are different, keep them consistent...glass
 brightens up?": both now brighten the glass. Still: `img/2026-11-11-loading-round2.jpg`.
+Round 3. User said: "lets work on the first fill version, it was almost perfect. 1. the easing
+is perfect dont change it 2. instead of a hard fill edge, make it a faded gradient near the
+edge and add some noise, similar to the noise u added to watermelon 3. after its fully black
+fade it gently 4. start the animation at the click". Fill (round 3): round 1's sweep with its
+exact easing, starting on the click; the edge a gradient broken by grain and short streaks
+(a noise filter baked into the sliding mask); a gentle 450 ms fade once black. Still (0, 30,
+50, 70, 100% and mid-fade): `img/2026-11-11-loading-round3-soft-fill.jpg`.
 
 ## The Shuffle transition
 

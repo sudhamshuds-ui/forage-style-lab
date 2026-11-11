@@ -4,12 +4,13 @@ import './loading.css';
 
 /**
  * Loading states for New ingredient (2026-11-11). The real page runs as it is; the picker
- * sets data-loader on <html>, which styleBar.css reads. Keys 1 to 7 and the arrows switch,
+ * sets data-loader on <html>, which styleBar.css reads. Keys 1 to 8 and the arrows switch,
  * R (or the replay button) shuffles again so the loading state plays; ?v=2 is kept.
  */
 
-// Round 2 first (the user's picks: brush fill and dots), then round 1, kept for the record.
-const LOADERS = ['brush', 'bob', 'fill', 'trace', 'shimmer', 'scribble', 'dots'];
+// Round 3 first (the soft-edged fill), then round 2 (brush fill, dots), then round 1, kept
+// for the record.
+const LOADERS = ['soft', 'brush', 'bob', 'fill', 'trace', 'shimmer', 'scribble', 'dots'];
 
 const picker = document.querySelector('.proto-picker') as HTMLElement;
 const highlight = picker.querySelector('.proto-picker-highlight') as HTMLElement;
