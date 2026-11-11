@@ -462,8 +462,9 @@ light's rainbow fringe) loads the room's colour, and room strokes pick up the co
 thresholds.
 
 ## Where we are (2026-11-11, later)
-The real page now has the user's design (branch `ui-brush`): the controls on the card, the
-painters by name, the camera starting further back. Not merged to `main` until the user says so.
+The real page has the user's design (branch `ui-brush`, merged to `main` 2026-11-11): the
+controls on the card in Apple-style glass, the painters by name, the brush pill dark while on,
+the camera starting further back, the card 15% smaller. Next: the chicken drumstick.
 
 ## Earlier on 2026-11-11
 The UI and transition prototypes (branch `ui-variants`, merged 2026-11-11): React is set up for
