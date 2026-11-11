@@ -30,6 +30,9 @@ feedback in a cloud session (recorded in those notes, not in the user's own word
   Claude's note: the slices went from 3 to 4 cm thick.
 - **Seeds: few, irregular, never a face** (watermelon).
   Claude's note: two or three a face, glossy beads half sunk in, never two above one.
+- **Decision: the seeds only in the soft look** (watermelon).
+  User said: "is it possible to not have the seeds in the water melon show up during paint mode? these black spots look like artifacts errors" (2026-11-11).
+  Ended on: Playful strokes repaints the small dark beads as hard black blocks, so the seeds are left out in that look (the registry's `playfulHide: ['seeds']`; remove it to bring them back). The soft look keeps them.
 - **Decision: no separate rind shell** (watermelon).
   Claude's note: its edge read as a hard ledge on the faces; the flesh's gradient runs on into the dark rind (`WITH_SHELL` in `forms/watermelon.ts` brings it back).
 

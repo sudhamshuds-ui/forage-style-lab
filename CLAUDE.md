@@ -116,6 +116,11 @@ keep code readable with friendly comments.
   The light is **soft** for every ingredient: the hidden Light strength (55) pulls each
   palette's lit and shadow colours toward its base (`softenPalette`, OKLab), with a wider
   turn into shadow and more fill, so the lit side never bleaches toward white.
+- **The bar for every ingredient** (the user, 2026-11-11, after the drumstick was approved on its
+  first round): get it right the first time, avoid the same mistakes, follow the guidelines, form,
+  colours, textures and shadows right, no glitching, artifacts, evident hard edges or unblended
+  regions, ample detail, consistent with the others. Written out with the working method in the
+  guide's "The bar" (`docs/ingredients/forage-ingredient/SKILL.md`); read it before every ingredient.
 - **Ingredients** follow the Figma "Ingredient guidelines" (file 537QrQ0QsVjcT4u3st7M20,
   node 60:2, boards 00 to 10; 07 and 09 matter most) and the skill
   `docs/ingredients/forage-ingredient/SKILL.md`. Each one is built **in code** at its **real
@@ -419,19 +424,27 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
 - **Watermelon**: two wedges built in the form (one lying on a cut side, one standing), 4 cm
   thick, the `melon` skin's soft flesh-to-rind gradient with stripes, translucency and a chalky
   texture, seed beads, the separate rind shell switched off (`WITH_SHELL`), matte, no rim glints,
-  shadowTint 0.3, 30k budget. See `lessons/watermelon.md`.
+  shadowTint 0.3, 30k budget. The seeds are left out in Playful strokes (`playfulHide`; the
+  strokes made them black blocks, the user 2026-11-11). See `lessons/watermelon.md`.
 
 - **Steak**: a tomahawk (the user's references; board 08's card said a raw slab): a ribeye eye and
   meaty neck (surface nets), a long curved rib bone (`bone@bone`, a sweep) with the meat wrapping
   up round it in a short sleeve, its knob resting on the table; the fat rim, organic seams with
   pockets and marbling painted softly by the `marbled` skin (kind 12, no fat piece) in the `fat`
   colour; `beef` family, 37 x 5.2 x 14 cm, turn 25, shadowTint 0.3, no rim glints, 24k budget.
-  The shapes-first marbling was tried and rejected (it is in history, commit edb98e7). See
+  The shapes-first marbling was tried and rejected (it is in history, commit edb98e7). The eye
+  is round with soft swells, never a straight edge from above (the user, 2026-11-11). See
   `lessons/steak.md`.
+- **Chicken**: one raw drumstick (approved on its first round, 2026-11-11): a distance field
+  along an axis (lopsided bulb, muscle seam, concave taper, tendon ridges, skin folds) and a
+  `knuckle@bone` piece, tipped so the bulb settles flat (`SINK`) and the knuckle rests; the
+  `poultry` family (off-board) and skin (kind 13), the `knuckle` skin (kind 14), turn -30,
+  shadowTint 0.35, no rim glints, `contactsFromFeet`, 18k budget. See `lessons/chicken.md`.
 
 Shared mechanisms added along the way (code hooks other ingredients reuse):
 - Registry look settings: `turn`, `skin`, `matte`, `rimGlints` (via `FrameContext.rimGlints`),
-  `shadowTint` (via `FrameContext.shadowTint`), `budget`, `stemEnds`.
+  `shadowTint` (via `FrameContext.shadowTint`), `budget`, `stemEnds`, `contactsFromFeet`,
+  `playfulHide`.
 - Kit: `vessel.ts` (`revolve`, `roundedSquare`, `ribs`, `wrapSheet` with `mapped`), `wedge.ts`
   (`wedgeDistance`, `roundedIntersection`), `block.ts` (`blockSides`, `paperSheet`, `fold`,
   `crease`), `relaxOnSurface`, `liftRegion` (a skin lifted off a body, with `keepNormals`).
@@ -445,7 +458,7 @@ Shared mechanisms added along the way (code hooks other ingredients reuse):
   12); the material knows the camera in its own space (`vObjectCamera`). `patch` is a reserved
   word in GLSL.
 - Form tests: "faces point outward" asks 85% for wedges (hole insides rightly face inward).
-Next, one at a time with feedback: the chicken drumstick (whole forms only; cut forms later).
+Next, one at a time with feedback: the next ingredient (whole forms only; cut forms later).
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after
@@ -475,20 +488,12 @@ light's rainbow fringe) loads the room's colour, and room strokes pick up the co
 thresholds.
 
 ## Where we are (2026-11-11, night)
-The chicken drumstick, round 1 (branch `chicken`, not merged): `forms/chicken.ts` (a distance
-field meshed with surface nets: lopsided bulb with a spiralling muscle seam, concave taper, a
-slim shank with soft tendon ridges, the bone and a two-knob knuckle as a second piece), tipped so
-the bulb settles on the table (`SINK`) and the knuckle rests on it; the `poultry` family
-(off-board, far paler than Pink and raw); the `poultry` skin (kind 13: follicles in loose tracts,
-fat and meat showing through, creases by the skin's edge, the bare shank's meat and tendons, all
-from a map, the skin fading into the meat over a wide band) and the `knuckle` skin (kind 14:
-cartilage cap, pink blush); `contactsFromFeet` (registry) puts contact spots only under the
-places that touch. Two shared fixes found on it: the glaze no longer reads the outline's half
-object, half table pixels as cast shadow (a dashed bluish line round pale ingredients, the butter
-too), and the floor has no normal bias (light leaked in as a pale sliver where a body meets the
-table; a tiny `FLOOR_BIAS`, more made the butter paper's scribbles worse). For later (the user):
-the steak's eye has a straight top edge seen from above (give it more form); the watermelon's
-seeds read as black blocks in Playful strokes.
+The chicken drumstick is approved (branch `chicken`, with `steak-melon` merged into it; see the
+Chicken line under "Done so far"). On `steak-melon`: the steak's rounder eye and the watermelon
+seeds left out of Playful strokes. Two shared fixes came with the drumstick: outline pixels are no
+longer read as cast shadow (`shadowMaskAt`, a dashed line round pale ingredients) and the floor has
+no normal bias plus a hair of `FLOOR_BIAS` (a pale sliver at the contact; more bias made the butter
+paper's scribbles worse). Open question from the user: most ingredients sit in a pale teal room.
 
 ## Earlier (2026-11-11, evening)
 New ingredient's fill loading state is on `main` (branch `ui-loading`), with the loading-state

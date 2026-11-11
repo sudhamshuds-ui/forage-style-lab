@@ -45,6 +45,11 @@ references and their notes in a cloud session on 2026-11-10.
 - **A layer sits only where the real thing has it** (steak).
   User said: "i think the fat just wraps wierd".
   Ended on: on the side walls the fat shows only along the back edge (the fat cap); the top keeps a soft rim round the eye. Wrapped all round, it made a pink stripe along the front.
+- **No straight runs in an organic outline** (steak).
+  First try: the eye as a rounded square, the neck's back edge lined up with the eye's.
+  User said: "its flat on top like a horizontal line...maybe we can improve that later, add a bit more form to it", then "the meat needs the fix as well that i mentioned earlier" (2026-11-11).
+  Ended on: a round eye with soft swells at its far corners and along the back, a gentle dip on the near side, and the neck tucked in behind it so the eye swells past it.
+  Why: two edges that line up read as one ruler-straight line; a cut of meat never has one.
 - **A flat ingredient tilts its top toward the low camera** (steak).
   Claude's note: from the card's low view a flat steak read as a thin disc; it is thicker at the back than the front, so the cut face shows.
 

@@ -11,6 +11,40 @@ Source of truth for the art direction: the Figma page "Ingredient guidelines" in
 
 The person you work with is a motion and visual designer who is new to code. Explain each step simply, with design analogies. Never use em dashes in any copy you write.
 
+## The bar (the user's brief, for every ingredient)
+
+The user's words for the chicken drumstick, approved on its first round ("drumstick is perfect"),
+and asked to be remembered every time: "Please lets try to get it right this time. avoid making
+the same mistakes. follow the guidelines and the get the form, colours, textures, shadows right
+without glitching, artifacts, evident hard edges or not blended regions. make sure it has ample
+amount of detail as well, and is consistent in style with the rest of the ingredients."
+
+Every new ingredient is held to all of it before the user sees it:
+
+1. **Get it right the first time**: read this whole guide, the lessons records of the ingredients
+   closest to it (same archetype, family or material) and the board 08 card before writing code.
+2. **Avoid the same mistakes**: go through "Recurring errors" and the pre-check list, and design
+   them out up front (no rim glints on narrow tubes, flush contacts, contact spots only where it
+   touches, no crisp lines inside, a quick build).
+3. **Follow the guidelines**: the split, the style rules, the families, real size, the framing.
+4. **Form, colours, textures, shadows**, each right on its own: a believable, aesthetic form; the
+   ingredient's own colours (a new family if the board's is wrong for it); its own skin texture;
+   shadows that shift hue and sit flush.
+5. **No glitching or artifacts**: no spikes, flicker, dashed lines, slivers, seams or halos, from
+   any side, in both looks (the soft look and Playful strokes).
+6. **No evident hard edges, no unblended regions**: every change of colour inside the ingredient
+   fades over a soft, wandering band; parts that meet (meat and bone) meet in similar colours.
+7. **Ample detail**: the signature features in the form (seams, lobes, folds, ridges, knobs, all
+   gentle) and a rich painted surface (texture in loose patches, what shows through, blotches,
+   the shared chalky texture), never a plain smooth blob.
+8. **Consistent in style** with the other ingredients: compare it beside one or two of them in
+   the same view before showing it.
+
+How the drumstick met it (the working method): read first, build, then look from the starting
+view, eight sides, above and low down, in both looks, zoomed in on the outline and on every
+contact; fix what shows, including shared bugs (fix them for every ingredient, then compare every
+ingredient before and after so nothing else moves); run the tests; only then show the user.
+
 ## The split (most important rule)
 
 - **Code builds the form.** Smooth, clean, real-size pieces, written as TypeScript that builds Three.js geometry. No colours, textures, lights or cameras.
@@ -80,6 +114,7 @@ The live values are in `src/ingredients/families.ts` (the source of truth; this 
 | butter | #fff7d2 | #f6e092 | #d4b08f | #ffcf66 | #fffdf2 | Heather, Seafoam | butter (off-board; board 08 says Yellow, kept apart from the cheese) |
 | melon | #ff8f74 | #e4473d | #962f45 | #ff6e4f | #ffe6dc | Seafoam, Sage morning | watermelon flesh (off-board; board 08 says Red, the apple's red is a skin) |
 | beef | #ee7a6e | #bd3540 | #741f3c | #e64a43 | #fbe0dc | Seafoam, Sage morning | steak (off-board; deeper than Pink and raw) |
+| poultry | #fde5d6 | #f2bca3 | #ad6676 | #f49a7c | #fff6ef | Seafoam, Sage morning | chicken (off-board; board 08 says Pink and raw, a deep salmon; raw skin is far paler) |
 | pink-raw | #f6a493 | #d4544f | #8c3150 | #ff7a66 | #fbe4dc | Seafoam, Sage morning | |
 
 **Part-only families** (never a whole ingredient, no rooms; a part names one with `@`, e.g. `stem@stalk`):
@@ -110,7 +145,7 @@ Forms are built from a shared kit in `src/ingredients/forms/kit/`. Create a kit 
 |---|---|---|---|---|
 | round | apple, lemon, orange, (loaf) | `lathe.ts` (a profile spun round an axis), `round.ts` (lopsided, flat base, lying or upright), `stemLeaf.ts` (stem, calyx, leaf) | solo or whole-and-cut | 2k to 6k |
 | small | strawberry | one master form, seeded variants, `layout.ts` arranges cluster-2 and cluster-3 | cluster-3 | 1k to 3k each |
-| long | baguette | `sweep.ts` (a tube along a curve, optional ribbed section) | solo, on a diagonal | 2k to 5k (baguette has its own 9k) |
+| long | baguette, chicken | `sweep.ts` (a tube along a curve, optional ribbed section); for a drumstick, a distance field built along an axis (a radius profile with a smooth fillet, a shaped cross-section) meshed with `surfaceNets` and `relaxOnSurface`, the bone and knuckle a second piece, then tipped until both ends rest on the table | solo, on a diagonal | 2k to 5k (baguette has its own 9k, chicken 18k) |
 | branching | broccoli | `crown.ts` (blobs blended as a distance field), `surfaceNets.ts` (distance field to clean mesh), `sweep.ts` for stalks | solo | 6k to 18k (raised from 12k for a bumpier crown) |
 | wedge | cheese, watermelon | `wedge.ts` (a slice of a wheel as a distance field, `roundedIntersection` for bevelled edges), meshed with `surfaceNets`, smoothed with `relaxOnSurface`, rind lifted off with `liftRegion` | solo | 2k to 5k (cheese has its own 10k) |
 | contained | hot sauce | `vessel.ts`: `revolve` (a profile spun standing up, with a `roundedSquare` or `ribs` cross-section), `wrapSheet` (a sheet hugging a vessel: labels, rectangles or ovals, `mapped` for printed artwork) | solo | vessel + 1k (sauce has its own 16k) |
@@ -136,12 +171,14 @@ Only add a ninth archetype when three or more ingredients need it.
 Each registry entry can also carry, beside the spec and builder:
 
 - `turn`: degrees on stage, measured from the camera (0 shows the form's front, +Z).
-- `skin`: the peel texture the shader paints (`pebbled`, `pores`, `streaks`, `seeds`, `florets`, `crust`, `melon`, `marbled`; `crumb`, `leaf`, `label` and `melonRind` are set automatically by piece name). `marbled` (steak) paints marbling, muscle seams and a soft fat rim in the `fat` family's colour, from a map on the meat (uv x: cm in from the edge, y: height as a share of the top).
+- `skin`: the peel texture the shader paints (`pebbled`, `pores`, `streaks`, `seeds`, `florets`, `crust`, `melon`, `marbled`, `poultry`; `crumb`, `leaf`, `label`, `melonRind` and `knuckle` are set automatically by piece name). `poultry` (chicken) paints raw skin from a map on the meat (uv x: cm along, y: cm inside the skin's edge): follicles in loose tracts, fat and meat showing through, creases, the bare shank's meat and tendons. `knuckle` paints a bone's end (uv x: cm back from the end): a pearly cartilage cap and a pink blush where it leaves the meat. `marbled` (steak) paints marbling, muscle seams and a soft fat rim in the `fat` family's colour, from a map on the meat (uv x: cm in from the edge, y: height as a share of the top).
 - `matte: true`: a quiet highlight on the hero (broccoli, bread, cheese).
 - `rimGlints: false`: skip the rim glints (a narrow tube facing the light, like a bottle's neck, catches them as a hard white bar).
 - `shadowTint` (0 to 1, default 1): how much of the shadow's violet and pink patches it takes (a pale cheese takes 0.35, or its shadows read as pink stains).
 - `budget: [min, max]`: its own triangle budget when the archetype's does not fit.
 - For clusters: `stemEnds` ('out' or 'front').
+- `contactsFromFeet: true`: contact shadows only under the places that touch the table (a drumstick's bulb and knuckle), one group each, never a row along the whole length.
+- `playfulHide: ['seeds']`: pieces left out in Playful strokes, where small dark parts turn into hard blocks (the watermelon's seeds); they still show in the soft look.
 
 **Props**: what an ingredient rests on (a paper sheet, later a plate or a board) is a piece named in `PROPS` (`forms/kit/checks.ts`, now `paper`). It is left out of the real size and of the card's subject zone (it only has to stay inside the card), it is not the hero (put it after the body), and it is drawn a hair in front of the floor so the two never flicker.
 
@@ -159,21 +196,23 @@ full story (first try, what the user said, where we ended) is in `docs/ingredien
 - **Pale yellows turn warm in shadow, through orange, never lime** (butter); if a yellow shows green edges, check `turnHueTowardCool` before changing the family.
 - **Texture marks darken toward the ingredient's own shade, never grey or black** (lemon): `shadeOwn`. Lettering and dark marks are never black: use the ingredient's own deep shade (plum `ink`), or a light ink on a coloured ground (sauce).
 - **Every ingredient gets its own skin texture** (lemon, orange), and it must read at card size (strawberry seeds).
-- **Close relatives must still read apart**: berries are cooler and more magenta than the apple (strawberry); cheese is buttery, not lemon (cheese); butter is paler and fresher than cheese (butter); a melon is juicy coral, not candy pink (watermelon); raw beef is a deep red, deeper than Pink and raw (steak).
+- **Close relatives must still read apart**: berries are cooler and more magenta than the apple (strawberry); cheese is buttery, not lemon (cheese); butter is paler and fresher than cheese (butter); a melon is juicy coral, not candy pink (watermelon); raw beef is a deep red, deeper than Pink and raw (steak); raw chicken skin is a pale peach-pink, far paler than Pink and raw, apart from the fat and the butter (chicken). When the board's family is wrong for the real thing, add an off-board family.
+- **A skin shows what is under it** (chicken): fat and meat in soft patches, glow soaking into its darker tones, faint blotches. One flat colour reads as plastic.
+- **A signature texture comes in loose patches, never an even pattern** (chicken follicles, strawberry seeds): each mark a little different, faded where the surface turns away from the camera (they bunch into a dotted line at the outline).
 - **Small parts share one natural leaf green and need tone, veins and a paler underside** (orange, strawberry).
-- **Warm and varied, never one flat colour**: a crust is many browns with blotches and specks (baguette); flesh has deeper, riper patches (watermelon). The same light chalky dry-brush texture carries across cut faces (watermelon, steak). Marbling is a few shapes, never a lace: big sections with wandering seams that swell into pockets (steak).
-- **Gradients between layers are one soft, wide wash** (watermelon): painted in the shader from a map on the body, never separate bands with edges.
+- **Warm and varied, never one flat colour**: a crust is many browns with blotches and specks (baguette); flesh has deeper, riper patches (watermelon). The same light chalky dry-brush texture carries across cut faces and skins (watermelon, steak, chicken). Marbling is a few shapes, never a lace: big sections with wandering seams that swell into pockets (steak).
+- **Gradients between layers are one soft, wide wash** (watermelon, chicken): painted in the shader from a map on the body, never separate bands with edges. Where two pieces meet (meat and bone), both fade toward a shared colour so the join is never a crisp ring (chicken).
 - **No crisp lines where colours meet inside an ingredient** (steak, watermelon): fat and meat, flesh and rind, seams, veins and bands fade over a soft band like wet paint. Crisp edges only in a few deliberate places: the lit outline, the cast shadow, printed art. When the user says "too realistic", soften the edges first; do not redraw the shapes as a diagram (steak).
 - **Translucent flesh glows in its shadows and thin places, with faint things seen inside** (watermelon; reuse for citrus). Keep the glow on the flesh's own colour.
 - **Highlights are believable touches of light, never graphic shapes** (apple); one main highlight per object, small parts quiet (orange); matte where the real thing is matte (broccoli, baguette, cheese, butter, watermelon). **A bumpy skin breaks its shine** into a faint sheen and small glints (strawberry). On a different-coloured layer the highlight takes the surface's own colour (watermelon).
 
 ### Composition (several pieces)
 
-- **Every piece rests the way it really would** (broccoli, watermelon, steak): broccoli lies on its side; a wedge on its curved rind only stands upright, so to lean one, lay it on a flat cut side; a tomahawk's bone dips so its knob rests on the table.
+- **Every piece rests the way it really would** (broccoli, watermelon, steak, chicken): broccoli lies on its side; a wedge on its curved rind only stands upright, so to lean one, lay it on a flat cut side; a tomahawk's bone dips so its knob rests on the table; a drumstick tips until its soft bulb settles a little flat and its knuckle rests too, the shank in the air (contact shadows only under those, `contactsFromFeet`).
 - **A cluster is an odd triangle, balanced from every side** (strawberry): hero in front, two behind, stem ends out, bodies just touching. Never a row; a symmetric pinwheel looked worse.
 - **Pieces never pass through each other** (broccoli, strawberry).
 - **Group shadows follow the five shadow rules** in `CLAUDE.md` (strawberry).
-- **Turn the most telling side toward the camera or the light** (sauce label, cheese point, butter curl's spiral end); a long ingredient lies on a diagonal (baguette).
+- **Turn the most telling side toward the camera or the light** (sauce label, cheese point, butter curl's spiral end); a long ingredient lies on a diagonal (baguette), its telling end toward the camera (chicken's knuckle).
 - **Tell the story with the ingredient, not a tool** (butter): the curl, not a knife. What it rests on is a prop (`PROPS`).
 - **A pair the cluster layout cannot make is built in the form** (watermelon), each body resting on its own and repeating the hero's role.
 
@@ -183,7 +222,10 @@ full story (first try, what the user said, where we ended) is in `docs/ingredien
 - **Never geometrically perfect** (strawberry, cheese, baguette): lobed, bent off centre, round bites on edges, gentle wobble in faces, cuts varied and spread out with pointed tips. Keep the table face flat.
 - **Push the signature feature until it reads** (broccoli crown bumps, about 70% more than the first try; sauce bottle length).
 - **Make it the version people picture** (baguette over boule, the boule kept as `loaf`; a tomahawk over a shapeless slab, from the user's references, steak).
-- **Where two parts join, one grows out of the other** (steak): the meat wraps up round the bone in a short, thinning sleeve. **Ends are shaped, never flat-cut** (steak bone's knob). **A layer sits only where the real thing has it** (steak fat on the back wall, not wrapped all round). **A flat ingredient tilts its top toward the low camera** (steak).
+- **Ample detail, all gentle** (chicken): build in the features that make it itself (a muscle seam, a three-cornered section, a concave taper, tendon ridges, loose skin folds, two knuckle knobs), each a small change in the radius, so it stays calm and never a plain blob.
+- **No straight runs in an organic outline** (steak): two edges that line up (a neck's edge along the eye's) read as one ruler line; tuck one in, round the corners, add soft swells.
+- **Smooth extras need a floor** (chicken): a smooth maximum where both shapes are near zero, or a layer added past the end of a body, draws a spike at the tip. Keep "no shape here" well below zero and scale added layers by the radius under them.
+- **Where two parts join, one grows out of the other** (steak, chicken): the meat wraps up round the bone in a short, thinning sleeve. **Ends are shaped, never flat-cut** (steak bone's knob). **A layer sits only where the real thing has it** (steak fat on the back wall, not wrapped all round). **A flat ingredient tilts its top toward the low camera** (steak).
 - **Real size, framed by the card** (strawberry).
 - **Keep deformations gentle: start at about half** (butter). Local changes stay local. Small drips and beads read as damage: make swellings broad or leave them out.
 - **A rind, crust or skin is part of the same surface** (cheese, watermelon): lift it off with `liftRegion`, never a separate slab or shell (a slab read as a cushion, a shell as a ledge).
@@ -205,7 +247,10 @@ These come back on almost every ingredient. The pre-check list below is how to c
 - A highlight that becomes one flat pale patch or a dashed line along an edge (strawberry, butter, apple).
 - A wrapped sheet's ends not meeting (sauce).
 - Crisp lines where colours meet inside an ingredient (steak, watermelon).
-- A slow build (heavy work inside a distance field) stalling Shuffle: sample curves once; keep builds under about 0.3 s (steak).
+- A slow build (heavy work inside a distance field) stalling Shuffle: sample curves once, look radii up from a table, answer quickly far from the surface; keep builds under about 0.3 s (steak, chicken).
+- A dashed bluish line round a pale ingredient's outline (butter, chicken): outline pixels read as cast shadow. Fixed for every ingredient in the glaze (`shadowMaskAt`); if it comes back, zoom in on a pale outline.
+- A pale sliver where a rounded body meets the table (chicken): light leaking in at the contact. Fixed for every ingredient on the floor (`ground.ts`: no normal bias, a hair of `FLOOR_BIAS`); look from low down.
+- Small dark parts turning into hard black blocks in Playful strokes (watermelon seeds): leave them out of that look (`playfulHide`).
 
 ## Pre-check before showing an ingredient
 
@@ -223,10 +268,12 @@ automated)* are candidates for a test later.
 8. **Texture**: the ingredient's own skin reads at card size; specks lean to its own shade; marks never bunch at a tip.
 9. **Silhouette and size**: the solid-black silhouette still names it; `styleLab.report()` within 10% of `size_cm`; triangles within budget. *(automated: `forms.test.ts`)*
 10. **Lessons**: reread this file's lessons for the ingredient's archetype and colour family.
+11. **Both looks, zoomed in**: Playful strokes too (no small dark part turned into a block); zoom in on the outline (no dashed line) and look at every contact from low down (no pale sliver).
+12. **The bar**: hold it to "The bar" at the top of this guide, side by side with one or two finished ingredients in the same view; the build stays under about 0.3 s.
 
 ## Workflow
 
-1. Read the spec. Restate the archetype recipe and plan in two or three plain sentences.
+1. Read the spec and "The bar" at the top of this guide. Restate the archetype recipe and plan in two or three plain sentences.
 2. Write or extend the kit tool, then the ingredient's form file. Build the first requested form only.
 3. Check, and show the person before moving on:
    - a Style Lab screenshot from the card camera (three-quarter view, about 25 degrees up, 50 mm); use `styleLab.snapshot()` in dev
