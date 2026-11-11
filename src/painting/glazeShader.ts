@@ -102,8 +102,35 @@ float shadowMaskAt(vec2 uv) {
   vec2 p = uv * vec2(uResolution.x / uResolution.y, 1.0);
   vec2 wobble = vec2(fbm3(vec3(p * 14.0, 1.0)), fbm3(vec3(p * 14.0, 6.0))) - 0.5;
   float px = 3.0 * uResolution.y / 900.0; // same wobble at any size
-  vec4 t = texture2D(tColour, clamp(uv + wobble * px / uResolution, vec2(0.001), vec2(0.999)));
-  return t.a < 0.25 ? clamp(t.a / 0.2, 0.0, 1.0) : 0.0;
+  vec2 q = clamp(uv + wobble * px / uResolution, vec2(0.001), vec2(0.999));
+  vec4 t = texture2D(tColour, q);
+  // Right where an ingredient meets the table, the wobble can land on the ingredient itself, and
+  // the table there was painted lit: a pale, broken sliver between the body and its shadow. This
+  // pixel is table (only table pixels ask), so read its own label instead.
+  if (t.a >= 0.25) {
+    q = clamp(uv, vec2(0.001), vec2(0.999));
+    t = texture2D(tColour, q);
+  }
+  if (t.a >= 0.25 || t.a < 0.004) return 0.0;
+  // Along the object's outline, a pixel is half object (0.5), half backdrop (0), so its label
+  // lands between 0 and 0.25 and was read as cast shadow: a dashed dark line round the outline on
+  // the lit side, plain on pale ingredients (the butter, the chicken). The backdrop pixels next to
+  // it tell the truth: take the lowest label among them (lit backdrop 0: no shadow; in the real
+  // cast shadow they are all shadow too, so it stays).
+  vec2 step1 = 1.5 / uResolution;
+  // Only pixels touching the object are outline pixels: elsewhere (the shadow's own soft edge)
+  // the label is left exactly as it is.
+  float a = t.a;
+  float lowest = t.a;
+  bool outline = false;
+  for (int i = 0; i < 4; i++) {
+    vec2 d = i == 0 ? vec2(step1.x, 0.0) : i == 1 ? vec2(-step1.x, 0.0) : i == 2 ? vec2(0.0, step1.y) : vec2(0.0, -step1.y);
+    float n = texture2D(tColour, clamp(q + d, vec2(0.001), vec2(0.999))).a;
+    if (n >= 0.25) outline = true;
+    else lowest = min(lowest, n);
+  }
+  if (outline) a = lowest;
+  return clamp(a / 0.2, 0.0, 1.0);
 }
 
 // The shadow's own colour at this spot (OKLab), and how strongly it covers.

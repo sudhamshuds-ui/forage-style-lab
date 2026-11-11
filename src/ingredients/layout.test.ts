@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Group, Matrix3, Mesh, Vector3, type BufferAttribute } from 'three';
 import { buildStrawberry } from './forms/strawberry';
+import { buildChicken } from './forms/chicken';
+import { feetSpots } from './subject';
 import { seedFromId, seededRandom } from './forms/kit/random';
 import { LAYOUT_COUNT, arrangeCluster, closerThan, minDistance, samplePoints, transformed } from './layout';
 import { cmToUnits } from './scale';
@@ -132,5 +134,30 @@ describe('broccoli bunch (stem ends to the front)', () => {
     const [a, b] = members;
     const all = (m: Group) => [...transformed(samplePoints(m, 'body', 1500), m), ...transformed(samplePoints(m, 'parts', 800), m)];
     expect(closerThan(all(a), all(b), gap * 0.49)).toBe(false);
+  });
+});
+
+describe('contact spots for an ingredient resting on a few places (the drumstick)', () => {
+  it('puts spots only under the bulb and the knuckle, none under the shank in the air', () => {
+    const pieces = buildChicken({ state: 'whole', seed: seedFromId('chicken') });
+    const member = new Group();
+    for (const piece of pieces) {
+      const mesh = new Mesh(piece.geometry);
+      mesh.name = piece.role;
+      member.add(mesh);
+    }
+    member.updateMatrix();
+    const spots = feetSpots(member, 4);
+    expect(spots.length).toBeGreaterThanOrEqual(2);
+    // Every spot sits right under a point of the drumstick that touches the table.
+    const low: { x: number; z: number }[] = [];
+    for (const piece of pieces) {
+      const position = piece.geometry.getAttribute('position');
+      for (let i = 0; i < position.count; i++) if (position.getY(i) < 0.01) low.push({ x: position.getX(i), z: position.getZ(i) });
+    }
+    for (const spot of spots) {
+      const nearest = Math.min(...low.map((p) => Math.hypot(p.x - spot.centre.x, p.z - spot.centre.z)));
+      expect(nearest, `spot at ${spot.centre.x.toFixed(2)}`).toBeLessThan(spot.radius);
+    }
   });
 });

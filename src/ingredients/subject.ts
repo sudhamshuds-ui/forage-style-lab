@@ -3,7 +3,7 @@ import type { Settings } from '../params';
 import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
 import { mixHex } from '../utils/colour';
-import { CRUMB_SKIN, LABEL_SKIN, LEAF_SKIN, MELON_RIND_SKIN, setSkin } from '../shading/effects/skinTexture';
+import { CRUMB_SKIN, KNUCKLE_SKIN, LABEL_SKIN, LEAF_SKIN, MELON_RIND_SKIN, setSkin } from '../shading/effects/skinTexture';
 import { hotSauceLabelTexture } from '../shading/labelArt';
 import { FAMILIES } from './families';
 import { seedFromId, seededRandom } from './forms/kit/random';
@@ -47,6 +47,12 @@ export interface Subject {
 export function createSubject(entry: IngredientEntry, look: StylizedLook): Subject {
   return entry.form === 'procedural-apple' ? new AppleSubject(entry, look) : new FormSubject(entry, look);
 }
+
+/**
+ * Raw chicken leg meat, where the skin is pulled back (and showing through it): a rosy pink,
+ * between the Pink and raw family's lit and base colours, deeper than the pale skin.
+ */
+const POULTRY_MEAT = mixHex(FAMILIES['pink-raw'].colours.lit, FAMILIES['pink-raw'].colours.base, 0.18);
 
 /** The bounding sphere reaches the far corners; the visible body sits a little further in. */
 const RADIUS_FACTOR = 0.88;
@@ -171,6 +177,17 @@ class FormSubject implements Subject {
           }
           // A marbled steak: the marbling is painted in the fat's colour.
           if (entry.skin.kind === 'marbled') (material.uniforms.uMelonPale.value as Color).set(FAMILIES.fat.colours.lit);
+          // Raw chicken: the pink meat (showing through, and bare on the shank) and the yellow fat.
+          if (entry.skin.kind === 'poultry') {
+            (material.uniforms.uMelonPale.value as Color).set(POULTRY_MEAT);
+            (material.uniforms.uMelonGreen.value as Color).set(FAMILIES.butter.colours.base);
+          }
+        }
+        // A bone's knuckle (before the leaf rule: it has a map too): the cartilage cap and the
+        // meat's pink blush where it leaves the meat.
+        else if (piece.role === 'knuckle') {
+          setSkin(material, KNUCKLE_SKIN);
+          (material.uniforms.uMelonPale.value as Color).set(POULTRY_MEAT);
         }
         // Crumb (bread inside a slash) gets the crumb skin: holes, streaks, a toasted rim.
         else if (piece.role === 'crumb') setSkin(material, CRUMB_SKIN);
@@ -206,6 +223,12 @@ class FormSubject implements Subject {
     const spotsEach = Math.max(1, Math.floor(MAX_CONTACTS / members.length));
     for (const member of members) {
       member.updateMatrix();
+      // An ingredient that rests on a few places only (a drumstick: its bulb and its knuckle, the
+      // shank in the air): spots only under what touches the table, one group per place.
+      if (entry.contactsFromFeet) {
+        this.contacts.push(...feetSpots(member, MAX_CONTACTS));
+        continue;
+      }
       // A form with several bodies (the watermelon's two wedges) gets contact spots for each body
       // on its own, from only the part that rests on the table: measured as one shape, a spot
       // landed under the rind's arch, where nothing touches (the user, 2026-11-06).
@@ -269,4 +292,36 @@ class FormSubject implements Subject {
       }
     });
   }
+}
+
+/**
+ * Contact spots for an ingredient that rests on a few places only: every piece's points within a
+ * sliver of the table, grouped by place (points close together on the table belong together),
+ * each group with its own spots following its footprint. Nothing under the parts in the air.
+ */
+export function feetSpots(member: Group, most: number): { centre: Vector3; radius: number }[] {
+  const all: Vector3[] = [];
+  for (const object of member.children) {
+    if (!(object instanceof Mesh) || PROPS.includes(object.name)) continue;
+    const position = object.geometry.getAttribute('position') as BufferAttribute;
+    const step = Math.max(1, Math.floor(position.count / 1500));
+    const points: Vector3[] = [];
+    for (let i = 0; i < position.count; i += step) points.push(new Vector3().fromBufferAttribute(position, i));
+    all.push(...transformed(points, member));
+  }
+  const low = Math.min(...all.map((p) => p.y));
+  const size = new Box3().setFromPoints(all).getSize(new Vector3());
+  const foot = all.filter((p) => p.y < low + Math.max(size.x, size.y, size.z) * 0.03);
+  // Group the foot points: each joins the first group with a point near it on the table.
+  const near = Math.max(size.x, size.z) * 0.12;
+  const groups: Vector3[][] = [];
+  for (const p of foot) {
+    const group = groups.find((g) => g.some((o) => Math.hypot(o.x - p.x, o.z - p.z) < near));
+    if (group) group.push(p);
+    else groups.push([p]);
+  }
+  // The biggest places first; each gets at least one spot.
+  groups.sort((a, b) => b.length - a.length);
+  const kept = groups.slice(0, most);
+  return kept.flatMap((g, i) => footprintSpots(g, i === 0 ? most - kept.length + 1 : 1));
 }

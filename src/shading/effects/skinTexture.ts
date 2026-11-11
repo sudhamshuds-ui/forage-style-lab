@@ -28,6 +28,12 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  *  - crumb (any piece named `crumb`, set automatically): soft open air holes in the crumb's
  *    own deeper cream, faint lengthwise streaks where the dough stretched, and a golden,
  *    toasted rim where it meets the crust (its steeper sides). Never flat white.
+ *  - poultry (raw chicken): a pale, slightly translucent skin with goosebump follicles in loose
+ *    tracts (each a tiny lit bump with a pore), fat and meat showing through in soft patches,
+ *    a few soft creases near its edge, and where the skin is pulled back, rosy meat with fine
+ *    fibres and pale tendons. The skin fades into the meat over a wide, wandering band, never a
+ *    crisp line. From the piece's map (x: cm along, y: cm inside the skin's edge).
+ *  - knuckle (a bone's end, set automatically for a piece named `knuckle`): see KNUCKLE_SKIN.
  *  - leaf (sepals and leaves, set automatically): deeper at the stalk and
  *    lighter toward the tip, a pale centre vein, faint side veins, a slight
  *    hue drift from leaf to leaf, and a paler, cooler underside. Uses the
@@ -41,7 +47,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -87,6 +93,12 @@ export function melonUniforms(): { uMelonPale: { value: Color }; uMelonGreen: { 
 
 /** A melon's green rind shell (a piece named `rind` on a melon): stripes, mottling, speckles. */
 export const MELON_RIND_SKIN: Skin = { kind: 'melonRind', size_mm: 2, amount: 1 };
+
+/**
+ * A bone's knuckle (a piece named `knuckle`, with a map: x is how far back from its end, cm): a
+ * pearly cartilage cap at the end, ivory bone, a faint pink blush where it leaves the meat.
+ */
+export const KNUCKLE_SKIN: Skin = { kind: 'knuckle', size_mm: 1.5, amount: 1 };
 
 /** Give one material its skin. */
 export function setSkin(material: ShaderMaterial, skin: Skin): void {
@@ -433,6 +445,109 @@ if (kind > 0 && amount > 0.0) {
     lab = shadeOwn(lab, redFleck * 0.5 * show * (1.0 - fat));
     float cream = (valueNoise3(objectPos * 40.0 + 3.0) - 0.5) * fat;
     lab.x += cream * 0.06 * amount;
+  } else if (kind == 13) {
+    // Poultry (a raw chicken drumstick). Its map: x is cm along the drumstick from the bulb's end,
+    // y cm inside the skin's edge (positive under the skin, negative on the bare shank).
+    vec2 q = vSurfaceUv;
+    vec3 cm = objectPos * 3.8169;
+    float shadeStep = lab.x - linearToOklab(uBaseColour).x;
+    // Where the skin is: a wide, soft band that wanders (never a crisp edge, the rule).
+    float wander = (fbm3(cm * 0.9 + 4.0) - 0.5) * 1.2;
+    float skin = smoothstep(-0.7, 0.9, q.y + wander);
+    // 1. Translucent: raw skin lets light in, so its darker tones soak up the warm glow and
+    //    stay luminous, and thin places seen side on glow a little (the flesh guideline, gently).
+    float inside = (1.0 - tone) * amount;
+    float edgeOn = pow(1.0 - max(dot(N, V), 0.0), 2.0);
+    float glow = clamp(inside * 0.5 + edgeOn * 0.3, 0.0, 0.6);
+    lab = mix(lab, linearToOklab(uGlowColour), glow * 0.45 * amount);
+    lab.x += inside * 0.03 * amount;
+    // 2. Under the skin: soft patches of yellow fat and of the pink meat showing through.
+    vec3 fatLab = linearToOklab(uMelonGreen);
+    fatLab.x += shadeStep * 0.8;
+    fatLab.yz = mix(fatLab.yz, lab.yz, 0.35);
+    float fatPatch = smoothstep(0.42, 0.72, fbm3(cm * 0.55 + 7.0));
+    lab = mix(lab, fatLab, fatPatch * 0.55 * skin * amount);
+    vec3 meatLab = linearToOklab(uMelonPale);
+    meatLab.x += shadeStep * 0.9;
+    float pinkPatch = smoothstep(0.48, 0.78, fbm3(cm * 0.45 + 13.0));
+    lab = mix(lab, meatLab, pinkPatch * 0.4 * skin * amount);
+    // Faint rosy blotches where small vessels show under the skin, soft and few.
+    float vessel = smoothstep(0.6, 0.85, fbm3(cm * 1.3 + 31.0));
+    lab = shadeOwn(lab, vessel * 0.22 * skin * show);
+    // 3. Follicles: goosebumps in loose tracts (never an even pattern all over). Each a tiny dome,
+    //    lit on its side toward the light and shaded on the other, with a small pore in its middle.
+    float tract = smoothstep(0.3, 0.55, fbm3(cm * 0.7 + 21.0));
+    float d = skinCells(p);
+    float bump = 1.0 - smoothstep(0.0, 0.4, d);
+    float bumpToward = 1.0 - smoothstep(0.0, 0.4, skinCells(p + L * 0.16));
+    // Faded where the surface turns away (near the outline the cells bunch up and read as a dotted
+    // line round the edge), and each follicle a little different in strength.
+    float facing = smoothstep(0.12, 0.45, max(dot(N, V), 0.0));
+    float follicle = tract * skin * facing * mix(0.4, 1.0, valueNoise3(p * 0.8 + 5.0));
+    float emboss = (bumpToward - bump) * show * follicle;
+    lab = emboss > 0.0 ? lab + vec3(emboss * 0.11, 0.0, 0.0) : shadeOwn(lab, -emboss * 0.9);
+    float pore = 1.0 - smoothstep(0.025, 0.085, d);
+    lab = shadeOwn(lab, pore * 0.35 * show * follicle);
+    // The bumps break the moist sheen into small glints (a bumpy skin breaks its shine).
+    highlightBumpy = amount * skin;
+    highlightBreak = bump * amount * 0.7 * follicle;
+    highlightGlint = smoothstep(0.03, 0.15, emboss) * (1.0 - smoothstep(0.1, 0.22, d));
+    // 4. A few soft creases where the skin bunches toward its edge, running round the drumstick.
+    float bunch = smoothstep(-0.2, 0.6, q.y + wander) * (1.0 - smoothstep(1.2, 3.0, q.y + wander));
+    float crease = smoothstep(0.55, 0.85, valueNoise3(vec3(q.x * 2.2, cm.y * 0.6, cm.z * 0.6) + 3.0));
+    lab = shadeOwn(lab, crease * bunch * 0.3 * show);
+    // The skin's thin edge: stretched thin, paler and a touch more see-through.
+    lab.x += bunch * (1.0 - crease) * 0.02 * amount;
+    // 5. The bare shank: rosy raw meat with fine fibres along it and pale, pearly tendons, shaded
+    //    like the skin beside it, so the two are one surface in one light.
+    vec3 bare = meatLab;
+    bare.yz = mix(bare.yz, lab.yz, 0.12);
+    float fibre = valueNoise3(vec3(q.x * 1.2, cm.y * 9.0, cm.z * 9.0)) - 0.5;
+    bare.x += fibre * 0.05 * show;
+    float tendon = smoothstep(0.58, 0.82, valueNoise3(vec3(q.x * 0.5, cm.y * 3.2, cm.z * 3.2) + 9.0));
+    tendon *= smoothstep(10.0, 11.4, q.x);
+    vec3 pearl = linearToOklab(uHighlightColour);
+    pearl.x += shadeStep * 0.85;
+    pearl.yz = mix(pearl.yz, bare.yz, 0.3);
+    bare = mix(bare, pearl, tendon * 0.55);
+    // Where the meat runs out round the bone it thins to pale tendon, so it meets the ivory bone
+    // in a similar colour (never a crisp line where meat and bone meet).
+    bare = mix(bare, pearl, smoothstep(11.6, 12.8, q.x) * 0.6);
+    lab = mix(bare, lab, skin);
+    highlightOwn = max(highlightOwn, (1.0 - skin) * 0.6);
+    // 6. The same light, chalky dry-brush texture as the steak and the watermelon (one hand
+    //    painted every card): pale scratches along the drumstick, broken by a paper grain.
+    float paperGrain = valueNoise3(objectPos * 90.0);
+    float scratch = valueNoise3(vec3(q.x * 3.0, cm.y * 11.0, cm.z * 11.0));
+    scratch *= valueNoise3(vec3(q.x * 1.3, cm.y * 3.5, cm.z * 3.5) + 5.0);
+    float dry = smoothstep(0.3, 0.55, scratch) * smoothstep(0.35, 0.65, paperGrain);
+    vec3 chalk = lab;
+    chalk.x += 0.06;
+    chalk.yz *= 0.8;
+    lab = mix(lab, chalk, dry * 0.4 * show);
+  } else if (kind == 14) {
+    // Knuckle (a bone's end). Its map: x is cm back from the end.
+    vec2 q = vSurfaceUv;
+    vec3 cm = objectPos * 3.8169;
+    float shadeStep = lab.x - linearToOklab(uBaseColour).x;
+    float wander = (fbm3(cm * 1.6 + 2.0) - 0.5) * 0.5;
+    // Ivory, softly mottled.
+    float mottle = fbm3(cm * 1.4) - 0.5;
+    lab = mottle > 0.0 ? shadeOwn(lab, mottle * 0.5 * amount) : lab - vec3(mottle * 0.04, 0.0, 0.0);
+    // The cartilage cap at the end: pearly, paler and a little cooler, faintly see-through.
+    float cap = 1.0 - smoothstep(0.45, 1.05, q.x + wander);
+    vec3 pearl = linearToOklab(uHighlightColour);
+    pearl.x += shadeStep * 0.8;
+    pearl.y += 0.004;
+    pearl.z -= 0.012;
+    lab = mix(lab, pearl, cap * 0.7 * amount);
+    // A faint pink blush where the bone leaves the meat (never a crisp ring).
+    vec3 blush = linearToOklab(uMelonPale);
+    blush.x += shadeStep * 0.8;
+    lab = mix(lab, blush, smoothstep(1.4, 2.6, q.x + wander) * 0.45 * amount);
+    // Fine pores in the bone, in its own shade.
+    float pore = 1.0 - smoothstep(0.05, 0.12, skinCells(p));
+    lab = shadeOwn(lab, pore * 0.25 * show * (1.0 - cap));
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

@@ -9,6 +9,7 @@ import { buildCheese } from './forms/cheese';
 import { buildButter } from './forms/butter';
 import { buildWatermelon } from './forms/watermelon';
 import { buildSteak } from './forms/steak';
+import { buildChicken } from './forms/chicken';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
@@ -95,6 +96,12 @@ export interface IngredientEntry {
    * apple, but needs more mesh for its scored crust). Leave it out to use the archetype's.
    */
   budget?: [number, number];
+  /**
+   * True when only some parts of the ingredient touch the table (a drumstick rests on its bulb and
+   * its knuckle, the shank in the air): contact shadows go only under what touches, one group of
+   * spots per place it rests, never a row along the whole length.
+   */
+  contactsFromFeet?: boolean;
 }
 
 export const REGISTRY: IngredientEntry[] = [
@@ -378,6 +385,41 @@ export const REGISTRY: IngredientEntry[] = [
     rimGlints: false,
     // A meshed slab and its fat skin.
     budget: [2000, 24000],
+  },
+  {
+    spec: {
+      id: 'chicken',
+      name: 'Chicken',
+      archetype: 'long',
+      // Board 08 says Pink and raw (a deep salmon); raw chicken skin is far paler (families.ts).
+      family: 'poultry',
+      layout: 'solo',
+      show: 'One raw chicken drumstick lying on a diagonal, the meaty bulb at the back, the bone and its knuckle reaching toward the camera.',
+      // Board 08's forms. `whole` is the drumstick.
+      forms: ['whole', 'thigh', 'breast', 'strips', 'diced'],
+      scale: 'M',
+      // The drumstick lying down, bone and knuckle included (board 08: 15 cm).
+      size_cm: [15.5, 4.8, 5.4],
+      // The skin, its edge, the bare shank and its tendons are painted on the meat (the poultry
+      // skin); the bone and its knuckle are one piece, its cartilage cap painted (the knuckle skin).
+      parts: ['meat:glow', 'knuckle@bone'],
+      light_case: 'pale',
+      notes:
+        'Board 08: raw, pale pink skin, bone tip showing (the reference is cooked: shape only). A full, slightly lopsided bulb with a soft groove between its two big muscles, a concave taper into a slim shank with soft tendon ridges, the skin pulled back unevenly to show pink meat, then the bare bone and a knuckle of two rounded knobs. Lies with the bulb settled on the table and the knuckle resting on it. Skin follicles, fat and meat showing through, and the cartilage cap are a shader texture, never geometry.',
+    },
+    form: buildChicken,
+    // On a diagonal (the long archetype): the bulb at the back left toward the key light, the
+    // knuckle reaching toward the camera on the right.
+    turn: -30,
+    skin: { kind: 'poultry', size_mm: 3, amount: 0.85 },
+    // Pale like the cheese and butter: a little of the shadow's violet and pink, or it stains.
+    shadowTint: 0.35,
+    // No rim glints: the slim shank and knuckle face the light like a bottle's neck (sauce, steak).
+    rimGlints: false,
+    // Only the bulb and the knuckle touch the table: contact shadows there, none under the shank.
+    contactsFromFeet: true,
+    // A finely meshed bulb (its groove and lumps) and a knuckle of two small knobs.
+    budget: [2000, 18000],
   },
 ];
 

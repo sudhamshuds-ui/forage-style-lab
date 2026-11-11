@@ -474,7 +474,23 @@ light's rainbow fringe) loads the room's colour, and room strokes pick up the co
 (wet-in-wet). A pick-up that reacted to every small change flattened the wall's slabs: keep the
 thresholds.
 
-## Where we are (2026-11-11, evening)
+## Where we are (2026-11-11, night)
+The chicken drumstick, round 1 (branch `chicken`, not merged): `forms/chicken.ts` (a distance
+field meshed with surface nets: lopsided bulb with a spiralling muscle seam, concave taper, a
+slim shank with soft tendon ridges, the bone and a two-knob knuckle as a second piece), tipped so
+the bulb settles on the table (`SINK`) and the knuckle rests on it; the `poultry` family
+(off-board, far paler than Pink and raw); the `poultry` skin (kind 13: follicles in loose tracts,
+fat and meat showing through, creases by the skin's edge, the bare shank's meat and tendons, all
+from a map, the skin fading into the meat over a wide band) and the `knuckle` skin (kind 14:
+cartilage cap, pink blush); `contactsFromFeet` (registry) puts contact spots only under the
+places that touch. Two shared fixes found on it: the glaze no longer reads the outline's half
+object, half table pixels as cast shadow (a dashed bluish line round pale ingredients, the butter
+too), and the floor has no normal bias (light leaked in as a pale sliver where a body meets the
+table; a tiny `FLOOR_BIAS`, more made the butter paper's scribbles worse). For later (the user):
+the steak's eye has a straight top edge seen from above (give it more form); the watermelon's
+seeds read as black blocks in Playful strokes.
+
+## Earlier (2026-11-11, evening)
 New ingredient's fill loading state is on `main` (branch `ui-loading`), with the loading-state
 prototypes. Next: the chicken drumstick.
 

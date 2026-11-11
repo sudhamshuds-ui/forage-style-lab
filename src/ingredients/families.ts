@@ -24,6 +24,7 @@ export type FamilyId =
   | 'green'
   | 'cream-crust'
   | 'pink-raw'
+  | 'poultry'
   | 'fat'
   | 'beef'
   | 'bone'
@@ -226,6 +227,15 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Fat',
     colours: { lit: '#fbe4da', base: '#eec6ba', shadow: '#bf8f96', glow: '#f6c0ae', highlight: '#fff6f2' },
     rooms: [],
+  },
+  // Not on board 04 yet (added 2026-11-11, the chicken drumstick): board 08 says Pink and raw,
+  // which is a deep salmon red. Raw chicken skin is much paler: a creamy peach-pink (the fat under
+  // it shows through), going to a soft rose and plum in shadow, never grey. Kept apart from the
+  // fat (pinker and cooler) and the butter (yellow): a peachy pink.
+  poultry: {
+    name: 'Poultry',
+    colours: { lit: '#fde5d6', base: '#f2bca3', shadow: '#ad6676', glow: '#f49a7c', highlight: '#fff6ef' },
+    rooms: ['seafoam', 'sage-morning'],
   },
   'pink-raw': {
     name: 'Pink and raw',

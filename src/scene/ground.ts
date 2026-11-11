@@ -5,6 +5,7 @@ import {
   OneFactor,
   OneMinusSrcAlphaFactor,
   PlaneGeometry,
+  ShaderChunk,
   ShadowMaterial,
   SrcAlphaFactor,
   Vector3,
@@ -30,6 +31,9 @@ import type { Settings } from '../params';
  * When the light drops below the horizon the shadow fades out, since a
  * lamp under the table could not cast it.
  */
+/** How much further from the light the floor reads its depth (see the constructor). */
+const FLOOR_BIAS = 0.0003;
+
 export class Ground {
   readonly mesh: Mesh<PlaneGeometry, ShadowMaterial>;
 
@@ -42,6 +46,22 @@ export class Ground {
     material.polygonOffset = true;
     material.polygonOffsetFactor = -2;
     material.polygonOffsetUnits = -2;
+    // No normal bias on the floor. The key light's normal bias (stage.ts) lifts each receiver a
+    // little toward the light so the ingredients never speckle with their own shadow, but on the
+    // floor it let light leak in right where an ingredient touches the table: a pale sliver
+    // between a rounded body and its shadow (the chicken drumstick's bulb, seen from low down).
+    // The floor casts no shadow of its own, so it has nothing to speckle and needs no bias.
+    // And for the same reason the floor reads its depth a hair further from the light than the
+    // ingredients do (they keep the light's own bias): where a flat underside lies right on the
+    // table (the drumstick's bulb settles flat), a few pale dashes still leaked in along its edge.
+    material.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader.replace('#include <shadowmap_vertex>', '#define shadowNormalBias shadowBias * 0.0\n#include <shadowmap_vertex>\n#undef shadowNormalBias');
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <shadowmask_pars_fragment>',
+        ShaderChunk.shadowmask_pars_fragment.replace('directionalLight.shadowBias,', 'directionalLight.shadowBias + FLOOR_BIAS,'),
+      );
+      shader.fragmentShader = `#define FLOOR_BIAS ${FLOOR_BIAS.toFixed(5)}\n${shader.fragmentShader}`;
+    };
     this.mesh = new Mesh(geometry, material);
     this.mesh.receiveShadow = true;
   }
