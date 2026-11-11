@@ -183,7 +183,7 @@ body {
 /* While Shuffle ingredient plays its transition, the button rests (clicks wait). */
 .btn.is-busy {
   opacity: 0.6;
-  cursor: progress;
+  cursor: default;
 }
 /* The ingredient's name changes with the picture: a quick soft fade and blur. */
 #ingredient-name {

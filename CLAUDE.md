@@ -38,7 +38,8 @@ keep code readable with friendly comments.
   ingredient shows the **fill** loading state (chosen 2026-11-11; `data-loader="fill"` on
   `<html>` in `index.html`, styles in `styleBar.css`): from the click, dark ink sweeps across the
   pill with a slanted edge over the swap's length (`--swap`, cubic-bezier(0.77, 0, 0.175, 1)),
-  then fades back to glass with a gentle 600 ms ease-out. The other loading states (soft-edged
+  then fades back to glass with a gentle 600 ms ease-out. No spinning cursor while it plays (the user):
+  the button shows it is busy. The other loading states (soft-edged
   fill, brush fill with a noise dissolve, dots, outline, shimmer, scribble) stay on
   `prototypes/loading.html`. Hover brightens the glass, the same on both controls. No
   ingredient name and no descriptions on the page. Söhne (the hint in the user's Figma) needs a

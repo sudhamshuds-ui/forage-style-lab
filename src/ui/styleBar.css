@@ -69,7 +69,8 @@
 }
 .sb-new[data-busy] {
   opacity: 0.55;
-  cursor: progress;
+  /* The normal arrow, not the spinning one: the button itself shows it is busy (the user). */
+  cursor: default;
 }
 .sb-split {
   display: flex;
