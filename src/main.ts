@@ -438,7 +438,8 @@ function reframe(): void {
   const isProp = (mesh: Mesh) => PROPS.includes(mesh.name);
   const { scale, groundY } = frameSubject(
     outlinePoints(subject.group, 600, (mesh) => !isProp(mesh)),
-    stage.homeCamera,
+    // Measured from the nearer framing camera: the view itself starts further back.
+    stage.framingCamera,
     outlinePoints(subject.group, 400, isProp),
   );
   framed.scale.setScalar(scale);

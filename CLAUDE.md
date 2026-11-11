@@ -117,7 +117,9 @@ keep code readable with friendly comments.
   Randomness is seeded from the id. Blender only after two honest
   tries with the kit, and only after asking.
 - **Card framing** (board 06): the subject fills a centred square about 70% of the card
-  width and touches the floor about 74% down (`src/scene/framing.ts`). It is done by
+  width and touches the floor about 74% down (`src/scene/framing.ts`). Measured from the framing camera
+  (8.6 units); the view itself starts further back, at 10.2 (`START_DISTANCE` in `stage.ts`, the
+  user, 2026-11-11: "i want this to be the default zoom"), so the room shows round the ingredient. It is done by
   scaling the real-size subject on the stage (looks like a camera zoom, keeps the room
   and marks at their tuned scale). Each entry's `turn` is measured from the camera.
 - **Layouts** (`src/ingredients/layout.ts`): `cluster-2` and `cluster-3` show 2 or 3 seeded

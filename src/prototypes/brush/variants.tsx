@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Slider } from '@base-ui/react/slider';
-import { shuffle, watchBusy } from '../ui/shared';
+import { Menu } from '@base-ui/react/menu';
+import { STYLES, currentStyle, isPainterly, setPainterly, setStyle, shuffle, watchBusy } from '../ui/shared';
 import { usePainterlyAmount } from './amount';
 
 /**
@@ -198,6 +199,74 @@ export function Toggle() {
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ Bar with the style menu */
+
+const Chevron = () => (
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
+/**
+ * The user's mock-up (2026-11-11): the Bar, with the brush as a split button. The brush half
+ * switches the painterly look on and off; the arrow half opens a list of styles above it,
+ * grown from the button (base-ui Menu). Picking a style switches the look on too. The names
+ * are the painters' ("names"), or Style 1 to 6 ("numbers"), never with a description.
+ */
+function StyleMenuBar({ numbered }: { numbered: boolean }) {
+  const [on, setOn] = useState(isPainterly);
+  const [styleId, setStyleId] = useState(() => currentStyle().id);
+  const label = (i: number) => (numbered ? `Style ${i + 1}` : STYLES[i].name);
+  return (
+    <div className="br-bar">
+      <NewIngredient />
+      <div className="br-split" data-on={on || undefined}>
+        <button
+          type="button"
+          className="br-split-brush"
+          aria-pressed={on}
+          aria-label="Painterly"
+          onClick={() => {
+            setPainterly(!on);
+            setOn(!on);
+          }}
+        >
+          <BrushIcon />
+        </button>
+        <Menu.Root>
+          <Menu.Trigger className="br-split-more" aria-label="Painting style">
+            <Chevron />
+          </Menu.Trigger>
+          <Menu.Portal>
+            <Menu.Positioner side="top" align="end" sideOffset={10} className="br-menu-pos">
+              <Menu.Popup className="br-menu">
+                <Menu.RadioGroup
+                  value={on ? styleId : null}
+                  onValueChange={(id: string) => {
+                    setStyle(id);
+                    setStyleId(id);
+                    setOn(true);
+                  }}
+                >
+                  {STYLES.map((p, i) => (
+                    <Menu.RadioItem key={p.id} value={p.id} className="br-menu-item" closeOnClick>
+                      <span className="br-menu-dot" aria-hidden="true" />
+                      {label(i)}
+                    </Menu.RadioItem>
+                  ))}
+                </Menu.RadioGroup>
+              </Menu.Popup>
+            </Menu.Positioner>
+          </Menu.Portal>
+        </Menu.Root>
+      </div>
+    </div>
+  );
+}
+
+export const MenuNames = () => <StyleMenuBar numbered={false} />;
+export const MenuNumbers = () => <StyleMenuBar numbered />;
 
 /* ------------------------------------------------------------------ Bar */
 

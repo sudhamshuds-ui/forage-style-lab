@@ -24,6 +24,16 @@ const SPIN_RESUME = 1.5;
 /** Seconds the idle spin takes to ease back up to full speed (no sudden jolt). */
 const SPIN_EASE_IN = 1.2;
 
+/**
+ * How far the camera starts from the table (scene units). 8.6 until 2026-11-11, when the user
+ * zoomed out to about here and asked for it as the default: the room shows round the
+ * ingredient. The card framing is still measured from 8.6 (FRAMING_DISTANCE), so every
+ * ingredient keeps the size it was tuned at in its room, and the view simply starts further
+ * back, like scrolling out.
+ */
+const START_DISTANCE = 10.2;
+const FRAMING_DISTANCE = 8.6;
+
 export class Stage {
   readonly renderer: WebGLRenderer;
   readonly scene = new Scene();
@@ -31,6 +41,11 @@ export class Stage {
   readonly controls: OrbitControls;
   /** A copy of the camera at the starting view: the card's framing is measured through it. */
   readonly homeCamera: PerspectiveCamera;
+  /**
+   * The camera the card framing is measured from (framing.ts): nearer than where the view
+   * starts, so each ingredient keeps its size in the room while the view starts further back.
+   */
+  readonly framingCamera: PerspectiveCamera;
   readonly keyLight: DirectionalLight;
   /** Current light direction in world space (points toward the light). */
   readonly lightDirection = new Vector3(0, 1, 0);
@@ -61,7 +76,7 @@ export class Stage {
     this.renderer.shadowMap.type = PCFShadowMap;
 
     this.camera = new PerspectiveCamera(28, 3 / 4, 0.1, 150);
-    this.camera.position.setFromSphericalCoords(8.6, (75 * Math.PI) / 180, (24 * Math.PI) / 180);
+    this.camera.position.setFromSphericalCoords(START_DISTANCE, (75 * Math.PI) / 180, (24 * Math.PI) / 180);
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.target.set(0, 0.2, 0);
@@ -89,6 +104,11 @@ export class Stage {
     // before showing the new zoom. Any camera change asks for a redraw straight away.
     this.controls.addEventListener('change', () => this.invalidate());
     this.homeCamera = this.camera.clone();
+    this.framingCamera = this.camera.clone();
+    this.framingCamera.position.copy(this.controls.target).add(
+      this.camera.position.clone().sub(this.controls.target).setLength(FRAMING_DISTANCE),
+    );
+    this.framingCamera.updateMatrixWorld();
     this.homeTarget.copy(this.controls.target);
 
     this.keyLight = new DirectionalLight(0xffffff, 1);
@@ -124,6 +144,8 @@ export class Stage {
     this.camera.updateProjectionMatrix();
     this.homeCamera.aspect = width / height;
     this.homeCamera.updateProjectionMatrix();
+    this.framingCamera.aspect = width / height;
+    this.framingCamera.updateProjectionMatrix();
     this.size.width = width;
     this.size.height = height;
     this.renderer.getDrawingBufferSize(this.bufferSize);

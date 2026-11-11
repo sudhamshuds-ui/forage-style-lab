@@ -64,6 +64,16 @@ family, SIL Open Font License), so it is hosted with the page
 "Test Söhne"): it needs a web licence before it can be used, so the hint stays in Geist.
 Round 3's slider variants stay on the picker. Still: `img/2026-11-11-ui-round4-bar.jpg`.
 
+### Round 5 (2026-11-11): the style menu, and the camera further back
+The user's mock-up: the brush as a split button with a list of styles above it. User said:
+"can we do this, but name them style 1 or just painters name". Built both (picker: "Names",
+"Numbers"): the brush half switches the painterly look, the arrow half opens the list (base-ui
+Menu, grown from the arrow), and picking a style switches the look on. No descriptions.
+Still: `img/2026-11-11-ui-round5-style-menu.jpg` (caught mid fade-in).
+Also: "for camera, i want this to be the default zoom" (a screenshot zoomed out). The view now
+starts at 10.2 units instead of 8.6, while each ingredient is still sized from 8.6, so it keeps
+its size in the room and the room shows round it. Still: `img/2026-11-11-camera-further-back.jpg`.
+
 ## The Shuffle transition
 
 ### Before (2026-11-05): the dry brush

@@ -164,6 +164,104 @@
   backdrop-filter: blur(14px) saturate(1.3);
 }
 
+/* ----------------------------------------------------------- Split button and style menu */
+.br-split {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 4px 0 0;
+  border-radius: 999px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+}
+.br-split-brush {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background-color 150ms ease, color 150ms ease, transform 160ms ease-out;
+}
+.br-root .br-split-brush[aria-pressed='true'] {
+  background: var(--ink);
+  color: #fff;
+}
+.br-split-more {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 30px;
+  border-radius: 999px;
+  background: transparent;
+  transition: background-color 150ms ease, transform 160ms ease-out;
+}
+.br-split-more[data-popup-open] {
+  background: rgba(31, 30, 28, 0.08);
+}
+.br-split-brush:active,
+.br-split-more:active {
+  transform: scale(0.97);
+}
+/* The list grows out of the arrow (origin-aware), quick in, quicker out. */
+.br-menu {
+  min-width: 150px;
+  padding: 5px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(31, 30, 28, 0.06),
+    0 12px 32px rgba(40, 32, 20, 0.16);
+  color: var(--ink);
+  font: 500 13px 'Geist', var(--font);
+  transform-origin: var(--transform-origin);
+  transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+  outline: none;
+}
+.br-menu[data-starting-style] {
+  opacity: 0;
+  transform: scale(0.96);
+}
+.br-menu[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.98);
+  transition-duration: 120ms;
+}
+.br-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+.br-menu-item[data-highlighted] {
+  background: rgba(31, 30, 28, 0.06);
+}
+.br-menu-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px #8c8880 inset;
+}
+.br-menu-item[data-checked] .br-menu-dot {
+  background: var(--ink);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .br-menu[data-starting-style],
+  .br-menu[data-ending-style] {
+    transform: none;
+  }
+}
+
 /* ----------------------------------------------------------- Grow */
 .br-grow {
   display: flex;
@@ -317,7 +415,9 @@
   .br-new:hover {
     background: rgba(255, 255, 255, 0.86);
   }
-  .br-icon[aria-pressed='false']:hover {
+  .br-icon[aria-pressed='false']:hover,
+  .br-split-brush[aria-pressed='false']:hover,
+  .br-split-more:hover {
     background: rgba(31, 30, 28, 0.06);
   }
 }
