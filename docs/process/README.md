@@ -129,6 +129,13 @@ Decision. User said: "its fine for the fill (round1) can u ease out the fade awa
 back to normal and then merge it to main". The round 1 fill is the real button's loading
 state, now starting on the click, fading back to glass with a gentle 600 ms ease-out.
 
+### Motion audit (2026-11-11)
+After the fill merged, the user asked for `/emil-design-eng /improve-animations`. The audit found
+the motion mostly right; the user chose two fixes: the idle spin now stays off with "Reduce
+motion", and switching the painterly look or the painter crossfades (220 ms) instead of
+swapping in one frame. Left for later: one shared set of easing curves, matching hover
+timings, a Safari check of the frosted blur.
+
 ## The Shuffle transition
 
 ### Before (2026-11-05): the dry brush

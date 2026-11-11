@@ -87,6 +87,21 @@ body {
 .card.is-swapping canvas {
   opacity: 0;
 }
+/* The crossfade layer (main.ts, changeLook): a copy of the painting as it was, fading away
+   over the new look in 220 ms. Never in the way of a drag. */
+.card .card-crossfade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: none;
+}
+.card .card-crossfade.is-shown {
+  opacity: 1;
+}
+.card .card-crossfade.is-fading {
+  transition: opacity 220ms ease-out;
+}
 .card canvas:active {
   cursor: grabbing;
 }

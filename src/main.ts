@@ -443,6 +443,39 @@ if (panelElement && /panel/.test(location.hash)) {
   panelElement.hidden = false;
   document.querySelector('.app')?.classList.add('with-panel');
 }
+/*
+ * A short crossfade when the look changes (painterly on or off, another painter): the
+ * painting as it was is copied onto a layer over the card, the new look is painted under
+ * it, and the copy fades away. Without it the whole painting swapped in a single frame.
+ * Like a dissolve between two plates in a comp, 220 ms.
+ */
+const crossfadeLayer = document.createElement('canvas');
+crossfadeLayer.className = 'card-crossfade';
+crossfadeLayer.setAttribute('aria-hidden', 'true');
+canvas.after(crossfadeLayer);
+function changeLook(change: () => void): void {
+  // A Shuffle transition paints every frame itself: just change, it will carry the new look.
+  if (!transitioning && !swapping) {
+    // Paint the current look now and copy it straight away (a WebGL picture can only be
+    // read in the same moment it is drawn).
+    update();
+    painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame);
+    const source = stage.renderer.domElement;
+    crossfadeLayer.width = source.width;
+    crossfadeLayer.height = source.height;
+    crossfadeLayer.getContext('2d')?.drawImage(source, 0, 0);
+    // Show the copy at once, then let it fade on the next frame.
+    crossfadeLayer.classList.remove('is-fading');
+    crossfadeLayer.classList.add('is-shown');
+    void crossfadeLayer.offsetWidth;
+    requestAnimationFrame(() => {
+      crossfadeLayer.classList.add('is-fading');
+      crossfadeLayer.classList.remove('is-shown');
+    });
+  }
+  change();
+}
+
 const barRoot = document.getElementById('bar-root');
 if (barRoot) {
   mountStyleBar(barRoot, {
@@ -453,17 +486,19 @@ if (barRoot) {
     },
     painterly: () => settings.brush.classic,
     painter: () => settings.brush.painter,
-    setPainterly: (on) => {
-      settings.brush.classic = on;
-      pane.refresh();
-      onSettingsChanged('brush');
-    },
-    setPainter: (id) => {
-      Object.assign(settings.brush, paintLike(id));
-      settings.brush.classic = true;
-      pane.refresh();
-      onSettingsChanged('brush');
-    },
+    setPainterly: (on) =>
+      changeLook(() => {
+        settings.brush.classic = on;
+        pane.refresh();
+        onSettingsChanged('brush');
+      }),
+    setPainter: (id) =>
+      changeLook(() => {
+        Object.assign(settings.brush, paintLike(id));
+        settings.brush.classic = true;
+        pane.refresh();
+        onSettingsChanged('brush');
+      }),
     swapSeconds: TRANSITION_SECONDS,
   });
 }
@@ -554,9 +589,13 @@ function update(): void {
   // Label mode in both styles: the playful strokes repaint the glazed painting.
   ground.update(settings.scene, context.lightDirection, true);
   stage.keyLight.castShadow = settings.scene.castShadow;
-  stage.setIdleSpin(settings.scene.idleSpin, settings.scene.spinSpeed);
+  // With "Reduce motion" on, the card does not turn by itself (a large picture moving on its
+  // own is what that setting asks to calm); dragging and zooming still work.
+  stage.setIdleSpin(settings.scene.idleSpin && !reducedMotion.matches, settings.scene.spinSpeed);
   updatePaintFrame();
 }
+// If the setting changes while the page is open, follow it straight away.
+reducedMotion.addEventListener('change', () => stage.invalidate());
 
 stage.start(update, () => painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame));
 // Once the first frames are up, compile the Shuffle transition's shaders in the background.
