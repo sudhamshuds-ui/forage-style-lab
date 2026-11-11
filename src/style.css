@@ -25,6 +25,11 @@
   box-sizing: border-box;
 }
 
+html {
+  /* iPhone Safari must not enlarge text on its own. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
 html,
 body {
   margin: 0;
@@ -286,7 +291,8 @@ body {
   margin: 0;
   /* Dark ink (the user, 2026-11-11); display size, so the tracking tightens a touch. */
   color: var(--ink);
-  font: 400 28px/1.05 'Geist Serif', Georgia, serif;
+  /* 28 px on a laptop, about 21 px on a phone (the user: "the title is very big in mobile"). */
+  font: 400 clamp(20px, 12px + 2.4vw, 28px) / 1.05 'Geist Serif', Georgia, serif;
   letter-spacing: -0.01em;
 }
 .lab .card {

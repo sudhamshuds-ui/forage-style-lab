@@ -140,6 +140,13 @@ with `#wipe=down` (still, both halfway: `img/2026-11-11-look-change-wipe.jpg`). 
 (commit 22686e6). Left for later: one shared set of easing curves, matching hover
 timings, a Safari check of the frosted blur.
 
+### Phones (2026-11-11)
+User said: "fix this in mobile view" (New ingredient squeezed, its label against the pill's
+edge) and "also the title is very big in mobile". The bar was placed at the card's middle, which
+left it only half the card's width: it now takes its own width. The title scales with the
+screen (28 px on a laptop, about 21 px on a phone), and Safari no longer enlarges text on its
+own. Still: `img/2026-11-11-phone-fix.jpg`.
+
 ## The Shuffle transition
 
 ### Before (2026-11-05): the dry brush

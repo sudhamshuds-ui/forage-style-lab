@@ -22,6 +22,9 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  /* Its own natural width: placed at the card's middle, it would otherwise get only half the
+     card, which squeezed New ingredient on phones (the user, 2026-11-11). */
+  width: max-content;
   pointer-events: auto;
   --glass: rgba(255, 255, 255, 0.56);
   /* Hover: the glass brightens (the same on every control). */
