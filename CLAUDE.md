@@ -78,12 +78,10 @@ keep code readable with friendly comments.
 - **Idle spin is on by default**: a slow turntable that pauses while you drag the view and
   eases back in 1.5 seconds after you last drag or zoom (`Stage.setIdleSpin`; Scene > Idle spin, hidden). With
   "Reduce motion" on, it stays off (`main.ts`, `update`; the 2026-11-11 motion audit).
-- **Look changes wipe** (2026-11-11, from the motion audit, then the user: "corner to corner or
-  up to down"): switching the painterly look or picking a painter copies the painting as it was
-  onto a layer over the card and wipes it away over the new look with a soft edge, corner to
-  corner from the top left (450 ms, ease-in-out; `#wipe=down` wipes top to bottom), instead of
-  swapping in one frame (`changeLook` in `main.ts`, `.card-crossfade` in `style.css`). A plain
-  220 ms fade with reduced motion; skipped while a Shuffle transition plays.
+- **Look changes crossfade** (2026-11-11, from the motion audit): switching the painterly look
+  or picking a painter copies the painting as it was onto a layer over the card and fades it
+  away over the new look in 220 ms (`changeLook` in `main.ts`, `.card-crossfade` in `style.css`),
+  instead of swapping in one frame. Skipped while a Shuffle transition plays.
 - **No crisp lines** (the user, 2026-11-10, a rule for every ingredient): where one colour meets
   another inside an ingredient (fat and meat, flesh and rind, a seam, a vein, a band), the edge
   fades over a soft band like wet paint, never a crisp cut-out line. Crisp edges are kept only for

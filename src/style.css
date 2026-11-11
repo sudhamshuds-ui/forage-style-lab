@@ -87,57 +87,20 @@ body {
 .card.is-swapping canvas {
   opacity: 0;
 }
-/* The look-change layer (main.ts, changeLook): a copy of the painting as it was, wiped away
-   over the new look with a soft edge. The mask is a gradient three times the card's size
-   (clear, a soft band, solid); sliding it moves the band across the card. Never in the way of
-   a drag. */
+/* The crossfade layer (main.ts, changeLook): a copy of the painting as it was, fading away
+   over the new look in 220 ms. Never in the way of a drag. */
 .card .card-crossfade {
   position: absolute;
   inset: 0;
   pointer-events: none;
   opacity: 0;
   transition: none;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
 }
-.card .card-crossfade[data-wipe='corner'] {
-  -webkit-mask-image: linear-gradient(to bottom right, transparent 44%, #000 56%);
-  mask-image: linear-gradient(to bottom right, transparent 44%, #000 56%);
-  -webkit-mask-size: 300% 300%;
-  mask-size: 300% 300%;
-}
-.card .card-crossfade[data-wipe='down'] {
-  -webkit-mask-image: linear-gradient(to bottom, transparent 42%, #000 58%);
-  mask-image: linear-gradient(to bottom, transparent 42%, #000 58%);
-  -webkit-mask-size: 100% 300%;
-  mask-size: 100% 300%;
-}
-/* Just copied: the old look covers the card (the solid end of the mask shows). */
 .card .card-crossfade.is-shown {
   opacity: 1;
-  -webkit-mask-position: 100% 100%;
-  mask-position: 100% 100%;
 }
-/* Then the clear end slides in from the top left (or the top): the wipe. */
 .card .card-crossfade.is-fading {
-  opacity: 1;
-  -webkit-mask-position: 0 0;
-  mask-position: 0 0;
-  transition:
-    -webkit-mask-position 450ms cubic-bezier(0.77, 0, 0.175, 1),
-    mask-position 450ms cubic-bezier(0.77, 0, 0.175, 1);
-}
-@media (prefers-reduced-motion: reduce) {
-  /* No moving edge: a plain quick fade instead. */
-  .card .card-crossfade.is-shown,
-  .card .card-crossfade.is-fading {
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-  .card .card-crossfade.is-fading {
-    opacity: 0;
-    transition: opacity 220ms ease-out;
-  }
+  transition: opacity 220ms ease-out;
 }
 .card canvas:active {
   cursor: grabbing;
