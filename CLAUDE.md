@@ -172,7 +172,13 @@ keep code readable with friendly comments.
   in from the middle outward; a soft, noisy wash
   follows behind them from the middle, so gaps the strokes missed melt away instead of
   lingering as sharp shards of the old card, which the user disliked), and the last
-  frame is exactly the live view. Each stroke travels for about half a second with an
+  frame is exactly the live view. **Paint in** (the default since 2026-11-11, the user): the
+  reveal strokes carry paint picked up from the next picture along their length (`strokePaint`,
+  `uPaintIn` in `transitionShader.ts`), big blurry strokes first, then smaller and sharper, so
+  the next card is painted in rather than uncovered; the smudge lays down a little more of the
+  old card's colour. A round with more stroke layers and a shorter wash was tried and reverted
+  (the user preferred this one). Other styles (sweep, dabs, swirl, feather burn, brush burn) sit
+  in the same shaders (`uStyle`) for the prototype page only; see `docs/process/README.md`. Each stroke travels for about half a second with an
   ease-in-out (movement on screen). The panel's name changes as the reveal begins (a 100 ms
   fade and blur), and the button looks busy while a swap plays. User feedback that shaped
   it: smudge strokes were too small, all one way and all at once; reveal strokes were
@@ -437,7 +443,13 @@ light's rainbow fringe) loads the room's colour, and room strokes pick up the co
 (wet-in-wet). A pick-up that reacted to every small change flattened the wall's slabs: keep the
 thresholds.
 
-## Where we are (2026-11-10)
+## Where we are (2026-11-11)
+The UI and transition prototypes (branch `ui-variants`, merged 2026-11-11): React is set up for
+the prototype pages only (`prototypes/`, base-ui, motion, clsx); the Style Lab itself is still
+plain TypeScript and its panel is unchanged. The user is editing the dock UI in Figma (page
+"Style Lab UI"); the React build follows once they send it. Paint in is the Shuffle default.
+
+## Before that (2026-11-10)
 On `main`: everything above, including the steak (a tomahawk), the baguette fix, random Shuffle
 strokes and the "no crisp lines" rule. Vercel deploys `main`. Next: the chicken drumstick, then
 `/forage-brand`. Open question from the user: "the camera still pauses spinning mid transition"

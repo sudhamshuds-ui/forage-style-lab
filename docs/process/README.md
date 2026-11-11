@@ -82,3 +82,8 @@ wash is a short last touch at the very end. Still (frames 1.1 to 2.35 s):
 `img/2026-11-11-transition-round4-paint-in-longer-strokes.jpg`.
 User said: "no revert paint in to prev version". Reverted to round 3 (three layers, the
 longer wash); round 4 is kept here and in history (commit 1e14783).
+
+### Decision (2026-11-11): Paint in
+User said: "make paint in the default and merge to main, also in the shuffle artifact,
+remove current and keep paint in". Paint in (round 3) is now the Shuffle transition in the
+app; Current is off the prototype page (its look is still in history and in round 1's still).

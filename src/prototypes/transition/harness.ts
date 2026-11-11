@@ -10,8 +10,7 @@ import { shuffle, watchBusy } from '../ui/shared';
  */
 
 const STYLES = [
-  { name: 'Current', style: 0, about: 'Dry brush: long strokes smudge the card in a wave from the ingredient, then paint the next one in, crossing three ways.' },
-  { name: 'Paint in', style: 0, paintIn: true, about: 'The current dry brush, but the reveal paints the next card in stroke by stroke, coarse first, then finer.' },
+  { name: 'Paint in', style: 0, paintIn: true, about: 'The default: the dry brush smudges the card, then the next card is painted in stroke by stroke, coarse first, then finer.' },
   { name: 'Sweep', style: 1, about: 'Wide strokes in rows, top to bottom, each row the other way, like a wall painted back and forth.' },
   { name: 'Swirl', style: 3, about: 'Strokes stir round the ingredient in a spiral, then the next card is painted in, circling outward.' },
   { name: 'Feather burn', style: 4, about: 'No strokes: a soft, hairy, grainy front melts the old card into a smear, then burns through to the next.' },
