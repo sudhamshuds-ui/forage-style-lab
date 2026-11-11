@@ -1,0 +1,70 @@
+/* The transition prototypes page: the card as the hero, a small bar under it. */
+.trp {
+  --card-w: min(calc(100vw - 32px), calc((100svh - 190px) * 0.75), 680px);
+}
+.trp .app {
+  display: block;
+}
+.trp .panel {
+  display: none;
+}
+.trp .stage-area {
+  min-height: 100svh;
+  padding: 72px 16px 20px;
+  gap: 12px;
+}
+.trp .card {
+  width: var(--card-w);
+}
+.trp-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: var(--card-w);
+}
+.trp-name {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  transition: opacity 100ms ease, filter 100ms ease;
+}
+.trp-name.is-changing {
+  opacity: 0;
+  filter: blur(2px);
+}
+.trp-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-2);
+  font-weight: 500;
+  cursor: pointer;
+}
+.trp-toggle input {
+  accent-color: var(--ink);
+}
+.trp-shuffle {
+  height: 36px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font: 500 13px var(--font);
+  cursor: pointer;
+  transition: transform 140ms ease-out, opacity 150ms ease;
+}
+.trp-shuffle:active {
+  transform: scale(0.97);
+}
+.trp-shuffle[data-busy] {
+  opacity: 0.5;
+  cursor: progress;
+}
+.trp-about {
+  width: var(--card-w);
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  line-height: 1.45;
+}

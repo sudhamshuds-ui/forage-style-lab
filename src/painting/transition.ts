@@ -78,6 +78,7 @@ export class ShuffleTransition {
         uStep: { value: 1 },
         uCell: { value: 20 },
         uRound: { value: 0 },
+        uStyle: { value: 0 },
       },
       vertexShader: transitionVertexShader,
       fragmentShader: smudgeFragmentShader,
@@ -94,6 +95,7 @@ export class ShuffleTransition {
         uSeconds: { value: TRANSITION_SECONDS },
         uCentre: { value: new Vector2(0.5, 0.5) },
         uSeed: { value: new Vector2(0, 0) },
+        uStyle: { value: 0 },
       },
       vertexShader: transitionVertexShader,
       fragmentShader: compositeFragmentShader,
@@ -157,6 +159,15 @@ export class ShuffleTransition {
     const seed = new Vector2(Math.random() * 1000, Math.random() * 1000);
     (this.smudgeMaterial.uniforms.uSeed.value as Vector2).copy(seed);
     (this.compositeMaterial.uniforms.uSeed.value as Vector2).copy(seed);
+  }
+
+  /**
+   * Which style of transition (the prototype page flips between them; the app uses 0):
+   * 0 dry brush (the approved one), 1 sweep, 2 dabs, 3 swirl, 4 feather burn.
+   */
+  setStyle(style: number): void {
+    this.smudgeMaterial.uniforms.uStyle.value = style;
+    this.compositeMaterial.uniforms.uStyle.value = style;
   }
 
   /** Where the ingredient sits on screen (0..1): the smudge and the reveal spread out from there. */

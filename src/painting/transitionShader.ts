@@ -124,6 +124,9 @@ uniform vec2 uSeed; // a new one every click: which strokes this shuffle paints
 uniform float uStep;
 uniform float uCell;
 uniform float uRound;
+// Which transition style (prototype variants): 0 dry brush (the default), 1 sweep,
+// 2 dabs, 3 swirl, 4 feather burn (no strokes: the burn lives in the composite).
+uniform float uStyle;
 
 ${strokeGLSL}
 
@@ -146,6 +149,10 @@ void main() {
   vec2 texel = 1.0 / uResolution;
   vec4 smear = texture2D(tPrev, vUv);
   vec3 colour = smear.rgb;
+  if (uStyle > 3.5) {
+    gl_FragColor = smear;
+    return;
+  }
 
   // No blur on the picture itself (the user, 2026-11-05): only the strokes are soft.
 
@@ -158,18 +165,24 @@ void main() {
   for (int layer = 0; layer < 2; layer++) {
   float fl = float(layer);
   float cell = max(uCell * 3.0, uResolution.y * 0.12) * (1.0 - 0.3 * fl);
+  vec2 cells = vec2(cell);
+  if (uStyle > 0.5 && uStyle < 1.5) cells = vec2(3.0, 1.0) * uResolution.y * 0.13 * (1.0 - 0.3 * fl); // sweep: long rows
+  else if (uStyle > 1.5 && uStyle < 2.5) cells = vec2(max(uCell * 2.0, uResolution.y * 0.07) * (1.0 - 0.3 * fl)); // dabs
   vec2 shift = vec2(0.37, 0.71) * fl;
-  vec2 base = floor(px / cell + shift);
+  vec2 base = floor(px / cells + shift);
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       vec2 id = base + vec2(float(i), float(j));
       vec4 rnd = hash42(id + uSeed + 17.3 + fl * 41.9);
       vec4 rnd2 = hash42(id * 1.37 + uSeed + 3.3 + fl * 13.7);
-      vec2 centre = (id + 0.15 + 0.7 * rnd.yz - shift) * cell;
+      vec2 centre = (id + 0.15 + 0.7 * rnd.yz - shift) * cells;
       // A wave out from the ingredient, loosened with some randomness: the first half
       // of the transition (uT 0..0.5). Each stroke takes 0.45 to 0.7 seconds.
       float start = 0.5 * (0.6 * waveOrder(centre / uResolution) + 0.4 * rnd.x);
+      if (uStyle > 0.5 && uStyle < 1.5) start = 0.45 * (0.8 * (1.0 - centre.y / uResolution.y) + 0.2 * rnd.x); // sweep: top to bottom
+      else if (uStyle > 1.5 && uStyle < 2.5) start = 0.45 * (0.35 * waveOrder(centre / uResolution) + 0.65 * rnd.x); // dabs: scattered
       float duration = (0.45 + 0.25 * rnd2.x) / uSeconds;
+      if (uStyle > 1.5 && uStyle < 2.5) duration *= 0.6; // a dab is quick
       float grown = clamp((uT - start) / duration, 0.0, 1.0);
       if (grown <= 0.0 || grown >= 1.0) continue; // only strokes still moving drag paint
 
@@ -181,18 +194,46 @@ void main() {
       float halfLen = cell * mix(1.0, 0.65, uRound) * (0.85 + 0.3 * rnd2.z);
       float halfWid = cell * 0.2 * (0.8 + 0.4 * rnd2.w);
       float fit = min(1.0, cell * 1.1 / (length(vec2(halfLen, halfWid * 2.8)) + 4.0));
+      float dry = 0.55;
+      float pull = 4.5;
+      if (uStyle > 0.5 && uStyle < 1.5) {
+        // Sweep: each row runs the other way, like a wall painted back and forth.
+        float row = floor(centre.y / cells.y);
+        dir = normalize(vec2(mod(row, 2.0) < 0.5 ? 1.0 : -1.0, (rnd2.y - 0.5) * 0.45));
+        halfLen = cells.x * 0.55 * (0.85 + 0.25 * rnd2.z);
+        halfWid = cells.y * 0.38 * (0.85 + 0.3 * rnd2.w);
+        fit = 1.0;
+        dry = 0.7;
+        pull = 3.5;
+      } else if (uStyle > 1.5 && uStyle < 2.5) {
+        // Dabs: short, round, loaded marks in every direction.
+        halfLen = cells.x * 0.42 * (0.8 + 0.4 * rnd2.z);
+        halfWid = cells.x * 0.28 * (0.8 + 0.4 * rnd2.w);
+        fit = 1.0;
+        dry = 0.25;
+        pull = 2.5;
+      } else if (uStyle > 2.5) {
+        // Swirl: strokes stir round the ingredient, leaning a little inward.
+        vec2 d = (centre / uResolution - uCentre) * vec2(uResolution.x / uResolution.y, 1.0);
+        vec2 tangent = normalize(vec2(-d.y, d.x) + 1e-4);
+        float lean = 0.25 + (rnd2.y - 0.5) * 0.5;
+        dir = normalize(tangent * cos(lean) - normalize(d + 1e-4) * sin(lean));
+        halfLen *= 1.1;
+        fit = min(1.0, cell * 1.1 / (length(vec2(halfLen, halfWid * 2.8)) + 4.0));
+        pull = 6.0;
+      }
       halfLen *= fit;
       halfWid *= fit;
 
       vec2 rel = px - centre;
       vec2 local = vec2(dot(rel, dir), dot(rel, vec2(-dir.y, dir.x)));
       if (abs(local.x) > halfLen + 4.0 || abs(local.y) > halfWid * 2.8 + 4.0) continue;
-      float a = strokeMask(local, halfLen, halfWid, easeInOut(grown), rnd, 0.55);
+      float a = strokeMask(local, halfLen, halfWid, easeInOut(grown), rnd, dry);
       if (a <= 0.0) continue;
 
       // The stroke drags the paint it passes through along its path...
       float bristle = noise1(local.y / halfWid * 5.0 + rnd.x * 57.0);
-      vec2 drag = dir * (4.5 + 1.5 * bristle) * min(uStep, 2.0) * texel;
+      vec2 drag = dir * (pull + 1.5 * bristle) * min(uStep, 2.0) * texel;
       // The dragged paint is softened a little across the stroke (wet paint, not glass):
       // three samples side by side across its width.
       vec2 across = vec2(-dir.y, dir.x) * 1.5 * texel;
@@ -226,6 +267,7 @@ uniform float uT;
 uniform float uSeconds;
 uniform vec2 uCentre;
 uniform vec2 uSeed; // a new one every click: which strokes this shuffle paints
+uniform float uStyle; // see the smudge shader
 
 ${strokeGLSL}
 
@@ -233,17 +275,23 @@ ${strokeGLSL}
 // the nearest stroke runs (for the wet smear at its edge).
 // from, spread: when this layer's strokes start (shares of uT); seconds: each stroke's travel.
 float revealLayer(vec2 px, float cell, float layer, float from, float spread, float seconds, inout vec2 runDir) {
-  vec2 base = floor(px / cell);
+  vec2 cells = vec2(cell);
+  if (uStyle > 0.5 && uStyle < 1.5) cells = vec2(2.6, 0.95) * cell; // sweep: long rows
+  else if (uStyle > 1.5 && uStyle < 2.5) cells = vec2(cell * 0.5); // dabs: small
+  vec2 base = floor(px / cells);
   float best = 0.0;
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       vec2 id = base + vec2(float(i), float(j));
       vec4 rnd = hash42(id + uSeed + layer * 23.1);
       vec4 rnd2 = hash42(id * 1.37 + uSeed + layer * 7.7 + 5.1);
-      vec2 centre = (id + 0.15 + 0.7 * rnd.yz) * cell;
+      vec2 centre = (id + 0.15 + 0.7 * rnd.yz) * cells;
       // The same wave as the smudge: the new card is painted in from the middle outward.
       float start = from + spread * (0.6 * waveOrder(centre / uResolution) + 0.4 * rnd.x);
+      if (uStyle > 0.5 && uStyle < 1.5) start = from + spread * (0.85 * (1.0 - centre.y / uResolution.y) + 0.15 * rnd.x);
+      else if (uStyle > 1.5 && uStyle < 2.5) start = from + spread * (0.5 * waveOrder(centre / uResolution) + 0.5 * rnd.x);
       float duration = (seconds + 0.15 * rnd2.x) / uSeconds;
+      if (uStyle > 1.5 && uStyle < 2.5) duration *= 0.55;
       float grown = clamp((uT - start) / duration, 0.0, 1.0);
       if (grown <= 0.0) continue;
 
@@ -255,13 +303,31 @@ float revealLayer(vec2 px, float cell, float layer, float from, float spread, fl
       float halfLen = cell * (0.9 + 0.2 * rnd2.z);
       float halfWid = cell * (0.22 + 0.06 * rnd2.w);
       float fit = min(1.0, cell * 1.1 / (length(vec2(halfLen, halfWid * 2.8)) + 4.0));
+      float dry = 0.45;
+      if (uStyle > 0.5 && uStyle < 1.5) {
+        float row = floor(centre.y / cells.y);
+        dir = normalize(vec2(mod(row + layer, 2.0) < 0.5 ? 1.0 : -1.0, (rnd2.y - 0.5) * 0.4));
+        halfLen = cells.x * 0.6 * (0.9 + 0.2 * rnd2.z);
+        halfWid = cells.y * 0.4;
+        fit = 1.0;
+        dry = 0.6;
+      } else if (uStyle > 1.5 && uStyle < 2.5) {
+        halfLen = cells.x * 0.5 * (0.8 + 0.4 * rnd2.z);
+        halfWid = cells.x * 0.34 * (0.85 + 0.3 * rnd2.w);
+        fit = 1.0;
+        dry = 0.2;
+      } else if (uStyle > 2.5) {
+        vec2 d = (centre / uResolution - uCentre) * vec2(uResolution.x / uResolution.y, 1.0);
+        vec2 tangent = normalize(vec2(-d.y, d.x) + 1e-4);
+        dir = normalize(tangent + normalize(d + 1e-4) * (0.2 + (rnd2.y - 0.5) * 0.4));
+      }
       halfLen *= fit;
       halfWid *= fit;
 
       vec2 rel = px - centre;
       vec2 local = vec2(dot(rel, dir), dot(rel, vec2(-dir.y, dir.x)));
       if (abs(local.x) > halfLen + 4.0 || abs(local.y) > halfWid * 2.8 + 4.0) continue;
-      float a = strokeMask(local, halfLen, halfWid, easeInOut(grown), rnd, 0.45);
+      float a = strokeMask(local, halfLen, halfWid, easeInOut(grown), rnd, dry);
       if (a > best) {
         best = a;
         runDir = dir;
@@ -284,8 +350,80 @@ vec3 soften(sampler2D image, vec2 uv, float radius) {
   return sum / 9.0;
 }
 
+// Smooth noise in a few octaves (big shapes plus finer detail), 0..1.
+float fbm(vec2 p) {
+  float sum = 0.0;
+  float amp = 0.5;
+  for (int k = 0; k < 4; k++) {
+    sum += amp * valueNoise3(vec3(p, 7.1 + float(k) * 3.7));
+    p *= 2.07;
+    amp *= 0.5;
+  }
+  return sum / 0.9375;
+}
+
+float easeInOutSoft(float t) {
+  t = clamp(t, 0.0, 1.0);
+  return t * t * (3.0 - 2.0 * t);
+}
+
+// Feather burn (the user's reference): no brush strokes. A soft front with a hairy,
+// grainy edge spreads out from the ingredient, first melting the old card into a
+// smear of itself, then burning through to the next card.
+vec3 featherBurn(vec2 px) {
+  vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
+  vec2 d = (vUv - uCentre) * aspect;
+  vec2 outward = normalize(d + 1e-4) / aspect; // in uv, pointing away from the ingredient
+  vec2 q = px / uResolution.y;
+  // Where the front reaches last: far from the ingredient, plus big soft lobes, plus a
+  // fine fur along the edge (hairs running outward).
+  // Spread evenly over 0..1, so the front takes the whole of its time to cross the card.
+  float lobes = smoothstep(0.2, 0.8, fbm(q * 2.6 + uSeed * 0.01));
+  float field = 0.55 * clamp(length(d) / 0.78, 0.0, 1.0) + 0.45 * lobes;
+  float hair = valueNoise3(vec3(px.x * 0.45, px.y * 0.45, uSeed.x * 0.1));
+  float streak = valueNoise3(vec3(length(d) * 22.0, atan(d.y, d.x) * 40.0, uSeed.y * 0.1));
+  field += (hair - 0.5) * 0.05 + (streak - 0.5) * 0.06;
+  float feather = 0.09;
+  // Two fronts on the same shape: the melt (0 to 45%), then the reveal (45 to 100%).
+  // Steady fronts (a burn creeps at an even pace), easing only at the very ends.
+  float tm = clamp(uT / 0.45, 0.0, 1.0);
+  float ts = clamp((uT - 0.45) / 0.5, 0.0, 1.0);
+  float meltAt = mix(tm, easeInOutSoft(tm), 0.3) * 0.6 - 0.08;
+  float showAt = mix(ts, easeInOutSoft(ts), 0.3) * 1.2 - 0.12;
+  float melt = smoothstep(field - feather, field + feather, meltAt);
+  float show = smoothstep(field - feather, field + feather, showAt);
+  // The old card, dragged outward in streaks where the melt has passed (like paint
+  // smeared by a thumb), each streak its own length.
+  vec3 old = texture2D(tFrom, vUv).rgb;
+  float reach = melt * (10.0 + 30.0 * streak) / uResolution.y;
+  vec3 oldSmear = vec3(0.0);
+  for (int k = 0; k < 6; k++) {
+    float f = float(k) / 5.0;
+    oldSmear += texture2D(tFrom, vUv - outward * reach * f).rgb;
+  }
+  oldSmear /= 6.0;
+  vec3 colour = mix(old, oldSmear, melt);
+  // The edge of the reveal: a grainy, feathered band where the next card is soft too.
+  float band = 1.0 - abs(2.0 * show - 1.0);
+  float grain = valueNoise3(vec3(px * 0.7, 3.3)) - 0.5;
+  show = clamp(show + grain * band * 0.8, 0.0, 1.0);
+  vec3 next = texture2D(tNext, vUv).rgb;
+  vec3 nextSoft = soften(tNext, vUv + outward * band * 10.0 / uResolution.y, 5.0 * band);
+  colour = mix(colour, mix(next, nextSoft, band), show);
+  // A faint warm shade just ahead of the front, like the edge of a burn (never grey).
+  float ahead = band * (1.0 - show);
+  colour *= mix(vec3(1.0), vec3(0.9, 0.82, 0.8), ahead * 0.6);
+  return colour;
+}
+
 void main() {
   vec2 px = vUv * uResolution;
+  if (uStyle > 3.5) {
+    vec3 burnt = mix(featherBurn(px), texture2D(tNext, vUv).rgb, smoothstep(0.9, 1.0, uT));
+    gl_FragColor = vec4(burnt, 1.0);
+    #include <colorspace_fragment>
+    return;
+  }
   // The card we leave (live, still spinning) under its layer of smeared paint.
   vec4 smear = texture2D(tSmudge, vUv);
   vec3 colour = texture2D(tFrom, vUv).rgb * (1.0 - smear.a) + smear.rgb;

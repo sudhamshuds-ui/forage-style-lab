@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forage shuffle transitions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  </head>
+  <body class="trp">
+    <!--
+      A prototype page for the Shuffle transition: the real Style Lab runs underneath (same
+      ids as index.html), its panel is hidden, and the picker switches the transition's style.
+    -->
+    <div class="app">
+      <main class="stage-area">
+        <div class="card" id="card">
+          <canvas id="canvas" aria-label="3D view of the ingredient"></canvas>
+        </div>
+        <div class="trp-bar">
+          <span class="trp-name" id="trp-name" aria-live="polite"></span>
+          <label class="trp-toggle"><input type="checkbox" id="trp-painterly" /> Painterly</label>
+          <button type="button" class="trp-shuffle" id="trp-shuffle">Shuffle</button>
+        </div>
+        <p class="trp-about" id="trp-about"></p>
+      </main>
+
+      <aside class="panel" aria-hidden="true">
+        <div class="panel-head">
+          <h2 id="ingredient-name">Apple</h2>
+          <button type="button" class="btn btn-shuffle" id="btn-shuffle-ingredient" tabindex="-1">Shuffle ingredient</button>
+        </div>
+        <div class="panel-body">
+          <section class="palette" id="palette"></section>
+          <div id="pane"></div>
+        </div>
+        <div class="panel-foot">
+          <button type="button" class="btn" id="btn-reset" tabindex="-1">Reset</button>
+        </div>
+      </aside>
+    </div>
+
+    <nav class="proto-picker" data-position="top" aria-label="Prototype variants">
+      <span class="proto-picker-highlight" aria-hidden="true"></span>
+      <button class="proto-picker-item" data-active aria-current="true">Current</button>
+      <button class="proto-picker-item">Sweep</button>
+      <button class="proto-picker-item">Dabs</button>
+      <button class="proto-picker-item">Swirl</button>
+      <button class="proto-picker-item">Feather burn</button>
+      <span class="proto-picker-divider" aria-hidden="true"></span>
+      <button class="proto-picker-item proto-picker-replay" aria-label="Shuffle again (R)">↻</button>
+    </nav>
+
+    <script type="module" src="/src/prototypes/transition/harness.ts"></script>
+  </body>
+</html>
