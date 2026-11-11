@@ -444,14 +444,21 @@ if (panelElement && /panel/.test(location.hash)) {
   document.querySelector('.app')?.classList.add('with-panel');
 }
 /*
- * A short crossfade when the look changes (painterly on or off, another painter): the
- * painting as it was is copied onto a layer over the card, the new look is painted under
- * it, and the copy fades away. Without it the whole painting swapped in a single frame.
- * Like a dissolve between two plates in a comp, 220 ms.
+ * A short wipe when the look changes (painterly on or off, another painter): the painting
+ * as it was is copied onto a layer over the card, the new look is painted under it, and the
+ * copy is wiped away with a soft edge (the user, 2026-11-11: "corner to corner or up to
+ * down"), like a wipe between two plates in a comp. Corner to corner by default (from the
+ * top left, where the light comes from); `?wipe=down` or `#wipe=down` in the address wipes
+ * top to bottom.
+ * With reduced motion it is a plain quick fade. Without it the painting swapped in one frame.
  */
 const crossfadeLayer = document.createElement('canvas');
 crossfadeLayer.className = 'card-crossfade';
 crossfadeLayer.setAttribute('aria-hidden', 'true');
+crossfadeLayer.dataset.wipe =
+  new URLSearchParams(location.search).get('wipe') === 'down' || /wipe=down/.test(location.hash) ? 'down' : 'corner';
+// Once the wipe has run, put the layer away.
+crossfadeLayer.addEventListener('transitionend', () => crossfadeLayer.classList.remove('is-fading'));
 canvas.after(crossfadeLayer);
 function changeLook(change: () => void): void {
   // A Shuffle transition paints every frame itself: just change, it will carry the new look.

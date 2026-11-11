@@ -133,7 +133,9 @@ state, now starting on the click, fading back to glass with a gentle 600 ms ease
 After the fill merged, the user asked for `/emil-design-eng /improve-animations`. The audit found
 the motion mostly right; the user chose two fixes: the idle spin now stays off with "Reduce
 motion", and switching the painterly look or the painter crossfades (220 ms) instead of
-swapping in one frame. Left for later: one shared set of easing curves, matching hover
+swapping in one frame. Then the user: "can the cross fade transition happen from corner to
+corner or up to down": it became a soft-edged wipe, corner to corner by default, top to bottom
+with `#wipe=down` (still, both halfway: `img/2026-11-11-look-change-wipe.jpg`). Left for later: one shared set of easing curves, matching hover
 timings, a Safari check of the frosted blur.
 
 ## The Shuffle transition
