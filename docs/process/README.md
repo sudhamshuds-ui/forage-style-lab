@@ -37,6 +37,23 @@ Libraries (from the curated list): base-ui, motion, clsx. Polish after the
 Then built in Figma for the user to edit (file 537QrQ0QsVjcT4u3st7M20, page "Style Lab UI",
 node 115:2): the three screens, the docks as components, colour variables. In progress.
 
+### Round 3 (2026-11-11): the user's directions, and the brush slider
+The user's Figma frames (node 124:352, six screens): "keep viewport not rounded, no shadow",
+"lets not show name of ingredient and painters", and "the brush icon is toggle for painterly
+mode...not sure how we can make an interaction to bring a slider in to get it from normal to
+very painterly" (frame 6 sketches the brush button stretched into a tall pill). Also from the
+frames: "Forage pantry" above the card, a "New ingredient" pill, the drag hint below.
+Page: `prototypes/brush.html` (React), preview "Forage brush slider"
+(https://claude.ai/artifact/M7cV6qxhk8m34P4p5P8JC1). Motion from `emil-design-eng`, filtered
+with `find-animation-opportunities`. The slider drives one "how painterly" amount
+(`src/prototypes/brush/amount.ts`): 0 off, 50 today's default strokes, 100 very bold.
+
+| Variant | Idea | Still |
+|---|---|---|
+| Grow | The brush button stretches down into a tall pill with a slider (the user's frame 6) | `img/2026-11-11-ui-round3-grow.jpg` |
+| Scrub | No slider at rest: tap to switch, drag up or down on the button; a ring shows how much | `img/2026-11-11-ui-round3-scrub.jpg` |
+| Bar | The brush beside "New ingredient"; switching on slides a short slider out of it | `img/2026-11-11-ui-round3-bar.jpg` |
+
 ## The Shuffle transition
 
 ### Before (2026-11-05): the dry brush

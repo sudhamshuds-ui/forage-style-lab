@@ -1,0 +1,312 @@
+/*
+ * UI round 3: the user's Figma directions (node 124:352). A white page, the card square-cornered
+ * with no shadow, "Forage pantry" above it in a serif (Geist Serif is not on Google Fonts:
+ * Instrument Serif stands in), Geist for the controls, the drag hint below.
+ * Motion: ease-out entrances under 300 ms, presses to 0.97, hover only on real pointers.
+ */
+
+.brp {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --glass: rgba(255, 255, 255, 0.74);
+  --ui-font: 'Geist', var(--font);
+  --card-w: min(calc(100vw - 32px), calc((100svh - 190px) * 5 / 6), 700px);
+}
+.brp,
+.brp body {
+  background: #ffffff;
+}
+.brp .app {
+  display: block;
+}
+.brp .panel {
+  display: none;
+}
+.brp .stage-area {
+  min-height: 100svh;
+  padding: 72px 16px 20px;
+}
+.br-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.br-title {
+  align-self: flex-start;
+  margin: 0;
+  color: #575450;
+  font: 400 28px/1.1 'Instrument Serif', Georgia, serif;
+}
+.br-layout .br-title {
+  align-self: stretch;
+}
+/* The card: square corners, no shadow (the user). */
+.brp .card {
+  width: var(--card-w);
+  aspect-ratio: 5 / 6;
+  border-radius: 0;
+  box-shadow: none;
+}
+.br-hint {
+  margin: 0;
+  color: #8c8880;
+  font: 400 13px var(--ui-font);
+  transition: opacity 300ms var(--ease-out);
+}
+/* First visit only: once the view has been dragged, the hint has done its job. */
+.br-hint.is-done {
+  opacity: 0;
+}
+
+/* The layer over the card: drags pass through to the 3D view, except on the controls. */
+.br-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.br-enter {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: br-in 240ms var(--ease-out) both;
+}
+@keyframes br-in {
+  from {
+    opacity: 0;
+  }
+}
+.br-corner {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  pointer-events: auto;
+}
+.br-bottom,
+.br-bar {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  translate: -50% 0;
+  pointer-events: auto;
+}
+
+/* Shared button feel. */
+.br-root button {
+  font: 500 14px var(--ui-font);
+  color: var(--ink);
+  border: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.br-root button:focus-visible,
+.br-thumb:focus-visible {
+  outline: 2px solid rgba(31, 30, 28, 0.45);
+  outline-offset: 2px;
+}
+
+/* "New ingredient": a glass pill. */
+.br-new {
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  white-space: nowrap;
+  transition: transform 160ms ease-out, opacity 150ms ease, background-color 150ms ease;
+}
+.br-new:active {
+  transform: scale(0.97);
+}
+.br-new[data-busy] {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+/* The brush: a round glass button; ink-filled while the painterly look is on. */
+.br-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background-color 150ms ease, color 150ms ease, transform 160ms ease-out;
+}
+.br-icon:active {
+  transform: scale(0.97);
+}
+.br-root .br-icon[aria-pressed='true'] {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* ----------------------------------------------------------- Grow */
+.br-grow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  overflow: hidden;
+}
+.br-grow-slider {
+  padding: 10px 0 12px;
+}
+
+/* ----------------------------------------------------------- The slider (base-ui) */
+.br-slider--v .br-control {
+  display: flex;
+  justify-content: center;
+  width: 38px;
+  height: 128px;
+  touch-action: none;
+  cursor: grab;
+}
+.br-slider--h .br-control {
+  display: flex;
+  align-items: center;
+  width: 128px;
+  height: 38px;
+  padding: 0 12px 0 6px;
+  touch-action: none;
+  cursor: grab;
+}
+.br-track {
+  position: relative;
+  border-radius: 999px;
+  background: rgba(31, 30, 28, 0.14);
+}
+.br-slider--v .br-track {
+  width: 4px;
+  height: 100%;
+}
+.br-slider--h .br-track {
+  width: 100%;
+  height: 4px;
+}
+.br-indicator {
+  border-radius: 999px;
+  background: var(--ink);
+}
+.br-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(31, 30, 28, 0.12),
+    0 1px 3px rgba(31, 30, 28, 0.2);
+  transition: scale 120ms ease-out;
+}
+/* A little bigger while held: the finger knows it has it. */
+.br-thumb[data-dragging] {
+  scale: 1.15;
+}
+
+/* ----------------------------------------------------------- Scrub */
+.br-scrub-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.br-scrub {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  touch-action: none;
+}
+.br-scrub[data-dragging] {
+  cursor: ns-resize;
+}
+.br-ring {
+  position: absolute;
+  inset: -4px;
+  width: 52px;
+  height: 52px;
+  transform: rotate(-90deg);
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+.br-ring[data-on] {
+  opacity: 1;
+}
+.br-ring circle {
+  fill: none;
+  stroke-width: 2.5;
+}
+.br-ring-bg {
+  stroke: rgba(255, 255, 255, 0.6);
+}
+.br-ring-fill {
+  stroke: var(--ink);
+  stroke-linecap: round;
+}
+.br-level {
+  /* Hangs just below the button while you drag (up is more, so it fills from the bottom). */
+  position: absolute;
+  top: 56px;
+  left: 19px;
+  width: 6px;
+  height: 96px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 200ms ease 300ms;
+}
+.br-level[data-show] {
+  opacity: 1;
+  transition: opacity 120ms ease-out 0ms;
+}
+.br-level-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  transform-origin: bottom;
+}
+
+/* ----------------------------------------------------------- Bar */
+.br-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.br-bar-brush {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  overflow: hidden;
+}
+
+/* Hover, only for real pointers. */
+@media (hover: hover) and (pointer: fine) {
+  .br-new:hover {
+    background: rgba(255, 255, 255, 0.86);
+  }
+  .br-icon[aria-pressed='false']:hover {
+    background: rgba(31, 30, 28, 0.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .br-thumb {
+    transition: none;
+  }
+  .br-hint {
+    transition-duration: 150ms;
+  }
+}
