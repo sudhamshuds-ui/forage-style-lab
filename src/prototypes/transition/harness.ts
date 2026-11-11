@@ -1,7 +1,7 @@
 import { app } from '../../main';
 import '../ui/picker.css';
 import './transition.css';
-import { shuffle, watchBusy, watchName } from '../ui/shared';
+import { shuffle, watchBusy } from '../ui/shared';
 
 /**
  * The transition prototypes: the picker at the top switches the Shuffle transition's style,
@@ -21,7 +21,6 @@ const picker = document.querySelector('.proto-picker') as HTMLElement;
 const highlight = picker.querySelector('.proto-picker-highlight') as HTMLElement;
 const items = [...picker.querySelectorAll<HTMLButtonElement>('.proto-picker-item:not(.proto-picker-replay)')];
 const replay = picker.querySelector('.proto-picker-replay') as HTMLButtonElement;
-const about = document.getElementById('trp-about') as HTMLElement;
 let current = 0;
 
 function moveHighlight(): void {
@@ -40,7 +39,6 @@ function setActive(i: number): void {
   });
   moveHighlight();
   app.setTransitionStyle(i);
-  about.textContent = STYLES[i].about;
   const url = new URL(location.href);
   url.searchParams.set('v', String(i + 1));
   history.replaceState(null, '', url);
@@ -60,12 +58,7 @@ document.addEventListener('keydown', (e) => {
   else if (e.key === 'r' || e.key === 'R') shuffle();
 });
 
-// The little bar under the card: the name, the Painterly switch and Shuffle.
-const name = document.getElementById('trp-name') as HTMLElement;
-watchName((text, changing) => {
-  name.textContent = text;
-  name.classList.toggle('is-changing', changing);
-});
+// Under the card: only the Painterly switch and Shuffle (the user, 2026-11-11).
 const shuffleButton = document.getElementById('trp-shuffle') as HTMLButtonElement;
 shuffleButton.addEventListener('click', shuffle);
 watchBusy((busy) => shuffleButton.toggleAttribute('data-busy', busy));
