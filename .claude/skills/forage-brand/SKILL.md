@@ -74,7 +74,7 @@ new board:
 
 | Board | Node | What it gets |
 |---|---|---|
-| 02 Six rules ("Never" strip) | 61:2 | new never-again rules: the second row of Never items (pointer fields to the lessons record) |
+| 02 Seven rules ("Never" strip; rule 07, warm highlights and cool shadows, added 2026-11-12) | 61:2 | new never-again rules: the second row of Never items (pointer fields to the lessons record) |
 | 04 Warm subject, cool room | 63:2 | a new whole-ingredient family as a row in Families (clone a row), a part-only family as a card in "Part-only families", colour lessons as cards in "Colour lessons" |
 | 06 Composition and size | 64:2 | the layout cards' "Built:" lines, the ingredient table row, composition lessons as cards in "Composition lessons" |
 | 07 Ingredient system | 67:2 | the archetype card's "Built:" line and recipe text, form lessons as cards in "Form lessons" |
