@@ -26,8 +26,8 @@ import { cutEnd, sweepGeometry } from './kit/sweep';
  */
 
 /** Real size (cm): about 9 wide and 8.5 tall, standing on its feet. */
-const WIDTH = 9;
-const HEIGHT = 8.6;
+const WIDTH = 8.6;
+const HEIGHT = 10.4;
 /** How deep the grooves between the lobes cut in (a share of the radius), top and middle. */
 const GROOVE_TOP = 0.2;
 const GROOVE_MIDDLE = 0.1;
@@ -41,36 +41,39 @@ export const buildPepper: FormBuilder = ({ state, seed }) => {
   const R = WIDTH / 2;
   // Four lobes of uneven size: each its own share of the turn and its own fullness.
   const lobeTurn = random() * Math.PI * 2;
-  const lobeSizes = Array.from({ length: 4 }, () => 1 + signed(random) * 0.05);
-  const wobble = Array.from({ length: 4 }, () => signed(random) * 0.12);
+  // Organic, never a cylinder (the user, 2026-11-12, with a reference painting): each lobe its own
+  // size, its own bulge (fullest at its own height), and the lobes turning a little round the
+  // body from the feet to the shoulders.
+  const lobeSizes = Array.from({ length: 4 }, (_, i) => 1 + (i === 0 ? 0.07 : signed(random) * 0.06));
+  const bulgeAt = Array.from({ length: 4 }, () => signed(random) * 0.5);
+  const bulgeBy = Array.from({ length: 4 }, () => 0.04 + random() * 0.06);
+  const grooveDepth = Array.from({ length: 4 }, () => 0.8 + random() * 0.4);
+  const spiral = 0.18 + random() * 0.12;
 
   /** How far into a groove a point is (0 on a lobe's middle, 1 in a groove), round the body. */
-  const grooveAt = (angle: number) => {
-    const a = angle - lobeTurn;
+  const grooveAt = (angle: number, u = 0) => {
+    const a = angle - lobeTurn - spiral * u;
     // Four grooves, a little unevenly spaced.
     const warped = a + 0.12 * Math.sin(a * 2 + 1.3) + 0.06 * Math.sin(a * 3 + 0.4);
     const g = 1 - Math.abs(Math.cos(2 * warped));
     return g ** 2.2;
   };
-  const lobeIndex = (angle: number) => {
-    const a = ((angle - lobeTurn) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
-    return Math.floor((a + Math.PI / 4) / (Math.PI / 2)) % 4;
-  };
 
   /** The profile: radius (cm) at x along the axis, from the feet (-half) to the well (+half). */
   const profile = (x: number) => {
     const t = x / half;
-    // A blocky body: a squared-off ellipse, a touch fuller at the shoulders than at the feet.
-    const squareness = 3.6;
+    // A blocky body, softer than a cylinder: a squared-off ellipse, fuller at the shoulders and
+    // narrowing a little toward the feet, like the reference.
+    const squareness = t > 0 ? 3.2 : 2.6;
     const r = R * Math.max(0, 1 - Math.abs(t) ** squareness) ** (1 / squareness);
-    return r * (1 + 0.04 * t);
+    return r * (1 + 0.08 * t);
   };
 
   const body = roundBody({
     halfLength: half,
     radius: profile,
     lying: false,
-    lopsided: 0.35,
+    lopsided: 0.75,
     random,
     // A deep well round the stem; a small pit under the feet.
     poleDimple: { depth: 1.1, width: 1.5, ends: 'end' },
@@ -78,10 +81,25 @@ export const buildPepper: FormBuilder = ({ state, seed }) => {
     crossSection: (u, angle) => {
       // Grooves deepest at the top and at the feet, shallower round the middle.
       const depth = GROOVE_MIDDLE + (GROOVE_TOP - GROOVE_MIDDLE) * smoothstep(0.2, 0.85, u) + (GROOVE_FOOT - GROOVE_MIDDLE) * smoothstep(-0.3, -0.9, u);
-      const lobe = lobeIndex(angle);
-      // Each lobe its own fullness, and a slow wobble down its length.
-      const size = lobeSizes[lobe] + wobble[lobe] * 0.15 * Math.sin(u * 2.4 + lobe);
-      return size * (1 - depth * grooveAt(angle));
+      // Each lobe's own fullness (bulging most at its own height) and each groove's own depth,
+      // blended smoothly round the body: taken lobe by lobe, they jumped where two lobes met and
+      // left a stepped, jagged groove.
+      let size = 0;
+      let deep = 0;
+      let weightSize = 0;
+      let weightDeep = 0;
+      for (let i = 0; i < 4; i++) {
+        const centre = lobeTurn + spiral * u + (i * Math.PI) / 2;
+        const toLobe = Math.exp((Math.cos(angle - centre) - 1) / 0.25);
+        const toGroove = Math.exp((Math.cos(angle - centre - Math.PI / 4) - 1) / 0.08);
+        size += toLobe * (lobeSizes[i] + bulgeBy[i] * Math.exp(-(((u - bulgeAt[i]) / 0.45) ** 2)));
+        weightSize += toLobe;
+        deep += toGroove * grooveDepth[i];
+        weightDeep += toGroove;
+      }
+      size /= weightSize;
+      deep /= weightDeep;
+      return size * (1 - depth * deep * grooveAt(angle, u));
     },
     rings: 60,
     segments: 96,
@@ -98,7 +116,7 @@ export const buildPepper: FormBuilder = ({ state, seed }) => {
     const y = pos.getY(i);
     const z = pos.getZ(i);
     const angle = Math.atan2(z, x);
-    const g = grooveAt(angle);
+    const g = grooveAt(angle, -1);
     const low = 1 - smoothstep(minY, minY + 2.2, y);
     const rFrom = Math.hypot(x, z) / R;
     // Lift the grooves and the middle of the underside; the lobes' bottoms stay down as feet.
@@ -116,22 +134,26 @@ export const buildPepper: FormBuilder = ({ state, seed }) => {
   // The calyx: a flared star at the stem's foot, lying in the well and up onto the shoulders.
   const calyx = calyxPiece({ base: wellBottom.clone().add(new Vector3(0, 0.1, 0)), radius: 1.35, height: 0.32, points: 5, turn: random() * Math.PI });
 
-  // The stem: thick, rising out of the calyx, curving over to one side, its end cut with a
-  // small soft bevel (never a flat stick).
+  // The stem, after the reference: thick, flaring where it grows out of the calyx, rising and then
+  // arching over to one side like a hook, its end cut with a small soft bevel (never a stick).
   const lean = random() * Math.PI * 2;
   const base = wellBottom.clone().add(new Vector3(0, 0.05, 0));
-  const stemPoints = [0, 0.35, 0.7, 1].map((t) => {
-    const over = 0.9 * t * t;
-    return new Vector3(base.x + Math.cos(lean) * over, base.y + 2.4 * t - 0.4 * t * t, base.z + Math.sin(lean) * over);
-  });
+  const out = new Vector3(Math.cos(lean), 0, Math.sin(lean));
+  const stemPoints = [
+    base.clone(),
+    base.clone().add(new Vector3(0, 1.2, 0)).addScaledVector(out, 0.15),
+    base.clone().add(new Vector3(0, 2.1, 0)).addScaledVector(out, 0.7),
+    base.clone().add(new Vector3(0, 2.35, 0)).addScaledVector(out, 1.5),
+    base.clone().add(new Vector3(0, 1.95, 0)).addScaledVector(out, 2.2),
+  ];
   const stem = sweepGeometry({
-    points: new CatmullRomCurve3(stemPoints).getSpacedPoints(10),
-    // Flared at the foot, a slim neck, a little fuller where it was cut.
-    radius: (t) => (0.42 + 0.35 * (1 - smoothstep(0, 0.25, t)) + 0.05 * smoothstep(0.7, 1, t)) * cutEnd(1 - t, 0.06),
-    rings: 30,
+    points: new CatmullRomCurve3(stemPoints).getSpacedPoints(14),
+    // Flared at the foot, thick along its length, a little fuller where it was cut.
+    radius: (t) => (0.5 + 0.45 * (1 - smoothstep(0, 0.2, t)) + 0.06 * smoothstep(0.75, 1, t)) * cutEnd(1 - t, 0.05),
+    rings: 40,
     segments: 16,
     // A little ridged, like a real pepper stem.
-    around: (_t, a) => 1 + 0.06 * Math.cos(5 * a),
+    around: (_t, a) => 1 + 0.07 * Math.cos(5 * a),
   });
 
   return finishPieces([

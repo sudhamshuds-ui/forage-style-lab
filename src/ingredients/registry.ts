@@ -474,7 +474,7 @@ export const REGISTRY: IngredientEntry[] = [
       show: 'One orange bell pepper standing on its four feet, its thick green stem curving over.',
       forms: ['whole', 'half', 'strips', 'diced'],
       scale: 'M',
-      size_cm: [9, 8.1, 9],
+      size_cm: [8.8, 9.6, 9.4],
       parts: ['body:glow', 'calyx@leaf', 'stem@leaf'],
       notes:
         'Round 2. A blocky body of four uneven lobes with soft grooves between them, deepest at the top and the feet; full shoulders dipping into a deep well; four soft bumps underneath that it stands on; a thick, curved green stem with a flared calyx, its end cut. The glossy skin, deeper grooves and glow are a shader texture (the pepper skin).',
