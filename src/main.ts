@@ -1,3 +1,4 @@
+import { EASE, gsap } from './motion';
 import './style.css';
 import './ui/panel.css';
 import { Group, Mesh, Vector2, Vector3 } from 'three';
@@ -466,14 +467,10 @@ function changeLook(change: () => void): void {
     crossfadeLayer.width = source.width;
     crossfadeLayer.height = source.height;
     crossfadeLayer.getContext('2d')?.drawImage(source, 0, 0);
-    // Show the copy at once, then let it fade on the next frame.
-    crossfadeLayer.classList.remove('is-fading');
-    crossfadeLayer.classList.add('is-shown');
-    void crossfadeLayer.offsetWidth;
-    requestAnimationFrame(() => {
-      crossfadeLayer.classList.add('is-fading');
-      crossfadeLayer.classList.remove('is-shown');
-    });
+    // Show the copy at once, then fade it away (GSAP; a quicker second change takes over
+    // from wherever the first fade had got to).
+    gsap.killTweensOf(crossfadeLayer);
+    gsap.fromTo(crossfadeLayer, { opacity: 1 }, { opacity: 0, duration: 0.22, ease: EASE.fade });
   }
   change();
 }

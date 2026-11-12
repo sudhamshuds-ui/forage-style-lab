@@ -84,7 +84,7 @@ keep code readable with friendly comments.
   "Reduce motion" on, it stays off (`main.ts`, `update`; the 2026-11-11 motion audit).
 - **Look changes crossfade** (2026-11-11, from the motion audit): switching the painterly look
   or picking a painter copies the painting as it was onto a layer over the card and fades it
-  away over the new look in 220 ms (`changeLook` in `main.ts`, `.card-crossfade` in `style.css`),
+  away over the new look in 220 ms (`changeLook` in `main.ts`, a GSAP tween; `.card-crossfade` in `style.css`),
   instead of swapping in one frame. Skipped while a Shuffle transition plays.
 - **No crisp lines** (the user, 2026-11-10, a rule for every ingredient): where one colour meets
   another inside an ingredient (fat and meat, flesh and rind, a seam, a vein, a band), the edge
@@ -260,6 +260,16 @@ keep code readable with friendly comments.
 - Vite + TypeScript + Three.js (WebGL, not WebGPU for now). React (with base-ui, motion, clsx)
   only for the controls on the card (`src/ui/styleBar.tsx`, mounted from `main.ts` with a small
   API) and the prototype pages; the Style Lab itself is plain TypeScript.
+- **GSAP** (3.15, `gsap`, free including its plugins; the user, 2026-11-12: "start using gsap for my
+  animations wherever necessary") for animations driven from code on the page. Import it from
+  `src/motion.ts`, which names the project's curves (`EASE.swap`, `out`, `drawer`, `fade`, the
+  same values as the CSS) and has `prefersReducedMotion()`. Used now for the look-change
+  crossfade (`changeLook` in `main.ts`) and the loading ink's dissolve (`styleBar.tsx`). Which
+  tool where: GSAP for code-driven page motion (sequences, SVG attributes, anything started by a
+  click); CSS for hover, press and the loading fill (off the main thread, smooth while the
+  transition keeps the graphics busy); the render loop's own clock for motion inside the
+  painting (idle spin, Shuffle strokes), so `styleLab.filmstrip` stays frame-exact. The
+  prototype pages keep `motion` (kept as they were, for the case study).
 - Tweakpane 4 for the panel, re-skinned in `src/ui/panel.css`.
 - Three.js reference skills are installed in `.claude/skills/` (shaders and
   postprocessing are the relevant ones). They target Three r160; this project uses r186.

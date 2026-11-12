@@ -101,12 +101,7 @@ body {
   opacity: 0;
   transition: none;
 }
-.card .card-crossfade.is-shown {
-  opacity: 1;
-}
-.card .card-crossfade.is-fading {
-  transition: opacity 220ms ease-out;
-}
+/* Its fade is a GSAP tween (changeLook in main.ts). */
 .card canvas:active {
   cursor: grabbing;
 }

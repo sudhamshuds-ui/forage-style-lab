@@ -1,6 +1,7 @@
 import { StrictMode, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Menu } from '@base-ui/react/menu';
+import { gsap } from '../motion';
 import { PAINTERS, findPainter } from '../painters';
 import './styleBar.css';
 
@@ -82,20 +83,22 @@ function useLoadingPhase(api: StyleBarApi, busy: boolean) {
     // The swap is done: dissolve the ink. The noise filter's threshold sweeps from
     // "everything opaque" to "nothing left", so the ink breaks up into grain and streaks.
     setPhase('leaving');
-    const began = performance.now();
-    let frame = 0;
-    const step = (now: number) => {
-      const t = Math.min(1, (now - began) / DISSOLVE_MS);
-      const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-      threshold.current?.setAttribute('intercept', String(-1 - 5.5 * eased));
-      if (t < 1) frame = requestAnimationFrame(step);
-      else {
+    // A GSAP tween drives the filter's threshold (an SVG attribute CSS cannot animate), with
+    // the same cubic ease-in-out as before ('power2.inOut').
+    const dissolve = { amount: 0 };
+    const tween = gsap.to(dissolve, {
+      amount: 1,
+      duration: DISSOLVE_MS / 1000,
+      ease: 'power2.inOut',
+      onUpdate: () => threshold.current?.setAttribute('intercept', String(-1 - 5.5 * dissolve.amount)),
+      onComplete: () => {
         setPhase('idle');
         threshold.current?.setAttribute('intercept', '-1');
-      }
+      },
+    });
+    return () => {
+      tween.kill();
     };
-    frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
     // phase is read once, when busy turns off
   }, [busy]);
   return { phase, start, threshold };
