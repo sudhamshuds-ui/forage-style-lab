@@ -918,9 +918,14 @@ if (kind > 0 && amount > 0.0) {
     highlightBreak = bloom * 1.8 + (1.0 - offCrown);
     highlightGlint = rubbed * smoothstep(0.42, 0.62, valueNoise3(cm * 3.0 + own * 5.0)) * offCrown;
   } else if (kind == 20) {
-    // Spinach, after the user's reference. Map: x from the blade's base (0) to its tip (1), y
-    // across (0.5 is the midrib).
-    vec2 q = vSurfaceUv;
+    // Spinach, after the user's references. Each leaf and its stem are one shape. Map: x from -1
+    // at the stem's cut end to 0 where the blade starts, then to 1 at its tip; y across the blade,
+    // 0 to 1 on its top face and 1 to 2 underneath (0.5 and 1.5: the midrib).
+    vec2 q = vec2(max(vSurfaceUv.x, 0.0), fract(vSurfaceUv.y));
+    float stemPart = 1.0 - smoothstep(-0.06, 0.06, vSurfaceUv.x);
+    bool under = vSurfaceUv.y > 1.0;
+    // How far the light has stepped this point from the base colour (before any marks).
+    float shadeNow = lab.x - linearToOklab(uBaseColour).x;
     vec3 cm = objectPos * 3.8169;
     float across = abs(q.y - 0.5) * 2.0;
     float NdotL = dot(N, L);
@@ -957,12 +962,22 @@ if (kind > 0 && amount > 0.0) {
     vec3 cool = vec3(lab.x - 0.01, -0.055, -0.01);
     lab = mix(lab, cool, (1.0 - smoothstep(-0.3, 0.45, NdotL)) * 0.2 * amount);
     // 7. The underside is paler and cooler, its veins standing out more.
-    if (!gl_FrontFacing) {
+    if (under) {
       lab.x += 0.06 * amount;
       lab.yz *= 0.8;
       lab = mix(lab, pale, side * 0.3 * amount);
     }
-    // 8. The shine: a little glossy, broken by the veins and the washes, never one patch per leaf.
+    // 8. The stem: a paler, fresher green with soft streaks along it, flowing into the midrib
+    //    (one shape: no line where it meets the blade); paler still at the cut end.
+    vec3 stemLab = linearToOklab(uLitColour);
+    stemLab.x += shadeNow * 0.9 - (linearToOklab(uLitColour).x - linearToOklab(uBaseColour).x) * 0.6;
+    stemLab.yz *= 0.9;
+    float streak = valueNoise3(vec3(cm.x * 1.5, cm.y * 14.0, cm.z * 14.0)) - 0.5;
+    stemLab.x += streak * 0.05;
+    float cutEnd = 1.0 - smoothstep(-1.0, -0.94, vSurfaceUv.x);
+    stemLab = mix(stemLab, vec3(stemLab.x + 0.08, stemLab.yz * 0.5), cutEnd);
+    lab = mix(lab, stemLab, stemPart * amount);
+    // 9. The shine: a little glossy, broken by the veins and the washes, never one patch per leaf.
     highlightBumpy = 1.0;
     highlightBreak = side * 1.5 + rib + smoothstep(0.45, 0.25, wash);
     // Sparse: a white glint everywhere read as blotches.

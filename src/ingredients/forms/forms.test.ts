@@ -39,8 +39,10 @@ describe.each(built)('$spec.name (whole)', ({ spec, build, budget }) => {
     // "Almost all" normals face away from the centre. A wedge asks a little less: the inside
     // of every cheese hole rightly faces inward, and its long point pulls the centre off
     // (the signed volume above still proves the faces are wound outward).
-    // (A sheet painted on both sides, a spinach leaf, has no inside: skipped.)
-    if (!pieces[0].doubleSided) expect(outwardFraction(pieces[0]), pieces[0].role).toBeGreaterThan(spec.archetype === 'wedge' ? 0.85 : 0.9);
+    // (Skipped for a sheet painted on both sides, and for leafy forms: from the middle of a long,
+    // thin leaf, half its faces rightly point back toward that middle. The signed volume above
+    // still proves they are wound outward.)
+    if (!pieces[0].doubleSided && spec.archetype !== 'leafy') expect(outwardFraction(pieces[0]), pieces[0].role).toBeGreaterThan(spec.archetype === 'wedge' ? 0.85 : 0.9);
   });
 
   it('has no floating pieces: every extra piece touches another one (a leaf can hang from its stem)', () => {
