@@ -88,7 +88,7 @@ built with as little review as possible. That is the test of the ultimate goal.
    in Shuffle (to build with the first repeat).
 2. **Blueberries: a loose pile.** Containers (a punnet, a box) are a separate tool, later on the
    roadmap.
-3. **Avocado: one whole and one half** (the half with its pit).
+3. **Avocado: one whole and one half** (the half with its pit). Done 2026-11-12, see `lessons/avocado.md`.
 4. **The fried egg is an exception** to "all raw": "everything raw sometimes isnt appetizing".
    The user is also thinking about the raw meat's colours (steak, chicken): either keep them raw
    but more appetizing, or show them cooked. Open, to decide later.

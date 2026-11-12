@@ -454,10 +454,16 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
   `poultry` family (off-board) and skin (kind 13), the `knuckle` skin (kind 14), turn -30,
   shadowTint 0.35, no rim glints, `contactsFromFeet`, 18k budget. See `lessons/chicken.md`.
 
+- **Avocado** (round 2): one whole standing behind on the left and a half leaning in front on the
+  right, its face to the camera (the user's sketch); a near-elliptical, bulging outline; the half a
+  lathe of a rounded half disc pulled onto the shape (the cut rounded all round), no stem; the
+  `avocado` family and skin (kind 17, banded flesh, ochre hollow round the pit), a glossy `pit`
+  (`glossy`), matte, `contactsFromFeet`. See `lessons/avocado.md`.
+
 Shared mechanisms added along the way (code hooks other ingredients reuse):
 - Registry look settings: `turn`, `skin`, `matte`, `rimGlints` (via `FrameContext.rimGlints`),
   `shadowTint` (via `FrameContext.shadowTint`), `budget`, `stemEnds`, `contactsFromFeet`,
-  `playfulHide`.
+  `playfulHide`, `glossy`.
 - Kit: `vessel.ts` (`revolve`, `roundedSquare`, `ribs`, `wrapSheet` with `mapped`), `wedge.ts`
   (`wedgeDistance`, `roundedIntersection`), `block.ts` (`blockSides`, `paperSheet`, `fold`,
   `crease`), `relaxOnSurface`, `liftRegion` (a skin lifted off a body, with `keepNormals`).
@@ -471,7 +477,7 @@ Shared mechanisms added along the way (code hooks other ingredients reuse):
   12); the material knows the camera in its own space (`vObjectCamera`). `patch` is a reserved
   word in GLSL.
 - Form tests: "faces point outward" asks 85% for wedges (hole insides rightly face inward).
-Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the avocado next.
+Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the grapes next.
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after
