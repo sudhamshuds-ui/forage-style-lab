@@ -30,6 +30,7 @@ export type FamilyId =
   | 'avocado'
   | 'grape'
   | 'blueberry'
+  | 'spinach'
   | 'vine'
   | 'pit'
   | 'papery'
@@ -284,6 +285,14 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Blueberry',
     colours: { lit: '#7f9ad8', base: '#2f4c98', shadow: '#2a2b60', glow: '#5a4f9e', highlight: '#f7eedf' },
     rooms: ['apricot'],
+  },
+  // Not on board 04 yet (added 2026-11-12, round 2: spinach, after the user's reference): a deep,
+  // fresh leaf green, lime where it is thin and lit (warm), its shadow a cool blue-green (warm
+  // highlights, cool shadows), never olive or black-green. Deeper than the broccoli's green.
+  spinach: {
+    name: 'Spinach',
+    colours: { lit: '#80b44f', base: '#2f6b2f', shadow: '#1f4552', glow: '#86b843', highlight: '#f2f1d4' },
+    rooms: ['lavender', 'heather'],
   },
   // Not a board 04 family: only for parts (a grape bunch's woody stem; later vines and tomato
   // trusses). A golden ochre, its shadow a warm olive-plum, never grey-green.

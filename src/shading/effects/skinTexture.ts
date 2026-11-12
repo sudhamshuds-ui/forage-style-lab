@@ -57,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -917,6 +917,56 @@ if (kind > 0 && amount > 0.0) {
     float offCrown = smoothstep(0.12, 0.22, q.y);
     highlightBreak = bloom * 1.8 + (1.0 - offCrown);
     highlightGlint = rubbed * smoothstep(0.42, 0.62, valueNoise3(cm * 3.0 + own * 5.0)) * offCrown;
+  } else if (kind == 20) {
+    // Spinach, after the user's reference. Map: x from the blade's base (0) to its tip (1), y
+    // across (0.5 is the midrib).
+    vec2 q = vSurfaceUv;
+    vec3 cm = objectPos * 3.8169;
+    float across = abs(q.y - 0.5) * 2.0;
+    float NdotL = dot(N, L);
+    // 1. Mottled washes, like the reference's watercolour: broad lighter lime patches and deeper
+    //    green ones, soft-edged, wandering across each leaf.
+    float wash = fbm3(cm * 0.55 + 3.0);
+    vec3 lime = lab;
+    lime.x += 0.08;
+    lime.yz = mat2(cos(0.18), sin(0.18), -sin(0.18), cos(0.18)) * lime.yz * 1.05;
+    lab = mix(lab, lime, smoothstep(0.5, 0.78, wash) * 0.4 * amount);
+    lab = shadeOwn(lab, smoothstep(0.48, 0.25, wash) * 0.2 * amount);
+    // 2. Deeper toward the base, lighter toward the tip.
+    lab = shadeOwn(lab, (1.0 - smoothstep(0.0, 0.4, q.x)) * 0.25 * amount);
+    // 3. The midrib: a pale lime line, wide at the base and fading toward the tip, its edges soft.
+    float rib = (1.0 - smoothstep(0.03, 0.09 - q.x * 0.05, across)) * (1.0 - smoothstep(0.7, 1.0, q.x));
+    vec3 pale = linearToOklab(uLitColour);
+    pale.x += 0.04;
+    pale.yz *= 0.8;
+    lab = mix(lab, pale, rib * 0.7 * amount);
+    // 4. Side veins: pale lines curving out from the midrib toward the tip and edges, fading out
+    //    before the rim, each a little broken; the leaf a touch deeper between them.
+    float veinWave = sin((q.x * 5.5 - across * 1.6) * 6.2832 + valueNoise3(cm * 2.0) * 1.2);
+    float side = smoothstep(0.86, 0.98, veinWave) * smoothstep(0.08, 0.2, across) * (1.0 - smoothstep(0.75, 0.95, across));
+    side *= smoothstep(0.35, 0.6, valueNoise3(cm * 3.0 + 5.0) + 0.3);
+    lab = mix(lab, pale, side * 0.45 * amount);
+    lab = shadeOwn(lab, (1.0 - smoothstep(0.3, 0.9, veinWave)) * 0.08 * amount);
+    // 5. Light through the leaf: thin, so it glows a warm yellow-green where the light comes from
+    //    behind and at its thin edges.
+    float through = pow(max(dot(V, -L), 0.0), 2.0);
+    float edgeOn = pow(1.0 - abs(dot(N, V)), 2.0);
+    vec3 glowLab = linearToOklab(uGlowColour);
+    lab = mix(lab, glowLab, clamp(through * 0.5 + edgeOn * 0.15, 0.0, 0.5) * amount);
+    // 6. Warm highlights, cool shadows: the shaded side leans toward a cool blue-green.
+    vec3 cool = vec3(lab.x - 0.01, -0.055, -0.01);
+    lab = mix(lab, cool, (1.0 - smoothstep(-0.3, 0.45, NdotL)) * 0.2 * amount);
+    // 7. The underside is paler and cooler, its veins standing out more.
+    if (!gl_FrontFacing) {
+      lab.x += 0.06 * amount;
+      lab.yz *= 0.8;
+      lab = mix(lab, pale, side * 0.3 * amount);
+    }
+    // 8. The shine: a little glossy, broken by the veins and the washes, never one patch per leaf.
+    highlightBumpy = 1.0;
+    highlightBreak = side * 1.5 + rib + smoothstep(0.45, 0.25, wash);
+    // Sparse: a white glint everywhere read as blotches.
+    highlightGlint = smoothstep(0.75, 0.86, valueNoise3(cm * 2.5 + 9.0)) * (1.0 - side) * 0.3;
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

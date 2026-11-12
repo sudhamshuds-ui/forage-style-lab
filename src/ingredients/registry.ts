@@ -15,6 +15,7 @@ import { buildPepper } from './forms/pepper';
 import { buildAvocado } from './forms/avocado';
 import { buildGrapes } from './forms/grapes';
 import { buildBlueberries } from './forms/blueberries';
+import { buildSpinach } from './forms/spinach';
 import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
@@ -579,6 +580,31 @@ export const REGISTRY: IngredientEntry[] = [
     contactsFromFeet: true,
     // Up to three more berries may be tucked in to hold the pile in balance.
     budget: [2000, 30000],
+  },
+  {
+    spec: {
+      id: 'spinach',
+      name: 'Spinach',
+      archetype: 'leafy',
+      family: 'spinach',
+      layout: 'solo',
+      show: 'A small bunch of flat-leaf spinach lying on the table, the stems side by side at their cut ends, the leaves fanning out and resting on each other.',
+      forms: ['whole', 'wilted'],
+      scale: 'M',
+      size_cm: [15.8, 2.9, 10.3],
+      parts: ['blade', 'stem@leaf'],
+      light_case: 'group',
+      notes:
+        'Round 2, the first of the leafy kit, after the user\'s reference (a small bunch of flat-leaf spinach). Seven spoon-shaped leaves on long slim stems, each a sheet from the leafy kit (outline, cup, wavy edge, curling tip), laid bottom first and draped over each other. The veins, mottling and paler underside are a shader texture (the spinach skin).',
+    },
+    form: buildSpinach,
+    // The form points its leaves at the camera (see spinach.ts).
+    turn: 0,
+    skin: { kind: 'spinach', size_mm: 2, amount: 0.9 },
+    // Thin stems and leaf edges catch rim glints as hard lines.
+    rimGlints: false,
+    contactsFromFeet: true,
+    budget: [2000, 16000],
   },
 ];
 
