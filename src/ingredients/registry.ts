@@ -10,7 +10,7 @@ import { buildButter } from './forms/butter';
 import { buildWatermelon } from './forms/watermelon';
 import { buildSteak } from './forms/steak';
 import { buildChicken } from './forms/chicken';
-import { buildOnion, buildOnionCut, buildOnionPair } from './forms/onion';
+import { buildOnion } from './forms/onion';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
@@ -446,6 +446,8 @@ export const REGISTRY: IngredientEntry[] = [
       notes:
         'Round 2, after the user\'s watercolour reference. A round, lopsided globe lying tipped on its side; full shoulders pulling up into a short twisted neck whose dry papery tip curls over; a tuft of dry roots. Fine darker lines and soft bands from root to neck, papery flakes, the root patch and the neck drying toward its tip are a shader texture (the onion skin), never geometry.',
     },
+    // Upright (the user's choice, 2026-11-12, of three: upright, a pair, whole and cut). The pair
+    // and the cut half stay in the form (buildOnionArrangement), for the whole-and-cut layout.
     form: buildOnion,
     turn: 0,
     skin: { kind: 'onion', size_mm: 2, amount: 0.85 },
@@ -458,62 +460,8 @@ export const REGISTRY: IngredientEntry[] = [
     // A finely turned bulb (its veins follow the mesh) and three small ribbons.
     budget: [2000, 12000],
   },
-  {
-    spec: {
-      id: 'onion-pair',
-      name: 'Red onions',
-      archetype: 'round',
-      family: 'onion',
-      layout: 'solo',
-      show: 'Two red onions: one standing on its root end, one lying on its side behind it, just touching.',
-      forms: ['whole', 'half', 'rings', 'diced'],
-      scale: 'M',
-      size_cm: [15.3, 10.6, 14.4],
-      // `tip` is the dry papery neck tip (twisted ribbons), `roots` the dry root tuft.
-      parts: ['bulb:glow', 'tip@papery', 'roots@papery'],
-      notes:
-        'Round 2, after the user\'s watercolour reference. A round, lopsided globe lying tipped on its side; full shoulders pulling up into a short twisted neck whose dry papery tip curls over; a tuft of dry roots. Fine darker lines and soft bands from root to neck, papery flakes, the root patch and the neck drying toward its tip are a shader texture (the onion skin), never geometry.',
-    },
-    form: buildOnionPair,
-    turn: 0,
-    skin: { kind: 'onion', size_mm: 2, amount: 0.85 },
-    // A quiet, satin sheen: the full one lit pale, flat patches on the bulb.
-    matte: true,
-    // A deep colour: about half the shadow's violet and pink patches (they sit close to its hue).
-    shadowTint: 0.5,
-    // No rim glints: the slim neck facing the light would catch a hard bar (sauce, steak).
-    rimGlints: false,
-    // A finely turned bulb (its veins follow the mesh) and three small ribbons.
-    budget: [2000, 24000],
-  },
-  {
-    spec: {
-      id: 'onion-cut',
-      name: 'Red onion, whole and cut',
-      archetype: 'round',
-      family: 'onion',
-      layout: 'solo',
-      show: 'One whole red onion standing, and a root half cut across in front, its rings toward the camera.',
-      forms: ['whole', 'half', 'rings', 'diced'],
-      scale: 'M',
-      size_cm: [13.6, 10.6, 12.8],
-      // `tip` is the dry papery neck tip (twisted ribbons), `roots` the dry root tuft.
-      parts: ['bulb:glow', 'tip@papery', 'roots@papery'],
-      notes:
-        'Round 2, after the user\'s watercolour reference. A round, lopsided globe lying tipped on its side; full shoulders pulling up into a short twisted neck whose dry papery tip curls over; a tuft of dry roots. Fine darker lines and soft bands from root to neck, papery flakes, the root patch and the neck drying toward its tip are a shader texture (the onion skin), never geometry.',
-    },
-    form: buildOnionCut,
-    turn: 0,
-    skin: { kind: 'onion', size_mm: 2, amount: 0.85 },
-    // A quiet, satin sheen: the full one lit pale, flat patches on the bulb.
-    matte: true,
-    // A deep colour: about half the shadow's violet and pink patches (they sit close to its hue).
-    shadowTint: 0.5,
-    // No rim glints: the slim neck facing the light would catch a hard bar (sauce, steak).
-    rimGlints: false,
-    // A finely turned bulb (its veins follow the mesh) and three small ribbons.
-    budget: [2000, 24000],
-  },
+
+
 ];
 
 export function findIngredient(id: string): IngredientEntry | undefined {

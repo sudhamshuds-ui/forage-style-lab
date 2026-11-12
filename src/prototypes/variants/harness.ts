@@ -7,6 +7,9 @@ import '../ui/picker.css';
  * ingredient's variations, add them to VARIANTS (each is a registry entry). Keys 1 to 9 and the
  * arrows switch; the choice is kept in the address (?v=2).
  */
+// The red onion's three (2026-11-11). The user chose Upright (2026-11-12); the other two left the
+// registry (they stay in forms/onion.ts), so only Upright still shows here. The published page
+// keeps all three.
 const VARIANTS = [
   { name: 'Upright', id: 'onion' },
   { name: 'Pair', id: 'onion-pair' },

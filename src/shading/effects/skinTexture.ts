@@ -562,9 +562,19 @@ if (kind > 0 && amount > 0.0) {
     float shadeStep = lab.x - linearToOklab(uBaseColour).x;
     vec3 papery = linearToOklab(uMelonPale);
     papery.x += shadeStep * 0.75;
-    // 1. A faint glow in the darker violets (the skin is a little see-through).
+    // 1. Translucent, like thin layers of onion skin over juicy flesh (the user, 2026-11-12: "more
+    //    translucency and sub surface"; the translucent flesh guideline): light scatters inside,
+    //    so the darker violets soak up the warm magenta glow and stay luminous, never dull; edges
+    //    seen side on glow most; where the light comes through from behind, the onion lights up
+    //    from inside; and the slim neck, where the skin is thinnest, glows a little more.
     float inside = (1.0 - tone) * amount;
-    lab = mix(lab, linearToOklab(uGlowColour), inside * 0.25);
+    float edgeOn = pow(1.0 - max(dot(N, V), 0.0), 2.0);
+    float through = pow(max(dot(V, -L), 0.0), 2.0) * (1.0 - tone);
+    float thinNeck = smoothstep(0.7, 0.85, q.x);
+    float glowAmt = clamp(inside * 0.5 + edgeOn * 0.45 + through * 0.5 + thinNeck * 0.15, 0.0, 0.75) * amount;
+    lab = mix(lab, linearToOklab(uGlowColour), glowAmt * 0.65);
+    lab.x += (inside * 0.05 + edgeOn * 0.04 + through * 0.05) * amount;
+    lab.yz *= 1.0 + inside * 0.12 * amount;
     // 2. Like the reference: lines running from root to neck round the globe. Broad, soft bands
     //    of lighter lilac and deeper violet underneath, and over them a few fine, darker violet
     //    lines of uneven spacing, strength and length, wandering a little, fading toward the

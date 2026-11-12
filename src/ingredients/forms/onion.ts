@@ -182,11 +182,31 @@ function place(onion: Onion, matrix: Matrix4): void {
   onion.pose.premultiply(matrix);
 }
 
-/** Rest an onion on the table (y = 0): its lowest body point down, then a soft settle. */
+/**
+ * Rest an onion on the table (y = 0): its lowest body point down, then a soft settle. Its roots
+ * and tip may never reach below the table: whatever would, is squashed flat along it, like roots
+ * pressed under the onion's weight (the user, 2026-11-12: standing on its roots, the onion
+ * levitated above the table).
+ */
 function restOnTable(onion: Onion, settle: number): void {
   onion.body.computeBoundingBox();
   place(onion, new Matrix4().makeTranslation(0, -onion.body.boundingBox!.min.y, 0));
   flattenBase(onion.body, settle);
+  onion.body.computeBoundingBox();
+  const table = onion.body.boundingBox!.min.y;
+  for (const part of onion.parts) {
+    const p = part.geometry.getAttribute('position');
+    for (let i = 0; i < p.count; i++) {
+      const below = table + 0.04 - p.getY(i);
+      // Pressed onto the table, and pushed a little outward, as squashed roots splay.
+      if (below > 0) {
+        const out = Math.min(0.5, below * 0.6);
+        const r = Math.hypot(p.getX(i), p.getZ(i)) || 1;
+        p.setXYZ(i, p.getX(i) + (p.getX(i) / r) * out, table + 0.04 - Math.min(0.03, below * 0.05), p.getZ(i) + (p.getZ(i) / r) * out);
+      }
+    }
+    p.needsUpdate = true;
+  }
 }
 
 /**
