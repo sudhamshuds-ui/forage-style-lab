@@ -829,9 +829,20 @@ if (kind > 0 && amount > 0.0) {
     vec3 warm = linearToOklab(uGlowColour);
     // Mostly at the thin outline: glowing the whole shadow side lifted each berry's underside
     // back to coral, and every berry read coral, dark, coral, like stripes (the user, 2026-11-12).
-    float glow = clamp(inside * 0.06 + edgeOn * 0.3 + through, 0.0, 0.5) * amount;
-    lab = mix(lab, mix(lab, warm, 0.45), glow);
-    lab.x += (edgeOn * 0.03 + through * 0.05) * amount;
+    // More light inside (the user, 2026-11-12: "a bit more subsurface"): a soft warm band right
+    // where each berry turns from light to shadow, where a grape glows most, plus brighter thin
+    // edges and light coming through. One soft band, never a second stripe.
+    float NdotL = dot(N, L);
+    float terminator = exp(-pow((NdotL - 0.08) / 0.3, 2.0)) * mix(0.5, 1.0, lightMask);
+    float glow = clamp(inside * 0.06 + edgeOn * 0.45 + through * 1.3 + terminator * 0.45, 0.0, 0.7) * amount;
+    lab = mix(lab, mix(lab, warm, 0.55), glow);
+    lab.x += (edgeOn * 0.05 + through * 0.07 + terminator * 0.04) * amount;
+    lab.yz *= 1.0 + terminator * 0.12 * amount;
+    // Purple in the shadows (the user): the shadow side leans toward a rich violet, deepest
+    // furthest from the light, never grey.
+    vec3 violet = vec3(lab.x - 0.03, 0.065, -0.11);
+    float shaded = max(1.0 - smoothstep(-0.4, 0.4, NdotL), (1.0 - lightMask) * 0.7);
+    lab = mix(lab, violet, shaded * 0.6 * amount);
     // 4. The waxy bloom: a faint, cool, powdery haze in loose patches, more on the darker berries
     //    and rubbed away in places, strongest where the berry turns away from the light.
     float bloomPatch = smoothstep(0.35, 0.7, fbm3(cm * 2.4 + 5.0 + own * 9.0));
