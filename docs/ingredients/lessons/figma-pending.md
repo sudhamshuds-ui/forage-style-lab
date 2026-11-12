@@ -15,3 +15,13 @@ From `/forage-brand onion` (2026-11-12). Applied to the "Ingredient guidelines" 
 - **08 The first 12**: a Red onion card (cloned from a built card) with the user's watercolour
   reference beside our painting.
 - **09 Builds a form**: the pre-check gains "Resting, not levitating".
+
+From `/forage-brand pepper` (2026-11-12):
+
+- **04 Warm subject, cool room**: a Pepper row in Families (#ffae5e, #f2761a, #a8462c, #ff8726,
+  #fff2df; Seafoam or Spruce); the pepper tag on "Close relatives read apart" and "Believable
+  highlights" (gloss follows the form).
+- **06 Composition and size**: an Orange pepper row in the ingredient table (Solo hero, Pepper, M, 9 cm).
+- **07 Ingredient system**: the Round card's Built line gains the orange pepper; form lessons
+  "About 5% variation on a blocky form" and "Per-part variation blends, never jumps" (pepper).
+- **08 The first 12**: an Orange pepper card with the user's reference painting beside ours.

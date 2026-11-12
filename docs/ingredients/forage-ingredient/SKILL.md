@@ -115,6 +115,7 @@ The live values are in `src/ingredients/families.ts` (the source of truth; this 
 | melon | #ff8f74 | #e4473d | #962f45 | #ff6e4f | #ffe6dc | Seafoam, Sage morning | watermelon flesh (off-board; board 08 says Red, the apple's red is a skin) |
 | beef | #ee7a6e | #bd3540 | #741f3c | #e64a43 | #fbe0dc | Iris, Seafoam | steak (off-board; deeper than Pink and raw) |
 | onion | #d79ad3 | #9a3f92 | #4a2164 | #c24ea6 | #f5e4f4 | Celadon, Sage morning | red onion (off-board; magenta-violet, from the user's watercolour) |
+| pepper | #ffae5e | #f2761a | #a8462c | #ff8726 | #fff2df | Seafoam, Spruce | orange pepper (off-board; purer and redder than the orange's) |
 | poultry | #fde5d6 | #f2bca3 | #ad6676 | #f49a7c | #fff6ef | Thistle, Seafoam | chicken (off-board; board 08 says Pink and raw, a deep salmon; raw skin is far paler) |
 | pink-raw | #f6a493 | #d4544f | #8c3150 | #ff7a66 | #fbe4dc | Seafoam, Sage morning | |
 
@@ -147,7 +148,7 @@ Forms are built from a shared kit in `src/ingredients/forms/kit/`. Create a kit 
 
 | archetype | built | kit tools | default layout | budget |
 |---|---|---|---|---|
-| round | apple, lemon, orange, red onion, (loaf) | `lathe.ts` (a profile spun round an axis), `round.ts` (lopsided, flat base, lying or upright, a dimple at either or both poles), `stemLeaf.ts` (stem, calyx, leaf); a **cut half** is a lathe whose profile rounds off into a flat face over a small bevel, its map telling the shader how far in from the rim (onion) | solo or whole-and-cut | 2k to 6k |
+| round | apple, lemon, orange, red onion, orange pepper, (loaf) | `lathe.ts` (a profile spun round an axis), `round.ts` (lopsided, flat base, lying or upright, a dimple at either or both poles), `stemLeaf.ts` (stem, calyx, leaf); a **cut half** is a lathe whose profile rounds off into a flat face over a small bevel, its map telling the shader how far in from the rim (onion) | solo or whole-and-cut | 2k to 6k |
 | small | strawberry | one master form, seeded variants, `layout.ts` arranges cluster-2 and cluster-3 | cluster-3 | 1k to 3k each |
 | long | baguette, chicken | `sweep.ts` (a tube along a curve, optional ribbed section); for a drumstick, a distance field built along an axis (a radius profile with a smooth fillet, a shaped cross-section) meshed with `surfaceNets` and `relaxOnSurface`, the bone and knuckle a second piece, then tipped until both ends rest on the table | solo, on a diagonal | 2k to 5k (baguette has its own 9k, chicken 18k) |
 | branching | broccoli | `crown.ts` (blobs blended as a distance field), `surfaceNets.ts` (distance field to clean mesh), `sweep.ts` for stalks | solo | 6k to 18k (raised from 12k for a bumpier crown) |
@@ -175,7 +176,7 @@ Only add a ninth archetype when three or more ingredients need it.
 Each registry entry can also carry, beside the spec and builder:
 
 - `turn`: degrees on stage, measured from the camera (0 shows the form's front, +Z).
-- `skin`: the peel texture the shader paints (`pebbled`, `pores`, `streaks`, `seeds`, `florets`, `crust`, `melon`, `marbled`, `poultry`, `onion`; `crumb`, `leaf`, `label`, `melonRind` and `knuckle` are set automatically by piece name). `poultry` (chicken) paints raw skin from a map on the meat (uv x: cm along, y: cm inside the skin's edge): follicles in loose tracts, fat and meat showing through, creases, the bare shank's meat and tendons. `onion` paints lines from root to neck in smooth arcs over soft bands, papery flakes, a tan root end, the neck drying toward its tip, a translucent glow, and on a cut face (map y > 0) rings of pale flesh edged in violet; it reads `ownPos`, each point's position in the upright onion, so it works tipped over. `knuckle` paints a bone's end (uv x: cm back from the end): a pearly cartilage cap and a pink blush where it leaves the meat. `marbled` (steak) paints marbling, muscle seams and a soft fat rim in the `fat` family's colour, from a map on the meat (uv x: cm in from the edge, y: height as a share of the top).
+- `skin`: the peel texture the shader paints (`pebbled`, `pores`, `streaks`, `seeds`, `florets`, `crust`, `melon`, `marbled`, `poultry`, `onion`, `pepper`; `crumb`, `leaf`, `label`, `melonRind` and `knuckle` are set automatically by piece name). `poultry` (chicken) paints raw skin from a map on the meat (uv x: cm along, y: cm inside the skin's edge): follicles in loose tracts, fat and meat showing through, creases, the bare shank's meat and tendons. `onion` paints lines from root to neck in smooth arcs over soft bands, papery flakes, a tan root end, the neck drying toward its tip, a translucent glow, and on a cut face (map y > 0) rings of pale flesh edged in violet; it reads `ownPos`, each point's position in the upright onion, so it works tipped over. `pepper` paints soft grooves, long streaks and riper patches, and its gloss as long soft reflections down the lit lobes (the shared sheen stays quiet, `matte`). `knuckle` paints a bone's end (uv x: cm back from the end): a pearly cartilage cap and a pink blush where it leaves the meat. `marbled` (steak) paints marbling, muscle seams and a soft fat rim in the `fat` family's colour, from a map on the meat (uv x: cm in from the edge, y: height as a share of the top).
 - `matte: true`: a quiet highlight on the hero (broccoli, bread, cheese).
 - `rimGlints: false`: skip the rim glints (a narrow tube facing the light, like a bottle's neck, catches them as a hard white bar).
 - `shadowTint` (0 to 1, default 1): how much of the shadow's violet and pink patches it takes (a pale cheese takes 0.35, or its shadows read as pink stains).
@@ -200,7 +201,7 @@ full story (first try, what the user said, where we ended) is in `docs/ingredien
 - **Pale yellows turn warm in shadow, through orange, never lime** (butter); if a yellow shows green edges, check `turnHueTowardCool` before changing the family.
 - **Texture marks darken toward the ingredient's own shade, never grey or black** (lemon): `shadeOwn`. Lettering and dark marks are never black: use the ingredient's own deep shade (plum `ink`), or a light ink on a coloured ground (sauce).
 - **Every ingredient gets its own skin texture** (lemon, orange), and it must read at card size (strawberry seeds).
-- **Close relatives must still read apart**: berries are cooler and more magenta than the apple (strawberry); cheese is buttery, not lemon (cheese); butter is paler and fresher than cheese (butter); a melon is juicy coral, not candy pink (watermelon); raw beef is a deep red, deeper than Pink and raw (steak); raw chicken skin is a pale peach-pink, far paler than Pink and raw, apart from the fat and the butter (chicken). When the board's family is wrong for the real thing, add an off-board family.
+- **Close relatives must still read apart**: a bell pepper is purer and redder than the orange (pepper); berries are cooler and more magenta than the apple (strawberry); cheese is buttery, not lemon (cheese); butter is paler and fresher than cheese (butter); a melon is juicy coral, not candy pink (watermelon); raw beef is a deep red, deeper than Pink and raw (steak); raw chicken skin is a pale peach-pink, far paler than Pink and raw, apart from the fat and the butter (chicken). When the board's family is wrong for the real thing, add an off-board family.
 - **Line textures follow the form in smooth arcs** (onion): a few lines of their own strength, broken in places, drifting slowly; wiggly lines read as cracks.
 - **A skin shows what is under it** (chicken): fat and meat in soft patches, glow soaking into its darker tones, faint blotches. One flat colour reads as plastic.
 - **A signature texture comes in loose patches, never an even pattern** (chicken follicles, strawberry seeds): each mark a little different, faded where the surface turns away from the camera (they bunch into a dotted line at the outline).
@@ -209,7 +210,7 @@ full story (first try, what the user said, where we ended) is in `docs/ingredien
 - **Gradients between layers are one soft, wide wash** (watermelon, chicken): painted in the shader from a map on the body, never separate bands with edges. Where two pieces meet (meat and bone), both fade toward a shared colour so the join is never a crisp ring (chicken).
 - **No crisp lines where colours meet inside an ingredient** (steak, watermelon): fat and meat, flesh and rind, seams, veins and bands fade over a soft band like wet paint. Crisp edges only in a few deliberate places: the lit outline, the cast shadow, printed art. When the user says "too realistic", soften the edges first; do not redraw the shapes as a diagram (steak).
 - **Translucent flesh and skins glow in their shadows and thin places, with faint things seen inside** (watermelon, onion; reuse for citrus). Ask for a reference when a colour is hard to judge: the onion's purple landed in one step from the user's watercolour. Keep the glow on the flesh's own colour.
-- **Highlights are believable touches of light, never graphic shapes** (apple); one main highlight per object, small parts quiet (orange); matte where the real thing is matte (broccoli, baguette, cheese, butter, watermelon). **A bumpy skin breaks its shine** into a faint sheen and small glints (strawberry). On a different-coloured layer the highlight takes the surface's own colour (watermelon).
+- **Highlights are believable touches of light, never graphic shapes** (apple); on a glossy skin the reflections follow the form (long streaks down a pepper's lobes, painted by its skin), never round blobs (pepper); one main highlight per object, small parts quiet (orange); matte where the real thing is matte (broccoli, baguette, cheese, butter, watermelon). **A bumpy skin breaks its shine** into a faint sheen and small glints (strawberry). On a different-coloured layer the highlight takes the surface's own colour (watermelon).
 
 ### Composition (several pieces)
 
@@ -236,7 +237,7 @@ full story (first try, what the user said, where we ended) is in `docs/ingredien
 - **Real size, framed by the card** (strawberry).
 - **Shoulders sweep into a neck** (onion): a neck grows out of the body (the shoulders pull up into it), never a cylinder stuck on a ball.
 - **Tipped forms remember where they were upright** (onion): `ownPos` keeps marks that run round an axis on it.
-- **Keep deformations gentle: start at about half** (butter). Local changes stay local. Small drips and beads read as damage: make swellings broad or leave them out.
+- **Keep deformations gentle: start at about half** (butter); on a blocky form, organic variation of about 5% (pepper: more read as squashed). **Per-part variation blends, never jumps** (pepper: per-lobe sizes left a stepped groove). Local changes stay local. Small drips and beads read as damage: make swellings broad or leave them out.
 - **A rind, crust or skin is part of the same surface** (cheese, watermelon): lift it off with `liftRegion`, never a separate slab or shell (a slab read as a cushion, a shell as a ledge).
 - **Holes are deep with an overhanging rim** (cheese); seeds and dots are few, irregular, never a face: glossy beads half sunk in, never flat stickers (watermelon).
 - **Printed artwork is our own two-tone stencil, kept simple** (sauce): never a copy of a brand or an artist.
@@ -252,7 +253,7 @@ These come back on almost every ingredient. The pre-check list below is how to c
 - Contact shadows that do not follow the footprint (baguette, watermelon) or reach past the cast shadow (strawberry).
 - Rim glints drawing hard white or coloured lines on narrow tubes, pale layers and soft edges (sauce, watermelon, steak).
 - Shadow dashes where a flat surface meets a body (butter), or under a rounded bottom edge: a flat-bottomed body sits flush (steak); patches, seams and halos where layers meet (apple).
-- Saw-toothed bevels on meshed forms (cheese); ledges in a lumpy crown (broccoli).
+- Saw-toothed bevels on meshed forms (cheese); ledges in a lumpy crown (broccoli); a stepped groove where per-part sizes jumped (pepper).
 - A highlight that becomes one flat pale patch or a dashed line along an edge (strawberry, butter, apple).
 - A wrapped sheet's ends not meeting (sauce).
 - Crisp lines where colours meet inside an ingredient (steak, watermelon).

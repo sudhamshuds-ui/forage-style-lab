@@ -443,6 +443,11 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
   `onion` family and skin (kind 15, lines from root to neck, translucent glow, cut-face rings),
   part-only `papery`, Celadon, matte, no rim glints. The pair and the whole-and-cut arrangements
   stay in the form for later. See `lessons/onion.md`.
+- **Orange pepper** (round 2): round 1's blocky body of four lobes with about 5% variation
+  (more read as squashed, the user), blended per lobe; feet and a deep well; a thick hooked stem
+  after the user's reference; the `pepper` family and skin (kind 16, the gloss painted as long
+  streaks, `matte`), shadowTint 0.3, Seafoam. Shuffle never shows a room twice in a row. See
+  `lessons/pepper.md`.
 - **Chicken**: one raw drumstick (approved on its first round, 2026-11-11): a distance field
   along an axis (lopsided bulb, muscle seam, concave taper, tendon ridges, skin folds) and a
   `knuckle@bone` piece, tipped so the bulb settles flat (`SINK`) and the knuckle rests; the
@@ -466,7 +471,7 @@ Shared mechanisms added along the way (code hooks other ingredients reuse):
   12); the material knows the camera in its own space (`vObjectCamera`). `patch` is a reserved
   word in GLSL.
 - Form tests: "faces point outward" asks 85% for wedges (hole insides rightly face inward).
-Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the orange pepper next.
+Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the avocado next.
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after
