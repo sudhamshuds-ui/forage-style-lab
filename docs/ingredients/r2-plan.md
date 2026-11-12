@@ -64,7 +64,7 @@ Grouped so each step adds one new tool and the next ones reuse it:
 
 1. **Red onion**, 2. **Orange pepper**: round kit, quick, two new families. Warm-up.
 3. **Avocado**: builds the cut tool and the whole-and-cut layout, which every later dish needs.
-4. **Grapes**, 5. **Blueberries**: many small pieces; the bunch and the pile. Blueberries also
+4. **Grapes** (done 2026-11-12, see `lessons/grapes.md`), 5. **Blueberries**: many small pieces; the bunch and the pile. Blueberries also
    bring the first warm room.
 6. **Spinach**, 7. **Romaine**, 8. **Napa cabbage**: the leafy kit, simplest first.
 9. **Salmon**: reuses the steak's painted-stripe approach on a slab.

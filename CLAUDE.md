@@ -91,6 +91,9 @@ keep code readable with friendly comments.
   fades over a soft band like wet paint, never a crisp cut-out line. Crisp edges are kept only for
   a few niche places, each a deliberate choice: the lit side of the outline and the cast shadow's
   edge (the style direction), and printed artwork such as the hot sauce label.
+- **Warm highlights, cool shadows, always** (the user, 2026-11-12): light and its glow lean warm
+  (coral, gold, cream), shadows lean cool (violet, plum, indigo, blue-green), never grey and never
+  the same hue as the light. Check every new family and skin against it.
 - **Facets are retired.** Every form is smooth and rounded, the apple included (the hidden
   Faceted switch is off). No stamped dabs on the apple. Highlights are
   soft and believable (Soft sheen, Dry speckle); the hard window shapes are kept but not
@@ -470,6 +473,12 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
   `avocado` family and skin (kind 17, banded flesh, ochre hollow round the pit), a glossy `pit`
   (`glossy`), matte, `contactsFromFeet`. See `lessons/avocado.md`.
 
+- **Red grapes** (round 2): a bunch of 25 oval berries lying on its side on a slim golden stem
+  (`vine`), settled by a drop-and-nudge pass, the cut end curling up; the `grape` family and skin
+  (kind 18: each berry its own mix, a smooth turn instead of the tone steps, a warm band at the
+  turn, violet shadows, bloom, broken glints via `highlightBumpy`), Spruce, `contactsFromFeet`,
+  22k budget. See `lessons/grapes.md`.
+
 Shared mechanisms added along the way (code hooks other ingredients reuse):
 - Registry look settings: `turn`, `skin`, `matte`, `rimGlints` (via `FrameContext.rimGlints`),
   `shadowTint` (via `FrameContext.shadowTint`), `budget`, `stemEnds`, `contactsFromFeet`,
@@ -487,7 +496,7 @@ Shared mechanisms added along the way (code hooks other ingredients reuse):
   12); the material knows the camera in its own space (`vObjectCamera`). `patch` is a reserved
   word in GLSL.
 - Form tests: "faces point outward" asks 85% for wedges (hole insides rightly face inward).
-Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the grapes next.
+Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the blueberries next.
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after
