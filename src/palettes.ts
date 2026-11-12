@@ -38,6 +38,11 @@ export interface Palette {
   name: string;
   family: PaletteFamily;
   colours: RoomColours;
+  /**
+   * A warm room, for a cool subject (blueberries): the rooms complement the subject, and every
+   * subject before the blueberries was warm, so every room was cool. Checked against a blue.
+   */
+  warm?: boolean;
 }
 
 /** The old combos also set the fruit's colours. Kept for reference, not shown. */
@@ -214,6 +219,22 @@ export const PALETTES: Palette[] = [
       bounce: '#caa27c',
       castShadow: '#70587e',
       frame: '#7c7880',
+    },
+  },
+  // The first warm room (2026-11-12, round 2: the blueberries, a cool subject): a muted apricot
+  // with a pale cream table and a rose-mauve cast shadow, the cool side of the warm wall.
+  {
+    id: 'apricot',
+    name: 'Apricot',
+    family: 'soft',
+    warm: true,
+    colours: {
+      wall: '#dab5a0',
+      table: '#eadbcc',
+      ambient: '#d6b29f',
+      bounce: '#cba17d',
+      castShadow: '#916369',
+      frame: '#857770',
     },
   },
   {

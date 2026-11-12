@@ -14,6 +14,7 @@ import { buildOnion } from './forms/onion';
 import { buildPepper } from './forms/pepper';
 import { buildAvocado } from './forms/avocado';
 import { buildGrapes } from './forms/grapes';
+import { buildBlueberries } from './forms/blueberries';
 import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
@@ -553,6 +554,30 @@ export const REGISTRY: IngredientEntry[] = [
     rimGlints: false,
     contactsFromFeet: true,
     budget: [2000, 22000],
+  },
+  {
+    spec: {
+      id: 'blueberries',
+      name: 'Blueberries',
+      archetype: 'small',
+      family: 'blueberry',
+      layout: 'solo',
+      show: 'A loose pile of blueberries on the table, crowns facing every way (many toward the camera), two strays rolled a little way off.',
+      forms: ['whole', 'halved'],
+      scale: 'S',
+      size_cm: [7.1, 2.8, 4.9],
+      parts: ['berry'],
+      light_case: 'group',
+      notes:
+        'Round 2, after the user\'s reference (blueberries in a punnet; the punnet is a later tool, so a loose pile). Small, slightly flattened berries, each with a five-pointed star crown (a crater with raised points), settled into a mound by the kit\'s drop-and-nudge pass. The dusty bloom, the deep blue where it is rubbed off and the crown\'s dark centre are a shader texture (the blueberry skin).',
+    },
+    form: buildBlueberries,
+    turn: 0,
+    skin: { kind: 'blueberry', size_mm: 1.5, amount: 0.9 },
+    shadowTint: 0.6,
+    rimGlints: false,
+    contactsFromFeet: true,
+    budget: [2000, 26000],
   },
 ];
 

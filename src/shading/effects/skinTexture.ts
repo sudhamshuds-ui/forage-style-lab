@@ -57,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -140,6 +140,23 @@ float skinCells(vec3 p) {
     nearest = min(nearest, length(p - point));
   }
   return nearest;
+}
+
+// Many small round pieces (grapes, blueberries): the shared tone steps repeat on each piece as a
+// stripe pattern (the user, 2026-11-12), so the colour turns smoothly from lit to shadow instead.
+// Cast shadows from neighbours stay (lightMask).
+vec3 smoothTurn(vec3 lab, vec3 N, vec3 L, float lightMask) {
+  vec3 litLab = linearToOklab(uLitColour);
+  vec3 baseLab = linearToOklab(uBaseColour);
+  vec3 shadowLab = linearToOklab(uShadowColour);
+  float wrap = smoothstep(-0.45, 0.9, dot(N, L)) * mix(0.45, 1.0, lightMask);
+  vec3 smoothLab = wrap > 0.5
+    ? mix(baseLab, litLab, (wrap - 0.5) * 1.6)
+    : mix(shadowLab, baseLab, 0.25 + wrap * 1.5);
+  lab = mix(lab, smoothLab, 0.85);
+  // A little deeper toward the shadow side, so each piece stays round.
+  lab.x -= (1.0 - wrap) * 0.05;
+  return lab;
 }
 `,
   body: /* glsl */ `
@@ -787,20 +804,10 @@ if (kind > 0 && amount > 0.0) {
     vec2 q = vSurfaceUv;
     vec3 cm = objectPos * 3.8169;
     float own = q.x;
-    // 0. Soft light. On 25 small round berries the shared tone steps (a lit top, a darker band,
-    //    the bounce below) repeated like stripes (the user, 2026-11-12: "these bands look odd, all
-    //    of them have it like a pattern"). Grapes are translucent and softly lit, so here the
-    //    steps give way to one smooth turn from lit to shadow; neighbours' cast shadows stay.
-    vec3 litLab = linearToOklab(uLitColour);
-    vec3 baseLab = linearToOklab(uBaseColour);
-    vec3 shadowLab = linearToOklab(uShadowColour);
-    float wrap = smoothstep(-0.45, 0.9, dot(N, L)) * mix(0.45, 1.0, lightMask);
-    vec3 smoothLab = wrap > 0.5
-      ? mix(baseLab, litLab, (wrap - 0.5) * 1.6)
-      : mix(shadowLab, baseLab, 0.25 + wrap * 1.5);
-    lab = mix(lab, smoothLab, 0.85);
-    // A little deeper toward the shadow side, so each berry stays round.
-    lab.x -= (1.0 - wrap) * 0.05;
+    // 0. Soft light: one smooth turn from lit to shadow (on 25 small berries the tone steps read
+    //    as stripes, the user, 2026-11-12: "these bands look odd, all of them have it like a
+    //    pattern").
+    lab = smoothTurn(lab, N, L, lightMask);
     // 1. Each berry its own mix, from a rosy coral (thinner, riper in the light) to a deep
     //    wine-violet; most in between. Turned in OKLab, so it never passes through brown.
     vec3 coral = lab;
@@ -865,6 +872,49 @@ if (kind > 0 && amount > 0.0) {
     highlightBumpy = 1.0;
     highlightBreak = bloom * 2.2 + (1.0 - smoothstep(0.15, 0.8, fract(own * 3.71))) * 0.5;
     highlightGlint = smoothstep(0.42, 0.62, valueNoise3(cm * 3.2 + own * 5.0)) * smoothstep(0.2, 0.8, fract(own * 3.71));
+  } else if (kind == 19) {
+    // Blueberries, after the user's reference. Map: x each berry's own mix (one value per berry),
+    // y how far from its crown (0 at the crown's centre, 1 at the far pole).
+    vec2 q = vSurfaceUv;
+    vec3 cm = objectPos * 3.8169;
+    float own = q.x;
+    // 0. One smooth turn from light to shadow (many small round pieces, like the grapes).
+    lab = smoothTurn(lab, N, L, lightMask);
+    float NdotL = dot(N, L);
+    // 1. Each berry its own blue: some leaning violet, some navy, a little lighter or deeper.
+    float lean = (own - 0.5) * 0.25;
+    lab.yz = mat2(cos(lean), sin(lean), -sin(lean), cos(lean)) * lab.yz;
+    lab.x += (fract(own * 5.31) - 0.5) * 0.05;
+    // 2. The bloom: a dusty, pale periwinkle powder in loose patches, rubbed off in places to the
+    //    deep, glossier blue underneath (the reference's mottling). Never a flat grey film.
+    float bloomPatch = smoothstep(0.3, 0.68, fbm3(cm * 2.3 + own * 13.0));
+    float rubbed = smoothstep(0.52, 0.78, fbm3(cm * 1.4 + own * 7.0 + 4.0));
+    float bloom = clamp(0.3 + 0.7 * bloomPatch - rubbed * 0.9, 0.0, 1.0) * amount;
+    float grain = valueNoise3(objectPos * 140.0);
+    bloom *= 0.8 + 0.4 * grain;
+    vec3 dust = lab;
+    dust.x = mix(dust.x, 0.78, 0.55);
+    dust.yz = mat2(cos(-0.12), sin(-0.12), -sin(-0.12), cos(-0.12)) * dust.yz * 0.5;
+    // Where it is rubbed off, the skin is a deeper, richer blue.
+    lab.x -= rubbed * 0.06 * amount;
+    lab.yz *= 1.0 + rubbed * 0.15 * amount;
+    lab = mix(lab, dust, bloom * 0.7);
+    // 3. The crown: a soft plum hollow inside the star (the geometry gives the star its shape
+    //    and points), its sepal tips keeping the bloom. Moderately dark, never black: a near-black
+    //    hole turned into a hard block in Playful strokes (as the watermelon's seeds did).
+    float crown = 1.0 - smoothstep(0.03, 0.13, q.y);
+    vec3 plum = vec3(lab.x - 0.1, 0.05, -0.06);
+    lab = mix(lab, plum, crown * 0.6 * amount);
+    // 4. Warm highlights, cool shadows: the shadow side leans violet-indigo, a faint plum glow at
+    //    the thin outline.
+    vec3 violet = vec3(lab.x - 0.03, 0.05, -0.12);
+    lab = mix(lab, violet, (1.0 - smoothstep(-0.4, 0.4, NdotL)) * 0.3 * amount);
+    float edgeOn = pow(1.0 - max(dot(N, V), 0.0), 2.0);
+    lab = mix(lab, linearToOklab(uGlowColour), edgeOn * 0.12 * amount);
+    // 5. The shine: broken (like the grapes'); small glints only where the bloom is rubbed off.
+    highlightBumpy = 1.0;
+    highlightBreak = bloom * 1.8;
+    highlightGlint = rubbed * smoothstep(0.42, 0.62, valueNoise3(cm * 3.0 + own * 5.0));
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

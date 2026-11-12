@@ -4,6 +4,7 @@ import { smoothstep } from './kit/lathe';
 import { finishPieces, type FormBuilder } from './kit/piece';
 import { seededRandom, signed } from './kit/random';
 import { roundBody } from './kit/round';
+import { settle } from './kit/settle';
 import { sweepGeometry } from './kit/sweep';
 
 /**
@@ -54,12 +55,6 @@ interface Berry {
   junction: number;
   reach: number;
   tint: number;
-}
-
-/** How far an oval reaches from its centre in direction `n` (its support distance). */
-function reach(b: Berry, n: Vector3): number {
-  const along = n.dot(b.axis);
-  return Math.sqrt(b.half * b.half * along * along + b.radius * b.radius * Math.max(0, 1 - along * along));
 }
 
 export const buildGrapes: FormBuilder = ({ state, seed }) => {
@@ -124,17 +119,18 @@ export const buildGrapes: FormBuilder = ({ state, seed }) => {
     for (let i = 1; i <= 4; i++) stemBalls.push({ at: junction.from.clone().lerp(junction.at, i / 4), r: STEM.lateral + 0.04 });
   }
 
-  // 3. Settle: gravity, the table, each berry within reach of its stalk, pushed apart from the
-  //    others and from the stem. The last rounds have no gravity, only the pushing apart.
-  const gap = 0.02;
-  const n = new Vector3();
+  // 3. Settle (the kit's drop-and-nudge pass): gravity, the table, berries pushed apart from each
+  //    other and from the stem, each berry within reach of its stalk. A light pull: the bunch
+  //    slumps a little, but its stalks hold it in a mound.
   const pole = new Vector3();
-  for (let round = 0; round < SETTLE; round++) {
-    const falling = round < SETTLE - 80;
-    for (const b of berries) {
+  settle(berries, {
+    rounds: SETTLE,
+    calm: 80,
+    gravity: 0.012,
+    gap: 0.02,
+    obstacles: stemBalls,
+    step: (b) => {
       const junction = junctions[b.junction];
-      // A light pull: the bunch slumps a little, but its stalks hold it in a mound.
-      if (falling) b.centre.y -= 0.012;
       // Within reach of its stalk: the stalk end (the berry's pole) stays near its junction.
       pole.copy(b.centre).addScaledVector(b.axis, -b.half);
       const toPole = pole.clone().sub(junction.at);
@@ -142,37 +138,8 @@ export const buildGrapes: FormBuilder = ({ state, seed }) => {
       if (length > b.reach + 0.08) b.centre.addScaledVector(toPole, -(length - b.reach - 0.08) / length);
       // It hangs from its stalk: its long axis points away from the junction.
       b.axis.copy(b.centre).sub(junction.at).normalize();
-      // The table.
-      const low = reach(b, n.set(0, 1, 0));
-      if (b.centre.y < low) b.centre.y = low;
-    }
-    for (let i = 0; i < berries.length; i++) {
-      const a = berries[i];
-      for (let j = i + 1; j < berries.length; j++) {
-        const b = berries[j];
-        n.copy(b.centre).sub(a.centre);
-        const distance = n.length();
-        if (distance < 1e-6) n.set(0, 1, 0);
-        else n.divideScalar(distance);
-        const need = reach(a, n) + reach(b, n) + gap;
-        if (distance < need) {
-          const push = (need - distance) / 2;
-          a.centre.addScaledVector(n, -push);
-          b.centre.addScaledVector(n, push);
-        }
-      }
-      for (const ball of stemBalls) {
-        n.copy(a.centre).sub(ball.at);
-        const distance = n.length();
-        if (distance < 1e-6) continue;
-        n.divideScalar(distance);
-        const need = reach(a, n) + ball.r;
-        if (distance < need) a.centre.addScaledVector(n, need - distance);
-      }
-      const low = reach(a, n.set(0, 1, 0));
-      if (a.centre.y < low) a.centre.y = low;
-    }
-  }
+    },
+  });
 
   // 4a. The berries as ovals: a little fuller toward the far end, a small soft dimple at the
   //     stalk, each its own size and roll. Merged into one piece.

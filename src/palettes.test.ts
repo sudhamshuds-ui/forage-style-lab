@@ -62,7 +62,9 @@ function checkRoom(p: Palette, fruitHex: string): void {
 
   // The room complements the fruit: a cool hue, a set distance round the wheel
   // (coral with periwinkle, yellow with mint).
-  expect(hueIn(c.wall.h, 150, 310), `${label} wall is cool (${c.wall.h.toFixed(0)})`).toBe(true);
+  // A cool room for a warm subject; a warm room (marked warm) for a cool one (blueberries).
+  if (p.warm) expect(hueIn(c.wall.h, 20, 100), `${label} wall is warm (${c.wall.h.toFixed(0)})`).toBe(true);
+  else expect(hueIn(c.wall.h, 150, 310), `${label} wall is cool (${c.wall.h.toFixed(0)})`).toBe(true);
   const gap = hueGap(c.wall.h, fruit.h);
   expect(gap, `${label} wall hue gap ${gap.toFixed(0)}`).toBeGreaterThanOrEqual(70);
   expect(gap, `${label} wall hue gap ${gap.toFixed(0)}`).toBeLessThanOrEqual(150);
@@ -95,9 +97,10 @@ function checkRoom(p: Palette, fruitHex: string): void {
 }
 
 describe('room combos', () => {
-  it('has twelve soft rooms (Linen first) and three vivid ones', () => {
+  it('has thirteen soft rooms (Linen first, one of them warm) and three vivid ones', () => {
     expect(PALETTES[0].id).toBe('linen');
-    expect(PALETTES.filter((p) => p.family === 'soft').length).toBe(12);
+    expect(PALETTES.filter((p) => p.family === 'soft').length).toBe(13);
+    expect(PALETTES.filter((p) => p.warm).length).toBe(1);
     expect(PALETTES.filter((p) => p.family === 'vivid').length).toBe(3);
   });
 
@@ -106,7 +109,8 @@ describe('room combos', () => {
   });
 
   it.each(PALETTES.map((p) => [p.name, p] as const))('%s follows the room rules', (_, p) => {
-    checkRoom(p, DEFAULTS.colour.base);
+    // A warm room is checked against a blue subject (a blueberry), a cool one against the apple.
+    checkRoom(p, p.warm ? '#3e4a8a' : DEFAULTS.colour.base);
   });
 
   it('Shuffle always makes a soft room that follows the rules', () => {

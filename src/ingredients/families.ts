@@ -29,6 +29,7 @@ export type FamilyId =
   | 'pepper'
   | 'avocado'
   | 'grape'
+  | 'blueberry'
   | 'vine'
   | 'pit'
   | 'papery'
@@ -274,6 +275,15 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Grape',
     colours: { lit: '#e86f78', base: '#a8304f', shadow: '#4c2358', glow: '#e8504a', highlight: '#f8e2ea' },
     rooms: ['spruce', 'mist'],
+  },
+  // Not on board 04 yet (added 2026-11-12, round 2: blueberries, after the user's reference): a
+  // deep indigo under a dusty, pale periwinkle bloom; warm cream highlights, a violet-indigo shadow
+  // (warm highlights, cool shadows), a plum glow. The first cool subject: it opens in the first
+  // warm room, Apricot.
+  blueberry: {
+    name: 'Blueberry',
+    colours: { lit: '#7f9ad8', base: '#2f4c98', shadow: '#2a2b60', glow: '#5a4f9e', highlight: '#f7eedf' },
+    rooms: ['apricot'],
   },
   // Not a board 04 family: only for parts (a grape bunch's woody stem; later vines and tomato
   // trusses). A golden ochre, its shadow a warm olive-plum, never grey-green.
