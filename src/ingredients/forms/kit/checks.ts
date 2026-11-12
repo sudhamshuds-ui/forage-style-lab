@@ -1,4 +1,4 @@
-import { Box3, Vector3, type BufferAttribute } from 'three';
+import { Box3, Vector3, type BufferAttribute, type BufferGeometry } from 'three';
 import { unitsToCm } from '../../scale';
 import type { FormPiece } from './piece';
 
@@ -80,18 +80,52 @@ export function allFinite(pieces: FormPiece[]): boolean {
  */
 export function outwardFraction(piece: FormPiece): number {
   const { geometry } = piece;
-  const centre = geometry.boundingBox!.getCenter(new Vector3());
   const position = geometry.getAttribute('position') as BufferAttribute;
   const normal = geometry.getAttribute('normal') as BufferAttribute;
+  // A piece can hold several separate bodies (a bunch of grapes merged into one piece): measure
+  // each point from the centre of its own body, or a berry's inner side would count as inward.
+  const body = bodiesOf(geometry);
+  const centres = new Map<number, { sum: Vector3; count: number }>();
   const p = new Vector3();
+  for (let i = 0; i < position.count; i++) {
+    const entry = centres.get(body[i]) ?? { sum: new Vector3(), count: 0 };
+    entry.sum.add(p.fromBufferAttribute(position, i));
+    entry.count++;
+    centres.set(body[i], entry);
+  }
   const n = new Vector3();
   let outward = 0;
   for (let i = 0; i < position.count; i++) {
-    p.fromBufferAttribute(position, i).sub(centre);
+    const entry = centres.get(body[i])!;
+    p.fromBufferAttribute(position, i).addScaledVector(entry.sum, -1 / entry.count);
     n.fromBufferAttribute(normal, i);
     if (p.dot(n) > 0) outward++;
   }
   return outward / position.count;
+}
+
+/**
+ * Which separate body each point belongs to: points joined by triangles share a body (a
+ * union-find over the triangles' corners). Without an index, the whole piece is one body.
+ */
+function bodiesOf(geometry: BufferGeometry): number[] {
+  const count = geometry.getAttribute('position').count;
+  const parent = Array.from({ length: count }, (_, i) => i);
+  const find = (i: number): number => {
+    while (parent[i] !== i) {
+      parent[i] = parent[parent[i]];
+      i = parent[i];
+    }
+    return i;
+  };
+  const index = geometry.index;
+  if (!index) return parent.map(() => 0);
+  for (let t = 0; t < index.count; t += 3) {
+    const a = find(index.getX(t));
+    parent[find(index.getX(t + 1))] = a;
+    parent[find(index.getX(t + 2))] = a;
+  }
+  return parent.map((_, i) => find(i));
 }
 
 /**

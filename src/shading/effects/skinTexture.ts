@@ -57,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -781,6 +781,63 @@ if (kind > 0 && amount > 0.0) {
       lab = mix(lab, flesh, face);
       highlightOwn = max(highlightOwn, face);
     }
+  } else if (kind == 18) {
+    // Red grapes, after the user's reference. Map: x each berry's own mix (one value per berry), y
+    // how far along the berry (0 at its stalk, 1 at the far end).
+    vec2 q = vSurfaceUv;
+    vec3 cm = objectPos * 3.8169;
+    float own = q.x;
+    // 1. Each berry its own mix, from a rosy coral (thinner, riper in the light) to a deep
+    //    wine-violet; most in between. Turned in OKLab, so it never passes through brown.
+    vec3 coral = lab;
+    coral.x += 0.07;
+    coral.yz = mat2(cos(0.16), sin(0.16), -sin(0.16), cos(0.16)) * coral.yz * 0.95;
+    vec3 wine = lab;
+    wine.x -= 0.13;
+    wine.yz = mat2(cos(-0.42), sin(-0.42), -sin(-0.42), cos(-0.42)) * wine.yz * 0.92;
+    float ownMix = smoothstep(0.0, 1.0, own);
+    lab = mix(coral, wine, ownMix);
+    // 2. Mottling inside each berry, like the reference's washes: broad soft patches of deeper
+    //    wine over a lighter, rosier ground, a little longer along the berry. Soft-edged, never
+    //    spots.
+    float mottle = fbm3(cm * vec3(1.3, 1.3, 1.3) + own * 17.0);
+    float patchDeep = smoothstep(0.45, 0.75, mottle);
+    float patchLight = 1.0 - smoothstep(0.25, 0.48, mottle);
+    lab = mix(lab, wine - vec3(0.03, 0.0, 0.0), patchDeep * 0.55 * amount);
+    lab = mix(lab, coral + vec3(0.02, 0.0, 0.0), patchLight * 0.4 * amount * (1.0 - ownMix * 0.5));
+    // 3. The glow of thin skin: the shadow side soaks up the warm glow, thin edges seen side on
+    //    and light coming through glow coral, so a grape is never a dull ball.
+    // From a smooth light falloff, not the tone bands: stepping with the bands, the glow drew a
+    // hard line across each berry where lit coral met shadow wine.
+    float inside = (1.0 - smoothstep(-0.25, 0.65, dot(N, L))) * amount;
+    float edgeOn = pow(1.0 - max(dot(N, V), 0.0), 2.0);
+    float through = pow(max(dot(V, -L), 0.0), 2.0) * 0.5;
+    vec3 warm = linearToOklab(uGlowColour);
+    float glow = clamp(inside * 0.3 + edgeOn * 0.25 + through, 0.0, 0.5) * amount;
+    lab = mix(lab, mix(lab, warm, 0.45), glow);
+    lab.x += (edgeOn * 0.03 + through * 0.05) * amount;
+    // 4. The waxy bloom: a faint, cool, powdery haze in loose patches, more on the darker berries
+    //    and rubbed away in places, strongest where the berry turns away from the light.
+    float bloomPatch = smoothstep(0.35, 0.7, fbm3(cm * 2.4 + 5.0 + own * 9.0));
+    float bloom = bloomPatch * (0.35 + 0.65 * ownMix) * (0.5 + 0.5 * inside) * amount;
+    vec3 haze = lab;
+    haze.x += 0.07;
+    haze.yz = mat2(cos(-0.5), sin(-0.5), -sin(-0.5), cos(-0.5)) * haze.yz * 0.55;
+    float dust = smoothstep(0.4, 0.75, valueNoise3(objectPos * 120.0));
+    lab = mix(lab, haze, bloom * (0.22 + 0.12 * dust));
+    // 5. Where the stalk held it: a small paler, golden scar fading softly into the berry.
+    float scar = 1.0 - smoothstep(0.02, 0.14, q.y);
+    vec3 gold = lab;
+    gold.x += 0.06;
+    gold.yz = mat2(cos(0.9), sin(0.9), -sin(0.9), cos(0.9)) * gold.yz * 0.6;
+    lab = mix(lab, gold, scar * 0.55 * amount);
+    // 6. The shine: the shared sheen, told this is a waxy, broken surface (like the
+    //    strawberry's): it thins out from its core, skips where the bloom is thick, and breaks
+    //    into a few small glints, each berry its own. A plain sheen put the same pale round dot
+    //    on every berry (polka dots).
+    highlightBumpy = 1.0;
+    highlightBreak = bloom * 2.2 + (1.0 - smoothstep(0.15, 0.8, fract(own * 3.71))) * 0.5;
+    highlightGlint = smoothstep(0.42, 0.62, valueNoise3(cm * 3.2 + own * 5.0)) * smoothstep(0.2, 0.8, fract(own * 3.71));
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

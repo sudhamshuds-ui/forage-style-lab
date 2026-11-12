@@ -13,6 +13,7 @@ import { buildChicken } from './forms/chicken';
 import { buildOnion } from './forms/onion';
 import { buildPepper } from './forms/pepper';
 import { buildAvocado } from './forms/avocado';
+import { buildGrapes } from './forms/grapes';
 import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
@@ -527,6 +528,31 @@ export const REGISTRY: IngredientEntry[] = [
     shadowTint: 0.4,
     rimGlints: false,
     budget: [2000, 30000],
+  },
+  {
+    spec: {
+      id: 'grapes',
+      name: 'Red grapes',
+      archetype: 'small',
+      family: 'grape',
+      layout: 'solo',
+      show: 'A bunch of red grapes lying on its side, berries resting on the table and on each other, the golden stem curling up off the table at the top.',
+      forms: ['whole', 'halved'],
+      scale: 'M',
+      size_cm: [12.2, 6.4, 8.6],
+      parts: ['berry:glow', 'stem@vine'],
+      light_case: 'group',
+      notes:
+        'Round 2, after the user\'s reference (red globe grapes on a golden stem). About 22 oval berries on a branching woody stem, settled on the table by a drop-and-nudge pass so they touch but never sink in; each stalk ends in a small flared cap; the cut end of the stem curls up. Mottled wine to coral, a waxy bloom, a pale spot at the stalk and the glow of thin skin are a shader texture (the grape skin).',
+    },
+    form: buildGrapes,
+    turn: 0,
+    skin: { kind: 'grape', size_mm: 2, amount: 0.9 },
+    shadowTint: 0.5,
+    // Thin stems catch rim glints as hard lines.
+    rimGlints: false,
+    contactsFromFeet: true,
+    budget: [2000, 22000],
   },
 ];
 

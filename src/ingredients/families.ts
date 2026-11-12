@@ -28,6 +28,8 @@ export type FamilyId =
   | 'onion'
   | 'pepper'
   | 'avocado'
+  | 'grape'
+  | 'vine'
   | 'pit'
   | 'papery'
   | 'fat'
@@ -264,6 +266,21 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Avocado',
     colours: { lit: '#90b653', base: '#46762f', shadow: '#2d3f5c', glow: '#7fa83a', highlight: '#e6efcf' },
     rooms: ['iris', 'thistle'],
+  },
+  // Not on board 04 yet (added 2026-11-12, round 2: red grapes, after the user's reference): a
+  // wine red that runs from coral where the skin is thin and lit to deep violet in shadow (never
+  // brown or black-red). Each berry gets its own mix, painted by the grape skin.
+  grape: {
+    name: 'Grape',
+    colours: { lit: '#e86f78', base: '#a8304f', shadow: '#4c2358', glow: '#e8504a', highlight: '#f8e2ea' },
+    rooms: ['spruce', 'mist'],
+  },
+  // Not a board 04 family: only for parts (a grape bunch's woody stem; later vines and tomato
+  // trusses). A golden ochre, its shadow a warm olive-plum, never grey-green.
+  vine: {
+    name: 'Vine',
+    colours: { lit: '#d8b45e', base: '#a37f35', shadow: '#5a4a3c', glow: '#c99a3e', highlight: '#f3e3b8' },
+    rooms: [],
   },
   // Not a board 04 family: only for parts (an avocado's pit; later nuts). A warm glossy chestnut,
   // its shadow side a deep plum (the user's reference), never grey-brown.
