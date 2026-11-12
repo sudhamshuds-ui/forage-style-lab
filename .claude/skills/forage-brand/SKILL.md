@@ -67,7 +67,16 @@ they actually wrote; anything else is a `Claude's note`. Sort each into one lens
 - `npm test` (includes `src/docs.test.ts`: four lenses, no em dashes, the pre-check section) and
   `npm run build`, then commit on the ingredient's branch.
 
-## 5. Propose the Figma side
+## 5. Queue the Figma side (applied once per round)
+
+**Figma is updated once per planned round of ingredients, not after every ingredient** (the user,
+2026-11-12: "no need to update figma everytime, just update figma after every round of
+ingredients we planned for"). After each ingredient, add its Figma changes to
+`docs/ingredients/lessons/figma-pending.md` (board by board, as below). When the last ingredient of
+a round (see `docs/ingredients/r2-plan.md` and later plans) is approved, apply everything pending
+in one go (step 6), then empty the file.
+
+### What each board gets
 
 File `537QrQ0QsVjcT4u3st7M20`, page `60:2`. Lessons are folded into the existing boards, never a
 new board:

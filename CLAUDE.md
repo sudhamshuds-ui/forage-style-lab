@@ -23,7 +23,10 @@ keep code readable with friendly comments.
 - **After the user approves an ingredient**, run `/forage-brand {id}`
   (`.claude/skills/forage-brand/SKILL.md`) on its branch before merging: it turns the rounds of
   feedback into lessons (colour, composition, form, recurring errors) in
-  `docs/ingredients/lessons/{id}.md`, the ingredient guide and the Figma boards (one OK for Figma).
+  `docs/ingredients/lessons/{id}.md` and the ingredient guide every time; **the Figma boards only
+  once per planned round of ingredients** (the user, 2026-11-12): each ingredient's Figma changes
+  wait in `docs/ingredients/lessons/figma-pending.md` and are applied together when the round's
+  last ingredient is approved (round 2: after the milk carton).
 - **The page** (the user's design, 2026-11-11; explored in `prototypes/brush.html`, see
   `docs/process/README.md`): a white page, "Forage" in Geist Serif ("pantry" dropped, the user 2026-11-12) (Heart, free, SIL OFL,
   `src/ui/fonts/`) above a square-cornered card with no shadow (5:6, 15% smaller than the first cut for more
@@ -479,6 +482,13 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
   turn, violet shadows, bloom, broken glints via `highlightBumpy`), Spruce, `contactsFromFeet`,
   22k budget. See `lessons/grapes.md`.
 
+- **Blueberries** (round 2): a loose pile of 17 slightly flattened berries, each with a raised
+  five-pointed star crown (a collar with a soft plum hollow), two strays a short roll away, every
+  berry held in balance (`isHeld`, tucking a berry under a shaky one; tested); the `blueberry`
+  family and skin (kind 19: dusty cobalt, bloom rubbed off in places, violet shadows, no shine on
+  the crown); the first warm room, Apricot (`warm: true`); `kit/settle.ts` shared with the grapes.
+  See `lessons/blueberries.md`.
+
 Shared mechanisms added along the way (code hooks other ingredients reuse):
 - Registry look settings: `turn`, `skin`, `matte`, `rimGlints` (via `FrameContext.rimGlints`),
   `shadowTint` (via `FrameContext.shadowTint`), `budget`, `stemEnds`, `contactsFromFeet`,
@@ -496,7 +506,7 @@ Shared mechanisms added along the way (code hooks other ingredients reuse):
   12); the material knows the camera in its own space (`vObjectCamera`). `patch` is a reserved
   word in GLSL.
 - Form tests: "faces point outward" asks 85% for wedges (hole insides rightly face inward).
-Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the blueberries next.
+Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the spinach next.
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after
