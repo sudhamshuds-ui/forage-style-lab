@@ -913,8 +913,10 @@ if (kind > 0 && amount > 0.0) {
     lab = mix(lab, linearToOklab(uGlowColour), edgeOn * 0.12 * amount);
     // 5. The shine: broken (like the grapes'); small glints only where the bloom is rubbed off.
     highlightBumpy = 1.0;
-    highlightBreak = bloom * 1.8;
-    highlightGlint = rubbed * smoothstep(0.42, 0.62, valueNoise3(cm * 3.0 + own * 5.0));
+    // No shine on the crown: its raised rim caught thin white slivers.
+    float offCrown = smoothstep(0.12, 0.22, q.y);
+    highlightBreak = bloom * 1.8 + (1.0 - offCrown);
+    highlightGlint = rubbed * smoothstep(0.42, 0.62, valueNoise3(cm * 3.0 + own * 5.0)) * offCrown;
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

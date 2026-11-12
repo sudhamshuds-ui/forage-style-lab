@@ -33,7 +33,9 @@ const BERRY = { radius: 0.72, half: 0.57 };
 const COUNT = 15;
 const STRAYS = 2;
 /** The crown: its crater's radius as a share of the berry's (at the star's points), and depth (cm). */
-const CROWN = { size: 0.44, depth: 0.16, lip: 0.05, points: 5 };
+// The crown stands up a little from the berry, a short collar with raised points (a flat lip read as
+// a dent, the user, 2026-11-12: "the crown there can be a bit extrusion").
+const CROWN = { size: 0.44, depth: 0.15, lip: 0.13, points: 5 };
 
 interface Berry extends Oval {
   roll: number;
@@ -72,9 +74,9 @@ function berryGeometry(b: Berry, random: () => number): BufferGeometry {
     if (cosT > 0) {
       const bowl = s < 1 ? CROWN.depth * (1 - s * s) ** 1.5 : 0;
       // The sepals stand up in a lip, highest at their tips.
-      const lip = CROWN.lip * Math.exp(-(((s - 0.95) / 0.3) ** 2)) * (0.25 + 0.75 * point5);
+      const lip = CROWN.lip * Math.exp(-(((s - 0.92) / 0.34) ** 2)) * (0.4 + 0.6 * point5);
       y += (lip - bowl) * cosT;
-      const pinch = 1 - 0.08 * (1 - smoothstep(0.6, 1.1, s));
+      const pinch = 1 - 0.05 * (1 - smoothstep(0.6, 1.1, s));
       x *= pinch;
       z *= pinch;
     }
