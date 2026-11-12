@@ -258,18 +258,18 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     rooms: ['seafoam', 'spruce'],
   },
   // Not on board 04 yet (added 2026-11-12, round 2: the avocado): its skin, a deep leaf green going
-  // to a blue-green in shadow (never black-green). The flesh's creamy yellow and bright green are
+  // to a deep indigo in shadow, after the user's reference painting (never black-green). The flesh's creamy yellow and bright green are
   // painted on the cut face by the avocado skin (subject.ts).
   avocado: {
     name: 'Avocado',
-    colours: { lit: '#8db55a', base: '#4a7a35', shadow: '#1f4a45', glow: '#7aa83c', highlight: '#e6efcf' },
+    colours: { lit: '#90b653', base: '#46762f', shadow: '#2d3f5c', glow: '#7fa83a', highlight: '#e6efcf' },
     rooms: ['iris', 'thistle'],
   },
   // Not a board 04 family: only for parts (an avocado's pit; later nuts). A warm glossy chestnut,
-  // never grey-brown.
+  // its shadow side a deep plum (the user's reference), never grey-brown.
   pit: {
     name: 'Pit',
-    colours: { lit: '#c98a5a', base: '#8a4f2c', shadow: '#4e2a2a', glow: '#b8683a', highlight: '#f5dcc4' },
+    colours: { lit: '#dc8752', base: '#a04f29', shadow: '#512b4a', glow: '#cc632f', highlight: '#fde6cc' },
     rooms: [],
   },
   // Not a board 04 family: only for parts (an onion's dry, papery neck tip and outer skin; later

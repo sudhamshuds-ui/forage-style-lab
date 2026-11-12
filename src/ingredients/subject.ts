@@ -55,7 +55,7 @@ export function createSubject(entry: IngredientEntry, look: StylizedLook): Subje
 const POULTRY_MEAT = mixHex(FAMILIES['pink-raw'].colours.lit, FAMILIES['pink-raw'].colours.base, 0.18);
 
 /** An avocado's flesh: creamy yellow at the heart, bright green toward the skin. */
-const AVOCADO_FLESH = { cream: '#e6e28a', green: '#9cc84e' };
+const AVOCADO_FLESH = { cream: '#f0d466', green: '#93c447' };
 
 /** The bounding sphere reaches the far corners; the visible body sits a little further in. */
 const RADIUS_FACTOR = 0.88;
@@ -170,7 +170,7 @@ class FormSubject implements Subject {
         // A form with two bodies (the watermelon's pair of wedges) repeats the hero's role: each
         // body gets the hero's highlight and skin.
         const hero = index === 0 || piece.role === pieces[0].role;
-        const loud = hero && !entry.matte;
+        const loud = (hero && !entry.matte) || !!entry.glossy?.includes(piece.role);
         const quiet = loud ? palette : { ...palette, highlight: mixHex(palette.highlight, palette.base, 0.65) };
         this.painted.push({ material, palette: quiet });
         if (hero) {

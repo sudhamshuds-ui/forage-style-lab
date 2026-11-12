@@ -112,6 +112,11 @@ export interface IngredientEntry {
    * soft look.
    */
   playfulHide?: string[];
+  /**
+   * Parts that keep a full, glossy highlight although they are small or the body is matte (an
+   * avocado's polished pit, the user 2026-11-12: "seed needs highlight").
+   */
+  glossy?: string[];
 }
 
 export const REGISTRY: IngredientEntry[] = [
@@ -499,10 +504,10 @@ export const REGISTRY: IngredientEntry[] = [
       archetype: 'round',
       family: 'avocado',
       layout: 'whole-and-cut',
-      show: 'One whole avocado lying behind, and a half cut lengthwise in front, its pit in the creamy face, tipped toward the camera.',
+      show: 'One whole avocado standing behind on the left, and a half cut lengthwise in front on the right, leaning back, its pit in the creamy face, tipped toward the camera.',
       forms: ['whole', 'half', 'slices', 'diced', 'mashed'],
       scale: 'M',
-      size_cm: [11.7, 7.8, 15.9],
+      size_cm: [12.1, 9.9, 14],
       // Both bodies are `skin`: the whole one and the half (the cut face painted from its map).
       parts: ['skin:glow', 'pit@pit', 'stem@stalk'],
       light_case: 'whole-next-to-cut',
@@ -514,6 +519,11 @@ export const REGISTRY: IngredientEntry[] = [
     skin: { kind: 'avocado', size_mm: 2.2, amount: 0.85 },
     // A satin skin and a soft, buttery face: the sheen stays quiet.
     matte: true,
+    // The pit is polished: it keeps a full highlight.
+    glossy: ['pit'],
+    // Contact shadows only where each one touches the table (the half rests on a strip of skin at
+    // its front: measured as one body, a spot reached out past the cast shadow).
+    contactsFromFeet: true,
     shadowTint: 0.4,
     rimGlints: false,
     budget: [2000, 30000],

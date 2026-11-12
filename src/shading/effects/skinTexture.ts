@@ -727,27 +727,54 @@ if (kind > 0 && amount > 0.0) {
     float patchy = smoothstep(0.55, 0.8, fbm3(cm * 0.5 + 3.0));
     skinLab.x += patchy * 0.04 * amount;
     skinLab.yz = mix(skinLab.yz, skinLab.yz * vec2(0.95, 1.12), patchy * amount);
+    // Broad, darker ripening blotches leaning toward the shadow's indigo, so the skin has depth
+    // (round 1 read as one flat green, the user 2026-11-12).
+    float ripe = smoothstep(0.45, 0.75, fbm3(cm * 0.35 + 41.0));
+    skinLab = mix(skinLab, linearToOklab(uShadowColour), ripe * 0.16 * amount);
     // A faint warm glow in its shadows.
     skinLab = mix(skinLab, linearToOklab(uGlowColour), (1.0 - tone) * 0.15 * amount);
     lab = skinLab;
-    // 2. The cut face: creamy yellow at the heart, turning bright green toward the skin in one
-    //    soft, wide gradient, then a thin dark green skin at the very rim (fading, never a hard
-    //    line). Soft and buttery: a faint glow, a light chalky texture, faint fibres along it.
-    float face = smoothstep(0.0, 0.006, q.y);
+    // 2. The cut face, after the user's reference painting (round 1 was flat, the user 2026-11-12:
+    //    "more colour depth"): a warm yellow heart, a lighter lime band, a bright green ring, a
+    //    deeper green just under the skin and a thin dark skin line, each band wandering softly like
+    //    wet paint; a deeper ochre in the hollow round the pit; broad blooms of value; the shadow
+    //    side cooler and deeper. The face map fades over the rounded cut edge, never a hard line.
+    float face = smoothstep(0.0, 0.04, q.y);
     if (face > 0.0) {
       float r = 1.0 - q.y;
-      float wander = (fbm3(cm * 0.8 + 11.0) - 0.5) * 0.08;
+      float wander = (fbm3(cm * 0.55 + 11.0) - 0.5) * 0.2;
+      float k = r + wander;
       vec3 cream = linearToOklab(uMelonPale);
       vec3 green = linearToOklab(uMelonGreen);
-      cream.x += shadeStep * 0.6;
-      green.x += shadeStep * 0.7;
-      vec3 flesh = mix(cream, green, smoothstep(0.3, 0.9, r + wander));
-      vec3 rim = linearToOklab(uBaseColour);
-      rim.x += shadeStep * 0.8;
-      flesh = mix(flesh, rim, smoothstep(0.94, 0.995, r));
+      vec3 lime = mix(cream, green, 0.45);
+      lime.x += 0.025;
+      vec3 skinTone = linearToOklab(uBaseColour);
+      vec3 deep = mix(green, skinTone, 0.45);
+      vec3 flesh = mix(cream, lime, smoothstep(0.08, 0.42, k));
+      flesh = mix(flesh, green, smoothstep(0.42, 0.8, k));
+      flesh = mix(flesh, deep, smoothstep(0.86, 0.95, r + wander * 0.2));
+      flesh = mix(flesh, skinTone, smoothstep(0.95, 0.995, r));
+      // The hollow round the pit (vOwnPos is measured from the pit, cm): a soft ring of deeper,
+      // warmer ochre, strongest right at the pit and gone a centimetre out.
+      float fromPit = length(vec2(vOwnPos.x / 1.1, vOwnPos.y)) - 1.8;
+      float hollow = 1.0 - smoothstep(-0.1, 1.1, fromPit + wander);
+      vec3 ochre = cream;
+      ochre.x -= 0.1;
+      ochre.y += 0.012;
+      ochre.z += 0.02;
+      flesh = mix(flesh, ochre, hollow * 0.55 * amount);
+      // Broad blooms of lighter and deeper paint across the face.
+      float bloom = fbm3(cm * 0.3 + 23.0) - 0.5;
+      flesh.x += bloom * 0.07 * show;
+      // Light and shade: the face takes the light's steps fully, its shadow side turning cooler
+      // toward the family's indigo, and a faint warm glow lifting the deepest tones.
+      // (Lit steps lift it less, so the light never bleaches the yellow toward white.)
+      flesh.x += shadeStep * (shadeStep > 0.0 ? 0.35 : 0.95);
+      flesh = mix(flesh, linearToOklab(uShadowColour), (1.0 - tone) * 0.22);
+      flesh = mix(flesh, linearToOklab(uGlowColour), (1.0 - tone) * 0.08);
+      // Faint fibres along the avocado, and the shared chalky dry-brush texture, light.
       float fibre = valueNoise3(vec3(q.x * 30.0, q.y * 6.0, 1.0)) - 0.5;
       flesh.x += fibre * 0.025 * show;
-      flesh = mix(flesh, linearToOklab(uGlowColour), (1.0 - tone) * 0.12);
       float paperGrain = valueNoise3(objectPos * 90.0);
       float scratch = valueNoise3(vec3(q.x * 40.0, q.y * 12.0, 3.0));
       flesh.x += smoothstep(0.55, 0.8, scratch) * smoothstep(0.4, 0.7, paperGrain) * 0.03 * show;
