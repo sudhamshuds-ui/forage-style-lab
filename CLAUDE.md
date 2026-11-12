@@ -26,7 +26,10 @@ keep code readable with friendly comments.
   `docs/ingredients/lessons/{id}.md` and the ingredient guide every time; **the Figma boards only
   once per planned round of ingredients** (the user, 2026-11-12): each ingredient's Figma changes
   wait in `docs/ingredients/lessons/figma-pending.md` and are applied together when the round's
-  last ingredient is approved (round 2: after the milk carton).
+  last ingredient is approved (round 2: after the milk carton). No re-uploading the guide after each
+  ingredient (the user found it very annoying): sessions here read
+  `docs/ingredients/forage-ingredient/SKILL.md` through the pointer skill
+  `.claude/skills/forage-ingredient`; the zip is rebuilt once per round, its upload optional.
 - **The page** (the user's design, 2026-11-11; explored in `prototypes/brush.html`, see
   `docs/process/README.md`): a white page, "Forage" in Geist Serif ("pantry" dropped, the user 2026-11-12) (Heart, free, SIL OFL,
   `src/ui/fonts/`) above a square-cornered card with no shadow (5:6, 15% smaller than the first cut for more

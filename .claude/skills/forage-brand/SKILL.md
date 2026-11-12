@@ -57,9 +57,11 @@ they actually wrote; anything else is a `Claude's note`. Sort each into one lens
 - `docs/ingredients/lessons/img/{id}.png`: the approved painting. In dev, `styleLab.show('{id}')`,
   idle spin off, Playful strokes off, the starting view, `styleLab.snapshot()`.
 - The guide: lessons under the four lenses (tagged with ingredients), the pre-check list, and the
-  families, kit and settings tables if they changed. Then rebuild
-  `docs/ingredients/forage-ingredient.zip` from `docs/ingredients/forage-ingredient/` and remind
-  the user to upload it to their claude.ai `forage-ingredient` skill (Claude cannot).
+  families, kit and settings tables if they changed. Sessions in this repo read it from there
+  (through `.claude/skills/forage-ingredient`, a pointer to it), so no upload is needed. Rebuild
+  `docs/ingredients/forage-ingredient.zip` only at the end of a round, with the Figma update, and
+  mention once that uploading it to claude.ai is optional (for use outside this repo). Never ask
+  for an upload after each ingredient (the user, 2026-11-12: "very annoying").
 - `CLAUDE.md`: trim this ingredient's round-by-round history to a pointer of one or two lines
   (what it is, decisions still in force including any `WITH_` switch, and
   `See docs/ingredients/lessons/{id}.md`). Before cutting, check every fact landed in the record,
