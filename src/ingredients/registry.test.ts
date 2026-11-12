@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { findPalette } from '../palettes';
 import { hexToOklch } from '../utils/colour';
 import { FAMILIES } from './families';
-import { REGISTRY, holdBack, parsePart, pickFresh, pickOther } from './registry';
+import { REGISTRY, findIngredient, holdBack, parsePart, pickFresh, pickOther, roomOf } from './registry';
 import { seededRandom } from './forms/kit/random';
 
 const hueGap = (a: number, b: number) => Math.abs(((((a - b) % 360) + 540) % 360) - 180);

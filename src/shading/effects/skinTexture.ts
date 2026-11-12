@@ -37,6 +37,9 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  *    papery flakes where the dry outer skin catches the light, a tan root patch, the neck drying
  *    to papery tan toward its tip, a faint glow in the darker purples. From the bulb's map
  *    (x: height as a share of the onion, 0 at the root).
+ *  - pepper (bell pepper): a glossy skin, the grooves between the lobes deeper and a little
+ *    redder, soft long streaks along the lobes, a translucent glow in its shadows. From the body's
+ *    map (x: height share, y: how deep in a groove).
  *  - knuckle (a bone's end, set automatically for a piece named `knuckle`): see KNUCKLE_SKIN.
  *  - leaf (sepals and leaves, set automatically): deeper at the stalk and
  *    lighter toward the tip, a pale centre vein, faint side veins, a slight
@@ -51,7 +54,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -662,6 +665,47 @@ if (kind > 0 && amount > 0.0) {
       lab = mix(lab, ringLab, cut);
       highlightOwn = max(highlightOwn, cut);
     }
+  } else if (kind == 16) {
+    // Pepper (bell pepper). Its map: x the height as a share of the pepper, y how deep in a groove
+    // (0 on a lobe's middle, 1 in a groove).
+    vec2 q = vSurfaceUv;
+    vec3 cm = objectPos * 3.8169;
+    // 1. A thick, juicy wall: a little light scatters in, so its shadows stay warm and glowing.
+    float inside = (1.0 - tone) * amount;
+    float edgeOn = pow(1.0 - max(dot(N, V), 0.0), 2.0);
+    lab = mix(lab, linearToOklab(uGlowColour), clamp(inside * 0.35 + edgeOn * 0.2, 0.0, 0.5) * amount);
+    // 2. The grooves between the lobes: deeper and a little redder, a soft gradient (never a line).
+    float groove = smoothstep(0.25, 0.9, q.y);
+    lab = shadeOwn(lab, groove * 0.4 * amount);
+    lab.yz = mix(lab.yz, mat2(cos(-0.08), sin(-0.08), -sin(-0.08), cos(-0.08)) * lab.yz, groove * amount);
+    // The lobes' middles a touch fuller and brighter.
+    lab.x += (1.0 - groove) * 0.02 * amount;
+    // 3. Long, soft streaks running down the lobes (the skin's own grain), and a few broad patches
+    //    of riper red-orange, so it is never one flat orange.
+    float streak = valueNoise3(vec3(cm.x * 2.2, q.x * 2.0, cm.z * 2.2)) - 0.5;
+    lab.x += streak * 0.04 * show;
+    float ripe = smoothstep(0.55, 0.8, fbm3(cm * 0.35 + 5.0));
+    lab = mix(lab, shadeOwn(lab, 0.3), ripe * 0.4 * amount);
+    // 4. Gloss: a pepper's reflections run down its lobes in long, soft streaks (narrow across
+    //    the lobe, where it curves fast; long down it, where it is nearly straight). Painted here
+    //    on the lobes' lit middles, soft-edged and broken by the skin's grain, instead of the
+    //    shared sheen's round pale patches (one per lobe at most, never a flat blob).
+    vec3 halfway = normalize(L + V);
+    float glossy = smoothstep(0.72, 0.93, dot(N, halfway)) * (1.0 - smoothstep(0.15, 0.55, q.y));
+    glossy *= smoothstep(0.35, 0.6, valueNoise3(vec3(cm.x * 1.5, q.x * 4.0, cm.z * 1.5) + 3.0));
+    vec3 shine = mix(lab, linearToOklab(uHighlightColour), 0.75);
+    lab = mix(lab, shine, glossy * amount);
+    highlightOwn = max(highlightOwn, glossy);
+    // 5. Toward the stem, the shoulders darken softly into the well.
+    lab = shadeOwn(lab, smoothstep(0.82, 0.97, q.x) * 0.35 * amount);
+    // 6. The shared chalky dry-brush texture, light (one hand paints every card).
+    float paperGrain = valueNoise3(objectPos * 90.0);
+    float scratch = valueNoise3(vec3(cm.x * 6.0, q.x * 14.0, cm.z * 6.0)) * valueNoise3(vec3(cm.x * 2.0, q.x * 5.0, cm.z * 2.0) + 5.0);
+    float chalkAmt = smoothstep(0.3, 0.55, scratch) * smoothstep(0.35, 0.65, paperGrain);
+    vec3 chalk = lab;
+    chalk.x += 0.05;
+    chalk.yz *= 0.85;
+    lab = mix(lab, chalk, chalkAmt * 0.3 * show);
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

@@ -11,6 +11,8 @@ import { buildWatermelon } from './forms/watermelon';
 import { buildSteak } from './forms/steak';
 import { buildChicken } from './forms/chicken';
 import { buildOnion } from './forms/onion';
+import { buildPepper } from './forms/pepper';
+import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
@@ -462,6 +464,33 @@ export const REGISTRY: IngredientEntry[] = [
   },
 
 
+  {
+    spec: {
+      id: 'pepper',
+      name: 'Orange pepper',
+      archetype: 'round',
+      family: 'pepper',
+      layout: 'solo',
+      show: 'One orange bell pepper standing on its four feet, its thick green stem curving over.',
+      forms: ['whole', 'half', 'strips', 'diced'],
+      scale: 'M',
+      size_cm: [9, 8.1, 9],
+      parts: ['body:glow', 'calyx@leaf', 'stem@leaf'],
+      notes:
+        'Round 2. A blocky body of four uneven lobes with soft grooves between them, deepest at the top and the feet; full shoulders dipping into a deep well; four soft bumps underneath that it stands on; a thick, curved green stem with a flared calyx, its end cut. The glossy skin, deeper grooves and glow are a shader texture (the pepper skin).',
+    },
+    form: buildPepper,
+    turn: 20,
+    skin: { kind: 'pepper', size_mm: 4, amount: 0.8 },
+    // The gloss is painted by the skin (long streaks down the lobes); the shared sheen stays quiet,
+    // or it scattered round pale patches over the lobes.
+    matte: true,
+    // Warm brick-red shadows: a little of the violet and pink, or they read pink on the orange.
+    shadowTint: 0.3,
+    // No rim glints: the thick stem facing the light would catch a hard bar.
+    rimGlints: false,
+    budget: [2000, 14000],
+  },
 ];
 
 export function findIngredient(id: string): IngredientEntry | undefined {
@@ -484,9 +513,19 @@ export function holdBack(total: number): number {
  */
 export function pickFresh(recent: string[], random: () => number = Math.random): IngredientEntry {
   const held = new Set(recent.slice(-holdBack(REGISTRY.length)));
-  const fresh = REGISTRY.filter((entry) => !held.has(entry.spec.id));
+  let fresh = REGISTRY.filter((entry) => !held.has(entry.spec.id));
   if (fresh.length === 0) return pickOther(recent[recent.length - 1] ?? '', random);
+  // Rooms may repeat from round 2, but never twice in a row (the user, 2026-11-11).
+  const now = recent.length ? findIngredient(recent[recent.length - 1]) : undefined;
+  const roomNow = now ? roomOf(now) : undefined;
+  const otherRoom = fresh.filter((entry) => roomOf(entry) !== roomNow);
+  if (otherRoom.length > 0) fresh = otherRoom;
   return fresh[Math.floor(random() * fresh.length) % fresh.length];
+}
+
+/** The room an ingredient opens in: its family's first room. */
+export function roomOf(entry: IngredientEntry): string | undefined {
+  return FAMILIES[entry.spec.family].rooms[0];
 }
 
 /** A random ingredient that is not the one on stage now. */

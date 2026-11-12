@@ -26,6 +26,7 @@ export type FamilyId =
   | 'pink-raw'
   | 'poultry'
   | 'onion'
+  | 'pepper'
   | 'papery'
   | 'fat'
   | 'beef'
@@ -245,6 +246,14 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Onion',
     colours: { lit: '#d79ad3', base: '#9a3f92', shadow: '#4a2164', glow: '#c24ea6', highlight: '#f5e4f4' },
     rooms: ['celadon', 'sage-morning'],
+  },
+  // Not on board 04 yet (added 2026-11-12, round 2: the orange bell pepper): a purer, glossier,
+  // slightly redder orange than the orange's (close relatives must read apart), going to a warm
+  // brick red in shadow, never brown.
+  pepper: {
+    name: 'Pepper',
+    colours: { lit: '#ffae5e', base: '#f2761a', shadow: '#a8462c', glow: '#ff8726', highlight: '#fff2df' },
+    rooms: ['seafoam', 'spruce'],
   },
   // Not a board 04 family: only for parts (an onion's dry, papery neck tip and outer skin; later
   // garlic). A pale tan with a rosy shadow, never grey or brown-grey.
