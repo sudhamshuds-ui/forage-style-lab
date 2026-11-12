@@ -128,7 +128,8 @@ export const buildBlueberries: FormBuilder = ({ state, seed }) => {
     // they show; never straight down into the table.
     const axis = new Vector3(signed(random), 0.35 + random() * 0.9, signed(random) * 0.6 + 0.45).normalize();
     const angle = random() * Math.PI * 2;
-    const spread = stray ? 3.3 + random() * 0.8 : random() * 1.6;
+    // Strays only a short roll from the pile (further read as a separate group, the user, 2026-11-12).
+    const spread = stray ? 2.2 + random() * 0.4 : random() * 1.6;
     const home = stray
       ? new Vector3(Math.cos(angle) * spread, 0, Math.abs(Math.sin(angle)) * spread * 0.8 + 0.6)
       : new Vector3(0, 0, 0);

@@ -565,7 +565,7 @@ export const REGISTRY: IngredientEntry[] = [
       show: 'A loose pile of blueberries on the table, crowns facing every way (many toward the camera), two strays rolled a little way off.',
       forms: ['whole', 'halved'],
       scale: 'S',
-      size_cm: [7.1, 2.8, 4.9],
+      size_cm: [6.1, 2.8, 4.3],
       parts: ['berry'],
       light_case: 'group',
       notes:
