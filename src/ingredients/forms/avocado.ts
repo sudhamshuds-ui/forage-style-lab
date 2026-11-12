@@ -24,13 +24,13 @@ import { sweepGeometry } from './kit/sweep';
  *              `avocado` skin) from a map (on the face, how far in from the skin) and from where
  *              each point sits relative to the pit (`ownPos`, for the hollow round it).
  *   pit        the pit, a slightly egg-shaped ball half sunk into the half's face (glossy).
- *   stem       the short woody nubs on the whole one and on the half's top end.
+ *   stem       the short woody nub on the whole one (the half has none, the user 2026-11-12).
  */
 
 /** The avocado along its axis (cm): its ends, and its width at the fullest. */
 const BOTTOM = -5;
 const TIP = 5.2;
-const RADIUS = 3.55;
+const RADIUS = 3.65;
 /** The pit: where it sits along the axis (cm, in the wide end), its radius and how far its centre sits below the face. */
 const PIT_AT = -1.0;
 const PIT_R = 1.85;
@@ -44,16 +44,19 @@ const GAP = 0.08;
  * The profile: radius (cm) at x along the axis, from the bottom to the top. A pear: an egg that
  * narrows toward the top in one smooth sweep, fullest a third of the way up, both ends blunt and
  * round (round 1's ends were a plain ellipse and read as pointy, the user, 2026-11-12: a
- * superellipse keeps them full right to the end), the body round and full, the top only a little
- * narrower than the bottom.
+ * near-ellipse keeps them full), the body round and bulging (never flat sides), the top only a
+ * little narrower than the bottom.
  */
 function profile(x: number): number {
   const t = (2 * (x - BOTTOM)) / (TIP - BOTTOM) - 1;
   if (t <= -1 || t >= 1) return 0;
-  const egg = (1 - Math.abs(t) ** 2.6) ** (1 / 2.6);
-  // Narrowing gently toward the top (round 2's stronger taper still read as a pointy top, the
-  // user, 2026-11-12: "more rounder body, less pointy top").
-  const pear = 1 - 0.2 * t - 0.06 * t * t + 0.03 * Math.exp(-(((t - 0.55) / 0.25) ** 2));
+  // Almost an ellipse (2.2): round and bulging all the way round. A boxier 2.6 kept the ends blunt
+  // but left the long sides flat, like a bar of soap (the user, 2026-11-12: "flat on the sides,
+  // needs to be more bulgier, circular").
+  const egg = (1 - Math.abs(t) ** 2.2) ** (1 / 2.2);
+  // Narrowing gently toward the top (a stronger taper read as a pointy top, the user, 2026-11-12:
+  // "more rounder body, less pointy top").
+  const pear = 1 - 0.2 * t - 0.04 * t * t;
   return RADIUS * egg * pear;
 }
 
@@ -263,17 +266,9 @@ function makeHalf(): Piece {
   // distance-field pit had a stair-stepped outline where it met the face (the user, 2026-11-12).
   const pit = pitCap();
 
-  // A short woody nub at the top end, cut in half with the rest (it stays on this half).
-  const stem = sweepGeometry({
-    points: new CatmullRomCurve3([new Vector3(TIP - 0.3, 0, -0.22), new Vector3(TIP + 0.15, 0.02, -0.2), new Vector3(TIP + 0.45, 0.06, -0.16)]).getSpacedPoints(5),
-    radius: (t) => 0.17 * (1 - 0.2 * t) * Math.sqrt(Math.min(1, (1 - t) / 0.1 + 0.2)),
-    rings: 10,
-    segments: 10,
-  });
-
   const inside = (p: Vector3, margin: number) => p.z < margin && p.x > BOTTOM - margin && p.x < TIP + margin && Math.hypot(p.y, p.z) < profile(p.x) * 1.02 + margin;
   return {
-    geometries: [{ role: 'skin_glow', geometry: body }, { role: 'pit', geometry: pit }, { role: 'stem', geometry: stem }],
+    geometries: [{ role: 'skin_glow', geometry: body }, { role: 'pit', geometry: pit }],
     body,
     inside,
     pose: new Matrix4(),
@@ -308,7 +303,8 @@ export const buildAvocado: FormBuilder = ({ state, seed }) => {
 
   // After the user's sketch (2026-11-12): the whole one stands upright behind, on the left, its
   // stem up; the half lies in front and to the right, its face tipped toward the camera, its wide
-  // end (the pit) by the whole one and its narrow top to the right, leaning back against it.
+  // end (the pit) by the whole one and its narrow top to the right, leaning back against it. No stem
+  // on the half (the user).
   const whole = makeWhole(random);
   place(whole, new Matrix4().makeRotationY(random() * Math.PI * 2));
   restOnTable(whole, 0.2);
