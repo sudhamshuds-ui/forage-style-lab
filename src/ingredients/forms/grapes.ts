@@ -39,8 +39,8 @@ const BERRY = { half: 1.3, radius: 1.02 };
 const JUNCTIONS = 8;
 /** How long the main stem runs along the bunch (cm), and how high it lies off the table. */
 const RACHIS = { length: 9, height: 3.4 };
-/** Stems' thickness (cm). */
-const STEM = { rachis: 0.2, lateral: 0.12, stalk: 0.075, cap: 0.2 };
+/** Stems' thickness (cm): slim and woody (thicker read as a tube, the user, 2026-11-12). */
+const STEM = { rachis: 0.12, lateral: 0.075, stalk: 0.05, cap: 0.15 };
 /** Iterations of the settle pass. */
 const SETTLE = 420;
 

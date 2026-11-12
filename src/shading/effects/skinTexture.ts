@@ -787,6 +787,20 @@ if (kind > 0 && amount > 0.0) {
     vec2 q = vSurfaceUv;
     vec3 cm = objectPos * 3.8169;
     float own = q.x;
+    // 0. Soft light. On 25 small round berries the shared tone steps (a lit top, a darker band,
+    //    the bounce below) repeated like stripes (the user, 2026-11-12: "these bands look odd, all
+    //    of them have it like a pattern"). Grapes are translucent and softly lit, so here the
+    //    steps give way to one smooth turn from lit to shadow; neighbours' cast shadows stay.
+    vec3 litLab = linearToOklab(uLitColour);
+    vec3 baseLab = linearToOklab(uBaseColour);
+    vec3 shadowLab = linearToOklab(uShadowColour);
+    float wrap = smoothstep(-0.45, 0.9, dot(N, L)) * mix(0.45, 1.0, lightMask);
+    vec3 smoothLab = wrap > 0.5
+      ? mix(baseLab, litLab, (wrap - 0.5) * 1.6)
+      : mix(shadowLab, baseLab, 0.25 + wrap * 1.5);
+    lab = mix(lab, smoothLab, 0.85);
+    // A little deeper toward the shadow side, so each berry stays round.
+    lab.x -= (1.0 - wrap) * 0.05;
     // 1. Each berry its own mix, from a rosy coral (thinner, riper in the light) to a deep
     //    wine-violet; most in between. Turned in OKLab, so it never passes through brown.
     vec3 coral = lab;
@@ -813,7 +827,9 @@ if (kind > 0 && amount > 0.0) {
     float edgeOn = pow(1.0 - max(dot(N, V), 0.0), 2.0);
     float through = pow(max(dot(V, -L), 0.0), 2.0) * 0.5;
     vec3 warm = linearToOklab(uGlowColour);
-    float glow = clamp(inside * 0.3 + edgeOn * 0.25 + through, 0.0, 0.5) * amount;
+    // Mostly at the thin outline: glowing the whole shadow side lifted each berry's underside
+    // back to coral, and every berry read coral, dark, coral, like stripes (the user, 2026-11-12).
+    float glow = clamp(inside * 0.06 + edgeOn * 0.3 + through, 0.0, 0.5) * amount;
     lab = mix(lab, mix(lab, warm, 0.45), glow);
     lab.x += (edgeOn * 0.03 + through * 0.05) * amount;
     // 4. The waxy bloom: a faint, cool, powdery haze in loose patches, more on the darker berries

@@ -25,7 +25,7 @@ keep code readable with friendly comments.
   feedback into lessons (colour, composition, form, recurring errors) in
   `docs/ingredients/lessons/{id}.md`, the ingredient guide and the Figma boards (one OK for Figma).
 - **The page** (the user's design, 2026-11-11; explored in `prototypes/brush.html`, see
-  `docs/process/README.md`): a white page, "Forage pantry" in Geist Serif (Heart, free, SIL OFL,
+  `docs/process/README.md`): a white page, "Forage" in Geist Serif ("pantry" dropped, the user 2026-11-12) (Heart, free, SIL OFL,
   `src/ui/fonts/`) above a square-cornered card with no shadow (5:6, 15% smaller than the first cut for more
   white round it, `--card-w` in `style.css`), the drag hint below (always
   shown; fading it after the first drag made it look missing). The title is in the dark ink. The controls are an Apple-style glass
