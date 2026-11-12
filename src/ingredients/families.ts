@@ -27,6 +27,8 @@ export type FamilyId =
   | 'poultry'
   | 'onion'
   | 'pepper'
+  | 'avocado'
+  | 'pit'
   | 'papery'
   | 'fat'
   | 'beef'
@@ -254,6 +256,21 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Pepper',
     colours: { lit: '#ffae5e', base: '#f2761a', shadow: '#a8462c', glow: '#ff8726', highlight: '#fff2df' },
     rooms: ['seafoam', 'spruce'],
+  },
+  // Not on board 04 yet (added 2026-11-12, round 2: the avocado): its skin, a deep leaf green going
+  // to a blue-green in shadow (never black-green). The flesh's creamy yellow and bright green are
+  // painted on the cut face by the avocado skin (subject.ts).
+  avocado: {
+    name: 'Avocado',
+    colours: { lit: '#8db55a', base: '#4a7a35', shadow: '#1f4a45', glow: '#7aa83c', highlight: '#e6efcf' },
+    rooms: ['iris', 'thistle'],
+  },
+  // Not a board 04 family: only for parts (an avocado's pit; later nuts). A warm glossy chestnut,
+  // never grey-brown.
+  pit: {
+    name: 'Pit',
+    colours: { lit: '#c98a5a', base: '#8a4f2c', shadow: '#4e2a2a', glow: '#b8683a', highlight: '#f5dcc4' },
+    rooms: [],
   },
   // Not a board 04 family: only for parts (an onion's dry, papery neck tip and outer skin; later
   // garlic). A pale tan with a rosy shadow, never grey or brown-grey.

@@ -40,6 +40,9 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  *  - pepper (bell pepper): a glossy skin, the grooves between the lobes deeper and a little
  *    redder, soft long streaks along the lobes, a translucent glow in its shadows. From the body's
  *    map (x: height share, y: how deep in a groove).
+ *  - avocado: a deep green skin, gently pebbled, with small pale specks and lighter patches; on a
+ *    cut face (map y > 0) creamy yellow flesh turning bright green toward a thin dark skin, soft
+ *    and buttery, a faint glow. From the body's map (x along it; y how far in from the skin).
  *  - knuckle (a bone's end, set automatically for a piece named `knuckle`): see KNUCKLE_SKIN.
  *  - leaf (sepals and leaves, set automatically): deeper at the stalk and
  *    lighter toward the tip, a pale centre vein, faint side veins, a slight
@@ -54,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -706,6 +709,51 @@ if (kind > 0 && amount > 0.0) {
     chalk.x += 0.05;
     chalk.yz *= 0.85;
     lab = mix(lab, chalk, chalkAmt * 0.3 * show);
+  } else if (kind == 17) {
+    // Avocado. Its map: x along the avocado (0 bottom, 1 top); y, on a cut face only, how far in
+    // from the skin (0 at the skin, 1 on the middle line).
+    vec2 q = vSurfaceUv;
+    vec3 cm = objectPos * 3.8169;
+    float shadeStep = lab.x - linearToOklab(uBaseColour).x;
+    vec3 skinLab = lab;
+    // 1. The skin: a soft pebbling (each bump lit toward the light), sparse small pale specks,
+    //    and a few broad lighter, yellower patches, so it is never one flat green.
+    float bump = 1.0 - smoothstep(0.0, 0.9, skinCells(p));
+    float bumpToward = 1.0 - smoothstep(0.0, 0.9, skinCells(p + L * 0.2));
+    float emboss = (bumpToward - bump) * show;
+    skinLab = emboss > 0.0 ? skinLab + vec3(emboss * 0.05, 0.0, 0.0) : shadeOwn(skinLab, -emboss * 0.4);
+    float speck = 1.0 - smoothstep(0.04, 0.1, skinCells(p * 0.6 + 7.0));
+    skinLab = mix(skinLab, linearToOklab(uLitColour), speck * 0.45 * show);
+    float patchy = smoothstep(0.55, 0.8, fbm3(cm * 0.5 + 3.0));
+    skinLab.x += patchy * 0.04 * amount;
+    skinLab.yz = mix(skinLab.yz, skinLab.yz * vec2(0.95, 1.12), patchy * amount);
+    // A faint warm glow in its shadows.
+    skinLab = mix(skinLab, linearToOklab(uGlowColour), (1.0 - tone) * 0.15 * amount);
+    lab = skinLab;
+    // 2. The cut face: creamy yellow at the heart, turning bright green toward the skin in one
+    //    soft, wide gradient, then a thin dark green skin at the very rim (fading, never a hard
+    //    line). Soft and buttery: a faint glow, a light chalky texture, faint fibres along it.
+    float face = smoothstep(0.0, 0.006, q.y);
+    if (face > 0.0) {
+      float r = 1.0 - q.y;
+      float wander = (fbm3(cm * 0.8 + 11.0) - 0.5) * 0.08;
+      vec3 cream = linearToOklab(uMelonPale);
+      vec3 green = linearToOklab(uMelonGreen);
+      cream.x += shadeStep * 0.6;
+      green.x += shadeStep * 0.7;
+      vec3 flesh = mix(cream, green, smoothstep(0.3, 0.9, r + wander));
+      vec3 rim = linearToOklab(uBaseColour);
+      rim.x += shadeStep * 0.8;
+      flesh = mix(flesh, rim, smoothstep(0.94, 0.995, r));
+      float fibre = valueNoise3(vec3(q.x * 30.0, q.y * 6.0, 1.0)) - 0.5;
+      flesh.x += fibre * 0.025 * show;
+      flesh = mix(flesh, linearToOklab(uGlowColour), (1.0 - tone) * 0.12);
+      float paperGrain = valueNoise3(objectPos * 90.0);
+      float scratch = valueNoise3(vec3(q.x * 40.0, q.y * 12.0, 3.0));
+      flesh.x += smoothstep(0.55, 0.8, scratch) * smoothstep(0.4, 0.7, paperGrain) * 0.03 * show;
+      lab = mix(lab, flesh, face);
+      highlightOwn = max(highlightOwn, face);
+    }
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

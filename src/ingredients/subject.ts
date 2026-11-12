@@ -54,6 +54,9 @@ export function createSubject(entry: IngredientEntry, look: StylizedLook): Subje
  */
 const POULTRY_MEAT = mixHex(FAMILIES['pink-raw'].colours.lit, FAMILIES['pink-raw'].colours.base, 0.18);
 
+/** An avocado's flesh: creamy yellow at the heart, bright green toward the skin. */
+const AVOCADO_FLESH = { cream: '#e6e28a', green: '#9cc84e' };
+
 /** The bounding sphere reaches the far corners; the visible body sits a little further in. */
 const RADIUS_FACTOR = 0.88;
 
@@ -179,6 +182,11 @@ class FormSubject implements Subject {
           }
           // A marbled steak: the marbling is painted in the fat's colour.
           if (entry.skin.kind === 'marbled') (material.uniforms.uMelonPale.value as Color).set(FAMILIES.fat.colours.lit);
+          // An avocado: the cut face's creamy flesh and its bright green near the skin.
+          if (entry.skin.kind === 'avocado') {
+            (material.uniforms.uMelonPale.value as Color).set(AVOCADO_FLESH.cream);
+            (material.uniforms.uMelonGreen.value as Color).set(AVOCADO_FLESH.green);
+          }
           // A red onion: its papery flakes, root patch and dry neck are painted in the papery tan.
           if (entry.skin.kind === 'onion') (material.uniforms.uMelonPale.value as Color).set(FAMILIES.papery.colours.base);
           // Raw chicken: the pink meat (showing through, and bare on the shank) and the yellow fat.

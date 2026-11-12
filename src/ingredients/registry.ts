@@ -12,6 +12,7 @@ import { buildSteak } from './forms/steak';
 import { buildChicken } from './forms/chicken';
 import { buildOnion } from './forms/onion';
 import { buildPepper } from './forms/pepper';
+import { buildAvocado } from './forms/avocado';
 import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
@@ -490,6 +491,32 @@ export const REGISTRY: IngredientEntry[] = [
     // No rim glints: the thick stem facing the light would catch a hard bar.
     rimGlints: false,
     budget: [2000, 14000],
+  },
+  {
+    spec: {
+      id: 'avocado',
+      name: 'Avocado',
+      archetype: 'round',
+      family: 'avocado',
+      layout: 'whole-and-cut',
+      show: 'One whole avocado lying behind, and a half cut lengthwise in front, its pit in the creamy face, tipped toward the camera.',
+      forms: ['whole', 'half', 'slices', 'diced', 'mashed'],
+      scale: 'M',
+      size_cm: [11.7, 7.8, 15.9],
+      // Both bodies are `skin`: the whole one and the half (the cut face painted from its map).
+      parts: ['skin:glow', 'pit@pit', 'stem@stalk'],
+      light_case: 'whole-next-to-cut',
+      notes:
+        'Round 2 (the user: one whole, one half). A pear shape: a full round bottom, a narrower rounded top, a short woody stem nub. The half is cut lengthwise: creamy yellow flesh turning bright green toward a thin dark skin, a big glossy brown pit sitting proud of the face in the wide end. Skin pebbling and specks and the flesh are a shader texture (the avocado skin).',
+    },
+    form: buildAvocado,
+    turn: 0,
+    skin: { kind: 'avocado', size_mm: 2.2, amount: 0.85 },
+    // A satin skin and a soft, buttery face: the sheen stays quiet.
+    matte: true,
+    shadowTint: 0.4,
+    rimGlints: false,
+    budget: [2000, 30000],
   },
 ];
 
