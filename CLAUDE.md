@@ -438,6 +438,11 @@ story (what was tried, what the user said, where we ended) is in its lessons rec
   The shapes-first marbling was tried and rejected (it is in history, commit edb98e7). The eye
   is round with soft swells, never a straight edge from above (the user, 2026-11-11). See
   `lessons/steak.md`.
+- **Red onion** (round 2's first): upright, a round globe whose shoulders pull up into a short
+  neck, a dry papery tip, its root tuft pressed flat under it (it levitated on its roots); the
+  `onion` family and skin (kind 15, lines from root to neck, translucent glow, cut-face rings),
+  part-only `papery`, Celadon, matte, no rim glints. The pair and the whole-and-cut arrangements
+  stay in the form for later. See `lessons/onion.md`.
 - **Chicken**: one raw drumstick (approved on its first round, 2026-11-11): a distance field
   along an axis (lopsided bulb, muscle seam, concave taper, tendon ridges, skin folds) and a
   `knuckle@bone` piece, tipped so the bulb settles flat (`SINK`) and the knuckle rests; the
@@ -461,7 +466,7 @@ Shared mechanisms added along the way (code hooks other ingredients reuse):
   12); the material knows the camera in its own space (`vObjectCamera`). `patch` is a reserved
   word in GLSL.
 - Form tests: "faces point outward" asks 85% for wedges (hole insides rightly face inward).
-Next, one at a time with feedback: the next ingredient (whole forms only; cut forms later).
+Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the orange pepper next.
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after
