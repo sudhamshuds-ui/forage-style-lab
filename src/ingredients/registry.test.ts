@@ -38,6 +38,16 @@ describe('ingredient registry', () => {
     }
   });
 
+  it('Shuffle never shows the same room twice in a row (rooms may repeat from round 2)', () => {
+    const random = seededRandom(3);
+    const shown = [REGISTRY[0].spec.id];
+    for (let i = 0; i < 300; i++) {
+      const next = pickFresh(shown, random);
+      expect(roomOf(next), `${shown[shown.length - 1]} then ${next.spec.id}`).not.toBe(roomOf(findIngredient(shown[shown.length - 1])!));
+      shown.push(next.spec.id);
+    }
+  });
+
   it('Shuffle ingredient always picks a different one', () => {
     const random = seededRandom(1);
     for (let i = 0; i < 200; i++) {
