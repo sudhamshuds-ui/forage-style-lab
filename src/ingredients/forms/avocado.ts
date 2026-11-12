@@ -2,7 +2,8 @@ import { BufferAttribute, BufferGeometry, CatmullRomCurve3, Float32BufferAttribu
 import { finishPieces, type FormBuilder, type FormPiece } from './kit/piece';
 import { seededRandom, signed } from './kit/random';
 import { flattenBase, roundBody } from './kit/round';
-import { relaxOnSurface, surfaceNets } from './kit/surfaceNets';
+import { relaxOnSurface } from './kit/surfaceNets';
+import { roundedIntersection } from './kit/wedge';
 import { sweepGeometry } from './kit/sweep';
 
 /**
@@ -29,7 +30,7 @@ import { sweepGeometry } from './kit/sweep';
 /** The avocado along its axis (cm): its ends, and its width at the fullest. */
 const BOTTOM = -5;
 const TIP = 5.2;
-const RADIUS = 3.45;
+const RADIUS = 3.55;
 /** The pit: where it sits along the axis (cm, in the wide end), its radius and how far its centre sits below the face. */
 const PIT_AT = -1.0;
 const PIT_R = 1.85;
@@ -43,13 +44,16 @@ const GAP = 0.08;
  * The profile: radius (cm) at x along the axis, from the bottom to the top. A pear: an egg that
  * narrows toward the top in one smooth sweep, fullest a third of the way up, both ends blunt and
  * round (round 1's ends were a plain ellipse and read as pointy, the user, 2026-11-12: a
- * superellipse keeps them full right to the end).
+ * superellipse keeps them full right to the end), the body round and full, the top only a little
+ * narrower than the bottom.
  */
 function profile(x: number): number {
   const t = (2 * (x - BOTTOM)) / (TIP - BOTTOM) - 1;
   if (t <= -1 || t >= 1) return 0;
-  const egg = (1 - Math.abs(t) ** 2.4) ** (1 / 2.4);
-  const pear = 1 - 0.33 * t - 0.05 * t * t + 0.05 * Math.exp(-(((t - 0.55) / 0.25) ** 2));
+  const egg = (1 - Math.abs(t) ** 2.6) ** (1 / 2.6);
+  // Narrowing gently toward the top (round 2's stronger taper still read as a pointy top, the
+  // user, 2026-11-12: "more rounder body, less pointy top").
+  const pear = 1 - 0.2 * t - 0.06 * t * t + 0.03 * Math.exp(-(((t - 0.55) / 0.25) ** 2));
   return RADIUS * egg * pear;
 }
 
@@ -136,6 +140,40 @@ function halfSection(r: number, rho: number, counts: { flat: number; fillet: num
   return out;
 }
 
+/** The pit's visible cap: an egg-shaped ball (10% longer along the avocado) above z = -0.05. */
+function pitCap(): BufferGeometry {
+  const foot = -0.05;
+  const top = Math.acos(Math.min(1, (PIT_SINK + foot) / PIT_R));
+  const rings = 22;
+  const around = 48;
+  const positions: number[] = [0, 0, PIT_R - PIT_SINK];
+  for (let k = 1; k <= rings; k++) {
+    const theta = (top * k) / rings;
+    for (let j = 0; j < around; j++) {
+      const phi = (2 * Math.PI * j) / around;
+      positions.push(PIT_AT + 1.1 * PIT_R * Math.sin(theta) * Math.cos(phi), PIT_R * Math.sin(theta) * Math.sin(phi), PIT_R * Math.cos(theta) - PIT_SINK);
+    }
+  }
+  // The underside's centre, closing it (hidden inside the flesh).
+  positions.push(PIT_AT, 0, foot);
+  positions[0] = PIT_AT;
+  const bottom = positions.length / 3 - 1;
+  const at = (k: number, j: number) => 1 + (k - 1) * around + (j % around);
+  const index: number[] = [];
+  for (let j = 0; j < around; j++) {
+    index.push(0, at(1, j), at(1, j + 1));
+    index.push(bottom, at(rings, j + 1), at(rings, j));
+  }
+  for (let k = 1; k < rings; k++) {
+    for (let j = 0; j < around; j++) index.push(at(k, j), at(k + 1, j), at(k + 1, j + 1), at(k, j), at(k + 1, j + 1), at(k, j + 1));
+  }
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geometry.setIndex(index);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 /**
  * The half, cut lengthwise (the cut face is the plane z = 0, the skin below it), with its pit.
  * Built like a lathe whose cross-section is a rounded half disc, so the cut edge is one smooth
@@ -191,20 +229,39 @@ function makeHalf(): Piece {
   }
   const body = new BufferGeometry();
   body.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  body.setIndex(index);
+  // The section rounds the cut edge along the long sides only; at the blunt ends the face met the
+  // end in a corner that showed as a line (the user, 2026-11-12). Pull every point onto the same
+  // shape with the cut rounded all the way round (a soft bevel, ends included).
+  const slope = (x: number) => (profile(x + 0.01) - profile(x - 0.01)) / 0.02;
+  const avocado = (x: number, y: number, z: number) => {
+    const r = profile(x);
+    const along = Math.max(BOTTOM - x, x - TIP, 0);
+    if (r <= 0) return Math.hypot(y, z) + along;
+    // Divided by the slope's length, so it reads as a true distance where the profile turns fast.
+    return (Math.hypot(y, z) - r) / Math.sqrt(1 + Math.min(slope(x) ** 2, 50));
+  };
+  const field = (x: number, y: number, z: number) => roundedIntersection([avocado(x, y, z), z], EDGE_ROUND);
+  relaxOnSurface(body, field, 0.12, 4, 0.25);
+  body.computeVertexNormals();
+  // The face map, now that the shape is final: fading out over the rounded edge by how much each
+  // point still faces out of the cut, so the ends fade the same way as the sides.
+  const normal = body.getAttribute('normal');
+  const placed = body.getAttribute('position');
+  for (let i = 0; i < placed.count; i++) {
+    const facing = Math.min(1, Math.max(0, (normal.getZ(i) - 0.3) / 0.6));
+    uvs[2 * i + 1] *= facing * facing * (3 - 2 * facing);
+    own[3 * i] = placed.getX(i) - PIT_AT;
+    own[3 * i + 1] = placed.getY(i);
+    own[3 * i + 2] = placed.getZ(i);
+  }
   body.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
   body.setAttribute('ownPos', new Float32BufferAttribute(own, 3));
-  body.setIndex(index);
-  body.computeVertexNormals();
 
-  // The pit: a slightly egg-shaped ball, half sunk into the face's wide end. Only the part above
-  // the face shows; the rest is inside the flesh.
-  const pitAt = new Vector3(PIT_AT, 0, -PIT_SINK);
-  const cell = 0.13;
-  const pitField = (x: number, y: number, z: number) => Math.hypot((x - pitAt.x) / 1.1, y - pitAt.y, z - pitAt.z) - PIT_R;
-  const pitShown = (x: number, y: number, z: number) => Math.max(pitField(x, y, z), -z - 0.05);
-  const pitMin = new Vector3(pitAt.x - PIT_R * 1.2 - 0.03, -PIT_R - 0.17, -0.07);
-  const pitMax = new Vector3(pitAt.x + PIT_R * 1.2 + 0.1, PIT_R + 0.15, PIT_R + 0.2);
-  const pit = relaxOnSurface(surfaceNets(pitShown, pitMin, pitMax, cell), pitShown, cell);
+  // The pit: a slightly egg-shaped ball, half sunk into the face's wide end. Only the cap above
+  // the face is built (its foot just under the face, closed underneath), as one smooth mesh: a
+  // distance-field pit had a stair-stepped outline where it met the face (the user, 2026-11-12).
+  const pit = pitCap();
 
   // A short woody nub at the top end, cut in half with the rest (it stays on this half).
   const stem = sweepGeometry({
