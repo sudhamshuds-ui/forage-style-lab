@@ -26,8 +26,8 @@ import { cutEnd, sweepGeometry } from './kit/sweep';
  */
 
 /** Real size (cm): about 9 wide and 8.5 tall, standing on its feet. */
-const WIDTH = 8.6;
-const HEIGHT = 10.4;
+const WIDTH = 9;
+const HEIGHT = 8.6;
 /** How deep the grooves between the lobes cut in (a share of the radius), top and middle. */
 const GROOVE_TOP = 0.2;
 const GROOVE_MIDDLE = 0.1;
@@ -41,14 +41,14 @@ export const buildPepper: FormBuilder = ({ state, seed }) => {
   const R = WIDTH / 2;
   // Four lobes of uneven size: each its own share of the turn and its own fullness.
   const lobeTurn = random() * Math.PI * 2;
-  // Organic, never a cylinder (the user, 2026-11-12, with a reference painting): each lobe its own
-  // size, its own bulge (fullest at its own height), and the lobes turning a little round the
-  // body from the feet to the shoulders.
-  const lobeSizes = Array.from({ length: 4 }, (_, i) => 1 + (i === 0 ? 0.07 : signed(random) * 0.06));
+  // A light touch of variation, about 5% (the user, 2026-11-12: a fully organic round "is too
+  // deformed... like the prev version with 5% deform"): each lobe a little its own size and bulge,
+  // each groove a little its own depth, the lobes turning only slightly from feet to shoulders.
+  const lobeSizes = Array.from({ length: 4 }, () => 1 + signed(random) * 0.025);
   const bulgeAt = Array.from({ length: 4 }, () => signed(random) * 0.5);
-  const bulgeBy = Array.from({ length: 4 }, () => 0.04 + random() * 0.06);
-  const grooveDepth = Array.from({ length: 4 }, () => 0.8 + random() * 0.4);
-  const spiral = 0.18 + random() * 0.12;
+  const bulgeBy = Array.from({ length: 4 }, () => 0.01 + random() * 0.02);
+  const grooveDepth = Array.from({ length: 4 }, () => 0.9 + random() * 0.2);
+  const spiral = 0.04 + random() * 0.04;
 
   /** How far into a groove a point is (0 on a lobe's middle, 1 in a groove), round the body. */
   const grooveAt = (angle: number, u = 0) => {
@@ -62,18 +62,18 @@ export const buildPepper: FormBuilder = ({ state, seed }) => {
   /** The profile: radius (cm) at x along the axis, from the feet (-half) to the well (+half). */
   const profile = (x: number) => {
     const t = x / half;
-    // A blocky body, softer than a cylinder: a squared-off ellipse, fuller at the shoulders and
-    // narrowing a little toward the feet, like the reference.
-    const squareness = t > 0 ? 3.2 : 2.6;
+    // A blocky body (round 1's, which the user preferred): a squared-off ellipse, a touch fuller at
+    // the shoulders than at the feet.
+    const squareness = 3.6;
     const r = R * Math.max(0, 1 - Math.abs(t) ** squareness) ** (1 / squareness);
-    return r * (1 + 0.08 * t);
+    return r * (1 + 0.04 * t);
   };
 
   const body = roundBody({
     halfLength: half,
     radius: profile,
     lying: false,
-    lopsided: 0.75,
+    lopsided: 0.42,
     random,
     // A deep well round the stem; a small pit under the feet.
     poleDimple: { depth: 1.1, width: 1.5, ends: 'end' },
