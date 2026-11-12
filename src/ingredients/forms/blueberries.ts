@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { smoothstep } from './kit/lathe';
 import { finishPieces, type FormBuilder } from './kit/piece';
 import { seededRandom, signed } from './kit/random';
-import { settle, type Oval } from './kit/settle';
+import { reach, settle, type Oval } from './kit/settle';
 
 /**
  * Blueberries (archetype: small, a pile). Round 2's fifth ingredient (docs/ingredients/r2-plan.md),
@@ -37,7 +37,7 @@ const STRAYS = 2;
 // a dent, the user, 2026-11-12: "the crown there can be a bit extrusion").
 const CROWN = { size: 0.44, depth: 0.15, lip: 0.13, points: 5 };
 
-interface Berry extends Oval {
+export interface Berry extends Oval {
   roll: number;
   tint: number;
   stray: boolean;
@@ -118,9 +118,52 @@ function berryGeometry(b: Berry, random: () => number): BufferGeometry {
   return geometry;
 }
 
-export const buildBlueberries: FormBuilder = ({ state, seed }) => {
-  if (state !== 'whole') throw new Error(`Blueberries: the "${state}" form is not built yet (whole only for now).`);
-  const random = seededRandom(seed ^ 0xb1e0b);
+/** The berries touching `b` from below (their centres lower, close enough to touch). */
+function supporters(b: Berry, all: Berry[]): Vector3[] {
+  const points: Vector3[] = [];
+  const n = new Vector3();
+  for (const o of all) {
+    if (o === b || o.centre.y > b.centre.y - 0.15) continue;
+    n.copy(b.centre).sub(o.centre);
+    const distance = n.length();
+    n.divideScalar(distance);
+    // The settle pass leaves ovals a hair apart (it measures conservatively), so "touching" has a little slack.
+    if (distance > reach(b, n) + reach(o, n) + 0.09) continue;
+    // Where they touch: on the supporter's surface toward this berry.
+    points.push(o.centre.clone().addScaledVector(n, reach(o, n)));
+  }
+  return points;
+}
+
+/**
+ * Is it held? On the table, yes. Up in the pile, only if the places it touches the berries below
+ * surround its centre (seen from above, no gap round it wider than a half turn, with a little
+ * slack): held on one side only, it would roll off.
+ */
+export function isHeld(b: Berry, all: Berry[]): boolean {
+  if (b.centre.y < reach(b, new Vector3(0, 1, 0)) + 0.05) return true;
+  const points = supporters(b, all);
+  if (points.length < 2) return false;
+  const angles = points.map((p) => Math.atan2(p.z - b.centre.z, p.x - b.centre.x)).sort((x, y) => x - y);
+  let widest = 0;
+  for (let i = 0; i < angles.length; i++) {
+    const next = i + 1 < angles.length ? angles[i + 1] : angles[0] + Math.PI * 2;
+    widest = Math.max(widest, next - angles[i]);
+  }
+  return widest < Math.PI * 1.08;
+}
+
+/** The side a shaky berry is not held on, seen from above (a unit direction on the table). */
+function openSide(b: Berry, all: Berry[]): Vector3 {
+  const points = supporters(b, all);
+  const away = new Vector3();
+  for (const p of points) away.add(new Vector3(b.centre.x - p.x, 0, b.centre.z - p.z));
+  if (away.lengthSq() < 1e-6) away.set(1, 0, 0);
+  return away.normalize();
+}
+
+/** The pile: berries dropped, settled into a mound, and held in balance. */
+export function settlePile(random: () => number): Berry[] {
 
   const berries: Berry[] = [];
   for (let i = 0; i < COUNT; i++) {
@@ -149,19 +192,64 @@ export const buildBlueberries: FormBuilder = ({ state, seed }) => {
   }
 
   // Settle: the pile mounds toward its middle; strays roll to their own spots.
-  settle(berries, {
+  const settleOptions = {
     rounds: 360,
     calm: 60,
     gravity: 0.03,
     gap: 0.015,
-    step: (b, falling) => {
+    step: (b: Berry, falling: boolean) => {
       if (!falling) return;
       const pull = b.stray ? 0.06 : 0.025;
       b.centre.x += (b.home.x - b.centre.x) * pull;
       b.centre.z += (b.home.z - b.centre.z) * pull;
     },
-  });
+  };
+  settle(berries, settleOptions);
 
+  // Balance: a berry up in the pile must be held from below on every side, or it looks as if it
+  // should roll off (the user, 2026-11-12: "need a berry underneath it"). First a new berry is
+  // tucked in under a shaky berry's open side (it keeps the mound); if it is still shaky after
+  // four, it rolls a little toward its open side and settles lower, as it really would (rolling
+  // alone flattened the pile into one layer).
+  const resettle = { ...settleOptions, rounds: 160, calm: 50 };
+  let tucked = 0;
+  for (let pass = 0; pass < 24; pass++) {
+    const shaky = berries.filter((b) => !isHeld(b, berries));
+    if (shaky.length === 0) break;
+    if (tucked < 4) {
+      const b = shaky[0];
+      const open = openSide(b, berries);
+      const size = 1 + signed(random) * 0.1;
+      berries.push({
+        centre: b.centre.clone().addScaledVector(open, b.radius * 1.1).setY(BERRY.half),
+        axis: new Vector3(signed(random), 0.4 + random() * 0.8, 0.5 + random() * 0.5).normalize(),
+        half: BERRY.half * size,
+        radius: BERRY.radius * size,
+        roll: random() * Math.PI * 2,
+        tint: random(),
+        stray: false,
+        home: b.centre.clone().setY(0),
+        crownTurn: random() * Math.PI * 2,
+      });
+      tucked++;
+    } else {
+      for (const b of shaky) {
+        const open = openSide(b, berries);
+        b.centre.addScaledVector(open, b.radius * 0.45);
+        b.centre.y -= b.half * 0.3;
+        // It stays where it rolled to: the pile no longer pulls it back up.
+        b.home.copy(b.centre).setY(0);
+      }
+    }
+    settle(berries, resettle);
+  }
+  return berries;
+}
+
+export const buildBlueberries: FormBuilder = ({ state, seed }) => {
+  if (state !== 'whole') throw new Error(`Blueberries: the "${state}" form is not built yet (whole only for now).`);
+  const random = seededRandom(seed ^ 0xb1e0b);
+  const berries = settlePile(random);
   const pile = mergeGeometries(berries.map((b) => berryGeometry(b, random)))!;
   return finishPieces([{ role: 'berry', geometry: pile }]);
 };

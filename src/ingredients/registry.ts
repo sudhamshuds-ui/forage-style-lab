@@ -565,7 +565,7 @@ export const REGISTRY: IngredientEntry[] = [
       show: 'A loose pile of blueberries on the table, crowns facing every way (many toward the camera), two strays rolled a little way off.',
       forms: ['whole', 'halved'],
       scale: 'S',
-      size_cm: [6.1, 2.8, 4.3],
+      size_cm: [6.2, 2.9, 5.9],
       parts: ['berry'],
       light_case: 'group',
       notes:
@@ -577,7 +577,8 @@ export const REGISTRY: IngredientEntry[] = [
     shadowTint: 0.6,
     rimGlints: false,
     contactsFromFeet: true,
-    budget: [2000, 26000],
+    // Up to three more berries may be tucked in to hold the pile in balance.
+    budget: [2000, 30000],
   },
 ];
 
