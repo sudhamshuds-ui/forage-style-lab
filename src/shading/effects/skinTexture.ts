@@ -918,70 +918,81 @@ if (kind > 0 && amount > 0.0) {
     highlightBreak = bloom * 1.8 + (1.0 - offCrown);
     highlightGlint = rubbed * smoothstep(0.42, 0.62, valueNoise3(cm * 3.0 + own * 5.0)) * offCrown;
   } else if (kind == 20) {
-    // Spinach, after the user's references. Each leaf and its stem are one shape. Map: x from -1
-    // at the stem's cut end to 0 where the blade starts, then to 1 at its tip; y across the blade,
-    // 0 to 1 on its top face and 1 to 2 underneath (0.5 and 1.5: the midrib).
-    vec2 q = vec2(max(vSurfaceUv.x, 0.0), fract(vSurfaceUv.y));
-    float stemPart = 1.0 - smoothstep(-0.06, 0.06, vSurfaceUv.x);
-    bool under = vSurfaceUv.y > 1.0;
-    // How far the light has stepped this point from the base colour (before any marks).
-    float shadeNow = lab.x - linearToOklab(uBaseColour).x;
+    // Spinach: the bunch is ONE surface (kit/leafMass.ts), so the leaves are told apart here, by
+    // colour and texture, the way a painter would (the user, 2026-11-13: "think of this whole
+    // thing as one unit, use textures, colours to differentiate"). Each point knows its piece:
+    // uv.x along the leaf (0 base, 1 tip; a stem -1 at its cut end to 0), uv.y across it (0.5 the
+    // midrib); ownPos.x the piece's own number, .y how deep in a crevice, .z how near its own rim.
+    float u = vSurfaceUv.x;
+    float across = abs(vSurfaceUv.y - 0.5) * 2.0;
+    float own = vOwnPos.x;
+    float crevice = vOwnPos.y;
+    float rim = vOwnPos.z;
+    float stemPart = 1.0 - smoothstep(-0.12, 0.0, u);
+    float q = max(u, 0.0);
     vec3 cm = objectPos * 3.8169;
-    float across = abs(q.y - 0.5) * 2.0;
     float NdotL = dot(N, L);
-    // 1. Mottled washes, like the reference's watercolour: broad lighter lime patches and deeper
-    //    green ones, soft-edged, wandering across each leaf.
-    float wash = fbm3(cm * 0.55 + 3.0);
+    vec3 baseLab = linearToOklab(uBaseColour);
+    vec3 litLab = linearToOklab(uLitColour);
+    // 1. Every leaf its own green: some fresher and more yellow, some deeper and bluer.
+    float lean = (own - 0.5) * 0.35;
+    lab.yz = mat2(cos(lean), sin(lean), -sin(lean), cos(lean)) * lab.yz;
+    lab.x += (fract(own * 7.31) - 0.5) * 0.08 * amount;
+    // 2. Watercolour mottling, like the reference: broad lime washes on the tops, and sparse deep
+    //    blue-green blots in the hollows of the crinkled leaf (mid-dark, never black).
+    float wash = fbm3(cm * 0.5 + own * 9.0);
     vec3 lime = lab;
-    lime.x += 0.08;
-    lime.yz = mat2(cos(0.18), sin(0.18), -sin(0.18), cos(0.18)) * lime.yz * 1.05;
-    lab = mix(lab, lime, smoothstep(0.5, 0.78, wash) * 0.4 * amount);
-    lab = shadeOwn(lab, smoothstep(0.48, 0.25, wash) * 0.2 * amount);
-    // 2. Deeper toward the base, lighter toward the tip.
-    lab = shadeOwn(lab, (1.0 - smoothstep(0.0, 0.4, q.x)) * 0.25 * amount);
-    // 3. The midrib: a pale lime line, wide at the base and fading toward the tip, its edges soft.
-    float rib = (1.0 - smoothstep(0.03, 0.09 - q.x * 0.05, across)) * (1.0 - smoothstep(0.7, 1.0, q.x));
-    vec3 pale = linearToOklab(uLitColour);
-    pale.x += 0.04;
+    lime.x += 0.07;
+    lime.yz = mat2(cos(0.2), sin(0.2), -sin(0.2), cos(0.2)) * lime.yz * 1.08;
+    lab = mix(lab, lime, smoothstep(0.52, 0.75, wash) * smoothstep(-0.1, 0.5, NdotL) * 0.45 * amount);
+    float blot = smoothstep(0.58, 0.72, fbm3(cm * 2.2 + own * 5.0 + 2.0)) * (1.0 - rim * 0.7);
+    lab = shadeOwn(lab, (0.12 + blot * 0.32) * amount * (1.0 - stemPart));
+    // 3. Deeper toward the base of each leaf (where it tucks under the others).
+    lab = shadeOwn(lab, (1.0 - smoothstep(0.0, 0.35, q)) * 0.18 * amount);
+    // 4. The midrib: a pale line from the base, fading toward the tip; side veins faint.
+    float rib = (1.0 - smoothstep(0.025, 0.08, across)) * (1.0 - smoothstep(0.55, 0.9, q)) * (1.0 - stemPart);
+    vec3 pale = litLab;
+    pale.x += 0.03;
     pale.yz *= 0.8;
-    lab = mix(lab, pale, rib * 0.7 * amount);
-    // 4. Side veins: pale lines curving out from the midrib toward the tip and edges, fading out
-    //    before the rim, each a little broken; the leaf a touch deeper between them.
-    float veinWave = sin((q.x * 5.5 - across * 1.6) * 6.2832 + valueNoise3(cm * 2.0) * 1.2);
-    float side = smoothstep(0.86, 0.98, veinWave) * smoothstep(0.08, 0.2, across) * (1.0 - smoothstep(0.75, 0.95, across));
-    side *= smoothstep(0.35, 0.6, valueNoise3(cm * 3.0 + 5.0) + 0.3);
-    lab = mix(lab, pale, side * 0.45 * amount);
-    lab = shadeOwn(lab, (1.0 - smoothstep(0.3, 0.9, veinWave)) * 0.08 * amount);
-    // 5. Light through the leaf: thin, so it glows a warm yellow-green where the light comes from
-    //    behind and at its thin edges.
-    float through = pow(max(dot(V, -L), 0.0), 2.0);
-    float edgeOn = pow(1.0 - abs(dot(N, V)), 2.0);
-    vec3 glowLab = linearToOklab(uGlowColour);
-    lab = mix(lab, glowLab, clamp(through * 0.5 + edgeOn * 0.15, 0.0, 0.5) * amount);
-    // 6. Warm highlights, cool shadows: the shaded side leans toward a cool blue-green.
-    vec3 cool = vec3(lab.x - 0.01, -0.055, -0.01);
-    lab = mix(lab, cool, (1.0 - smoothstep(-0.3, 0.45, NdotL)) * 0.2 * amount);
-    // 7. The underside is paler and cooler, its veins standing out more.
-    if (under) {
-      lab.x += 0.06 * amount;
-      lab.yz *= 0.8;
-      lab = mix(lab, pale, side * 0.3 * amount);
-    }
-    // 8. The stem: a paler, fresher green with soft streaks along it, flowing into the midrib
-    //    (one shape: no line where it meets the blade); paler still at the cut end.
-    vec3 stemLab = linearToOklab(uLitColour);
-    stemLab.x += shadeNow * 0.9 - (linearToOklab(uLitColour).x - linearToOklab(uBaseColour).x) * 0.6;
-    stemLab.yz *= 0.9;
-    float streak = valueNoise3(vec3(cm.x * 1.5, cm.y * 14.0, cm.z * 14.0)) - 0.5;
-    stemLab.x += streak * 0.05;
-    float cutEnd = 1.0 - smoothstep(-1.0, -0.94, vSurfaceUv.x);
-    stemLab = mix(stemLab, vec3(stemLab.x + 0.08, stemLab.yz * 0.5), cutEnd);
+    lab = mix(lab, pale, rib * 0.55 * amount);
+    float veinWave = sin((q * 4.5 - across * 1.4) * 6.2832 + valueNoise3(cm * 2.0) * 1.2);
+    float side = smoothstep(0.88, 0.98, veinWave) * smoothstep(0.1, 0.22, across) * (1.0 - smoothstep(0.65, 0.9, across));
+    side *= smoothstep(0.35, 0.6, valueNoise3(cm * 3.0 + 5.0) + 0.3) * (1.0 - stemPart);
+    lab = mix(lab, pale, side * 0.22 * amount);
+    // 5. The rim of each leaf catches the light: a little lighter and fresher where it is lit, so
+    //    the leaf on top reads against the one under it.
+    float rimLit = rim * rim * smoothstep(-0.1, 0.5, NdotL);
+    lab = mix(lab, lime, rimLit * 0.35 * amount);
+    // 6. Crevices: where one leaf tucks under another, a cool, deep blue-green (warm highlights,
+    //    cool shadows), soft-edged, never grey or black.
+    vec3 deep = linearToOklab(uShadowColour);
+    deep.x = mix(lab.x, deep.x, 0.75);
+    deep.yz = mix(deep.yz, vec2(-0.03, -0.035), 0.4);
+    lab = mix(lab, deep, smoothstep(0.12, 0.75, crevice) * 0.7 * amount);
+    // 7. Light through the thin leaves: a warm yellow-green glow at the light-to-shadow turn and at
+    //    thin edges seen side on.
+    float edgeOn = pow(1.0 - abs(dot(N, V)), 2.0) * (1.0 - stemPart);
+    float turnBand = smoothstep(-0.3, 0.0, NdotL) * (1.0 - smoothstep(0.0, 0.35, NdotL));
+    lab = mix(lab, linearToOklab(uGlowColour), clamp(turnBand * 0.25 + edgeOn * 0.12, 0.0, 0.4) * amount);
+    // 8. The shaded side leans cool blue-green, a hint of violet in the deepest parts.
+    vec3 cool = vec3(lab.x - 0.01, -0.05, -0.025);
+    lab = mix(lab, cool, (1.0 - smoothstep(-0.35, 0.4, NdotL)) * 0.25 * amount);
+    // 9. The stems: pale yellow-green, darker green lines running along them (the reference's
+    //    ribbed stalks), deeper in the grooves between them; rusty at the cut ends.
+    vec3 stemLab = litLab;
+    stemLab.x = mix(litLab.x, baseLab.x, 0.25) + (lab.x - baseLab.x) * 0.6;
+    stemLab.yz = mix(stemLab.yz, vec2(-0.045, 0.1), 0.35);
+    float streak = valueNoise3(vec3(cm.x * 0.6, cm.y * 9.0, cm.z * 9.0));
+    stemLab = mix(stemLab, vec3(stemLab.x - 0.12, stemLab.yz * 1.1), smoothstep(0.55, 0.75, streak) * 0.6);
+    stemLab = mix(stemLab, deep, smoothstep(0.1, 0.6, crevice) * 0.5);
+    float cutEnd = 1.0 - smoothstep(-1.0, -0.96, u);
+    stemLab = mix(stemLab, vec3(stemLab.x - 0.1, -0.02, 0.08), cutEnd * 0.6);
     lab = mix(lab, stemLab, stemPart * amount);
-    // 9. The shine: a little glossy, broken by the veins and the washes, never one patch per leaf.
+    // 10. The shine: soft, broken by the crinkles and blots, none in the crevices.
     highlightBumpy = 1.0;
-    highlightBreak = side * 1.5 + rib + smoothstep(0.45, 0.25, wash);
-    // Sparse: a white glint everywhere read as blotches.
-    highlightGlint = smoothstep(0.75, 0.86, valueNoise3(cm * 2.5 + 9.0)) * (1.0 - side) * 0.3;
+    highlightBreak = blot * 1.5 + crevice * 2.0 + side + smoothstep(0.45, 0.25, wash);
+    // No glints: on the crinkles they made small white squares.
+    highlightGlint = 0.0;
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

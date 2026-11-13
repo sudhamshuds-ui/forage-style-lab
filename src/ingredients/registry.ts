@@ -588,23 +588,25 @@ export const REGISTRY: IngredientEntry[] = [
       archetype: 'leafy',
       family: 'spinach',
       layout: 'solo',
-      show: 'A tied bunch of spinach lying on its side, the stems gathered in a band, the leaves bursting out every way, each its own size, fold and curl.',
+      show: 'A tied bunch of spinach lying on its side, after the user\'s watercolour: a bundle of thick stems, cut ends to the front, an orange band, and a big rounded mound of overlapping, crinkled leaves behind.',
       forms: ['whole', 'wilted'],
       scale: 'M',
-      size_cm: [17, 9.4, 16.5],
-      parts: ['blade', 'stem@leaf', 'tie@chili'],
+      size_cm: [24.7, 13.7, 16.5],
+      parts: ['blade', 'tie@chili'],
       light_case: 'group',
       notes:
-        'Round 2, the first of the leafy kit, after the user\'s reference (a small bunch of flat-leaf spinach). Seven spoon-shaped leaves on long slim stems, each a sheet from the leafy kit (outline, cup, wavy edge, curling tip), laid bottom first and draped over each other. The veins, mottling and paler underside are a shader texture (the spinach skin).',
+        'Round 2, the first leafy ingredient. Round 3 (2026-11-13): the whole bunch is one surface (kit/leafMass.ts): stems, a hidden core and overlapping leaf lobes blended like clay, so there are no gaps and no blatant crossings; the spinach skin tells the leaves apart (each its own green, midrib, lighter rim, cool crevices).',
     },
     form: buildSpinach,
-    // The form points its leaves at the camera (see spinach.ts).
-    turn: 0,
+    // The cut ends angle toward the viewer, as in the reference.
+    turn: 30,
     skin: { kind: 'spinach', size_mm: 2, amount: 0.9 },
     // Thin stems and leaf edges catch rim glints as hard lines.
     rimGlints: false,
     contactsFromFeet: true,
-    budget: [2000, 26000],
+    // One surface for the whole bunch (the kit's leaf mass, surface nets): leaves, stems and the
+    // hidden core together.
+    budget: [2000, 34000],
   },
 ];
 
