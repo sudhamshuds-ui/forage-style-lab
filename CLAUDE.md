@@ -15,6 +15,11 @@ keep code readable with friendly comments.
 ## Rules
 - UI copy never uses em dashes. Use a full stop, comma, or colon instead.
 - UI copy uses sentence case ("Copy settings", "Stroke size").
+- **Every round goes on the preview, finished or not.** Whenever there is something to look at
+  (a work in progress included), push the branch and publish the preview ("Forage Style Lab",
+  built with `NEXT=<id>`) before writing to the user, so they can look and give feedback. Never
+  show only stills, and never hold a round back because it is not ready.
+  <!-- 2026-11-13: "why have u not added it to the artifact? how can u preview and give feedback? dont do that again" -->
 - **"For later" means notes only.** When the user says they will come back to something ("dont do
   this now, ill come back"), save their notes and a plan where the next session reads them (the
   round plan, `CLAUDE.md`) and change no code. Why: they asked to pick it up themselves later.
