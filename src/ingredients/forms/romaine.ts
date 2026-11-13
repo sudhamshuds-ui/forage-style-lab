@@ -22,8 +22,9 @@ import { seededRandom, signed } from './kit/random';
 const LENGTH = 26;
 function radius(x: number): number {
   const t = Math.min(1, Math.max(0, x / LENGTH));
-  // (Broad from the cut on, like a loaf: a narrow, rounded base read as a cucumber.)
-  return 3.4 + 1.0 * smoothstep(0, 0.35, t) - 0.5 * smoothstep(0.8, 1, t);
+  // A barrel: rounded in from the cut, swelling fullest just past the middle, easing in at the top
+  // (the user, 2026-11-13: "more bulge and rounder body shape overall, very cilindrical right now").
+  return 3.3 + 1.9 * Math.sin(Math.PI * Math.min(1, t * 0.95 + 0.04)) ** 0.8 * (1 - 0.25 * smoothstep(0.75, 1, t));
 }
 
 export const buildRomaine: FormBuilder = ({ state, seed }) => {
@@ -32,14 +33,15 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
 
   // Lying on its side: the axis runs along x, a little above the table, the head slightly
   // flattened where it rests (a heavy head settles).
-  const squash = 0.88;
+  const squash = 0.86;
   const axisAt = (x: number) => new Vector3(x, radius(x) * squash, 0);
   const radial = (angle: number) => new Vector3(0, Math.cos(angle) * squash, Math.sin(angle)).normalize();
   const onSurface = (x: number, angle: number, inset: number) =>
     axisAt(x).addScaledVector(new Vector3(0, Math.cos(angle) * squash, Math.sin(angle)), radius(x) - inset);
 
   // 1. The core: the head's shape, a little inside the leaves.
-  const core: MassBlob[] = [2.5, 7, 12, 17, 21.5].map((x) => ({
+  // (It stops short of the top, so the leaves close over the end: its bare dome showed there.)
+  const core: MassBlob[] = [2.5, 7, 12, 16.5, 20].map((x) => ({
     centre: axisAt(x),
     // (Close under the leaves, so no gap between them shows as a pit.)
     radii: new Vector3(3.6, (radius(x) - 0.3) * squash, radius(x) - 0.3),
@@ -52,14 +54,18 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     // Heart: short pale leaves deep inside, showing at the top where the outer ones open.
     // (Eight outer leaves, the middle layer close under them: gaps between two outer leaves showed
     // a lower leaf as a small round pit.)
-    { count: 8, from: 0.6, length: [23, 26], width: [7.8, 9.2], inset: 0.15, rank: 2 },
-    { count: 6, from: 1.2, length: [21, 24], width: [6.8, 8], inset: 0.3, rank: 1 },
-    { count: 4, from: 7, length: [17, 19.5], width: [5, 6.2], inset: 1.2, rank: 0 },
+    { count: 8, from: 0.6, length: [23, 26], width: [8.4, 10], inset: 0.15, rank: 2 },
+    { count: 6, from: 1.2, length: [23, 25.5], width: [7.2, 8.4], inset: 0.3, rank: 1 },
+    // The heart reaches the top and folds over the end, filling it with leaves.
+    { count: 5, from: 5, length: [20.5, 22], width: [5.4, 6.6], inset: 0.9, rank: 0 },
+    // Loose wrapper leaves round the body, standing a little off it: more shape and a rounder,
+    // less even outline (rank 3: painted as outer leaves).
+    { count: 4, from: 0.3, length: [17, 22], width: [9.5, 11], inset: -0.35, rank: 3 },
   ];
   for (const layer of layers) {
     const turn = random() * Math.PI * 2;
     for (let i = 0; i < layer.count; i++) {
-      const angle = turn + (2 * Math.PI * (i + 0.5 * layer.rank)) / layer.count + signed(random) * 0.18;
+      const angle = turn + (2 * Math.PI * (i + 0.5 * layer.rank)) / layer.count + signed(random) * (layer.rank === 3 ? 0.5 : 0.18);
       const x0 = layer.from + random() * 1.2;
       const length = layer.length[0] + random() * (layer.length[1] - layer.length[0]);
       const base = onSurface(x0, angle, layer.inset);
@@ -83,19 +89,20 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
         // (Gentle: deeper puckers left round pits on top; the savoy cells are painted.)
         crinkle: 0.04 + random() * 0.04,
         crinkleScale: 1.6 + random() * 0.6,
-        lobes: 0.05 + random() * 0.05,
+        lobes: (layer.rank === 3 ? 0.1 : 0.05) + random() * 0.05,
         // The top edge lifts a little and ruffles (the reference's frilly top), never curling up.
         // Edges hug the head (a raised rim made each leaf a shallow dish: round pits on top).
         rimLift: -0.15 - random() * 0.15,
         // Only the outer leaves' tips curl out; an inner leaf's curled tip broke the surface as a
         // round pit.
-        tipCurl: layer.rank === 2 ? 0.3 + random() * 0.4 : -0.2,
+        // Outer and wrapper tips ruffle out a little; the heart's tips fold in over the end.
+        tipCurl: layer.rank >= 2 ? 0.3 + random() * 0.4 : layer.rank === 0 ? -1.2 - random() * 0.6 : -0.2,
         wave: 0.5 + random() * 0.35,
         waves: 6 + Math.floor(random() * 4),
         phase: random() * Math.PI * 2,
         fold: 0,
         // Its layer (0 heart, 1 middle, 2 outer) and its own number, for the skin.
-        id: (layer.rank + 0.1 + random() * 0.8) / 3,
+        id: (Math.min(2, layer.rank) + 0.1 + random() * 0.8) / 3,
       });
     }
   }
@@ -111,8 +118,9 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     joinSoftness: 0.4,
     table: 0,
     // The cut across the base: a flat face to the front.
-    cuts: [{ point: new Vector3(0.4, 0, 0), out: new Vector3(-1, 0, 0), soft: 0.3 }],
-    cell: 0.35,
+    // Cut a little off square, its rim well rounded (the user: "round it more").
+    cuts: [{ point: new Vector3(0.5, 0, 0), out: new Vector3(-1, 0.06, 0.1).normalize(), soft: 0.9 }],
+    cell: 0.38,
   });
   const head = mass.geometry();
 
@@ -158,18 +166,28 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     }
   }
 
-  // The cut face: its points get their own map (x = -2, y = how far out from the middle, 0 to 1),
-  // so the skin paints the cream disc with its rings and the rim where the leaves begin.
+  // The cut face: its points get their own map (x = -2, y = how far out from the middle, 0 to 1)
+  // and their angle round it (ownPos.x, 0 to 1), so the skin paints the cream disc with the wavy
+  // rings of the leaf layers and the rim where the leaves begin.
   const position = head.getAttribute('position') as BufferAttribute;
   const normalAttr = head.getAttribute('normal') as BufferAttribute;
   const uv = head.getAttribute('uv') as BufferAttribute;
-  const centre = axisAt(0.4);
+  const own = head.getAttribute('ownPos') as BufferAttribute;
+  const cutOut = new Vector3(-1, 0.06, 0.1).normalize();
+  const cutAt = new Vector3(0.5, 0, 0);
+  const centre = axisAt(0.5);
+  const p = new Vector3();
+  const nrm = new Vector3();
   for (let i = 0; i < position.count; i++) {
-    if (position.getX(i) > 0.75 || normalAttr.getX(i) > -0.6) continue;
-    const dy = (position.getY(i) - centre.y) / squash;
-    const dz = position.getZ(i) - centre.z;
-    uv.setXY(i, -2, Math.min(1, Math.hypot(dy, dz) / radius(0.4)));
+    p.fromBufferAttribute(position, i);
+    nrm.fromBufferAttribute(normalAttr, i);
+    if (p.clone().sub(cutAt).dot(cutOut) < -0.45 || nrm.dot(cutOut) < 0.55) continue;
+    const dy = (p.y - centre.y) / squash;
+    const dz = p.z - centre.z;
+    uv.setXY(i, -2, Math.min(1, Math.hypot(dy, dz) / radius(0.5)));
+    own.setX(i, (Math.atan2(dz, dy) / (2 * Math.PI) + 1) % 1);
   }
+  own.needsUpdate = true;
   uv.needsUpdate = true;
 
   return finishPieces([{ role: 'head', geometry: head, keepNormals: true }]);

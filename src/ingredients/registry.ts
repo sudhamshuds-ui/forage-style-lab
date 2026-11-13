@@ -617,7 +617,7 @@ export const REGISTRY: IngredientEntry[] = [
       show: 'One head of romaine lying on its side on a diagonal, its cut base to the front: long leaves wrapped round it with broad pale ribs, white-green at the base, bright and ruffled at the top, the green mottled with cells.',
       forms: ['whole', 'half'],
       scale: 'L',
-      size_cm: [26, 8, 9],
+      size_cm: [26.5, 10, 12.2],
       parts: ['head'],
       light_case: 'pale',
       notes:
@@ -631,7 +631,7 @@ export const REGISTRY: IngredientEntry[] = [
     matte: true,
     rimGlints: false,
     shadowTint: 0.3,
-    budget: [2000, 28000],
+    budget: [2000, 30000],
   },
 ];
 
