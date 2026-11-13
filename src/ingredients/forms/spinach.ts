@@ -36,7 +36,7 @@ import { sweepGeometry } from './kit/sweep';
 
 /** How many leaves round the outside, and inside. */
 /** How many leaves in the pile. */
-const PILE = 30;
+const PILE = 22;
 const OUTER = 11;
 const INNER = 3;
 const BOTTOM = 5;
@@ -67,17 +67,15 @@ export const buildSpinach: FormBuilder = ({ state, seed }) => {
   const drape = new Drape({ x: -16, z: -16 }, 32, 0.15, 0.9, 0);
   const leaves: { leaf: ReturnType<typeof stemmedLeaf>; id: number; order: number }[] = [];
   for (let i = 0; i < PILE; i++) {
-    // Where it lands: over a round oval about 16 by 14 cm.
-    // Later leaves land nearer the middle, so the heap rises full and round.
-    const r = Math.sqrt(random()) * (1 - 0.42 * (i / PILE));
+    // Where it lands: spread over an oval about 18 by 12 cm, a few more toward the middle.
+    const r = Math.sqrt(random()) * (i < PILE * 0.6 ? 1 : 0.75);
     const a = random() * Math.PI * 2;
-    const centre = new Vector3(Math.cos(a) * r * 6.5, 0, Math.sin(a) * r * 5.5);
+    const centre = new Vector3(Math.cos(a) * r * 7.5, 0, Math.sin(a) * r * 5);
     // Pointing mostly outward from the middle (a heap's leaves lie that way), each its own way.
     const heading = a + signed(random) * 0.9;
     const along = new Vector3(Math.cos(heading), 0, Math.sin(heading));
     const outline = OUTLINES[Math.floor(random() * 2)];
-    // Big leaves round the outside, smaller ones on top (the user: "some smaller leaves on top").
-    const size = 0.42 + 0.45 * r + random() * 0.18;
+    const size = 0.55 + random() * 0.4;
     const length = 9 * size;
     const width = length * (outline.width + signed(random) * 0.06);
     const stemLength = 1.2 + random() * 2.2;
