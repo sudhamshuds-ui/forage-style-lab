@@ -78,9 +78,16 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
   const up = new Vector3(0, 1, 0).addScaledVector(axis, -axis.y).normalize();
   const side = new Vector3().crossVectors(axis, up).normalize();
   // The axis sits so the stems at the cut end rest on the table.
-  const origin = new Vector3(0, 0.8 + 0.35 + STEM_R, 0);
+  // The bundle's axis sits so its bottom stems rest on the table at the band.
+  const origin = new Vector3(0, bundleRadius(TIE) + STEM_R, 0);
   const radial = (angle: number) => up.clone().multiplyScalar(Math.cos(angle)).addScaledVector(side, Math.sin(angle));
-  const at = (s: number, angle: number, r: number) => origin.clone().addScaledVector(axis, s).addScaledVector(radial(angle), r);
+  // A point in the bundle, never below a stem resting on the table (the user, 2026-11-13: the
+  // bunch looked like it was levitating, its cut ends in the air).
+  const at = (s: number, angle: number, r: number) => {
+    const p = origin.clone().addScaledVector(axis, s).addScaledVector(radial(angle), r);
+    if (onTable) p.y = Math.max(p.y, STEM_R + 0.02);
+    return p;
+  };
 
   // Everything already on the table, as a height map: the stems first, then each leaf as it lands.
   const drape = new Drape({ x: -16, z: -16 }, 32, 0.15, 0.9, onTable ? 0 : -100);
@@ -119,11 +126,9 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
     const cup = fold < 0.4 ? 0.9 + random() * 0.9 : 0.15 + random() * 0.5;
     const edgeRoll = fold > 0.8 ? signed(random) * (0.5 + random() * 0.7) : 0;
     const leaf = stemmedLeaf({
-      stem: [
-        ...[cut, (cut + TIE) / 2, TIE].map((s) => at(s, angle, bundleRadius(s) * ring)),
-        bladeStart.clone().addScaledVector(along, -Math.max(1, (start - TIE) * 0.4)),
-        bladeStart,
-      ],
+      // Straight on from the band into the blade (a point back along the blade made the top
+      // stems bend oddly just before their leaves, the user 2026-11-13).
+      stem: [...[cut, (cut + TIE) / 2, TIE].map((s) => at(s, angle, bundleRadius(s) * ring)), bladeStart],
       along,
       up: new Vector3(0, 1, 0),
       length,
@@ -141,7 +146,7 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
       bladeRings: 20,
       around: 12,
     });
-    return { leaf, id, height: bladeStart.y + (ring < 1 ? -0.5 : 0) };
+    return { leaf, id, height: bladeStart.y + (ring < 1 ? -0.5 : 0), weight: length * width * Math.sin(heading) };
   };
 
   // Round the top and sides of the bundle (none underneath: those would only press flat into the
@@ -153,6 +158,11 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
   // The stems round the bottom have leaves too, lying on the table first (the user, 2026-11-13: "the
   // bottom stems here dont have leaves").
   for (let i = 0; i < BOTTOM; i++) all.push(makeLeaf(Math.PI - 1.1 + (2.2 * (i + 0.5)) / BOTTOM + signed(random) * 0.1, 0.9, random()));
+
+  // Balanced seen from above (the user: "looks heavy on the right side with top shot"): if one
+  // side carries more leaf, one more leaf goes out on the other.
+  const lean = all.reduce((sum, l) => sum + l.weight, 0);
+  if (Math.abs(lean) > 2) all.push(makeLeaf(-Math.sign(lean) * (1.1 + random() * 0.3), 1, random()));
 
   // The stems go on the map first; then the leaves land lowest first, each settling onto the ones
   // before (the user: leaves should "fold on top of eachother or around eachother").
