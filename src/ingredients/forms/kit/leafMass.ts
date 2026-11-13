@@ -90,6 +90,11 @@ export interface LeafMassOptions {
   joinSoftness: number;
   /** The table (y), cut off softly so the bunch rests flat on it. */
   table: number;
+  /**
+   * Flat cuts, each a plane (a point on it and the way out of the shape): a head of lettuce cut
+   * across its base. Optional; softened a little so the cut's rim is not a knife edge.
+   */
+  cuts?: { point: Vector3; out: Vector3; soft?: number }[];
   /** Grid size (cm). */
   cell: number;
 }
@@ -110,6 +115,8 @@ interface LeafFrame {
   side: Vector3;
   centre: Vector3;
   reach: number;
+  /** How far the leaf's surface can stray from its plane (its curve, lifts, waves and thickness). */
+  depth: number;
 }
 
 interface LeafLocal {
@@ -200,6 +207,22 @@ function boxGap(p: Vector3, min: Vector3, max: Vector3): number {
   return Math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 
+/** A lower bound on the distance to a leaf: how far outside its own box (length, width, and how far its surface can stray from its plane). */
+function leafBoxGap(p: Vector3, f: LeafFrame): number {
+  const { leaf } = f;
+  const dx = p.x - leaf.base.x;
+  const dy = p.y - leaf.base.y;
+  const dz = p.z - leaf.base.z;
+  const x = dx * leaf.along.x + dy * leaf.along.y + dz * leaf.along.z;
+  const y = dx * f.side.x + dy * f.side.y + dz * f.side.z;
+  const z = dx * leaf.normal.x + dy * leaf.normal.y + dz * leaf.normal.z;
+  const half = leaf.width / 2 + 0.6;
+  const gx = Math.max(-0.6 - x, 0, x - leaf.length - 0.6);
+  const gy = Math.max(Math.abs(y) - half, 0);
+  const gz = Math.max(Math.abs(z) - f.depth, 0);
+  return Math.hypot(gx, gy, gz);
+}
+
 export class LeafMass {
   private frames: LeafFrame[];
   private stemBoxes: { min: Vector3; max: Vector3 }[];
@@ -209,7 +232,11 @@ export class LeafMass {
       const side = new Vector3().crossVectors(leaf.normal, leaf.along).normalize();
       const centre = leaf.base.clone().addScaledVector(leaf.along, leaf.length / 2);
       const reach = Math.hypot(leaf.length * Math.max(leaf.widest, 1 - leaf.widest), leaf.width / 2) * 1.2 + Math.abs(leaf.rimLift) + Math.abs(leaf.tipCurl) + Math.abs(leaf.fold) + leaf.wave + leaf.thickness + 1;
-      return { leaf, side, centre, reach };
+      const half = leaf.width / 2;
+      const along = leaf.length / 2;
+      const bendDrop = (along * along) / (2 * Math.abs(leaf.bend)) + (half * half) / (2 * Math.abs(leaf.bendAcross));
+      const depth = bendDrop + Math.abs(leaf.rimLift) + Math.abs(leaf.tipCurl) * 1.5 + Math.abs(leaf.fold) + leaf.wave + leaf.crinkle + leaf.thickness + 0.5;
+      return { leaf, side, centre, reach, depth };
     });
     this.stemBoxes = options.stems.map((stem) => {
       const min = new Vector3(Infinity, Infinity, Infinity);
@@ -231,9 +258,11 @@ export class LeafMass {
       d = d === Infinity ? one : smoothMin(d, one, o.coreSoftness);
     }
     for (const f of this.frames) {
-      // Skip leaves too far away to matter (a quick bounding sphere).
+      // Skip leaves too far away to matter: a quick bounding sphere, then the leaf's own box (long
+      // leaves round a head all overlap one sphere, so the box does most of the work).
       const far = p.distanceTo(f.centre) - f.reach;
       if (far > d + o.leafSoftness) continue;
+      if (leafBoxGap(p, f) > d + o.leafSoftness) continue;
       d = smoothMin(d, leafLocal(p, f).d, o.leafSoftness);
     }
     let s = Infinity;
@@ -245,6 +274,10 @@ export class LeafMass {
       s = s === Infinity ? one : smoothMin(s, one, o.stemSoftness);
     });
     if (s !== Infinity) d = smoothMin(d, s, o.joinSoftness);
+    for (const cut of o.cuts ?? []) {
+      const beyond = (p.x - cut.point.x) * cut.out.x + (p.y - cut.point.y) * cut.out.y + (p.z - cut.point.z) * cut.out.z;
+      d = smoothMax(d, beyond, cut.soft ?? 0.25);
+    }
     return smoothMax(d, o.table - p.y, 0.3);
   }
 
@@ -267,11 +300,11 @@ export class LeafMass {
         max.max(point.clone().addScalar(stem.radius + 0.5));
       }
     min.y = Math.max(min.y, o.table - o.cell * 2);
-    // A coarse pass first (one sample per 3 x 3 x 3 cells): far from the surface the coarse value
+    // A coarse pass first (one sample per 4 x 4 x 4 cells): far from the surface the coarse value
     // is enough (surface nets only needs to know inside or outside there), so the exact field is
     // only worked out near the surface. About ten times faster.
     const p = new Vector3();
-    const coarse = o.cell * 3;
+    const coarse = o.cell * 4;
     const cx = Math.ceil((max.x - min.x) / coarse) + 2;
     const cy = Math.ceil((max.y - min.y) / coarse) + 2;
     const cz = Math.ceil((max.z - min.z) / coarse) + 2;
@@ -279,7 +312,8 @@ export class LeafMass {
     for (let k = 0; k < cz; k++)
       for (let j = 0; j < cy; j++)
         for (let i = 0; i < cx; i++) grid[i + cx * (j + cy * k)] = this.distance(p.set(min.x + i * coarse, min.y + j * coarse, min.z + k * coarse));
-    const band = coarse * 1.25;
+    // (A coarse point is at most 0.87 of a coarse step from any grid point, so 0.9 is safe.)
+    const band = coarse * 0.9;
     const geometry = surfaceNets(
       (x, y, z) => {
         const i = Math.min(cx - 1, Math.round((x - min.x) / coarse));
@@ -345,7 +379,7 @@ export class LeafMass {
       let best = 0.45;
       let owner: { u: number; v: number; id: number; rim: number } = { u: 0.5, v: 0.5, id: 0.5, rim: 0 };
       for (const f of this.frames) {
-        if (p.distanceTo(f.centre) - f.reach > best) continue;
+        if (p.distanceTo(f.centre) - f.reach > best || leafBoxGap(p, f) > best) continue;
         const local = leafLocal(p, f);
         if (local.d < best) {
           best = local.d;

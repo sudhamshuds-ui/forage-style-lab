@@ -16,6 +16,7 @@ import { buildAvocado } from './forms/avocado';
 import { buildGrapes } from './forms/grapes';
 import { buildBlueberries } from './forms/blueberries';
 import { buildSpinach } from './forms/spinach';
+import { buildRomaine } from './forms/romaine';
 import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
@@ -605,6 +606,32 @@ export const REGISTRY: IngredientEntry[] = [
     rimGlints: false,
     contactsFromFeet: true,
     budget: [2000, 26000],
+  },
+  {
+    spec: {
+      id: 'romaine',
+      name: 'Romaine',
+      archetype: 'leafy',
+      family: 'romaine',
+      layout: 'solo',
+      show: 'One head of romaine lying on its side on a diagonal, its cut base to the front: long leaves wrapped round it with broad pale ribs, white-green at the base, bright and ruffled at the top, the green mottled with cells.',
+      forms: ['whole', 'half'],
+      scale: 'L',
+      size_cm: [26, 8, 9],
+      parts: ['head'],
+      light_case: 'pale',
+      notes:
+        'Round 2, after the user\'s references (2026-11-13): a head lying on its side with its cut base showing, a watercolour with mottled savoy cells, a watercolour romaine with a broad pale rib. One surface (kit/leafMass.ts): a core shaped like the head and three layers of long leaves; the romaine skin paints the ribs, the cells, the ruffled tops and the cut base.',
+    },
+    form: buildRomaine,
+    // The cut base toward the front left, the top away to the right (the user's first reference).
+    turn: -35,
+    skin: { kind: 'romaine', size_mm: 2, amount: 0.95 },
+    // A soft, leafy sheen: quiet, broken by the cells.
+    matte: true,
+    rimGlints: false,
+    shadowTint: 0.3,
+    budget: [2000, 28000],
   },
 ];
 

@@ -57,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -140,6 +140,30 @@ float skinCells(vec3 p) {
     nearest = min(nearest, length(p - point));
   }
   return nearest;
+}
+
+// Leaf cells (romaine, after the user's watercolour reference): a flat pattern of cells on a leaf's
+// own map. x: distance to the nearest cell's point, y: to the second nearest (y - x is small along
+// the borders, the veins between cells), z: the nearest cell's own random number.
+vec3 leafCells(vec2 p) {
+  vec2 cell = floor(p);
+  float first = 8.0;
+  float second = 8.0;
+  float which = 0.0;
+  for (int x = -1; x <= 1; x++)
+  for (int y = -1; y <= 1; y++) {
+    vec2 c = cell + vec2(float(x), float(y));
+    vec2 point = c + vec2(hash13(vec3(c, 3.1)), hash13(vec3(c, 8.7))) * 0.8 + 0.1;
+    float d = length(p - point);
+    if (d < first) {
+      second = first;
+      first = d;
+      which = hash13(vec3(c, 5.3));
+    } else if (d < second) {
+      second = d;
+    }
+  }
+  return vec3(first, second, which);
 }
 
 // Many small round pieces (grapes, blueberries): the shared tone steps repeat on each piece as a
@@ -991,6 +1015,116 @@ if (kind > 0 && amount > 0.0) {
     highlightBreak = side * 1.5 + rib + smoothstep(0.45, 0.25, wash);
     // Sparse: a white glint everywhere read as blotches.
     highlightGlint = smoothstep(0.75, 0.86, valueNoise3(cm * 2.5 + 9.0)) * (1.0 - side) * 0.3;
+  } else if (kind == 21) {
+    // Romaine, after the user's references (2026-11-13: "the textures and colours need to be on the
+    // mark"). The head is one surface (kit/leafMass.ts); its map is worked out in the form so it
+    // blends where leaves meet: uv.x how pale (the broad rib, the white base), uv.y how green
+    // (rising up the leaf); ownPos.x the leaf's layer and number (under 1/3 the heart, over 2/3 the
+    // outer leaves), .y how deep in a crevice, .z how near its own edge. The cut base: uv.x = -2,
+    // uv.y out from its middle.
+    float pale = clamp(vSurfaceUv.x, 0.0, 1.0);
+    float green = clamp(vSurfaceUv.y, 0.0, 1.0);
+    float own = vOwnPos.x;
+    float crevice = vOwnPos.y;
+    float rim = vOwnPos.z;
+    float layer = clamp(own * 3.0, 0.0, 2.9);
+    float NdotL = dot(N, L);
+    vec3 cm = objectPos * 3.8169;
+    vec3 litLab = linearToOklab(uLitColour);
+    vec3 baseLab = linearToOklab(uBaseColour);
+    vec3 shadowLab = linearToOklab(uShadowColour);
+    vec3 highLab = linearToOklab(uHighlightColour);
+    // How far the light has stepped this point from the base colour: kept on the pale colours too,
+    // so rib and blade turn into shadow together.
+    float shade = lab.x - baseLab.x;
+    float lit = smoothstep(-0.25, 0.6, NdotL);
+
+    // 1. The pale parts: the rib and the base, cream with a cool green tint, fine streaks running
+    //    along the head, bluish in shadow (the watercolour's white ribs).
+    vec3 ribLab = mix(highLab, litLab, 0.3);
+    ribLab.yz *= 0.55;
+    ribLab.x += shade * 0.85;
+    float streak = valueNoise3(vec3(cm.x * 0.35, cm.y * 7.0, cm.z * 7.0));
+    ribLab.x -= smoothstep(0.55, 0.85, streak) * 0.03;
+    vec3 coolRib = vec3(ribLab.x - 0.01, ribLab.y - 0.012, ribLab.z - 0.04);
+    ribLab = mix(ribLab, coolRib, (1.0 - lit) * 0.9);
+
+    // 2. The green blade: the heart paler and yellower, the outer leaves deeper, each leaf a little
+    //    its own; savoy cells (patches of their own tone between paler veins) drawn on the head
+    //    itself, a little long along it, so they run on across leaves without a break.
+    vec3 bladeLab = lab;
+    float lean = (fract(own * 7.13) - 0.5) * 0.2 - (layer - 1.0) * 0.06;
+    bladeLab.yz = mat2(cos(lean), sin(lean), -sin(lean), cos(lean)) * bladeLab.yz;
+    bladeLab.x += (1.5 - layer) * 0.03 * lit;
+    // On the head's own round surface: along it, and the arc round its axis (about 3.7 cm up), so
+    // the cells keep their size and shape all round, a little long along the leaves.
+    vec2 cellMap = vec2(cm.x, atan(cm.z, cm.y - 3.7) * 6.4);
+    vec3 cells = leafCells(cellMap + vec2(valueNoise3(cm * 0.7), valueNoise3(cm * 0.7 + 4.0)) * 0.5);
+    // Veins soft and broken, never a drawn net.
+    float vein = (1.0 - smoothstep(0.0, 0.12, cells.y - cells.x)) * smoothstep(0.3, 0.6, valueNoise3(cm * 1.6 + 7.0));
+    vec3 cellLab = bladeLab;
+    // Each cell deeper in its middle and paler toward its rim (a watercolour pool), only a little
+    // its own tone: flat tones per cell read as a mosaic.
+    cellLab.x += (cells.z - 0.5) * 0.05;
+    cellLab.yz *= 1.05 + (cells.z - 0.5) * 0.25;
+    cellLab = shadeOwn(cellLab, (1.0 - smoothstep(0.0, 0.5, cells.x)) * 0.16);
+    float cellShow = green * (1.0 - pale) * amount;
+    bladeLab = mix(bladeLab, cellLab, cellShow);
+    bladeLab = mix(bladeLab, mix(bladeLab, ribLab, 0.5), vein * cellShow * 0.5);
+    // Deeper green blots in loose patches (the watercolour's darker cells), never even.
+    float blot = smoothstep(0.55, 0.72, fbm3(cm * 0.9 + own * 6.0)) * step(0.62, cells.z);
+    bladeLab = mix(bladeLab, vec3(bladeLab.x - 0.1, bladeLab.yz * 1.25), blot * cellShow * 0.7);
+    // Bright lime where the ruffled top catches the light.
+    vec3 lime = litLab;
+    lime.x += 0.03;
+    lime.yz = mat2(cos(0.12), sin(0.12), -sin(0.12), cos(0.12)) * lime.yz;
+    bladeLab = mix(bladeLab, lime, green * lit * 0.25 * amount);
+
+    // 3. Pale to green: a soft band that wanders a little (wet paint, never a cut-out line). Even
+    //    the pale base carries a faint green wash.
+    float wander = (valueNoise3(cm * 0.9) - 0.5) * 0.25;
+    float toGreen = clamp(green * (1.0 - pale) * 1.25 + wander * (1.0 - pale), 0.0, 1.0);
+    lab = mix(ribLab, bladeLab, toGreen);
+    lab = mix(lab, bladeLab, (1.0 - toGreen) * 0.12);
+
+    // 4. Leaf edges and crevices: a ruffled edge a touch lighter where lit; the hollows between
+    //    leaves a soft, cool blue-green, never grey.
+    // Each leaf's own edge reads as a soft, deeper green line just inside a lighter rim (the
+    // references' leaf outlines down the side), so the leaves are told apart.
+    float edgeBand = smoothstep(0.55, 0.85, rim) * (1.0 - smoothstep(0.92, 1.0, rim));
+    lab = shadeOwn(lab, edgeBand * mix(0.1, 0.22, green) * amount);
+    lab = mix(lab, lime, smoothstep(0.92, 1.0, rim) * lit * green * 0.3 * amount);
+    vec3 deep = vec3(mix(lab.x, shadowLab.x, 0.55), mix(shadowLab.yz, vec2(-0.035, -0.03), 0.4));
+    lab = mix(lab, deep, smoothstep(0.2, 0.85, crevice) * 0.55 * amount);
+
+    // 5. Light through the leaves: a warm yellow-green glow at the turn into shadow and on thin
+    //    edges seen side on; the shaded side leans cool (warm highlights, cool shadows).
+    float turnBand = smoothstep(-0.3, 0.0, NdotL) * (1.0 - smoothstep(0.0, 0.35, NdotL));
+    float edgeOn = pow(1.0 - abs(dot(N, V)), 2.0);
+    lab = mix(lab, linearToOklab(uGlowColour), clamp(turnBand * 0.2 + edgeOn * 0.08, 0.0, 0.3) * amount);
+    vec3 cool = vec3(lab.x - 0.01, -0.04, -0.03);
+    lab = mix(lab, cool, (1.0 - smoothstep(-0.35, 0.4, NdotL)) * 0.2 * amount);
+
+    // 6. The cut base: a cream disc, faint rings where the leaves were cut, a soft ochre ring near
+    //    its rim, drying a little brown, a pale green edge where the outer leaves begin.
+    if (vSurfaceUv.x < -1.5) {
+      float r = vSurfaceUv.y;
+      vec3 creamLab = vec3(highLab.x - 0.03 + shade * 0.6, -0.005, 0.04);
+      float rings = 0.5 + 0.5 * sin(r * 34.0 + valueNoise3(cm * 2.0) * 2.0);
+      creamLab.x -= rings * 0.02 * smoothstep(0.2, 0.7, r);
+      float ochre = smoothstep(0.62, 0.8, r) * (1.0 - smoothstep(0.9, 1.0, r));
+      creamLab = mix(creamLab, vec3(creamLab.x - 0.08, 0.02, 0.08), ochre * 0.7);
+      float dots = smoothstep(0.7, 0.85, valueNoise3(cm * 6.0)) * ochre;
+      creamLab = mix(creamLab, vec3(creamLab.x - 0.12, 0.03, 0.07), dots * 0.5);
+      creamLab = mix(creamLab, ribLab, smoothstep(0.92, 1.0, r));
+      lab = creamLab;
+    }
+
+    // 7. The shine: soft, broken by the cells and gone in the crevices.
+    highlightBumpy = 1.0;
+    // (A broken sheen showed as pale blocks along the cells: kept very quiet.)
+    highlightBreak = 0.8 + vein * cellShow * 1.5 + crevice * 2.0;
+    highlightGlint = 0.0;
   }
   colour = max(oklabToLinear(lab), 0.0);
 }
