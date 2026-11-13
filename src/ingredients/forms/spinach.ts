@@ -35,8 +35,8 @@ import { sweepGeometry } from './kit/sweep';
  */
 
 /** How many leaves round the outside, and inside. */
-const OUTER = 17;
-const INNER = 7;
+const OUTER = 13;
+const INNER = 5;
 /** Along the bunch's axis (cm): the cut ends, the tie. */
 const CUT = -8;
 const TIE = -4;
@@ -88,32 +88,36 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
   // user, 2026-11-13: "all the leaves look the same, same shape, same size, same cut, same folds
   // same wrinkles"). Its blade leaves the stem almost level and sags under its own weight down to
   // the table, never up ("in reality no leaves can bend upward like that").
-  const makeLeaf = (angle: number, ring: number, id: number) => {
+  const makeLeaf = (angle: number, ring: number, id: number, flare?: number) => {
     const cut = CUT + signed(random) * 0.6;
-    const start = (ring < 1 ? 0.5 : -1) + random() * (ring < 1 ? 2.5 : 4.5);
+    const start = flare !== undefined ? -2.6 + random() * 0.8 : (ring < 1 ? 1 : -1) + random() * (ring < 1 ? 3.5 : 7);
     const bladeStart = at(start, angle, bundleRadius(start) * ring);
-    // Heading, seen from above: the leaves on each side spread that way, the top ones straight on.
-    const heading = angle * 0.75 + signed(random) * 0.45;
+    // Heading, seen from above: a slim bunch (the user's sketch, 2026-11-13): the leaves stay close
+    // along the stems, a little spread, tips staggered so it tapers; only the `flare` leaves (two
+    // small ones by the band) splay out to the sides.
+    const heading = flare ?? angle * 0.1 + signed(random) * 0.1;
     const along = axis.clone().multiplyScalar(Math.cos(heading)).addScaledVector(side, Math.sin(heading));
     along.y = 0;
     along.normalize();
     const outline = OUTLINES[Math.floor(random() * OUTLINES.length)];
     // Young inner leaves small, outer ones big, a wide spread.
-    const size = ring < 1 ? 0.5 + random() * 0.35 : 0.7 + random() * 0.6;
+    const size = flare !== undefined ? 0.45 + random() * 0.15 : ring < 1 ? 0.5 + random() * 0.35 : 0.7 + random() * 0.6;
     const length = 9 * size;
-    const width = length * (outline.width + signed(random) * 0.07);
+    const width = length * (outline.width * 0.85 + signed(random) * 0.06);
     // Its fall: a slight rise out of the stem (or none), then a sag that would take its tip below
     // the table; settling brings it to rest on the table or on the leaves below.
     const pitch = random() * 0.18;
-    const drop = bladeStart.y + 0.6 + random() * 0.8;
-    const sag = 1.4 + random() * 1.1;
+    // (Long and low, tapering to a point, after the user's sketch: the blades drop early.)
+    const drop = bladeStart.y + 1.2 + random() * 1.2;
+    const sag = 1.1 + random() * 0.7;
     // A few leaves get a crease across, where the blade bent over something.
-    const crease = random() < 0.35 ? -(0.25 + random() * 0.45) : 0;
+    const crease = random() < 0.35 ? -(0.2 + random() * 0.25) : 0;
     const creaseAt = 0.35 + random() * 0.35;
     // Its fold: most cupped, some folded along the midrib (half closed), some with an edge rolled.
     const fold = random();
-    const cup = fold < 0.3 ? 0.9 + random() * 0.9 : 0.15 + random() * 0.5;
-    const edgeRoll = fold > 0.75 ? signed(random) * (0.5 + random() * 0.7) : 0;
+    // In a closed bunch many are folded along the midrib.
+    const cup = fold < 0.65 ? 0.9 + random() * 0.9 : 0.15 + random() * 0.5;
+    const edgeRoll = fold > 0.8 ? signed(random) * (0.5 + random() * 0.7) : 0;
     const leaf = stemmedLeaf({
       stem: [
         ...[cut, (cut + TIE) / 2, TIE].map((s) => at(s, angle, bundleRadius(s) * ring)),
@@ -125,7 +129,7 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
       length,
       width,
       outline: outline.shape,
-      lift: (u) => pitch * length * u - (pitch * length + drop) * u ** sag + crease * Math.exp(-(((u - creaseAt) / 0.07) ** 2)),
+      lift: (u) => pitch * length * u - (pitch * length + drop) * u ** sag + crease * Math.exp(-(((u - creaseAt) / 0.14) ** 2)),
       cup,
       edgeRoll,
       ruffle: 0.05 + random() * 0.15,
@@ -143,9 +147,12 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
   // Round the top and sides of the bundle (none underneath: those would only press flat into the
   // table), and a few young ones inside.
   const all: ReturnType<typeof makeLeaf>[] = [];
-  const span = onTable ? 4 : 2 * Math.PI;
+  const span = onTable ? 3.2 : 2 * Math.PI;
   for (let i = 0; i < OUTER; i++) all.push(makeLeaf(-span / 2 + (span * (i + 0.5)) / OUTER + signed(random) * 0.15, 1, random()));
   for (let i = 0; i < INNER; i++) all.push(makeLeaf(signed(random) * 1.6, 0.5, random()));
+  // Two small leaves splaying out to the sides just past the band.
+  all.push(makeLeaf(1.3, 1, random(), 0.9 + random() * 0.3));
+  all.push(makeLeaf(-1.3, 1, random(), -0.9 - random() * 0.3));
 
   // The stems go on the map first; then the leaves land lowest first, each settling onto the ones
   // before (the user: leaves should "fold on top of eachother or around eachother").
@@ -159,11 +166,14 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
 
   // Stems without a blade along the bottom of the bundle, so it reads full from below and the side.
   const fillers: BufferGeometry[] = [];
-  for (let i = 0; i < 3; i++) {
-    const angle = Math.PI - 0.45 + 0.45 * i + signed(random) * 0.05;
+  // Round the bottom and inside, so the bundle reads full from every side (the user, 2026-11-13: a
+  // single bare stem lying under the bundle looked lost).
+  for (let i = 0; i < 9; i++) {
+    const inner = i >= 6;
+    const angle = inner ? signed(random) * Math.PI : Math.PI - 1.3 + (2.6 * (i + 0.5)) / 6 + signed(random) * 0.08;
     const cut = CUT + signed(random) * 0.5;
     const end = -0.5 + random();
-    const path = [cut, (cut + TIE) / 2, TIE, (TIE + end) / 2, end].map((s) => at(s, angle, bundleRadius(s)));
+    const path = [cut, (cut + TIE) / 2, TIE, (TIE + end) / 2, end].map((s) => at(s, angle, bundleRadius(s) * (inner ? 0.5 : 0.95)));
     fillers.push(sweepGeometry({ points: path, radius: (t) => STEM_R * Math.sqrt(Math.min(1, t / 0.03)) * Math.sqrt(Math.min(1, (1 - t) / 0.08)), rings: 18, segments: 8 }));
   }
 

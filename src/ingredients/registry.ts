@@ -588,10 +588,10 @@ export const REGISTRY: IngredientEntry[] = [
       archetype: 'leafy',
       family: 'spinach',
       layout: 'solo',
-      show: 'A tied bunch of spinach lying on the table, its leaves sagging off the stems and settling over and round each other, every leaf its own shape, size and fold.',
+      show: 'A slim tied bunch of spinach lying on the table, long and low, tapering to a point: its leaves sag off the stems and settle over and round each other, two small ones splaying out by the band; every leaf its own shape, size and fold.',
       forms: ['whole', 'wilted'],
       scale: 'M',
-      size_cm: [21.3, 6.1, 23],
+      size_cm: [21.7, 6.8, 14.6],
       parts: ['blade', 'stem@leaf', 'tie@chili'],
       light_case: 'group',
       notes:
