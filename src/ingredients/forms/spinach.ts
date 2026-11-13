@@ -35,8 +35,8 @@ import { sweepGeometry } from './kit/sweep';
  */
 
 /** How many leaves round the outside, and inside. */
-const OUTER = 13;
-const INNER = 5;
+const OUTER = 11;
+const INNER = 3;
 const BOTTOM = 5;
 /** Along the bunch's axis (cm): the cut ends, the tie. */
 const CUT = -8;
@@ -102,7 +102,7 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
     const bladeStart = at(start, angle, bundleRadius(start) * ring);
     // Heading, seen from above (the user's drawn outlines, 2026-11-13): the leaves start just past
     // the band and widen out from it in a soft V, tips staggered; long and low from the side.
-    const heading = flare ?? Math.sin(angle) * 0.85 + signed(random) * 0.25;
+    const heading = flare ?? Math.sin(angle) * 0.5 + signed(random) * 0.15;
     const along = axis.clone().multiplyScalar(Math.cos(heading)).addScaledVector(side, Math.sin(heading));
     along.y = 0;
     along.normalize();
@@ -111,12 +111,12 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
     const size = flare !== undefined ? 0.45 + random() * 0.15 : ring < 1 ? 0.5 + random() * 0.35 : 0.7 + random() * 0.6;
     const length = 9 * size;
     const width = length * (outline.width * 0.85 + signed(random) * 0.06);
-    // Its fall: a slight rise out of the stem (or none), then a sag that would take its tip below
+    // Its fall: level out of the stem (the user: too much piled up on top), then a sag that would take its tip below
     // the table; settling brings it to rest on the table or on the leaves below.
-    const pitch = random() * 0.18;
+    const pitch = 0;
     // (Long and low, tapering to a point, after the user's sketch: the blades drop early.)
-    const drop = bladeStart.y + 1.2 + random() * 1.2;
-    const sag = 1.1 + random() * 0.7;
+    const drop = bladeStart.y + 1.6 + random() * 1.2;
+    const sag = 1 + random() * 0.5;
     // A few leaves get a crease across, where the blade bent over something.
     const crease = random() < 0.35 ? -(0.2 + random() * 0.25) : 0;
     const creaseAt = 0.35 + random() * 0.35;
