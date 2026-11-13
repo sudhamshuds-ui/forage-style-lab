@@ -35,6 +35,8 @@ import { sweepGeometry } from './kit/sweep';
  */
 
 /** How many leaves round the outside, and inside. */
+/** How many leaves in the pile. */
+const PILE = 22;
 const OUTER = 11;
 const INNER = 3;
 const BOTTOM = 5;
@@ -52,8 +54,75 @@ function bundleRadius(s: number): number {
   return 0.8 + 0.35 * smoothstep(-5, -8, s) + 0.15 * smoothstep(-3.5, 1.5, s);
 }
 
-/** The bunch lying on its side, resting on the table (the default). */
+/**
+ * A loose pile of leaves (the default since 2026-11-13, the user: "a pile of leaves like this,
+ * rather than a bunch with long stems all bunched together", after two watercolour references of
+ * baby spinach heaped up): leaves dropped onto the table from above, the outer ones first, the
+ * middle ones on top, each settling over and round what is already there, so a mound builds up on
+ * its own. Short stems poke out here and there; every leaf faces its own way.
+ */
 export const buildSpinach: FormBuilder = ({ state, seed }) => {
+  if (state !== 'whole') throw new Error(`Spinach: the "${state}" form is not built yet (whole only for now).`);
+  const random = seededRandom(seed ^ 0x51a7e);
+  const drape = new Drape({ x: -16, z: -16 }, 32, 0.15, 0.9, 0);
+  const leaves: { leaf: ReturnType<typeof stemmedLeaf>; id: number; order: number }[] = [];
+  for (let i = 0; i < PILE; i++) {
+    // Where it lands: spread over an oval about 18 by 12 cm, a few more toward the middle.
+    const r = Math.sqrt(random()) * (i < PILE * 0.6 ? 1 : 0.75);
+    const a = random() * Math.PI * 2;
+    const centre = new Vector3(Math.cos(a) * r * 7.5, 0, Math.sin(a) * r * 5);
+    // Pointing mostly outward from the middle (a heap's leaves lie that way), each its own way.
+    const heading = a + signed(random) * 0.9;
+    const along = new Vector3(Math.cos(heading), 0, Math.sin(heading));
+    const outline = OUTLINES[Math.floor(random() * 2)];
+    const size = 0.55 + random() * 0.4;
+    const length = 9 * size;
+    const width = length * (outline.width + signed(random) * 0.06);
+    const stemLength = 1.2 + random() * 2.2;
+    // Dropped from above its spot: the blade base, its short stem trailing back behind it.
+    const height = 6 + i * 0.3;
+    const bladeStart = centre.clone().addScaledVector(along, -length * 0.45).setY(height);
+    const stemEnd = bladeStart.clone().addScaledVector(along, -stemLength).setY(height - 0.3);
+    const fold = random();
+    const leaf = stemmedLeaf({
+      stem: [stemEnd, stemEnd.clone().lerp(bladeStart, 0.5).setY(height - 0.1), bladeStart],
+      along,
+      up: new Vector3(0, 1, 0),
+      length,
+      width,
+      outline: outline.shape,
+      // A gentle droop toward the tip; settling onto what is below does the rest.
+      lift: (u) => -0.6 * u ** 2,
+      cup: fold < 0.25 ? 0.8 + random() * 0.6 : 0.15 + random() * 0.45,
+      edgeRoll: fold > 0.8 ? signed(random) * (0.4 + random() * 0.5) : 0,
+      roll: random() < 0.12 ? Math.PI * 0.85 * Math.sign(signed(random)) : signed(random) * 0.35,
+      ruffle: 0.05 + random() * 0.12,
+      waves: 2 + random() * 3,
+      twist: signed(random) * 0.4,
+      phase: random() * Math.PI * 2,
+      stemRadius: STEM_R * (0.8 + random() * 0.4),
+      stemRings: 8,
+      bladeRings: 18,
+      around: 12,
+    });
+    // The whole leaf falls straight down onto the pile (the stem with it).
+    for (const ring of leaf.rings) for (const p of ring) p.y -= height - 0.1;
+    for (const c of leaf.centres) c.y -= height - 0.1;
+    leaves.push({ leaf, id: random(), order: -r + random() * 0.15 });
+  }
+  // Outer leaves land first, the middle ones on top: a mound.
+  const blades = leaves
+    .sort((x, y) => x.order - y.order)
+    .map(({ leaf, id }) => {
+      // The stem rises with its blade (left at the table, stems stood under the pile like stilts).
+      settleStemmedLeaf(leaf, drape, CLEAR, 10, -1);
+      return stemmedLeafGeometry(leaf, id);
+    });
+  return finishPieces([{ role: 'blade', geometry: mergeGeometries(blades)! }]);
+};
+
+/** The tied bunch lying on its side (rounds 5 to 12, kept; the pile replaced it on 2026-11-13). */
+export const buildSpinachBunch: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Spinach: the "${state}" form is not built yet (whole only for now).`);
   // Its axis along the table, the cut ends toward the front left, the leaves toward the back right.
   return buildBunch(seed, new Vector3(1, 0, -0.55).normalize(), true);
@@ -104,7 +173,7 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
     const bladeStart = at(start, angle, bundleRadius(start) * ring);
     // Heading, seen from above (the user's drawn outlines, 2026-11-13): the leaves start just past
     // the band and widen out from it in a soft V, tips staggered; long and low from the side.
-    const heading = flare ?? Math.sin(angle) * 0.4 + signed(random) * 0.08;
+    const heading = flare ?? Math.sin(angle) * 0.45 + signed(random) * 0.2;
     const along = axis.clone().multiplyScalar(Math.cos(heading)).addScaledVector(side, Math.sin(heading));
     along.y = 0;
     along.normalize();
@@ -112,7 +181,7 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
     // Which way its face looks (the user, 2026-11-13: the side leaves "dont have to be facing up
     // always"): the side ones tilt to face out sideways, some rolled further, a few turned over.
     const turnedOver = random() < 0.15 && ring >= 1;
-    const faceRoll = turnedOver ? Math.PI * (0.75 + random() * 0.2) * Math.sign(signed(random)) : -Math.sin(angle) * (0.25 + random() * 0.35) + signed(random) * 0.2;
+    const faceRoll = turnedOver ? Math.PI * (0.75 + random() * 0.2) * Math.sign(signed(random)) : -Math.sin(angle) * (0.1 + random() * 0.25) + signed(random) * 0.15;
     // Young inner leaves small, outer ones big, a wide spread.
     const size = flare !== undefined ? 0.45 + random() * 0.15 : ring < 1 ? 0.5 + random() * 0.35 : 0.7 + random() * 0.6;
     const length = 9 * size;

@@ -112,6 +112,13 @@ Branch `spinach` (not merged). Four rounds so far:
    below (`settleStemmedLeaf` on a `Drape` height map), folding over and round them; four outlines,
    a wide size range, mixed folds; each leaf its own veins and wrinkles in the skin.
 
+6. Rounds 6 to 12 (2026-11-13): the tied bunch shaped after the user's drawn outlines (slim, a
+   soft V from the band, low and flat, leaves facing every way, balanced from above).
+7. Round 13 (2026-11-13): the user asked for "a pile of leaves like this, rather than a bunch with
+   long stems all bunched together" (two watercolour references of baby spinach heaped up). Now a
+   loose pile: 22 leaves dropped onto the table, outer ones first, each settling over the ones
+   below, short stems. The bunch is kept as `buildSpinachBunch`.
+
 **The user's notes on round 4** (screenshots: `lessons/img/spinach-feedback-r4-side.png`,
 `lessons/img/spinach-feedback-r4-front.png`), in their words:
 

@@ -588,14 +588,14 @@ export const REGISTRY: IngredientEntry[] = [
       archetype: 'leafy',
       family: 'spinach',
       layout: 'solo',
-      show: 'A tied bunch of spinach lying on the table, long and low, widening from the band in a soft V: its leaves sag off the stems and settle over and round each other, the bottom stems carrying leaves too; every leaf its own shape, size and fold.',
+      show: 'A loose pile of spinach leaves heaped on the table, the outer ones lying flat, the middle ones on top, short stems poking out; every leaf its own shape, size and fold.',
       forms: ['whole', 'wilted'],
       scale: 'M',
-      size_cm: [22.8, 4.6, 12.7],
+      size_cm: [16.7, 4.2, 13],
       parts: ['blade', 'stem@leaf', 'tie@chili'],
       light_case: 'group',
       notes:
-        'Round 2, the first leafy ingredient. Round 5 (2026-11-13): each blade leaves its stem almost level and sags under its own weight; laid lowest first, each settles onto the table, the stems and the leaves below (kit: settleStemmedLeaf on a Drape height map), so leaves fold over and round each other. Four outlines (spade, spoon, long narrow, arrow), a wide size range, mixed folds (cupped, folded along the midrib, an edge rolled, a crease across); the skin gives each leaf its own veins and wrinkles.',
+        'Round 2, the first leafy ingredient. After rounds of a tied bunch (kept as buildSpinachBunch), the user asked for a pile of loose leaves (2026-11-13, two watercolour references of baby spinach): leaves dropped onto the table, outer ones first, each settling over and round the ones below (settleStemmedLeaf on a Drape height map), so a mound builds up; short stems; each leaf its own veins and wrinkles in the skin.',
     },
     form: buildSpinach,
     // The form points its leaves at the camera (see spinach.ts).
