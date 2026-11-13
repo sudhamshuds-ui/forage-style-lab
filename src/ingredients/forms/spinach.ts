@@ -104,7 +104,7 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
     const bladeStart = at(start, angle, bundleRadius(start) * ring);
     // Heading, seen from above (the user's drawn outlines, 2026-11-13): the leaves start just past
     // the band and widen out from it in a soft V, tips staggered; long and low from the side.
-    const heading = flare ?? Math.sin(angle) * 0.62 + signed(random) * 0.15;
+    const heading = flare ?? Math.sin(angle) * 0.4 + signed(random) * 0.08;
     const along = axis.clone().multiplyScalar(Math.cos(heading)).addScaledVector(side, Math.sin(heading));
     along.y = 0;
     along.normalize();
