@@ -12,7 +12,7 @@ import { StylizedLook } from './shading/stylizedMaterial';
 import { EFFECT_STACK } from './shading/effects';
 import type { FrameContext } from './shading/effect';
 import { FAMILIES } from './ingredients/families';
-import { REGISTRY, findIngredient, pickFresh, type IngredientEntry } from './ingredients/registry';
+import { REGISTRY, ShuffleDeck, findIngredient, type IngredientEntry } from './ingredients/registry';
 import { createSubject, type Subject } from './ingredients/subject';
 import { PROPS } from './ingredients/forms/kit/checks';
 import { Painter, type PaintFrame } from './painting/painter';
@@ -102,8 +102,8 @@ function applyRoom(entry: IngredientEntry): void {
   if (room) applyPalette(settings, room);
 }
 
-/** The ingredients shown lately, oldest first (Shuffle holds these back so they don't repeat soon). */
-const shownRecently: string[] = [subject.entry.spec.id];
+/** Shuffle's deck: every ingredient once, in a fresh random order each cycle and each page load. */
+const deck = new ShuffleDeck();
 
 /**
  * The ingredient the first Shuffle goes to, for previews only: the preview page is built with
@@ -114,12 +114,15 @@ const shownRecently: string[] = [subject.entry.spec.id];
 // handy for comparing variations.
 const previewNext: string[] = (import.meta.env.VITE_PREVIEW_NEXT || '').split(',').map((id: string) => id.trim()).filter(Boolean);
 
-/** The next ingredient for Shuffle: the preview's ones first (once each), then one not seen lately. */
+/** The next ingredient for Shuffle: the preview's ones first (once each), then the deck's next. */
 function pickNext(): IngredientEntry {
   const id = previewNext.shift();
   const wanted = id ? findIngredient(id) : undefined;
-  if (wanted && wanted.spec.id !== subject.entry.spec.id) return wanted;
-  return pickFresh(shownRecently);
+  if (wanted && wanted.spec.id !== subject.entry.spec.id) {
+    deck.skip(wanted.spec.id);
+    return wanted;
+  }
+  return deck.next(subject.entry.spec.id);
 }
 
 /**
@@ -134,9 +137,6 @@ function showIngredient(
   entry: IngredientEntry,
   options: { nameLater?: boolean; keepView?: boolean; built?: Subject; disposeLater?: boolean } = {},
 ): void {
-  // Remember it, so Shuffle won't bring it back until several others have been shown.
-  shownRecently.push(entry.spec.id);
-  if (shownRecently.length > 20) shownRecently.shift();
   framed.remove(subject.group);
   // Mid-transition, the old ingredient is only set aside: deleting its shapes and
   // materials can make the graphics chip stop and catch up (on Macs especially), which

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { findPalette } from '../palettes';
 import { hexToOklch } from '../utils/colour';
 import { FAMILIES } from './families';
-import { REGISTRY, findIngredient, holdBack, parsePart, pickFresh, pickOther, roomOf } from './registry';
+import { REGISTRY, ShuffleDeck, findIngredient, parsePart, pickOther, roomOf } from './registry';
 import { seededRandom } from './forms/kit/random';
 
 const hueGap = (a: number, b: number) => Math.abs(((((a - b) % 360) + 540) % 360) - 180);
@@ -39,12 +39,12 @@ describe('ingredient registry', () => {
   });
 
   it('Shuffle never shows the same room twice in a row (rooms may repeat from round 2)', () => {
-    const random = seededRandom(3);
-    const shown = [REGISTRY[0].spec.id];
+    const deck = new ShuffleDeck(seededRandom(3));
+    let now = REGISTRY[0].spec.id;
     for (let i = 0; i < 300; i++) {
-      const next = pickFresh(shown, random);
-      expect(roomOf(next), `${shown[shown.length - 1]} then ${next.spec.id}`).not.toBe(roomOf(findIngredient(shown[shown.length - 1])!));
-      shown.push(next.spec.id);
+      const next = deck.next(now);
+      expect(roomOf(next), `${now} then ${next.spec.id}`).not.toBe(roomOf(findIngredient(now)!));
+      now = next.spec.id;
     }
   });
 
@@ -55,19 +55,21 @@ describe('ingredient registry', () => {
     }
   });
 
-  it('Shuffle never brings an ingredient back until several others have been shown', () => {
-    const random = seededRandom(7);
-    const shown = [REGISTRY[0].spec.id];
-    const gap = holdBack(REGISTRY.length);
-    for (let i = 0; i < 300; i++) {
-      const next = pickFresh(shown, random).spec.id;
-      // Not among the last `gap` shown (with ten ingredients: the last seven).
-      expect(shown.slice(-gap)).not.toContain(next);
-      shown.push(next);
-    }
-    // Every ingredient still comes up.
-    expect(new Set(shown).size).toBe(REGISTRY.length);
-    expect(gap).toBeGreaterThanOrEqual(5);
+  it('Shuffle shows every ingredient once before any comes back, in a new order each cycle', () => {
+    const deck = new ShuffleDeck(seededRandom(7));
+    const start = REGISTRY[0].spec.id;
+    const n = REGISTRY.length;
+    const shown = [start];
+    for (let i = 0; i < n * 5 - 1; i++) shown.push(deck.next(shown[shown.length - 1]).spec.id);
+    // Each full cycle (the first one counts the ingredient on stage at load) holds every ingredient once.
+    const cycles = [shown.slice(0, n), shown.slice(n, 2 * n), shown.slice(2 * n, 3 * n), shown.slice(3 * n, 4 * n)];
+    for (const cycle of cycles) expect(new Set(cycle).size, cycle.join(' ')).toBe(n);
+    // The order changes from cycle to cycle, and from one page load (another random) to the next.
+    expect(cycles[1].join()).not.toBe(cycles[2].join());
+    const other = new ShuffleDeck(seededRandom(8));
+    const again = [start];
+    for (let i = 0; i < n - 1; i++) again.push(other.next(again[again.length - 1]).spec.id);
+    expect(again.join()).not.toBe(shown.slice(0, n).join());
   });
 
   it('reads part names: glow parts and parts in another family', () => {

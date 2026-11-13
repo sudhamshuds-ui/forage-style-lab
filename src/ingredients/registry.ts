@@ -613,29 +613,57 @@ export function findIngredient(id: string): IngredientEntry | undefined {
 }
 
 /**
- * How many recently shown ingredients Shuffle holds back: all but the three seen longest ago,
- * and never more than seven (the user, 2026-11-06: repeat only after five to seven others).
- * With ten ingredients, nothing comes back within eight shuffles.
+ * Shuffle deals every ingredient once before any comes back (the user, 2026-11-13: "ingredients
+ * repeat only after 1 full cycle of all ingredients is completed. the order can be random"). Like
+ * a deck of cards: shuffled, dealt to the end, then shuffled again. A fresh order is drawn on every
+ * page load and for every cycle, so a reload never shows the same sequence.
+ *
+ * `planCycle` deals one cycle: every id in `ids` once, in a random order where no two in a row
+ * open in the same room (rooms may repeat from round 2, never twice in a row: the user,
+ * 2026-11-11), the first one also differing from `after` (the one on stage) in id and room.
  */
-export function holdBack(total: number): number {
-  return Math.max(1, Math.min(7, total - 3));
+export function planCycle(ids: string[], after: string | undefined, random: () => number = Math.random): string[] {
+  const room = (id: string | undefined) => (id ? roomOf(findIngredient(id)!) : undefined);
+  let order = ids.slice();
+  for (let attempt = 0; attempt < 500; attempt++) {
+    // A fair shuffle (Fisher-Yates), then check the rooms; try again if two in a row match.
+    order = ids.slice();
+    for (let k = order.length - 1; k > 0; k--) {
+      const swap = Math.floor(random() * (k + 1)) % (k + 1);
+      [order[k], order[swap]] = [order[swap], order[k]];
+    }
+    const ok = order.every((id, k) => {
+      const before = k === 0 ? after : order[k - 1];
+      return id !== before && room(id) !== room(before);
+    });
+    if (ok) return order;
+  }
+  return order;
 }
 
 /**
- * A random ingredient that has not been shown lately. `recent` lists the ids shown, oldest
- * first, the one on stage last. Like dealing from a deck that only gets an old card back once
- * enough new ones have been dealt.
+ * The Shuffle deck: `next(onStage)` gives the next ingredient of the cycle, dealing a new cycle when
+ * this one runs out. The first cycle leaves out the one on stage at load (it has been seen).
  */
-export function pickFresh(recent: string[], random: () => number = Math.random): IngredientEntry {
-  const held = new Set(recent.slice(-holdBack(REGISTRY.length)));
-  let fresh = REGISTRY.filter((entry) => !held.has(entry.spec.id));
-  if (fresh.length === 0) return pickOther(recent[recent.length - 1] ?? '', random);
-  // Rooms may repeat from round 2, but never twice in a row (the user, 2026-11-11).
-  const now = recent.length ? findIngredient(recent[recent.length - 1]) : undefined;
-  const roomNow = now ? roomOf(now) : undefined;
-  const otherRoom = fresh.filter((entry) => roomOf(entry) !== roomNow);
-  if (otherRoom.length > 0) fresh = otherRoom;
-  return fresh[Math.floor(random() * fresh.length) % fresh.length];
+export class ShuffleDeck {
+  private queue: string[] = [];
+  private first = true;
+  constructor(private readonly random: () => number = Math.random) {}
+
+  next(onStage: string): IngredientEntry {
+    if (this.queue.length === 0) {
+      const all = REGISTRY.map((entry) => entry.spec.id);
+      this.queue = planCycle(this.first ? all.filter((id) => id !== onStage) : all, onStage, this.random);
+      this.first = false;
+    }
+    const id = this.queue.shift()!;
+    return findIngredient(id)!;
+  }
+
+  /** An ingredient shown outside the deck (a preview's first pick): taken out of this cycle. */
+  skip(id: string): void {
+    this.queue = this.queue.filter((queued) => queued !== id);
+  }
 }
 
 /** The room an ingredient opens in: its family's first room. */

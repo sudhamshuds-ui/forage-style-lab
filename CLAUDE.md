@@ -15,6 +15,10 @@ keep code readable with friendly comments.
 ## Rules
 - UI copy never uses em dashes. Use a full stop, comma, or colon instead.
 - UI copy uses sentence case ("Copy settings", "Stroke size").
+- **"For later" means notes only.** When the user says they will come back to something ("dont do
+  this now, ill come back"), save their notes and a plan where the next session reads them (the
+  round plan, `CLAUDE.md`) and change no code. Why: they asked to pick it up themselves later.
+  <!-- 2026-11-13: "this is for later when i come back", "dont do this now, ill come back" -->
 - **Source of truth for the art: `references/painterly/00-source-of-truth-lemon-wedges.png`
   and `references/painterly/01-source-of-truth-blood-orange.png`**, but softly lit and with
   muted (not candy) surroundings. `02` and `03` support them; `90-avoid-stroke-clutter.png`
@@ -254,10 +258,10 @@ keep code readable with friendly comments.
   **Random strokes** (the user, 2026-11-10): every click rolls a new seed (`uSeed`, set in
   `ShuffleTransition.begin`), so each shuffle paints a different set of strokes with the same
   feel, length and wave (before, the stroke layout was the same every time).
-  **No repeats too soon** (the user, 2026-11-06): Shuffle remembers what was shown
-  (`shownRecently` in `main.ts`) and picks only from ingredients not seen lately (`pickFresh`
-  in `registry.ts`): it holds back all but the three seen longest ago, at most seven
-  (`holdBack`), so with ten ingredients nothing comes back within eight shuffles.
+  **A full cycle before any repeat** (the user, 2026-11-13, replacing 2026-11-06's hold-back):
+  Shuffle deals every ingredient once, in a random order, before any comes back, like a shuffled
+  deck (`ShuffleDeck` and `planCycle` in `registry.ts`, `deck` in `main.ts`). A fresh order is
+  drawn on every page load and for every cycle; no two in a row open in the same room.
   **Preview first pick** (the user, 2026-11-06, for working sessions only): a build with
   `VITE_PREVIEW_NEXT=<id>` sends the first Shuffle to that ingredient (`pickNext` in `main.ts`),
   so the private preview page opens the one being worked on in one click. The preview is built
