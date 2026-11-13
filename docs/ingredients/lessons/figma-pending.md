@@ -22,3 +22,23 @@ the board and what it gets, in the shape of the brand skill's step 5 table.
   Figma node 148:12 beside our painting (`docs/ingredients/lessons/img/blueberries.png`).
 - **09 How Claude Code builds a form**: the pre-check gains "a pile is checked for balance, not
   only overlap".
+
+## Spinach (approved 2026-11-13)
+
+- **02 Seven rules**: a Never item "leaves bending upward, or held apart instead of resting on each
+  other" (spinach).
+- **04 Warm subject, cool room**: a Spinach family row (lit #80b44f, base #2f6b2f, shadow #1f4552,
+  glow #86b843, highlight #f2f1d4; rooms Lavender, Heather). Colour lesson "Many of a kind: each
+  its own colour and texture" (spinach, grapes, blueberries).
+- **06 Composition and size**: a table row (Spinach, a loose pile, solo, Spinach, M, about 20 cm
+  across); composition lessons "Soft things fall and settle; nothing bends upward", "A heap is low
+  and round" and "Look from above and from every side" (spinach); tag spinach on "Nothing
+  levitates".
+- **07 Ingredient system**: the leafy archetype's Built line (spinach: stemmed leaves settled into a
+  pile, `kit/leafy.ts`; `kit/leafMass.ts` waiting for romaine and cabbage); form lessons "Stem and
+  leaf one shape", "Folds come in kinds" and the decision "separate leaves for a pile, one surface
+  for a head" (spinach).
+- **08 The first 12**: a Spinach card cloned from the Blueberries card: the user's references (two
+  watercolour heaps of baby spinach) beside our painting (`docs/ingredients/lessons/img/spinach.png`).
+- **09 How Claude Code builds a form**: the pre-check gains "soft parts sag down, never up" and "look
+  from above and from every side".
