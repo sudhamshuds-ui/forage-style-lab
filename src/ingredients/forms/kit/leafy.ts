@@ -480,29 +480,27 @@ export function stemmedLeafGeometry(leaf: StemmedLeaf): BufferGeometry {
  * ring, the push spread smoothly along the leaf), lift any ring that would dip into the table, and
  * add the leaf to the round drape.
  */
-export function drapeStemmedLeaf(leaf: StemmedLeaf, drape: RoundDrape, clear: number, table: number): void {
+export function drapeStemmedLeaf(leaf: StemmedLeaf, drape: RoundDrape, clear: number, table: number, stemFrom = 0.5): void {
   const n = leaf.rings.length;
-  const need = leaf.rings.map((ring, k) => {
-    if (k < leaf.bladeStart - 2) return 0;
-    let most = 0;
-    for (const p of ring) {
+  const start = leaf.bladeStart;
+  // The blade moves as one piece (the user, 2026-11-13: pushing it out ring by ring bent the leaf
+  // oddly and kinked the stem where it meets the blade, "stem and leaf detached"): by the most any
+  // of its rings needs, all in one direction (outward at its base).
+  let most = 0;
+  for (let k = start; k < n; k++)
+    for (const p of leaf.rings[k]) {
       const m = drape.measure(p);
       most = Math.max(most, drape.reachAt(m.s, m.angle) + clear - m.r);
     }
-    return most;
-  });
-  let rise = need.slice();
-  for (let r = 0; r < 30; r++) {
-    const next = rise.slice();
-    for (let k = 0; k < n; k++) next[k] = Math.max(need[k], ((rise[k - 1] ?? rise[k]) + (rise[k + 1] ?? rise[k])) / 2);
-    rise = next;
-  }
-  leaf.rings.forEach((ring, k) => {
-    if (rise[k] <= 0) return;
-    const out = drape.measure(leaf.centres[k]).out;
-    for (const p of ring) p.addScaledVector(out, rise[k]);
-    leaf.centres[k].addScaledVector(out, rise[k]);
-  });
+  // The stem takes the move up gently, from the tie (`stemFrom`, a share of the stem) to the blade.
+  const from = Math.round(start * stemFrom);
+  const rise = leaf.rings.map((_, k) => (k >= start ? most : most * smoothstep(from, start, k)));
+  const out = drape.measure(leaf.centres[start]).out;
+  if (most > 0)
+    leaf.rings.forEach((ring, k) => {
+      for (const p of ring) p.addScaledVector(out, rise[k]);
+      leaf.centres[k].addScaledVector(out, rise[k]);
+    });
   // The table: no ring dips below it (the lift spread along the leaf too).
   const low = leaf.rings.map((ring) => Math.max(0, table - Math.min(...ring.map((p) => p.y))));
   let lift = low.slice();

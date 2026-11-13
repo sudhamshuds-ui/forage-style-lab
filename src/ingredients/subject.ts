@@ -234,8 +234,11 @@ class FormSubject implements Subject {
     // spot, a long one (a baguette) a row of small spots along its length, so the contact
     // hugs it instead of one big circle poking out past its shadow. Up to MAX_CONTACTS in all.
     const spotsEach = Math.max(1, Math.floor(MAX_CONTACTS / members.length));
+    // A floating ingredient: lifted off the table, touching nothing, so no contact spots.
+    if (entry.float) for (const member of members) member.position.y += cmToUnits(entry.float);
     for (const member of members) {
       member.updateMatrix();
+      if (entry.float) continue;
       // An ingredient that rests on a few places only (a drumstick: its bulb and its knuckle, the
       // shank in the air): spots only under what touches the table, one group per place.
       if (entry.contactsFromFeet) {
