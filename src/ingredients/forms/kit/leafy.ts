@@ -365,6 +365,8 @@ export interface StemmedLeafOptions {
   waves: number;
   twist: number;
   phase: number;
+  /** One side of the blade rolled up (cm at its edge; + the right side, - the left), optional. */
+  edgeRoll?: number;
   /** The stem's radius (cm). */
   stemRadius: number;
   /** Rings along the stem and the blade, and points round each ring. */
@@ -427,7 +429,10 @@ export function stemmedLeaf(o: StemmedLeafOptions): StemmedLeaf {
       const edge = Math.abs(x);
       // The cup lifts the blade's halves; the edge waves (calmed at the tip).
       const wave = o.ruffle * blend * edge ** 2 * Math.sin(o.waves * Math.PI * u + o.phase + (x > 0 ? 0 : 1.7)) * (1 - smoothstep(0.75, 0.97, u));
-      const rise = cupHere * edge ** 1.6 + wave;
+      // One edge rolled up (spinach: a side of some leaves curls over), fading out at both ends.
+      const rollSide = Math.max(0, (o.edgeRoll ?? 0) > 0 ? x : -x);
+      const roll = Math.abs(o.edgeRoll ?? 0) * blend * rollSide ** 2.2 * smoothstep(0.08, 0.35, u) * (1 - smoothstep(0.8, 1, u));
+      const rise = cupHere * edge ** 1.6 + wave + roll;
       // The lens: thickest at the midrib, thin at the edges.
       const depth = y * thick * stemScale * (onStem ? 1 : Math.sqrt(Math.max(0, 1 - edge * edge * 0.98)) * 0.6 + 0.4 * (1 - edge));
       const out = across * Math.cos(angle) - (rise + depth) * Math.sin(angle);
@@ -443,8 +448,12 @@ export function stemmedLeaf(o: StemmedLeafOptions): StemmedLeaf {
   return { rings, centres, bladeStart: o.stemRings, uvs };
 }
 
-/** The finished mesh of a stemmed leaf (rings joined round and along, both ends closed). */
-export function stemmedLeafGeometry(leaf: StemmedLeaf): BufferGeometry {
+/**
+ * The finished mesh of a stemmed leaf (rings joined round and along, both ends closed). With `id`
+ * (0..1, the leaf's own number) every point carries it as `ownPos.x`, so the skin can give each
+ * leaf its own veins and wrinkles.
+ */
+export function stemmedLeafGeometry(leaf: StemmedLeaf, id?: number): BufferGeometry {
   const around = leaf.rings[0].length;
   const positions: number[] = [];
   for (const ring of leaf.rings) for (const p of ring) positions.push(p.x, p.y, p.z);
@@ -472,7 +481,61 @@ export function stemmedLeafGeometry(leaf: StemmedLeaf): BufferGeometry {
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
   geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
   geometry.setIndex(index);
+  if (id !== undefined) {
+    const own = new Float32Array((positions.length / 3) * 3);
+    for (let i = 0; i < own.length; i += 3) own[i] = id;
+    geometry.setAttribute('ownPos', new BufferAttribute(own, 3));
+  }
   return geometry;
+}
+
+/**
+ * Let a stemmed leaf's blade settle under its own weight onto what is already on the table (the
+ * `Drape` height map: the table, the stems, the leaves laid before it), like cloth: each point
+ * rises only as far as it needs to rest `clear` above what is below, and the rise spreads softly
+ * over the leaf (`stiffness` rounds), so it tents over a leaf beneath and folds round its edge
+ * instead of keeping a gap from it (the user, 2026-11-13: leaves "dont want to fold on top of
+ * eachother or around eachother"). Top and bottom of the blade move together (it keeps its
+ * thickness); the stem takes the rise up gently from `stemFrom` (a share of its length). Then the
+ * blade is added to the map, so the next leaf rests on it.
+ */
+export function settleStemmedLeaf(leaf: StemmedLeaf, drape: Drape, clear: number, stiffness = 24, stemFrom = 0.6): void {
+  const n = leaf.rings.length;
+  const around = leaf.rings[0].length;
+  const start = leaf.bladeStart;
+  // How far each point must rise (the blade only), the same for a point and its partner on the
+  // other face.
+  const need = leaf.rings.map((ring, k) => ring.map((p) => (k < start ? 0 : Math.max(0, drape.heightAt(p.x, p.z) + clear - p.y))));
+  for (let k = start; k < n; k++)
+    for (let j = 0; j < around; j++) {
+      const partner = (around - j) % around;
+      const both = Math.max(need[k][j], need[k][partner]);
+      need[k][j] = both;
+      need[k][partner] = both;
+    }
+  // Spread it softly over the blade (along and across, round the ring).
+  let rise = need.map((row) => row.slice());
+  for (let r = 0; r < stiffness; r++) {
+    rise = rise.map((row, k) =>
+      row.map((_, j) => {
+        if (k < start) return 0;
+        const prev = rise[Math.max(start, k - 1)][j];
+        const next = rise[Math.min(n - 1, k + 1)][j];
+        const left = row[(j + 1) % around];
+        const right = row[(j + around - 1) % around];
+        return Math.max(need[k][j], (prev + next + left + right) / 4);
+      }),
+    );
+  }
+  // The blade's base rise, taken up gently along the stem.
+  const baseRise = Math.max(...rise[start]);
+  const from = Math.round(start * stemFrom);
+  leaf.rings.forEach((ring, k) => {
+    const lift = (j: number) => (k >= start ? rise[k][j] : baseRise * smoothstep(from, start, k));
+    ring.forEach((p, j) => (p.y += lift(j)));
+    leaf.centres[k].y += k >= start ? Math.max(...rise[k]) : baseRise * smoothstep(from, start, k);
+  });
+  for (let k = start; k < n; k++) drape.add(leaf.rings[k], 0.5);
 }
 
 /**

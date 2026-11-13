@@ -929,6 +929,15 @@ if (kind > 0 && amount > 0.0) {
     vec3 cm = objectPos * 3.8169;
     float across = abs(q.y - 0.5) * 2.0;
     float NdotL = dot(N, L);
+    // Each leaf its own (ownPos.x, the leaf's number; the user, 2026-11-13: "same folds same
+    // wrinkles"): its own green, vein spacing and sweep, and its own wrinkles.
+    float own = vOwnPos.x;
+    float lean = (own - 0.5) * 0.3;
+    lab.yz = mat2(cos(lean), sin(lean), -sin(lean), cos(lean)) * lab.yz;
+    lab.x += (fract(own * 7.31) - 0.5) * 0.06 * amount;
+    // Savoy wrinkles: soft puckers between the veins, a little deeper in their hollows.
+    float pucker = fbm3(vec3(q.x * 9.0, across * 4.0, own * 37.0));
+    lab = shadeOwn(lab, smoothstep(0.5, 0.75, pucker) * 0.14 * amount * (1.0 - smoothstep(-0.06, 0.06, -vSurfaceUv.x)));
     // 1. Mottled washes, like the reference's watercolour: broad lighter lime patches and deeper
     //    green ones, soft-edged, wandering across each leaf.
     float wash = fbm3(cm * 0.55 + 3.0);
@@ -947,7 +956,7 @@ if (kind > 0 && amount > 0.0) {
     lab = mix(lab, pale, rib * 0.7 * amount);
     // 4. Side veins: pale lines curving out from the midrib toward the tip and edges, fading out
     //    before the rim, each a little broken; the leaf a touch deeper between them.
-    float veinWave = sin((q.x * 5.5 - across * 1.6) * 6.2832 + valueNoise3(cm * 2.0) * 1.2);
+    float veinWave = sin((q.x * (4.2 + 2.6 * fract(own * 3.7)) - across * (1.2 + 0.9 * fract(own * 5.3))) * 6.2832 + own * 40.0 + valueNoise3(cm * 2.0) * 1.2);
     float side = smoothstep(0.86, 0.98, veinWave) * smoothstep(0.08, 0.2, across) * (1.0 - smoothstep(0.75, 0.95, across));
     side *= smoothstep(0.35, 0.6, valueNoise3(cm * 3.0 + 5.0) + 0.3);
     lab = mix(lab, pale, side * 0.45 * amount);

@@ -1,6 +1,6 @@
 import { Vector3, type BufferGeometry } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { RoundDrape, drapeStemmedLeaf, stemmedLeaf, stemmedLeafGeometry } from './kit/leafy';
+import { Drape, settleStemmedLeaf, stemmedLeaf, stemmedLeafGeometry } from './kit/leafy';
 import { smoothstep } from './kit/lathe';
 import { finishPieces, type FormBuilder } from './kit/piece';
 import { seededRandom, signed } from './kit/random';
@@ -23,14 +23,11 @@ import { sweepGeometry } from './kit/sweep';
  *   2. Each stem flows into its leaf (the kit's stemmedLeaf: round stem, flattening and widening
  *      into the blade, its ridge running on as the midrib). The leaf leaves the bunch at its own
  *      angle, faces its own way, with its own fold, twist and curl.
- *   3. Leaves are laid innermost first; where one would pass through a leaf already there, its
- *      whole blade slides out as one piece and its stem eases out from the tie to meet it (the
- *      kit's round drape), and none dips into the table. Round 3 (the user, 2026-11-13: leaves
- *      "bending and folding weirdly", "stem and leaf detached", "bad obvious intersections", more
- *      leaves): pushing blades out ring by ring had bent them and kinked the stems; the bends are
- *      gentler, each stem curves out to meet its blade, and there are 27 leaves, not 18. Making
- *      the whole bunch one surface was tried and rejected (better for romaine and cabbage; its
- *      kit, kit/leafMass.ts, is kept).
+ *   3. Round 5 (the user's notes on round 4, 2026-11-13: leaves bending upward, not folding over
+ *      or round each other, too little folding, all alike): each blade leaves its stem almost
+ *      level and sags under its own weight; laid lowest first, it settles like cloth onto the
+ *      table, the stems and the leaves already there (the kit's settleStemmedLeaf on a Drape
+ *      height map), folding over and round them. Four outlines, a wide size range, mixed folds.
  *   4. The tie: a band of two strands round the stems.
  *
  * Pieces: blade, every leaf with its stem (one shape each), merged; stem, the stems without a
@@ -38,8 +35,8 @@ import { sweepGeometry } from './kit/sweep';
  */
 
 /** How many leaves round the outside, and inside. */
-const OUTER = 18;
-const INNER = 9;
+const OUTER = 17;
+const INNER = 7;
 /** Along the bunch's axis (cm): the cut ends, the tie. */
 const CUT = -8;
 const TIE = -4;
@@ -52,18 +49,27 @@ function bundleRadius(s: number): number {
   return 0.8 + 0.35 * smoothstep(-5, -8, s) + 0.55 * smoothstep(-3.5, 1.5, s);
 }
 
-/** A spinach leaf's outline: a long tapering base out of the stem, widest past the middle, a round tip. */
-function outline(u: number): number {
-  const t = Math.min(1, u);
-  return Math.sin(Math.PI * t ** 1.2) ** 0.75 * (0.35 + 0.65 * Math.min(1, t / 0.35));
-}
-
 /** The bunch lying on its side, resting on the table (the default). */
 export const buildSpinach: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Spinach: the "${state}" form is not built yet (whole only for now).`);
   // Its axis along the table, the cut ends toward the front left, the leaves toward the back right.
   return buildBunch(seed, new Vector3(1, 0, -0.55).normalize(), true);
 };
+
+/** Leaf outlines (half-width at u, 0 at the stem to 1 at the tip): every leaf one of these. */
+const OUTLINES: { shape: (u: number) => number; width: number }[] = [
+  // Spade: broad low down, tapering to a soft point.
+  { shape: (u) => Math.sin(Math.PI * Math.min(1, u) ** 1.25) ** 0.7 * (0.3 + 0.7 * Math.min(1, u / 0.3)), width: 0.6 },
+  // Spoon: an even oval, round at the tip.
+  { shape: (u) => Math.sin(Math.PI * Math.min(1, u)) ** 0.55 * (0.4 + 0.6 * Math.min(1, u / 0.25)), width: 0.66 },
+  // Long and narrow (a young leaf).
+  { shape: (u) => Math.sin(Math.PI * Math.min(1, u) ** 1.1) ** 0.9, width: 0.4 },
+  // Arrow: two small lobes near the stem (flat-leaf spinach often has them).
+  {
+    shape: (u) => Math.sin(Math.PI * Math.min(1, u) ** 1.25) ** 0.7 * (0.3 + 0.7 * Math.min(1, u / 0.3)) + 0.28 * Math.exp(-(((u - 0.13) / 0.06) ** 2)),
+    width: 0.58,
+  },
+];
 
 function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
   const random = seededRandom(seed ^ 0x5b1a7c);
@@ -75,85 +81,82 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
   const radial = (angle: number) => up.clone().multiplyScalar(Math.cos(angle)).addScaledVector(side, Math.sin(angle));
   const at = (s: number, angle: number, r: number) => origin.clone().addScaledVector(axis, s).addScaledVector(radial(angle), r);
 
-  const drape = new RoundDrape(origin, axis, up, -12, 22);
-  const leaves: { order: number; build: () => BufferGeometry }[] = [];
+  // Everything already on the table, as a height map: the stems first, then each leaf as it lands.
+  const drape = new Drape({ x: -16, z: -16 }, 32, 0.15, 0.9, onTable ? 0 : -100);
 
-  // Each leaf: its place round the bundle, its stem, and its blade, every one its own.
-  const makeLeaf = (angle: number, ring: number, inner: boolean) => {
-    const cut = CUT + signed(random) * 0.5;
-    const start = inner ? 1.2 + random() * 2 : -0.6 + random() * 1.8;
-    // Out from the bunch at its own angle (inner leaves close to the axis).
-    // Kept close to the bunch's axis (a bunch, not a flower), so neighbours overlap and fill it.
-    const firstAngle = inner ? 0.08 + random() * 0.25 : 0.35 + random() * 0.45;
-    const twistAt = angle + signed(random) * 0.03;
-    const roll = signed(random) * 0.45;
-    const size = inner ? 0.55 + random() * 0.3 : 0.8 + random() * 0.4;
-    // Gentle, natural bends (the user: leaves "bending and folding weirdly", one curled right over
-    // into a loop): a soft arch along the leaf and a tip that dips or lifts a little, never more.
-    const arc = signed(random) * 0.35;
-    const curl = -0.15 + random() * 0.55;
-    const cup = 0.15 + random() * 0.45;
-    const ruffle = 0.06 + random() * 0.08;
-    const waves = 2 + random() * 2;
-    const twist = signed(random) * 0.3;
-    const phase = random() * Math.PI * 2;
-    const stemRadius = STEM_R * (0.85 + random() * 0.3);
-
-    // The whole leaf, stem and blade, leaning `outAngle` out from the bunch's axis.
-    const shape = (outAngle: number) => {
-      const along = axis.clone().multiplyScalar(Math.cos(outAngle)).addScaledVector(radial(angle), Math.sin(outAngle)).normalize();
-      // The stem: along the bundle to the tie, then curving out so it meets its blade already
-      // heading the blade's way (no elbow where stem turns into leaf). The point before the blade
-      // is never pulled in past the bundle's side (a steep leaf would drag it across the axis).
-      const bladeStart = at(start, twistAt, bundleRadius(start) * ring);
-      const lead = Math.max(1, (start - TIE) * 0.45);
-      const preS = start - lead * Math.cos(outAngle);
-      const preR = Math.max(bundleRadius(preS) * ring * 0.9, bundleRadius(start) * ring - lead * Math.sin(outAngle));
-      const stem = [...[cut, (cut + TIE) / 2, TIE].map((s) => at(s, twistAt, bundleRadius(s) * ring)), at(preS, twistAt, preR), bladeStart];
-      return stemmedLeaf({
-        stem,
-        along,
-        up: radial(angle).applyAxisAngle(along, roll),
-        length: 9 * size,
-        width: 5.2 * size,
-        outline,
-        lift: (u) => arc * Math.sin(Math.PI * u) + curl * smoothstep(0.4, 1, u) ** 2,
-        // Cupped upward a little (the way a spinach leaf holds itself), never folded shut or inside out.
-        cup,
-        ruffle,
-        waves,
-        twist,
-        phase,
-        stemRadius,
-        stemRings: 14,
-        bladeRings: 20,
-        around: 12,
-      });
-    };
-    leaves.push({
-      // Laid innermost first, then outward by how far each leaf leans out.
-      order: (inner ? 0 : 1) + firstAngle,
-      build: () => {
-        // Where it would pass through a leaf already laid, the whole blade slides out as one piece
-        // and the stem eases out from the tie to meet it (kit: drapeStemmedLeaf, rigid). Pushing
-        // the blade out ring by ring bent it oddly and kinked the stem (the user, 2026-11-13: "stem
-        // and leaf detached"); leaning whole leaves further out splayed the bunch into a broom.
-        const leaf = shape(firstAngle);
-        drapeStemmedLeaf(leaf, drape, CLEAR, onTable ? 0.08 : -Infinity);
-        return stemmedLeafGeometry(leaf);
-      },
+  // Each leaf: where it leaves the bundle, its stem, and a blade that is every way its own (the
+  // user, 2026-11-13: "all the leaves look the same, same shape, same size, same cut, same folds
+  // same wrinkles"). Its blade leaves the stem almost level and sags under its own weight down to
+  // the table, never up ("in reality no leaves can bend upward like that").
+  const makeLeaf = (angle: number, ring: number, id: number) => {
+    const cut = CUT + signed(random) * 0.6;
+    const start = (ring < 1 ? 0.5 : -1) + random() * (ring < 1 ? 2.5 : 4.5);
+    const bladeStart = at(start, angle, bundleRadius(start) * ring);
+    // Heading, seen from above: the leaves on each side spread that way, the top ones straight on.
+    const heading = angle * 0.75 + signed(random) * 0.45;
+    const along = axis.clone().multiplyScalar(Math.cos(heading)).addScaledVector(side, Math.sin(heading));
+    along.y = 0;
+    along.normalize();
+    const outline = OUTLINES[Math.floor(random() * OUTLINES.length)];
+    // Young inner leaves small, outer ones big, a wide spread.
+    const size = ring < 1 ? 0.5 + random() * 0.35 : 0.7 + random() * 0.6;
+    const length = 9 * size;
+    const width = length * (outline.width + signed(random) * 0.07);
+    // Its fall: a slight rise out of the stem (or none), then a sag that would take its tip below
+    // the table; settling brings it to rest on the table or on the leaves below.
+    const pitch = random() * 0.18;
+    const drop = bladeStart.y + 0.6 + random() * 0.8;
+    const sag = 1.4 + random() * 1.1;
+    // A few leaves get a crease across, where the blade bent over something.
+    const crease = random() < 0.35 ? -(0.25 + random() * 0.45) : 0;
+    const creaseAt = 0.35 + random() * 0.35;
+    // Its fold: most cupped, some folded along the midrib (half closed), some with an edge rolled.
+    const fold = random();
+    const cup = fold < 0.3 ? 0.9 + random() * 0.9 : 0.15 + random() * 0.5;
+    const edgeRoll = fold > 0.75 ? signed(random) * (0.5 + random() * 0.7) : 0;
+    const leaf = stemmedLeaf({
+      stem: [
+        ...[cut, (cut + TIE) / 2, TIE].map((s) => at(s, angle, bundleRadius(s) * ring)),
+        bladeStart.clone().addScaledVector(along, -Math.max(1, (start - TIE) * 0.4)),
+        bladeStart,
+      ],
+      along,
+      up: new Vector3(0, 1, 0),
+      length,
+      width,
+      outline: outline.shape,
+      lift: (u) => pitch * length * u - (pitch * length + drop) * u ** sag + crease * Math.exp(-(((u - creaseAt) / 0.07) ** 2)),
+      cup,
+      edgeRoll,
+      ruffle: 0.05 + random() * 0.15,
+      waves: 2 + random() * 3,
+      twist: signed(random) * 0.5,
+      phase: random() * Math.PI * 2,
+      stemRadius: STEM_R * (0.8 + random() * 0.4),
+      stemRings: 14,
+      bladeRings: 22,
+      around: 12,
     });
+    return { leaf, id, height: bladeStart.y + (ring < 1 ? -0.5 : 0) };
   };
 
-  // Round the outside, spread evenly with a little jitter (none straight down: those would only
-  // press flat into the table), and a few inside.
-  // In the air there is no table to press into: leaves all the way round.
-  const span = onTable ? 5.2 : 2 * Math.PI;
-  for (let i = 0; i < OUTER; i++) {
-    const angle = -span / 2 + (span * (i + 0.5)) / OUTER + signed(random) * 0.12;
-    makeLeaf(angle, 1, false);
-  }
-  for (let i = 0; i < INNER; i++) makeLeaf((2 * Math.PI * i) / INNER + random() * 0.5, 0.45, true);
+  // Round the top and sides of the bundle (none underneath: those would only press flat into the
+  // table), and a few young ones inside.
+  const all: ReturnType<typeof makeLeaf>[] = [];
+  const span = onTable ? 4 : 2 * Math.PI;
+  for (let i = 0; i < OUTER; i++) all.push(makeLeaf(-span / 2 + (span * (i + 0.5)) / OUTER + signed(random) * 0.15, 1, random()));
+  for (let i = 0; i < INNER; i++) all.push(makeLeaf(signed(random) * 1.6, 0.5, random()));
+
+  // The stems go on the map first; then the leaves land lowest first, each settling onto the ones
+  // before (the user: leaves should "fold on top of eachother or around eachother").
+  for (const { leaf } of all) for (let k = 0; k < leaf.bladeStart; k++) drape.add(leaf.rings[k], 0.3);
+  const blades = all
+    .sort((a, b) => a.height - b.height)
+    .map(({ leaf, id }) => {
+      settleStemmedLeaf(leaf, drape, CLEAR, 8);
+      return stemmedLeafGeometry(leaf, id);
+    });
+
   // Stems without a blade along the bottom of the bundle, so it reads full from below and the side.
   const fillers: BufferGeometry[] = [];
   for (let i = 0; i < 3; i++) {
@@ -163,8 +166,6 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
     const path = [cut, (cut + TIE) / 2, TIE, (TIE + end) / 2, end].map((s) => at(s, angle, bundleRadius(s)));
     fillers.push(sweepGeometry({ points: path, radius: (t) => STEM_R * Math.sqrt(Math.min(1, t / 0.03)) * Math.sqrt(Math.min(1, (1 - t) / 0.08)), rings: 18, segments: 8 }));
   }
-
-  const blades = leaves.sort((a, b) => a.order - b.order).map((l) => l.build());
 
   // The tie: two strands round the stems at the tie.
   const ties: BufferGeometry[] = [];
@@ -180,4 +181,4 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
     { role: 'stem', geometry: mergeGeometries(fillers)! },
     { role: 'tie', geometry: mergeGeometries(ties)! },
   ]);
-};
+}

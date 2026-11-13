@@ -107,7 +107,12 @@ Branch `spinach` (not merged). Four rounds so far:
    meet it (no zigzags), gentler bends, 27 leaves. The user liked how it looked lying on the floor
    (sp4f). A floating, upright variation was tried and removed.
 
-**The user's notes on round 4, to fix next** (screenshots: `lessons/img/spinach-feedback-r4-side.png`,
+5. Round 5 (2026-11-13), built from the notes below: blades leave their stems almost level and
+   sag to the table; laid lowest first, each settles onto the table, the stems and the leaves
+   below (`settleStemmedLeaf` on a `Drape` height map), folding over and round them; four outlines,
+   a wide size range, mixed folds; each leaf its own veins and wrinkles in the skin.
+
+**The user's notes on round 4** (screenshots: `lessons/img/spinach-feedback-r4-side.png`,
 `lessons/img/spinach-feedback-r4-front.png`), in their words:
 
 1. "u dont have to show it bending upwatd like that"

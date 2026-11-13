@@ -588,14 +588,14 @@ export const REGISTRY: IngredientEntry[] = [
       archetype: 'leafy',
       family: 'spinach',
       layout: 'solo',
-      show: 'A tied bunch of spinach lying on its side, the stems gathered in a band, the leaves bursting out every way, each its own size, fold and curl.',
+      show: 'A tied bunch of spinach lying on the table, its leaves sagging off the stems and settling over and round each other, every leaf its own shape, size and fold.',
       forms: ['whole', 'wilted'],
       scale: 'M',
-      size_cm: [19.5, 13.7, 22],
+      size_cm: [21.3, 6.1, 23],
       parts: ['blade', 'stem@leaf', 'tie@chili'],
       light_case: 'group',
       notes:
-        'Round 2, the first of the leafy kit, after the user\'s reference (a small bunch of flat-leaf spinach). Seven spoon-shaped leaves on long slim stems, each a sheet from the leafy kit (outline, cup, wavy edge, curling tip), laid bottom first and draped over each other. The veins, mottling and paler underside are a shader texture (the spinach skin).',
+        'Round 2, the first leafy ingredient. Round 5 (2026-11-13): each blade leaves its stem almost level and sags under its own weight; laid lowest first, each settles onto the table, the stems and the leaves below (kit: settleStemmedLeaf on a Drape height map), so leaves fold over and round each other. Four outlines (spade, spoon, long narrow, arrow), a wide size range, mixed folds (cupped, folded along the midrib, an edge rolled, a crease across); the skin gives each leaf its own veins and wrinkles.',
     },
     form: buildSpinach,
     // The form points its leaves at the camera (see spinach.ts).
