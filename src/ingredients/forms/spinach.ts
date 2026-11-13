@@ -47,7 +47,9 @@ const STEM_R = 0.17;
 const CLEAR = 0.12;
 /** The bundle's radius along the axis: splayed at the cut end, squeezed at the tie, opening out toward the leaves. */
 function bundleRadius(s: number): number {
-  return 0.8 + 0.35 * smoothstep(-5, -8, s) + 0.55 * smoothstep(-3.5, 1.5, s);
+  // (Opening out only a little past the band: opening wide lifted the leaves into an arch, the
+  // user 2026-11-13.)
+  return 0.8 + 0.35 * smoothstep(-5, -8, s) + 0.15 * smoothstep(-3.5, 1.5, s);
 }
 
 /** The bunch lying on its side, resting on the table (the default). */
@@ -107,6 +109,10 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
     along.y = 0;
     along.normalize();
     const outline = OUTLINES[Math.floor(random() * OUTLINES.length)];
+    // Which way its face looks (the user, 2026-11-13: the side leaves "dont have to be facing up
+    // always"): the side ones tilt to face out sideways, some rolled further, a few turned over.
+    const turnedOver = random() < 0.15 && ring >= 1;
+    const faceRoll = turnedOver ? Math.PI * (0.75 + random() * 0.2) * Math.sign(signed(random)) : -Math.sin(angle) * (0.5 + random() * 0.6) + signed(random) * 0.3;
     // Young inner leaves small, outer ones big, a wide spread.
     const size = flare !== undefined ? 0.45 + random() * 0.15 : ring < 1 ? 0.5 + random() * 0.35 : 0.7 + random() * 0.6;
     const length = 9 * size;
@@ -131,6 +137,7 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
       stem: [...[cut, (cut + TIE) / 2, TIE].map((s) => at(s, angle, bundleRadius(s) * ring)), bladeStart],
       along,
       up: new Vector3(0, 1, 0),
+      roll: faceRoll,
       length,
       width,
       outline: outline.shape,

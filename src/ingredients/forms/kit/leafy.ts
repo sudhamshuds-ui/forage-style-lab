@@ -365,6 +365,9 @@ export interface StemmedLeafOptions {
   waves: number;
   twist: number;
   phase: number;
+  /** The blade's face turned round its midrib (radians, optional): it faces sideways or over, while
+   * its fall (`lift`) still goes along `up`. */
+  roll?: number;
   /** One side of the blade rolled up (cm at its edge; + the right side, - the left), optional. */
   edgeRoll?: number;
   /** The stem's radius (cm). */
@@ -418,7 +421,7 @@ export function stemmedLeaf(o: StemmedLeafOptions): StemmedLeaf {
     const thick = onStem ? o.stemRadius : o.stemRadius * (1 - blend) + (0.035 + 0.05 * (1 - u)) * blend;
     // A stem tapers a little toward the blade; its cut end is softly bevelled.
     const stemScale = onStem ? (1.08 - 0.12 * t) * Math.sqrt(Math.min(1, (t + 0.004) / 0.03)) : 1;
-    const angle = o.twist * u;
+    const angle = (o.roll ?? 0) * blend + o.twist * u;
     const cupHere = o.cup * smoothstep(0, 0.15, u) * (1 - smoothstep(0.7, 1, u)) * blend;
     const ring: Vector3[] = [];
     for (let j = 0; j < o.around; j++) {
