@@ -37,6 +37,8 @@ import { sweepGeometry } from './kit/sweep';
 /** How many leaves round the outside, and inside. */
 /** How many leaves in the pile. */
 const PILE = 22;
+/** Leaves in the ring round the pile's foot. */
+const RING = 9;
 const OUTER = 11;
 const INNER = 3;
 const BOTTOM = 5;
@@ -66,24 +68,22 @@ export const buildSpinach: FormBuilder = ({ state, seed }) => {
   const random = seededRandom(seed ^ 0x51a7e);
   const drape = new Drape({ x: -16, z: -16 }, 32, 0.15, 0.9, 0);
   const leaves: { leaf: ReturnType<typeof stemmedLeaf>; id: number; order: number }[] = [];
-  for (let i = 0; i < PILE; i++) {
-    // Where it lands: spread over an oval about 18 by 12 cm, a few more toward the middle.
-    const r = Math.sqrt(random()) * (i < PILE * 0.6 ? 1 : 0.75);
-    const a = random() * Math.PI * 2;
-    const centre = new Vector3(Math.cos(a) * r * 7.5, 0, Math.sin(a) * r * 5);
+  // One leaf dropped onto the pile: where it lands, which way it points, its size and when it lands.
+  // (Size and landing order are drawn in the middle and at the end, in the same order as before, so
+  // the pile the user liked stays exactly as it was.)
+  const drop = (rnd: () => number, centre: Vector3, a: number, sizeOf: () => number, orderOf: () => number, height: number) => {
     // Pointing mostly outward from the middle (a heap's leaves lie that way), each its own way.
-    const heading = a + signed(random) * 0.9;
+    const heading = a + signed(rnd) * 0.9;
     const along = new Vector3(Math.cos(heading), 0, Math.sin(heading));
-    const outline = OUTLINES[Math.floor(random() * 2)];
-    const size = 0.55 + random() * 0.4;
+    const outline = OUTLINES[Math.floor(rnd() * 2)];
+    const size = sizeOf();
     const length = 9 * size;
-    const width = length * (outline.width + signed(random) * 0.06);
-    const stemLength = 1.2 + random() * 2.2;
+    const width = length * (outline.width + signed(rnd) * 0.06);
+    const stemLength = 1.2 + rnd() * 2.2;
     // Dropped from above its spot: the blade base, its short stem trailing back behind it.
-    const height = 6 + i * 0.3;
     const bladeStart = centre.clone().addScaledVector(along, -length * 0.45).setY(height);
     const stemEnd = bladeStart.clone().addScaledVector(along, -stemLength).setY(height - 0.3);
-    const fold = random();
+    const fold = rnd();
     const leaf = stemmedLeaf({
       stem: [stemEnd, stemEnd.clone().lerp(bladeStart, 0.5).setY(height - 0.1), bladeStart],
       along,
@@ -93,14 +93,14 @@ export const buildSpinach: FormBuilder = ({ state, seed }) => {
       outline: outline.shape,
       // A gentle droop toward the tip; settling onto what is below does the rest.
       lift: (u) => -0.6 * u ** 2,
-      cup: fold < 0.25 ? 0.8 + random() * 0.6 : 0.15 + random() * 0.45,
-      edgeRoll: fold > 0.8 ? signed(random) * (0.4 + random() * 0.5) : 0,
-      roll: random() < 0.12 ? Math.PI * 0.85 * Math.sign(signed(random)) : signed(random) * 0.35,
-      ruffle: 0.05 + random() * 0.12,
-      waves: 2 + random() * 3,
-      twist: signed(random) * 0.4,
-      phase: random() * Math.PI * 2,
-      stemRadius: STEM_R * (0.8 + random() * 0.4),
+      cup: fold < 0.25 ? 0.8 + rnd() * 0.6 : 0.15 + rnd() * 0.45,
+      edgeRoll: fold > 0.8 ? signed(rnd) * (0.4 + rnd() * 0.5) : 0,
+      roll: rnd() < 0.12 ? Math.PI * 0.85 * Math.sign(signed(rnd)) : signed(rnd) * 0.35,
+      ruffle: 0.05 + rnd() * 0.12,
+      waves: 2 + rnd() * 3,
+      twist: signed(rnd) * 0.4,
+      phase: rnd() * Math.PI * 2,
+      stemRadius: STEM_R * (0.8 + rnd() * 0.4),
       stemRings: 8,
       bladeRings: 18,
       around: 12,
@@ -108,7 +108,25 @@ export const buildSpinach: FormBuilder = ({ state, seed }) => {
     // The whole leaf falls straight down onto the pile (the stem with it).
     for (const ring of leaf.rings) for (const p of ring) p.y -= height - 0.1;
     for (const c of leaf.centres) c.y -= height - 0.1;
-    leaves.push({ leaf, id: random(), order: -r + random() * 0.15 });
+    const id = rnd();
+    leaves.push({ leaf, id, order: orderOf() });
+  };
+  for (let i = 0; i < PILE; i++) {
+    // Where it lands: spread over an oval about 18 by 12 cm, a few more toward the middle.
+    const r = Math.sqrt(random()) * (i < PILE * 0.6 ? 1 : 0.75);
+    const a = random() * Math.PI * 2;
+    const centre = new Vector3(Math.cos(a) * r * 7.5, 0, Math.sin(a) * r * 5);
+    drop(random, centre, a, () => 0.55 + random() * 0.4, () => -r + random() * 0.15, 6 + i * 0.3);
+  }
+  // A ring of leaves round the foot of the pile, landing first, flat on the table, so the outline
+  // reads round (the user, 2026-11-13: "add some leaves around the pile to make it look rounder,
+  // the height is perfect"). Their own random numbers, so the pile itself stays as it was.
+  const ringRandom = seededRandom(seed ^ 0x2b0e7);
+  for (let i = 0; i < RING; i++) {
+    const a = (2 * Math.PI * (i + ringRandom() * 0.6)) / RING;
+    const r = 5.3 + ringRandom() * 0.8;
+    const centre = new Vector3(Math.cos(a) * r, 0, Math.sin(a) * r * 0.95);
+    drop(ringRandom, centre, a, () => 0.6 + ringRandom() * 0.25, () => -5, 2 + i * 0.1);
   }
   // Outer leaves land first, the middle ones on top: a mound.
   const blades = leaves

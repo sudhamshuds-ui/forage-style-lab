@@ -591,7 +591,7 @@ export const REGISTRY: IngredientEntry[] = [
       show: 'A loose pile of spinach leaves heaped on the table, the outer ones lying flat, the middle ones on top, short stems poking out; every leaf its own shape, size and fold.',
       forms: ['whole', 'wilted'],
       scale: 'M',
-      size_cm: [16.7, 4.2, 13],
+      size_cm: [19.6, 4.4, 16.1],
       parts: ['blade', 'stem@leaf', 'tie@chili'],
       light_case: 'group',
       notes:
