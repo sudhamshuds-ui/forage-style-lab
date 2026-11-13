@@ -37,6 +37,7 @@ import { sweepGeometry } from './kit/sweep';
 /** How many leaves round the outside, and inside. */
 const OUTER = 13;
 const INNER = 5;
+const BOTTOM = 5;
 /** Along the bunch's axis (cm): the cut ends, the tie. */
 const CUT = -8;
 const TIE = -4;
@@ -90,12 +91,11 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
   // the table, never up ("in reality no leaves can bend upward like that").
   const makeLeaf = (angle: number, ring: number, id: number, flare?: number) => {
     const cut = CUT + signed(random) * 0.6;
-    const start = flare !== undefined ? -2.6 + random() * 0.8 : (ring < 1 ? 1 : -1) + random() * (ring < 1 ? 3.5 : 7);
+    const start = flare !== undefined ? -2.6 + random() * 0.8 : (ring < 1 ? 0 : -2.6) + random() * (ring < 1 ? 3.5 : 6.5);
     const bladeStart = at(start, angle, bundleRadius(start) * ring);
-    // Heading, seen from above: a slim bunch (the user's sketch, 2026-11-13): the leaves stay close
-    // along the stems, a little spread, tips staggered so it tapers; only the `flare` leaves (two
-    // small ones by the band) splay out to the sides.
-    const heading = flare ?? angle * 0.1 + signed(random) * 0.1;
+    // Heading, seen from above (the user's drawn outlines, 2026-11-13): the leaves start just past
+    // the band and widen out from it in a soft V, tips staggered; long and low from the side.
+    const heading = flare ?? Math.sin(angle) * 0.85 + signed(random) * 0.25;
     const along = axis.clone().multiplyScalar(Math.cos(heading)).addScaledVector(side, Math.sin(heading));
     along.y = 0;
     along.normalize();
@@ -116,7 +116,7 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
     // Its fold: most cupped, some folded along the midrib (half closed), some with an edge rolled.
     const fold = random();
     // In a closed bunch many are folded along the midrib.
-    const cup = fold < 0.65 ? 0.9 + random() * 0.9 : 0.15 + random() * 0.5;
+    const cup = fold < 0.4 ? 0.9 + random() * 0.9 : 0.15 + random() * 0.5;
     const edgeRoll = fold > 0.8 ? signed(random) * (0.5 + random() * 0.7) : 0;
     const leaf = stemmedLeaf({
       stem: [
@@ -138,7 +138,7 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
       phase: random() * Math.PI * 2,
       stemRadius: STEM_R * (0.8 + random() * 0.4),
       stemRings: 14,
-      bladeRings: 22,
+      bladeRings: 20,
       around: 12,
     });
     return { leaf, id, height: bladeStart.y + (ring < 1 ? -0.5 : 0) };
@@ -150,9 +150,9 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
   const span = onTable ? 3.2 : 2 * Math.PI;
   for (let i = 0; i < OUTER; i++) all.push(makeLeaf(-span / 2 + (span * (i + 0.5)) / OUTER + signed(random) * 0.15, 1, random()));
   for (let i = 0; i < INNER; i++) all.push(makeLeaf(signed(random) * 1.6, 0.5, random()));
-  // Two small leaves splaying out to the sides just past the band.
-  all.push(makeLeaf(1.3, 1, random(), 0.9 + random() * 0.3));
-  all.push(makeLeaf(-1.3, 1, random(), -0.9 - random() * 0.3));
+  // The stems round the bottom have leaves too, lying on the table first (the user, 2026-11-13: "the
+  // bottom stems here dont have leaves").
+  for (let i = 0; i < BOTTOM; i++) all.push(makeLeaf(Math.PI - 1.1 + (2.2 * (i + 0.5)) / BOTTOM + signed(random) * 0.1, 0.9, random()));
 
   // The stems go on the map first; then the leaves land lowest first, each settling onto the ones
   // before (the user: leaves should "fold on top of eachother or around eachother").
@@ -166,14 +166,12 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
 
   // Stems without a blade along the bottom of the bundle, so it reads full from below and the side.
   const fillers: BufferGeometry[] = [];
-  // Round the bottom and inside, so the bundle reads full from every side (the user, 2026-11-13: a
-  // single bare stem lying under the bundle looked lost).
-  for (let i = 0; i < 9; i++) {
-    const inner = i >= 6;
-    const angle = inner ? signed(random) * Math.PI : Math.PI - 1.3 + (2.6 * (i + 0.5)) / 6 + signed(random) * 0.08;
+  // (Only inside the bundle now, ending just past the band, hidden: the bottom stems carry leaves.)
+  for (let i = 0; i < 3; i++) {
+    const angle = signed(random) * Math.PI;
     const cut = CUT + signed(random) * 0.5;
-    const end = -0.5 + random();
-    const path = [cut, (cut + TIE) / 2, TIE, (TIE + end) / 2, end].map((s) => at(s, angle, bundleRadius(s) * (inner ? 0.5 : 0.95)));
+    const end = TIE + 0.6 + random() * 0.6;
+    const path = [cut, (cut + TIE) / 2, TIE, (TIE + end) / 2, end].map((s) => at(s, angle, bundleRadius(s) * 0.45));
     fillers.push(sweepGeometry({ points: path, radius: (t) => STEM_R * Math.sqrt(Math.min(1, t / 0.03)) * Math.sqrt(Math.min(1, (1 - t) / 0.08)), rings: 18, segments: 8 }));
   }
 
