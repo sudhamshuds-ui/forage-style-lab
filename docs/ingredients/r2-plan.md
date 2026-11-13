@@ -93,3 +93,41 @@ built with as little review as possible. That is the test of the ultimate goal.
    The user is also thinking about the raw meat's colours (steak, chicken): either keep them raw
    but more appetizing, or show them cooked. Open, to decide later.
 5. **Milk carton: packaging.** For now our own label, like the hot sauce's, simply saying "Milk".
+
+## Spinach: on hold, where to pick up (2026-11-13)
+
+Branch `spinach` (not merged). Four rounds so far:
+
+1. Seven flat leaves fanned on the table: rejected (all alike, edge on, slits).
+2. A tied bunch of stemmed leaves (stem and leaf one shape, `kit/leafy.ts`): the user listed
+   leaves bending and folding oddly, stem and leaf detached, obvious crossings, gaps.
+3. The whole bunch as one surface (`kit/leafMass.ts`, surface nets): rejected for spinach
+   ("more suited for romaine and cabbage, not for leafy greens"). The kit is kept for those.
+4. Round 2's bunch, fixed: the clearing push moves a blade as one piece and the stem eases out to
+   meet it (no zigzags), gentler bends, 27 leaves. The user liked how it looked lying on the floor
+   (sp4f). A floating, upright variation was tried and removed.
+
+**The user's notes on round 4, to fix next** (screenshots: `lessons/img/spinach-feedback-r4-side.png`,
+`lessons/img/spinach-feedback-r4-front.png`), in their words:
+
+1. "u dont have to show it bending upwatd like that"
+2. "it looks like they dont want to fold on top of eachother or around eachother"
+3. "ther is very minimal folding now"
+4. "all the leaves Look the same, same shape, same size, same cut, same folds same wrinkles"
+5. "in reality no leaves an bend upward like that"
+
+Claude's plan for next time:
+
+- **Gravity, not fans.** The leaves stand up from the bundle like a fan (each leans out from the
+  axis at an angle, upward ones stand in the air). Leaves are soft: from the tie they should sag,
+  lie down and pour over each other toward the table, never rise. Bend each blade down along its
+  length (more toward the tip) instead of leaning it out.
+- **Drape onto, not clear.** The clearing push keeps every leaf a gap away from the others, so
+  they never fold over or round each other. Lay leaves bottom first and let each settle onto
+  what is below (like cloth over a height field): resting on it, conforming to it, folding where
+  it runs over an edge, only kept from passing through.
+- **More folding, varied.** Real folds: some leaves folded along the midrib (half closed), some
+  with a tip turned under, a side edge rolled, a crease across; each leaf its own.
+- **Every leaf its own.** Several outline types (broad spade, long narrow, round, slightly
+  lobed), a wide spread of sizes (small young inner leaves, big outer ones), its own cut at the
+  stem, its own fold and its own wrinkle seed in the skin, so no two read the same.

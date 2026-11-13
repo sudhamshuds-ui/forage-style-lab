@@ -62,22 +62,10 @@ function outline(u: number): number {
 export const buildSpinach: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Spinach: the "${state}" form is not built yet (whole only for now).`);
   // Its axis along the table, the cut ends toward the front left, the leaves toward the back right.
-  return buildBunch(seed, new Vector3(1, 0, -0.55).normalize(), true, true);
+  return buildBunch(seed, new Vector3(1, 0, -0.55).normalize(), true);
 };
 
-/**
- * A variation (the user, 2026-11-13: "levitating above floor upright at an angle"): the same bunch
- * standing up, tilted, stems down and leaves up, nothing resting on the table (the registry's
- * `float` lifts it off the floor). Its leaves go all the way round: none is pressed flat.
- */
-export const buildSpinachFloating: FormBuilder = ({ state, seed }) => {
-  if (state !== 'whole') throw new Error(`Spinach: the "${state}" form is not built yet (whole only for now).`);
-  // No clearing push here: the user liked the bunch packed close, leaves straight off their stems,
-  // as it came out without it (2026-11-13: "it was nice at this step").
-  return buildBunch(seed, new Vector3(0.62, 1, -0.3).normalize(), false, false);
-};
-
-function buildBunch(seed: number, axis: Vector3, onTable: boolean, clearing: boolean) {
+function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
   const random = seededRandom(seed ^ 0x5b1a7c);
   // "Up" round the axis: the world's up, square to the axis.
   const up = new Vector3(0, 1, 0).addScaledVector(axis, -axis.y).normalize();
@@ -151,7 +139,7 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean, clearing: boo
         // the blade out ring by ring bent it oddly and kinked the stem (the user, 2026-11-13: "stem
         // and leaf detached"); leaning whole leaves further out splayed the bunch into a broom.
         const leaf = shape(firstAngle);
-        if (clearing) drapeStemmedLeaf(leaf, drape, CLEAR, onTable ? 0.08 : -Infinity);
+        drapeStemmedLeaf(leaf, drape, CLEAR, onTable ? 0.08 : -Infinity);
         return stemmedLeafGeometry(leaf);
       },
     });

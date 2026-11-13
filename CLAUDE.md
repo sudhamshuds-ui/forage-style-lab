@@ -509,7 +509,9 @@ Shared mechanisms added along the way (code hooks other ingredients reuse):
   12); the material knows the camera in its own space (`vObjectCamera`). `patch` is a reserved
   word in GLSL.
 - Form tests: "faces point outward" asks 85% for wedges (hole insides rightly face inward).
-Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the spinach next.
+Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`). The spinach is on hold on
+branch `spinach` (round 4): the user's five notes and the plan to pick up from are in r2-plan.md,
+"Spinach: on hold".
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after

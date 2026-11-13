@@ -15,7 +15,7 @@ import { buildPepper } from './forms/pepper';
 import { buildAvocado } from './forms/avocado';
 import { buildGrapes } from './forms/grapes';
 import { buildBlueberries } from './forms/blueberries';
-import { buildSpinach, buildSpinachFloating } from './forms/spinach';
+import { buildSpinach } from './forms/spinach';
 import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
@@ -109,12 +109,6 @@ export interface IngredientEntry {
    * spots per place it rests, never a row along the whole length.
    */
   contactsFromFeet?: boolean;
-  /**
-   * Float the ingredient this far above the table (cm), with no contact shadow, only its cast
-   * shadow on the floor below (the user, 2026-11-13: spinach "levitating above floor upright at
-   * an angle", a variation to compare).
-   */
-  float?: number;
   /**
    * Pieces left out in Playful strokes (the strokes pass repaints small dark parts as hard blocks
    * that read as errors: the watermelon's seeds, the user 2026-11-11). They still show in the
@@ -610,32 +604,6 @@ export const REGISTRY: IngredientEntry[] = [
     // Thin stems and leaf edges catch rim glints as hard lines.
     rimGlints: false,
     contactsFromFeet: true,
-    budget: [2000, 26000],
-  },
-  {
-    spec: {
-      id: 'spinach-float',
-      name: 'Spinach',
-      archetype: 'leafy',
-      family: 'spinach',
-      layout: 'solo',
-      show: 'A tied bunch of spinach floating above the floor, standing up at an angle: stems down, gathered in a band, leaves up and all round.',
-      forms: ['whole', 'wilted'],
-      scale: 'M',
-      size_cm: [14.7, 18.6, 12.6],
-      parts: ['blade', 'stem@leaf', 'tie@chili'],
-      light_case: 'group',
-      notes:
-        'Round 2, the first of the leafy kit, after the user\'s reference (a small bunch of flat-leaf spinach). Seven spoon-shaped leaves on long slim stems, each a sheet from the leafy kit (outline, cup, wavy edge, curling tip), laid bottom first and draped over each other. The veins, mottling and paler underside are a shader texture (the spinach skin).',
-    },
-    form: buildSpinachFloating,
-    // The form points its leaves at the camera (see spinach.ts).
-    turn: 0,
-    skin: { kind: 'spinach', size_mm: 2, amount: 0.9 },
-    // Thin stems and leaf edges catch rim glints as hard lines.
-    rimGlints: false,
-    // A variation to compare (the user, 2026-11-13): floating above the floor, touching nothing.
-    float: 3,
     budget: [2000, 26000],
   },
 ];
