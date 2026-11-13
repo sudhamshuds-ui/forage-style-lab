@@ -104,7 +104,7 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
     const bladeStart = at(start, angle, bundleRadius(start) * ring);
     // Heading, seen from above (the user's drawn outlines, 2026-11-13): the leaves start just past
     // the band and widen out from it in a soft V, tips staggered; long and low from the side.
-    const heading = flare ?? Math.sin(angle) * 0.5 + signed(random) * 0.15;
+    const heading = flare ?? Math.sin(angle) * 0.62 + signed(random) * 0.15;
     const along = axis.clone().multiplyScalar(Math.cos(heading)).addScaledVector(side, Math.sin(heading));
     along.y = 0;
     along.normalize();
@@ -112,7 +112,7 @@ function buildBunch(seed: number, axis: Vector3, onTable: boolean) {
     // Which way its face looks (the user, 2026-11-13: the side leaves "dont have to be facing up
     // always"): the side ones tilt to face out sideways, some rolled further, a few turned over.
     const turnedOver = random() < 0.15 && ring >= 1;
-    const faceRoll = turnedOver ? Math.PI * (0.75 + random() * 0.2) * Math.sign(signed(random)) : -Math.sin(angle) * (0.5 + random() * 0.6) + signed(random) * 0.3;
+    const faceRoll = turnedOver ? Math.PI * (0.75 + random() * 0.2) * Math.sign(signed(random)) : -Math.sin(angle) * (0.25 + random() * 0.35) + signed(random) * 0.2;
     // Young inner leaves small, outer ones big, a wide spread.
     const size = flare !== undefined ? 0.45 + random() * 0.15 : ring < 1 ? 0.5 + random() * 0.35 : 0.7 + random() * 0.6;
     const length = 9 * size;
