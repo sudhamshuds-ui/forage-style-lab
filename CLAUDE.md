@@ -284,7 +284,9 @@ keep code readable with friendly comments.
   postprocessing are the relevant ones). They target Three r160; this project uses r186.
   Emil Kowalski's design and animation skills are there too (MIT, added 2026-11-05 at the
   user's request): `emil-design-eng` (the user asked to use it for UI and motion work),
-  `animate`, `choreograph`, `review-animations` and others.
+  `animate`, `choreograph`, `review-animations` and others. Updated to the latest on 2026-11-13 with
+  `npx skills@latest add emilkowalski/skills` (copied in, pinned in `skills-lock.json`), which also
+  added `gestures` and `learn-taste`.
 - Commands: `npm run dev` (dev server, http://localhost:5173), `npm run build`
   (type-check + production build), `npm test` (Vitest: panel, Randomize, palette rules,
   backdrop layout, every registry form's size, contact, normals and triangle budget, the
