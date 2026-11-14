@@ -121,6 +121,12 @@ export function setSkin(material: ShaderMaterial, skin: Skin): void {
   // Cells per scene unit: 10 mm per cm, then centimetres to scene units.
   const cellsPerUnit = 10 / Math.max(0.1, skin.size_mm) / UNITS_PER_CM;
   (material.uniforms.uSkin.value as Vector4).set(SKIN_KINDS.indexOf(skin.kind), cellsPerUnit, skin.amount, 0);
+  // Build this material's shader with only this skin's code (see `SKIN_KIND` in the shader).
+  const kind = SKIN_KINDS.indexOf(skin.kind);
+  if (material.defines?.SKIN_KIND !== kind) {
+    material.defines = { ...(material.defines ?? {}), SKIN_KIND: kind };
+    material.needsUpdate = true;
+  }
 }
 
 export const skinTexture: ShaderEffect = {
@@ -190,7 +196,14 @@ vec3 smoothTurn(vec3 lab, vec3 N, vec3 L, float lightMask) {
 }
 `,
   body: /* glsl */ `
+// Each material is compiled with only its own skin (SKIN_KIND, set by setSkin): the number is
+// fixed when the shader is built, so every other skin's code drops out. One shader holding all the
+// skins had grown very large (27 skins by round 2's end), heavy for a graphics card to build.
+#ifdef SKIN_KIND
+const int kind = SKIN_KIND;
+#else
 int kind = int(uSkin.x + 0.5);
+#endif
 float amount = uSkin.z;
 if (kind > 0 && amount > 0.0) {
   vec3 p = objectPos * uSkin.y;

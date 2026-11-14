@@ -112,9 +112,17 @@ keep code readable with friendly comments.
   add some colours to the shadows ... like how we have our apple, orange"). Every ingredient runs
   through several hues of its colour (warm blooms, cooler deeper blooms, a gradient along each part),
   with colour in its shadows. **Match the reference 1:1** in form, colour and texture.
-- **Batch review** (the user, 2026-11-14): build a whole batch without waiting for approval on each
-  one; present it as a switcher page (like the UI variations: `prototypes/variants.html`, a picker on
-  the real page) so the user can flip through; merge to `main` after their review and approval.
+- **Batch review, in the Style Lab itself** (the user, 2026-11-14): build a whole batch without waiting
+  for approval on each one, then publish the usual "Forage Style Lab" preview with
+  `NEXT=<the batch's ids in order>`, so the first clicks of New ingredient show the batch. Merge to
+  `main` after their review and approval. **No separate switcher page**: one was built
+  (`prototypes/review.html`) and the user had it deleted ("you are making my browser and system crash
+  with this artifact, scrap this artifact, just show me this rounds ingredients normally in style
+  lab, ill shuffle through them"). The page file stays in the repo, unpublished.
+- **Each material's shader holds only its own skin** (2026-11-14): `setSkin` sets a `SKIN_KIND`
+  define, so the other skins' code drops out when the shader is built. One shader with all 27 skins
+  had grown very large; the user's browser lost its graphics (WebGL disabled) while viewing round 2's
+  batch. Not proven to be the cause, but keep shaders small: never go back to one shader for all.
 - **Warm highlights, cool shadows, always** (the user, 2026-11-12): light and its glow lean warm
   (coral, gold, cream), shadows lean cool (violet, plum, indigo, blue-green), never grey and never
   the same hue as the light. Check every new family and skin against it.
@@ -581,9 +589,9 @@ cabbage (every leaf a real leaf laid on a height map of the ball, `forms/cabbage
 ends), fried egg (`forms/egg.ts`, the puddle tool, the ninth archetype `flat`, `albumen` and `yolk`),
 rice bowl (`kit/bowl.ts`: `spinProfile`, `bowlProfile`, `moundGeometry`; the `rice` and `glaze`
 skins) and milk carton (`forms/milk.ts`, the carton tool; our own print, `milkLabelTexture`, the
-`carton` skin). Review page: `prototypes/review.html` (list a batch in
-`src/prototypes/review/harness.ts`; built with `PAGE=review npx vite build --config
-vite.proto.config.ts`), preview "Forage round 2 review". Open point told to the user: the fried
+`carton` skin). Shown on the Style Lab preview (built with
+`NEXT=cabbage,salmon,egg,rice,milk`); the review switcher artifact was deleted at the user's
+request. Open point told to the user: the fried
 egg lies flat, so from the low starting view it is a thin oval. Then round 3
 (`docs/ingredients/r3-plan.md`): ask for batch 1's references first.
 
