@@ -1056,24 +1056,29 @@ if (kind > 0 && amount > 0.0) {
     float lean = (fract(own * 7.13) - 0.5) * 0.2 - (layer - 1.0) * 0.06;
     bladeLab.yz = mat2(cos(lean), sin(lean), -sin(lean), cos(lean)) * bladeLab.yz;
     bladeLab.x += (1.5 - layer) * 0.03 * lit;
-    // On the head's own round surface: along it, and the arc round its axis (about 3.7 cm up), so
-    // the cells keep their size and shape all round, a little long along the leaves.
-    vec2 cellMap = vec2(cm.x, atan(cm.z, cm.y - 3.7) * 6.4);
-    vec3 cells = leafCells(cellMap + vec2(valueNoise3(cm * 0.7), valueNoise3(cm * 0.7 + 4.0)) * 0.5);
-    // Veins soft and broken, never a drawn net.
-    float vein = (1.0 - smoothstep(0.0, 0.12, cells.y - cells.x)) * smoothstep(0.3, 0.6, valueNoise3(cm * 1.6 + 7.0));
+    // The savoy texture, like the watercolour reference (the user: the polygon cells read as stone,
+    // "the texture isnt right"): soft mottled washes of deeper and lighter green, and fine pale veins
+    // that branch and run along the leaves (ridges of a stretched noise), broken and soft-edged,
+    // never a drawn net. Measured on the head's own round surface (along it, and the arc round its
+    // axis), so the pattern keeps its size all round.
+    vec2 cyl = vec2(cm.x, atan(cm.z, cm.y - 3.0) * 3.6);
+    vec3 vq = vec3(cyl.x * 0.45, cyl.y * 1.4, own * 9.0);
+    float ridgeA = 1.0 - abs(fbm3(vq) - 0.5) * 2.0;
+    float ridgeB = 1.0 - abs(fbm3(vq * 2.1 + 5.0) - 0.5) * 2.0;
+    float vein = smoothstep(0.8, 0.95, ridgeA) * 0.9 + smoothstep(0.86, 0.97, ridgeB) * 0.5;
+    vein *= smoothstep(0.25, 0.6, valueNoise3(cm * 0.9 + 3.0) + 0.2);
+    float mottle = fbm3(vec3(cyl * 0.55, own * 4.0 + 2.0));
+    float puddle = fbm3(vec3(cyl * 1.3, own * 7.0 + 8.0));
     vec3 cellLab = bladeLab;
-    // Each cell deeper in its middle and paler toward its rim (a watercolour pool), only a little
-    // its own tone: flat tones per cell read as a mosaic.
-    cellLab.x += (cells.z - 0.5) * 0.05;
-    cellLab.yz *= 1.05 + (cells.z - 0.5) * 0.25;
-    cellLab = shadeOwn(cellLab, (1.0 - smoothstep(0.0, 0.5, cells.x)) * 0.16);
+    cellLab = shadeOwn(cellLab, smoothstep(0.45, 0.75, puddle) * 0.16);
+    cellLab.yz *= 1.0 + smoothstep(0.5, 0.8, puddle) * 0.18;
+    cellLab.x += (mottle - 0.5) * 0.08;
     float cellShow = green * (1.0 - pale) * amount;
     bladeLab = mix(bladeLab, cellLab, cellShow);
-    bladeLab = mix(bladeLab, mix(bladeLab, ribLab, 0.5), vein * cellShow * 0.5);
-    // Deeper green blots in loose patches (the watercolour's darker cells), never even.
-    float blot = smoothstep(0.55, 0.72, fbm3(cm * 0.9 + own * 6.0)) * step(0.62, cells.z);
-    bladeLab = mix(bladeLab, vec3(bladeLab.x - 0.1, bladeLab.yz * 1.25), blot * cellShow * 0.7);
+    bladeLab = mix(bladeLab, mix(bladeLab, ribLab, 0.6), vein * cellShow * 0.7);
+    // Deeper green blots in loose patches (the watercolour's darker pools), never even.
+    float blot = smoothstep(0.6, 0.76, fbm3(vec3(cyl * 0.9, own * 6.0)));
+    bladeLab = mix(bladeLab, vec3(bladeLab.x - 0.09, bladeLab.yz * 1.22), blot * cellShow * 0.6);
     // Bright lime where the ruffled top catches the light.
     vec3 lime = litLab;
     lime.x += 0.03;

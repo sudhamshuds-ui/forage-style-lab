@@ -97,6 +97,12 @@ export interface LeafMassOptions {
   cuts?: { point: Vector3; out: Vector3; soft?: number }[];
   /** Grid size (cm). */
   cell: number;
+  /**
+   * Rounds of gentle smoothing after meshing (Taubin: a step toward the neighbours, then a step
+   * back, so it smooths without shrinking). Softens the stair steps surface nets leave on thin
+   * leaf rims (the user, romaine: "jagged and rough and edgy"). Default 0.
+   */
+  smoothRounds?: number;
 }
 
 /** An ellipsoid's distance (approximate, good near its surface). */
@@ -223,6 +229,44 @@ function leafBoxGap(p: Vector3, f: LeafFrame): number {
   return Math.hypot(gx, gy, gz);
 }
 
+/** Taubin smoothing: rounds of shrink-free smoothing over the mesh's own neighbours. */
+function taubin(geometry: BufferGeometry, rounds: number): void {
+  const position = geometry.getAttribute('position') as BufferAttribute;
+  const index = geometry.getIndex()!;
+  const n = position.count;
+  const neighbours: number[][] = Array.from({ length: n }, () => []);
+  for (let k = 0; k < index.count; k += 3) {
+    const a = index.getX(k);
+    const b = index.getX(k + 1);
+    const c = index.getX(k + 2);
+    neighbours[a].push(b, c);
+    neighbours[b].push(a, c);
+    neighbours[c].push(a, b);
+  }
+  const p = position.array as Float32Array;
+  const next = new Float32Array(p.length);
+  for (let round = 0; round < rounds * 2; round++) {
+    const step = round % 2 === 0 ? 0.5 : -0.53;
+    for (let i = 0; i < n; i++) {
+      const list = neighbours[i];
+      let x = 0;
+      let y = 0;
+      let z = 0;
+      for (const j of list) {
+        x += p[3 * j];
+        y += p[3 * j + 1];
+        z += p[3 * j + 2];
+      }
+      const m = list.length || 1;
+      next[3 * i] = p[3 * i] + (x / m - p[3 * i]) * step;
+      next[3 * i + 1] = p[3 * i + 1] + (y / m - p[3 * i + 1]) * step;
+      next[3 * i + 2] = p[3 * i + 2] + (z / m - p[3 * i + 2]) * step;
+    }
+    p.set(next);
+  }
+  position.needsUpdate = true;
+}
+
 export class LeafMass {
   private frames: LeafFrame[];
   private stemBoxes: { min: Vector3; max: Vector3 }[];
@@ -345,6 +389,7 @@ export class LeafMass {
         tz,
       );
     };
+    if (o.smoothRounds) taubin(geometry, o.smoothRounds);
     this.paint(geometry, smooth);
     return geometry;
   }

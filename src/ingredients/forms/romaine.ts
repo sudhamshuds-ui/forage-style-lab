@@ -46,7 +46,7 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
   const core: MassBlob[] = [2.5, 7, 12, 16.5, 20].map((x) => ({
     centre: axisAt(x),
     // (Close under the leaves, so no gap between them shows as a pit.)
-    radii: new Vector3(3.6, (radius(x) - 0.3) * squash, radius(x) - 0.3),
+    radii: new Vector3(3.6, (radius(x) - 0.15) * squash, radius(x) - 0.15),
   }));
 
   // 2. The leaves, in three layers round the head, each its own size, width and ruffle.
@@ -56,7 +56,7 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     // Heart: short pale leaves deep inside, showing at the top where the outer ones open.
     // (Eight outer leaves, the middle layer close under them: gaps between two outer leaves showed
     // a lower leaf as a small round pit.)
-    { count: 8, from: 0.6, length: [23, 26], width: [6.8, 8], inset: 0.15, rank: 2 },
+    { count: 9, from: 0.6, length: [23, 26], width: [7.2, 8.4], inset: 0.15, rank: 2 },
     { count: 6, from: 1.2, length: [23, 25.5], width: [5.8, 6.8], inset: 0.3, rank: 1 },
     // The heart reaches the top and folds over the end, filling it with leaves.
     { count: 5, from: 5, length: [20.5, 22], width: [4.4, 5.4], inset: 0.9, rank: 0 },
@@ -91,7 +91,8 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
         // (Gentle: deeper puckers left round pits on top; the savoy cells are painted.)
         crinkle: 0.04 + random() * 0.04,
         crinkleScale: 1.6 + random() * 0.6,
-        lobes: (layer.rank === 3 ? 0.1 : 0.05) + random() * 0.05,
+        // (Barely lobed: a wobbly outline read as jagged.)
+        lobes: 0.02 + random() * 0.02,
         // The top edge lifts a little and ruffles (the reference's frilly top), never curling up.
         // Edges hug the head (a raised rim made each leaf a shallow dish: round pits on top).
         rimLift: -0.15 - random() * 0.15,
@@ -100,8 +101,9 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
         // Outer and wrapper tips ruffle out a little; the heart's tips fold in over the end.
         tipCurl: layer.rank >= 2 ? 0.3 + random() * 0.4 : layer.rank === 0 ? -0.7 - random() * 0.3 : -0.2,
         // (Gentler: bigger waves and folds bubbled up on top.)
-        wave: 0.25 + random() * 0.2,
-        waves: 6 + Math.floor(random() * 4),
+        // Soft, broad ruffles on the outer leaves' tops (the frilly crown), gentle on the others.
+        wave: layer.rank >= 2 ? 0.35 + random() * 0.2 : 0.2 + random() * 0.15,
+        waves: 4 + Math.floor(random() * 3),
         phase: random() * Math.PI * 2,
         fold: 0,
         // Its layer (0 heart, 1 middle, 2 outer) and its own number, for the skin.
@@ -123,7 +125,8 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     // The cut across the base: a flat face to the front.
     // Cut a little off square, its rim well rounded (the user: "round it more").
     cuts: [{ point: new Vector3(0.5, 0, 0), out: new Vector3(-1, 0.06, 0.1).normalize(), soft: 0.9 }],
-    cell: 0.38,
+    cell: 0.33,
+    smoothRounds: 4,
   });
   const head = mass.geometry();
 
