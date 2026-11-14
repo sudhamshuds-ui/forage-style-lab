@@ -42,3 +42,18 @@ the board and what it gets, in the shape of the brand skill's step 5 table.
   watercolour heaps of baby spinach) beside our painting (`docs/ingredients/lessons/img/spinach.png`).
 - **09 How Claude Code builds a form**: the pre-check gains "soft parts sag down, never up" and "look
   from above and from every side".
+
+## Romaine (approved 2026-11-14)
+
+- **04 Warm subject, cool room**: a Romaine family row (lit #c6e07e, base #6ea648, shadow #2d5b57,
+  glow #bcdc58, highlight #f6f7dc; room Thistle). Colour lessons "Colour flows across pieces;
+  texture follows each piece", "Veins like the reference, never cells", "A cut face is clean and
+  light" (romaine).
+- **06 Composition and size**: a table row (Romaine, one head on its side, solo, Romaine, L, about
+  27 cm long).
+- **07 Ingredient system**: the leafy archetype's Built line (romaine: a blended inner head with
+  separate outer leaves); form lesson "A head: blended inside, real leaves outside" (romaine).
+- **08 The first 12**: a Romaine card: the user's references beside our painting
+  (`docs/ingredients/lessons/img/romaine.png`).
+- **09 How Claude Code builds a form**: the pre-check gains "no lower layer showing through gaps
+  between leaves; look close up near the base".

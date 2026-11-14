@@ -527,7 +527,13 @@ Shared mechanisms added along the way (code hooks other ingredients reuse):
   as `buildSpinachBunch`, the one-surface head as `kit/leafMass.ts` (for romaine and napa cabbage).
   See `lessons/spinach.md`.
 
-Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the romaine next.
+- **Romaine** (round 2): one head on its side, cut base to the front; a blended inner head
+  (`kit/leafMass.ts`, `cuts`, `smoothRounds`) with seven separate outer leaves laid as shingles; the
+  `romaine` family (Thistle) and skin (kind 21: pale ribs into green, veins per leaf from `leafMap`,
+  subsurface, a clean cream cut disc). The crinkle texture was taken out (in history). See
+  `lessons/romaine.md`.
+
+Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the napa cabbage next.
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after
