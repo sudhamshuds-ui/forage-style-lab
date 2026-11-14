@@ -129,3 +129,98 @@ export function hotSauceLabelTexture(): CanvasTexture | null {
   }
   return cached;
 }
+
+/**
+ * The milk carton's print (round 2, 2026-11-14): our own design, in the spirit of the user's
+ * reference (a white carton with a bold green word and cow spots), never its brand. The strip
+ * runs once round the four faces (each a quarter of the width: front, right side, back, left
+ * side) and up the whole carton (the body is the lower four fifths, the gable above it).
+ * White = ink (painted green by the `carton` skin), black = the white paper.
+ */
+function spot(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, random: () => number): void {
+  const points = 7;
+  const radii = Array.from({ length: points }, () => size * (0.5 + random() * 0.75));
+  const turn = random() * Math.PI * 2;
+  const at = (i: number) => {
+    const a = turn + (i / points) * Math.PI * 2;
+    const r = radii[((i % points) + points) % points];
+    // (The strip is stretched upward on the carton: wider here, so the spots come out round.)
+    return [x + Math.cos(a) * r * 1.35, y + Math.sin(a) * r * 0.92] as const;
+  };
+  ctx.beginPath();
+  for (let i = 0; i <= points; i++) {
+    const [ax, ay] = at(i);
+    const [bx, by] = at(i + 1);
+    if (i === 0) ctx.moveTo((ax + bx) / 2, (ay + by) / 2);
+    else {
+      const [px, py] = at(i);
+      ctx.quadraticCurveTo(px, py, (ax + bx) / 2, (ay + by) / 2);
+    }
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+export function drawMilkLabel(): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  const W = 2048;
+  const H = 1024;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+  const random = seeded(23);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#fff';
+  const face = W / 4;
+  // The body ends at about four fifths of the height (canvas y runs down: the body is the lower part).
+  const bodyTop = H * 0.215;
+  const bodyH = H - bodyTop;
+
+  // The front: the word, hand-lettered, running up the face; a milk drop above it; a small line below.
+  ctx.save();
+  ctx.translate(face * 0.5 + 18, bodyTop + bodyH * 0.53);
+  ctx.rotate(-Math.PI / 2);
+  letter(ctx, 'MILK', 0, 0, 205, random);
+  ctx.restore();
+  // The drop.
+  const dx = face * 0.5;
+  const dy = bodyTop + 78;
+  ctx.beginPath();
+  ctx.moveTo(dx, dy - 52);
+  ctx.bezierCurveTo(dx + 12, dy - 20, dx + 40, dy + 2, dx + 40, dy + 26);
+  ctx.bezierCurveTo(dx + 40, dy + 52, dx + 20, dy + 66, dx, dy + 66);
+  ctx.bezierCurveTo(dx - 20, dy + 66, dx - 40, dy + 52, dx - 40, dy + 26);
+  ctx.bezierCurveTo(dx - 40, dy + 2, dx - 12, dy - 20, dx, dy - 52);
+  ctx.fill();
+  ctx.font = '700 34px "Helvetica Neue", Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('FRESH  ·  1 LITRE', face * 0.5, H - 60);
+
+  // The two sides and the back: cow spots, soft-edged like a loose print, each its own shape.
+  ctx.filter = 'blur(5px)';
+  const spots: [number, number, number][] = [
+    [1.32, 0.3, 62], [1.66, 0.42, 84], [1.4, 0.56, 96], [1.72, 0.7, 60], [1.3, 0.8, 70], [1.6, 0.9, 46],
+    [2.3, 0.34, 80], [2.68, 0.5, 64], [2.36, 0.68, 58], [2.66, 0.84, 90],
+    [3.34, 0.36, 70], [3.7, 0.3, 44], [3.6, 0.55, 98], [3.3, 0.72, 62], [3.68, 0.86, 72],
+  ];
+  for (const [fx, fy, size] of spots) spot(ctx, face * fx, bodyTop + bodyH * fy, size, random);
+  ctx.filter = 'none';
+  return canvas;
+}
+
+let cachedMilk: CanvasTexture | null = null;
+
+/** The milk carton's print as a texture (made once). Null where there is no page (tests). */
+export function milkLabelTexture(): CanvasTexture | null {
+  if (typeof document === 'undefined') return null;
+  if (!cachedMilk) {
+    cachedMilk = new CanvasTexture(drawMilkLabel());
+    cachedMilk.colorSpace = NoColorSpace;
+    cachedMilk.wrapS = RepeatWrapping;
+    cachedMilk.minFilter = LinearFilter;
+    cachedMilk.anisotropy = 4;
+  }
+  return cachedMilk;
+}

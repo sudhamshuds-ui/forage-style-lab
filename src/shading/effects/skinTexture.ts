@@ -57,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon', 'egg', 'rice', 'glaze'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon', 'egg', 'rice', 'glaze', 'carton'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -1406,6 +1406,33 @@ if (kind > 0 && amount > 0.0) {
     float speck = smoothstep(0.8, 0.92, valueNoise3(objectPos * 60.0));
     lab = shadeOwn(lab, speck * 0.3 * show);
     highlightOwn = max(highlightOwn, band);
+  } else if (kind == 27) {
+    // A printed carton (the milk carton): white coated card with colour depth, and the print on it.
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    vec3 cm = objectPos * 3.8169;
+    // Colour depth in the white: broad soft washes of warm cream and of cool blue-lilac, a cool
+    // blue rising from the table's bounce low down, a warm blush near the top; the shade side a
+    // clear blue-violet (a painted white is never grey).
+    float wash = fbm3(vec3(cm.x * 0.16, cm.y * 0.1, cm.z * 0.16) + 2.0);
+    vec3 warm = vec3(lab.x + 0.005, lab.y + 0.012, lab.z + 0.032);
+    vec3 cool = vec3(lab.x - 0.06, lab.y + 0.008, lab.z - 0.055);
+    lab = mix(lab, warm, smoothstep(0.45, 0.72, wash) * 0.7);
+    lab = mix(lab, cool, smoothstep(0.5, 0.78, 1.0 - wash) * 0.45);
+    lab = mix(lab, vec3(lab.x - 0.035, lab.y - 0.012, lab.z - 0.03), (1.0 - smoothstep(0.0, 0.3, vSurfaceUv.y)) * 0.5);
+    lab = mix(lab, vec3(lab.x - 0.01, lab.y + 0.02, lab.z + 0.02), smoothstep(0.7, 1.0, vSurfaceUv.y) * 0.4);
+    lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.03, lab.z - 0.075), (1.0 - lit) * 0.45);
+    // The print: shaded with the card under it, each area of ink a little uneven like a loose
+    // screen print (deeper and bluer in places, lime where the light is full).
+    float ink = texture2D(uLabelMap, vSurfaceUv).r;
+    vec3 inkLab = linearToOklab(uLabelInk);
+    inkLab.x += (lab.x - linearToOklab(uBaseColour).x) * 1.1;
+    float inkWash = fbm3(cm * 0.5 + 7.0);
+    inkLab = mix(inkLab, vec3(inkLab.x - 0.05, inkLab.y + 0.01, inkLab.z - 0.045), smoothstep(0.4, 0.75, inkWash) * 0.7);
+    inkLab = mix(inkLab, vec3(inkLab.x + 0.05, inkLab.y - 0.01, inkLab.z + 0.05), smoothstep(0.55, 0.8, 1.0 - inkWash) * lit * 0.7);
+    inkLab = mix(inkLab, vec3(inkLab.x - 0.03, inkLab.y + 0.03, inkLab.z - 0.06), (1.0 - lit) * 0.4);
+    lab = mix(lab, inkLab, ink * amount);
+    highlightOwn = max(highlightOwn, ink);
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

@@ -143,3 +143,11 @@ Claude's plan for next time:
 - **Every leaf its own.** Several outline types (broad spade, long narrow, round, slightly
   lobed), a wide spread of sizes (small young inner leaves, big outer ones), its own cut at the
   stem, its own fold and its own wrinkle seed in the skin, so no two read the same.
+
+## The last five (2026-11-14): built, waiting for one review
+
+The user asked for the rest of the round without an approval on each one, shown together on a
+switcher page (`prototypes/review.html`, preview "Forage round 2 review"), and for more colour:
+"the colours just look flat 2 greens", "make it a bit dramatic, add colours, add some colours to
+the shadows", "match the reference 1:1". Built: cabbage (rounds 2 and 3), salmon, fried egg, rice
+bowl, milk carton. Merge to `main` and `/forage-brand` after the user's review.

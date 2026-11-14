@@ -21,6 +21,7 @@ import { buildCabbage } from './forms/cabbage';
 import { buildSalmon } from './forms/salmon';
 import { buildEgg } from './forms/egg';
 import { buildRice } from './forms/rice';
+import { buildMilk } from './forms/milk';
 import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
@@ -737,6 +738,31 @@ export const REGISTRY: IngredientEntry[] = [
     rimGlints: false,
     shadowTint: 0.3,
     budget: [2000, 24000],
+  },
+  {
+    spec: {
+      id: 'milk',
+      name: 'Milk',
+      archetype: 'contained',
+      family: 'milk',
+      layout: 'solo',
+      show: 'One gable-top milk carton standing up, turned three-quarter: a green screw cap on the front slope, our own green print (the word, a drop, cow spots).',
+      forms: ['whole'],
+      scale: 'M',
+      size_cm: [7.1, 20.4, 7.1],
+      parts: ['carton', 'cap@print-green'],
+      light_case: 'pale',
+      notes:
+        'Round 2, after the user\'s reference (Figma node 148:3: the form only; the print is our own, like the hot sauce\'s). The carton tool: a box built as rings, a gable whose ends fold in, a sealed fin. Crisp folds, each a small bevel. The print and the paper\'s colour depth are the carton skin (artwork in src/shading/labelArt.ts).',
+    },
+    form: buildMilk,
+    // Three-quarter: the front (the word, the cap) toward the key light, a spotted side to the camera.
+    turn: -32,
+    skin: { kind: 'carton', size_mm: 1, amount: 1 },
+    matte: true,
+    rimGlints: false,
+    shadowTint: 0.15,
+    budget: [1000, 12000],
   },
 ];
 

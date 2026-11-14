@@ -573,7 +573,21 @@ light's rainbow fringe) loads the room's colour, and room strokes pick up the co
 (wet-in-wet). A pick-up that reacted to every small change flattened the wall's slabs: keep the
 thresholds.
 
-## Where we are (2026-11-11, night)
+## Where we are (2026-11-14)
+Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one
+review** (not approved, not merged; `/forage-brand` after approval, then merge to `main`):
+cabbage (every leaf a real leaf laid on a height map of the ball, `forms/cabbage.ts`), salmon
+(`forms/salmon.ts`, the `salmon` skin: fat lines as one field, V shapes on top and arcs on the cut
+ends), fried egg (`forms/egg.ts`, the puddle tool, the ninth archetype `flat`, `albumen` and `yolk`),
+rice bowl (`kit/bowl.ts`: `spinProfile`, `bowlProfile`, `moundGeometry`; the `rice` and `glaze`
+skins) and milk carton (`forms/milk.ts`, the carton tool; our own print, `milkLabelTexture`, the
+`carton` skin). Review page: `prototypes/review.html` (list a batch in
+`src/prototypes/review/harness.ts`; built with `PAGE=review npx vite build --config
+vite.proto.config.ts`), preview "Forage round 2 review". Open point told to the user: the fried
+egg lies flat, so from the low starting view it is a thin oval. Then round 3
+(`docs/ingredients/r3-plan.md`): ask for batch 1's references first.
+
+## Earlier (2026-11-11, night)
 The chicken drumstick is approved (branch `chicken`, with `steak-melon` merged into it; see the
 Chicken line under "Done so far"). On `steak-melon`: the steak's rounder eye and the watermelon
 seeds left out of Playful strokes. Two shared fixes came with the drumstick: outline pixels are no

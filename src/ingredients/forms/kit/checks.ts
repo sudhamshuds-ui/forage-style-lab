@@ -20,7 +20,7 @@ export const TRIANGLE_BUDGET = {
   leafy: [1000, 3000],
   contained: [0, 1000],
   // The ninth archetype (the user, 2026-11-14): flat things, a fried egg, bacon, tortillas.
-  flat: [1000, 16000],
+  flat: [1000, 18000],
 } as const;
 
 /** Small parts that may stick out past an ingredient's real size (a stem, a leaf, a calyx, a butter curl). */

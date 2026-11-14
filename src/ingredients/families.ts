@@ -38,6 +38,8 @@ export type FamilyId =
   | 'yolk'
   | 'rice'
   | 'glaze'
+  | 'milk'
+  | 'print-green'
   | 'vine'
   | 'pit'
   | 'papery'
@@ -354,6 +356,20 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   glaze: {
     name: 'Glaze',
     colours: { lit: '#aecb8f', base: '#6c9a63', shadow: '#2c5560', glow: '#a5c66f', highlight: '#f1f7df' },
+    rooms: [],
+  },
+  // Not on board 04 yet (added 2026-11-14, round 2: the milk carton): white coated card, a warm
+  // white in the light, a blue-lilac in shadow (never grey), a faint cream glow.
+  milk: {
+    name: 'Milk',
+    colours: { lit: '#fffefa', base: '#f3f1ec', shadow: '#a4a6d2', glow: '#fff1d0', highlight: '#ffffff' },
+    rooms: ['seafoam', 'spruce'],
+  },
+  // Not a board 04 family: only for parts (a carton's printed green and its cap). A fresh deep
+  // green, lime where lit, blue-teal in shadow.
+  'print-green': {
+    name: 'Print green',
+    colours: { lit: '#6dbb7c', base: '#2f8052', shadow: '#1b4a58', glow: '#6fbf5e', highlight: '#e3f3dc' },
     rooms: [],
   },
   // Not a board 04 family: only for parts (a grape bunch's woody stem; later vines and tomato

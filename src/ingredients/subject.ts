@@ -4,7 +4,7 @@ import { setPalette, softenPalette, type Palette, type StylizedLook } from '../s
 import { Apple } from './apple/apple';
 import { mixHex } from '../utils/colour';
 import { CRUMB_SKIN, GLAZE_SKIN, KNUCKLE_SKIN, LABEL_SKIN, LEAF_SKIN, MELON_RIND_SKIN, setSkin } from '../shading/effects/skinTexture';
-import { hotSauceLabelTexture } from '../shading/labelArt';
+import { hotSauceLabelTexture, milkLabelTexture } from '../shading/labelArt';
 import { FAMILIES } from './families';
 import { seedFromId, seededRandom } from './forms/kit/random';
 import { LAYOUT_COUNT, arrangeCluster, footprintSpots, samplePoints, transformed } from './layout';
@@ -196,6 +196,11 @@ class FormSubject implements Subject {
           if (entry.skin.kind === 'egg') {
             (material.uniforms.uMelonPale.value as Color).set('#f4b64e');
             (material.uniforms.uMelonGreen.value as Color).set('#a4522c');
+          }
+          // A printed carton: its artwork, in the print's green.
+          if (entry.skin.kind === 'carton') {
+            material.uniforms.uLabelMap.value = milkLabelTexture();
+            (material.uniforms.uLabelInk.value as Color).set(FAMILIES['print-green'].colours.base);
           }
           // A red onion: its papery flakes, root patch and dry neck are painted in the papery tan.
           if (entry.skin.kind === 'onion') (material.uniforms.uMelonPale.value as Color).set(FAMILIES.papery.colours.base);
