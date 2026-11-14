@@ -29,6 +29,9 @@ varying vec3 vWorldNormal;
 varying vec3 vWorldPos;
 varying vec3 vObjectPos;
 varying vec3 vOwnPos;
+// Optional: where a point sits on its own leaf (x 0 at the base to 1 at the tip, y -1 to 1 across,
+// 0 on the midrib), for veins drawn per leaf (romaine). Pieces without it read (0, 0).
+varying vec2 vLeafMap;
 // A leaf's own map: x runs from stalk (0) to tip (1), y across (0.5 is the centre vein).
 varying vec2 vSurfaceUv;
 // The camera, in the object's own space: lets translucent flesh be looked into (melon seeds).
@@ -37,6 +40,7 @@ varying vec3 vObjectCamera;
 // that is tipped over on stage (the red onion lies on its side), so marks that run round its
 // axis still follow it. Pieces without it read (0, 0, 0).
 attribute vec3 ownPos;
+attribute vec2 leafMap;
 
 void main() {
   #include <beginnormal_vertex>
@@ -49,6 +53,7 @@ void main() {
   vObjectPos = position;
   vSurfaceUv = uv;
   vOwnPos = ownPos;
+  vLeafMap = leafMap;
   vObjectCamera = (inverse(modelMatrix) * vec4(cameraPosition, 1.0)).xyz;
   vec4 worldPos = modelMatrix * vec4(position, 1.0);
   vWorldPos = worldPos.xyz;
@@ -85,6 +90,7 @@ varying vec3 vWorldNormal;
 varying vec3 vWorldPos;
 varying vec3 vObjectPos;
 varying vec3 vOwnPos;
+varying vec2 vLeafMap;
 varying vec2 vSurfaceUv;
 varying vec3 vObjectCamera;
 

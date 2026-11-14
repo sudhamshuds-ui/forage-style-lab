@@ -103,7 +103,8 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
         width: layer.width[0] + random() * (layer.width[1] - layer.width[0]),
         // Narrow at the base, widest toward the top, where the leaf opens and ruffles.
         widest: 0.68 + random() * 0.1,
-        thickness: 0.3,
+        // (Thicker, so the meshed rims are smooth, never stair-stepped.)
+        thickness: 0.38,
         // Nearly straight along its length, wrapped round the head across it.
         bend: 70,
         bendAcross: radius(x0 + length * 0.5) - layer.inset + 0.3,
@@ -145,7 +146,7 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     // Cut a little off square, its rim well rounded (the user: "round it more").
     cuts: [{ point: new Vector3(0.5, 0, 0), out: new Vector3(-1, 0.06, 0.1).normalize(), soft: 0.9 }],
     cell: 0.33,
-    smoothRounds: 4,
+    smoothRounds: 6,
   });
   const head = mass.geometry();
 
@@ -154,6 +155,13 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
   // x: how pale (the broad rib, and the white base of every leaf), y: how green (rising up the leaf).
   {
     const map = head.getAttribute('uv') as BufferAttribute;
+    // Each point's place on its own leaf, kept for the veins (before the map is blended).
+    const leafMap = new Float32Array(map.count * 2);
+    for (let i = 0; i < map.count; i++) {
+      leafMap[i * 2] = Math.max(0.001, map.getX(i));
+      leafMap[i * 2 + 1] = (map.getY(i) - 0.5) * 2;
+    }
+    head.setAttribute('leafMap', new BufferAttribute(leafMap, 2));
     for (let i = 0; i < map.count; i++) {
       const u = map.getX(i);
       const across = Math.abs(map.getY(i) - 0.5) * 2;
@@ -222,8 +230,8 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
   //    two overlap one is always on top, all the way round, and they never pass through each other.
   const outer: BufferGeometry[] = [];
   const turn0 = random() * Math.PI * 2;
-  const ringsAlong = 38;
-  const around = 14;
+  const ringsAlong = 52;
+  const around = 18;
   for (let i = 0; i < OUTER_LEAVES; i++) {
     const centreAngle = turn0 + (2 * Math.PI * i) / OUTER_LEAVES + signed(random) * 0.12;
     // None straight underneath, pressed into the table.
@@ -275,6 +283,12 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     // green (rising up the leaf); ownPos: the leaf's number, no crevice, how near its edge.
     const map = g.getAttribute('uv') as BufferAttribute;
     const own = g.getAttribute('ownPos') as BufferAttribute;
+    const leafMap = new Float32Array(map.count * 2);
+    for (let v = 0; v < map.count; v++) {
+      leafMap[v * 2] = Math.min(1, Math.max(0.001, map.getX(v)));
+      leafMap[v * 2 + 1] = 1 - 2 * map.getY(v);
+    }
+    g.setAttribute('leafMap', new BufferAttribute(leafMap, 2));
     for (let v = 0; v < map.count; v++) {
       const u = Math.min(1, Math.max(0, map.getX(v)));
       const across = Math.abs(map.getY(v) - 0.5) * 2;

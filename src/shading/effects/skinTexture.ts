@@ -1075,7 +1075,27 @@ if (kind > 0 && amount > 0.0) {
     cellLab.x += (mottle - 0.5) * 0.08;
     float cellShow = green * (1.0 - pale) * amount;
     bladeLab = mix(bladeLab, cellLab, cellShow);
-    bladeLab = mix(bladeLab, mix(bladeLab, ribLab, 0.6), vein * cellShow * 0.7);
+    // Veins drawn on each leaf from its own map (vLeafMap: along it, and across it from the midrib),
+    // like the references (the user: "add more veiny texture like the refs"): side veins branching
+    // from the midrib diagonally toward the tip and edge, wavering a little, thinning out toward
+    // the edge; finer veins between them; the leaf puckered softly between the veins (savoy).
+    if (vLeafMap.x > 0.0005) {
+      float lu = vLeafMap.x;
+      float la = abs(vLeafMap.y);
+      float wob = (valueNoise3(vec3(lu * 14.0, la * 5.0, own * 23.0)) - 0.5) * 0.35;
+      float sidePhase = lu * 11.0 - la * 2.2 + own * 7.0 + wob;
+      float sideLine = smoothstep(0.0, 1.0, (abs(fract(sidePhase) - 0.5) * 2.0 - 0.78) / 0.22);
+      float side = sideLine * smoothstep(0.06, 0.16, la) * (1.0 - smoothstep(0.75, 1.0, la)) * smoothstep(0.08, 0.25, lu);
+      vec3 fq = vec3(lu * 34.0, vLeafMap.y * 9.0, own * 13.0);
+      float fine = smoothstep(0.88, 0.97, 1.0 - abs(fbm3(fq) - 0.5) * 2.0) * smoothstep(0.1, 0.3, la);
+      float leafVein = clamp(side + fine * 0.6, 0.0, 1.0);
+      // Puckers: soft domes between the veins, lighter on top, deeper in the hollows.
+      float pucker = valueNoise3(vec3(lu * 22.0, vLeafMap.y * 6.5, own * 31.0));
+      bladeLab = shadeOwn(bladeLab, smoothstep(0.55, 0.85, pucker) * 0.1 * cellShow);
+      bladeLab.x += smoothstep(0.3, 0.05, pucker) * 0.03 * cellShow * lit;
+      vein = max(vein * 0.4, leafVein);
+    }
+    bladeLab = mix(bladeLab, mix(bladeLab, ribLab, 0.65), vein * cellShow * 0.75);
     // Deeper green blots in loose patches (the watercolour's darker pools), never even.
     float blot = smoothstep(0.6, 0.76, fbm3(vec3(cyl * 0.9, own * 6.0)));
     bladeLab = mix(bladeLab, vec3(bladeLab.x - 0.09, bladeLab.yz * 1.22), blot * cellShow * 0.6);
@@ -1106,7 +1126,13 @@ if (kind > 0 && amount > 0.0) {
     //    edges seen side on; the shaded side leans cool (warm highlights, cool shadows).
     float turnBand = smoothstep(-0.3, 0.0, NdotL) * (1.0 - smoothstep(0.0, 0.35, NdotL));
     float edgeOn = pow(1.0 - abs(dot(N, V)), 2.0);
-    lab = mix(lab, linearToOklab(uGlowColour), clamp(turnBand * 0.2 + edgeOn * 0.08, 0.0, 0.3) * amount);
+    // Subsurface (the user: "and some subsurface"): light carried through the thin leaves: a warm
+    // band where it turns into shadow, thin edges seen side on, light from behind, and the shadow
+    // side soaking up a little warm glow (never grey). Strongest on the green blade, gentler on the rib.
+    float through = pow(max(dot(V, -L), 0.0), 2.0);
+    float glowAmount = turnBand * 0.35 + edgeOn * 0.16 + through * 0.3 + (1.0 - lit) * 0.12;
+    glowAmount *= mix(0.6, 1.0, green);
+    lab = mix(lab, linearToOklab(uGlowColour), clamp(glowAmount, 0.0, 0.45) * amount);
     vec3 cool = vec3(lab.x - 0.01, -0.04, -0.03);
     lab = mix(lab, cool, (1.0 - smoothstep(-0.35, 0.4, NdotL)) * 0.2 * amount);
 
