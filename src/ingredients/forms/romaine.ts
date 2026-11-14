@@ -1,7 +1,24 @@
-import { BufferAttribute, Vector3 } from 'three';
+import { BufferAttribute, Vector3, type BufferGeometry } from 'three';
+
+/** The volume a closed mesh encloses (positive when its faces point outward). */
+function signedVolumeOf(g: BufferGeometry): number {
+  const p = g.getAttribute('position');
+  const index = g.getIndex()!;
+  let v = 0;
+  for (let t = 0; t < index.count; t += 3) {
+    const a = index.getX(t), b = index.getX(t + 1), c = index.getX(t + 2);
+    const ax = p.getX(a), ay = p.getY(a), az = p.getZ(a);
+    const bx = p.getX(b), by = p.getY(b), bz = p.getZ(b);
+    const cx = p.getX(c), cy = p.getY(c), cz = p.getZ(c);
+    v += (ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) + az * (bx * cy - by * cx)) / 6;
+  }
+  return v;
+}
 import { LeafMass, type MassBlob, type MassLeaf } from './kit/leafMass';
 import { smoothstep } from './kit/lathe';
 import { finishPieces, type FormBuilder } from './kit/piece';
+import { stemmedLeafGeometry, type StemmedLeaf } from './kit/leafy';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { seededRandom, signed } from './kit/random';
 
 /**
@@ -20,6 +37,10 @@ import { seededRandom, signed } from './kit/random';
 
 /** The head's length (cm) and its radius along it: narrow at the base, fullest past the middle. */
 const LENGTH = 26;
+/** How far the blended inner head sits inside the separate outer leaves (cm). */
+const IN = 0.8;
+/** The separate outer leaves wrapped round the head (the user, 2026-11-13: "try the separate outer leaves approach. it looks like a log tree trunk now"). */
+const OUTER_LEAVES = 7;
 function radius(x: number): number {
   const t = Math.min(1, Math.max(0, x / LENGTH));
   // A barrel: rounded in from the cut, swelling fullest just past the middle, easing in at the top
@@ -46,7 +67,7 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
   const core: MassBlob[] = [2.5, 7, 12, 16.5, 20].map((x) => ({
     centre: axisAt(x),
     // (Close under the leaves, so no gap between them shows as a pit.)
-    radii: new Vector3(3.6, (radius(x) - 0.15) * squash, radius(x) - 0.15),
+    radii: new Vector3(3.6, (radius(x) - IN - 0.15) * squash, radius(x) - IN - 0.15),
   }));
 
   // 2. The leaves, in three layers round the head, each its own size, width and ruffle.
@@ -56,13 +77,10 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     // Heart: short pale leaves deep inside, showing at the top where the outer ones open.
     // (Eight outer leaves, the middle layer close under them: gaps between two outer leaves showed
     // a lower leaf as a small round pit.)
-    { count: 9, from: 0.6, length: [23, 26], width: [7.2, 8.4], inset: 0.15, rank: 2 },
-    { count: 6, from: 1.2, length: [23, 25.5], width: [5.8, 6.8], inset: 0.3, rank: 1 },
+    { count: 9, from: 0.6, length: [23, 26], width: [7.2, 8.4], inset: IN + 0.15, rank: 2 },
+    { count: 6, from: 1.2, length: [23, 25.5], width: [5.8, 6.8], inset: IN + 0.3, rank: 1 },
     // The heart reaches the top and folds over the end, filling it with leaves.
-    { count: 5, from: 5, length: [20.5, 22], width: [4.4, 5.4], inset: 0.9, rank: 0 },
-    // Loose wrapper leaves round the body, standing a little off it: more shape and a rounder,
-    // less even outline (rank 3: painted as outer leaves).
-    { count: 4, from: 0.3, length: [17, 22], width: [7.6, 8.8], inset: -0.35, rank: 3 },
+    { count: 5, from: 5, length: [20.5, 22], width: [4.4, 5.4], inset: IN + 0.9, rank: 0 },
   ];
   for (const layer of layers) {
     const turn = random() * Math.PI * 2;
@@ -196,5 +214,87 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
   own.needsUpdate = true;
   uv.needsUpdate = true;
 
-  return finishPieces([{ role: 'head', geometry: head, keepNormals: true }]);
+  // 3. The outer leaves: real separate leaves wrapped round the head, each a closed, thin shape
+  //    (thick along its rib, thinning to its edge), narrow at the base, widening toward the top,
+  //    rounded at its tip, the top flaring a little away from the head with soft ruffles. Laid like
+  //    shingles round the head: each leaf's left edge sits low and its right edge high, so where
+  //    two overlap one is always on top, all the way round, and they never pass through each other.
+  const outer: BufferGeometry[] = [];
+  const turn0 = random() * Math.PI * 2;
+  const ringsAlong = 38;
+  const around = 14;
+  for (let i = 0; i < OUTER_LEAVES; i++) {
+    const centreAngle = turn0 + (2 * Math.PI * i) / OUTER_LEAVES + signed(random) * 0.12;
+    // None straight underneath, pressed into the table.
+    const down = Math.cos(centreAngle) * squash;
+    if (down < -0.8) continue;
+    const x0 = 0.4 + random() * 1.6;
+    const length = 21 + random() * 4.5;
+    const span = (Math.PI / OUTER_LEAVES) * (1.25 + random() * 0.2);
+    const flare = 0.45 + random() * 0.4;
+    const ruffle = 0.22 + random() * 0.18;
+    const waves = 5 + random() * 3;
+    const phase = random() * Math.PI * 2;
+    const id = (2.1 + random() * 0.8) / 3;
+    const rings: Vector3[][] = [];
+    const centres: Vector3[] = [];
+    const uvs: number[] = [];
+    for (let k = 0; k <= ringsAlong; k++) {
+      const u = k / ringsAlong;
+      const x = Math.min(LENGTH + 0.6, x0 + u * length);
+      // The outline: narrow at the base, widest past the middle, a round tip.
+      const tip = u > 0.72 ? Math.sqrt(Math.max(0, 1 - ((u - 0.72) / 0.28) ** 2)) : 1;
+      const halfAngle = span * (0.55 + 0.45 * smoothstep(0, 0.6, u)) * tip + 0.02;
+      const ring: Vector3[] = [];
+      for (let j = 0; j < around; j++) {
+        const psi = (2 * Math.PI * j) / around;
+        const c = Math.cos(psi);
+        const side = Math.sin(psi);
+        const edge = Math.abs(c);
+        const angle = centreAngle + c * halfAngle;
+        // Its height off the head: a hair clear of it, the shingle tilt, the flaring top, the ruffle.
+        // (Sitting in from the head's outline, so the size stays as the user approved it.)
+        let r = radius(x) - 0.35 + 0.22 * c;
+        r += flare * smoothstep(0.5, 1, u) ** 2 * (0.6 + 0.4 * edge);
+        r += ruffle * smoothstep(0.35, 0.85, u) * edge ** 2.5 * Math.sin(waves * Math.PI * u * 2 + phase + c * 3);
+        // Thick along the rib, thin at the edge.
+        const thick = (0.05 + 0.13 * (1 - smoothstep(0.0, 0.5, edge)) * (1 - 0.6 * u)) * (0.4 + 0.6 * Math.sqrt(Math.max(0, 1 - c * c)));
+        r += side * thick;
+        ring.push(axisAt(x).addScaledVector(new Vector3(0, Math.cos(angle) * squash, Math.sin(angle)), r));
+        uvs.push(u, (1 - c) / 2);
+      }
+      rings.push(ring);
+      centres.push(axisAt(x).addScaledVector(radial(centreAngle), radius(x)));
+    }
+    const leaf: StemmedLeaf = { rings, centres, bladeStart: 0, uvs };
+    const g = stemmedLeafGeometry(leaf, id);
+    // The skin's map, the same as on the head: x how pale (the broad rib, the white base), y how
+    // green (rising up the leaf); ownPos: the leaf's number, no crevice, how near its edge.
+    const map = g.getAttribute('uv') as BufferAttribute;
+    const own = g.getAttribute('ownPos') as BufferAttribute;
+    for (let v = 0; v < map.count; v++) {
+      const u = Math.min(1, Math.max(0, map.getX(v)));
+      const across = Math.abs(map.getY(v) - 0.5) * 2;
+      const ribHalf = 0.44 - 0.32 * smoothstep(0, 0.85, u);
+      const rib = 1 - smoothstep(ribHalf * 0.55, ribHalf * 1.35, across);
+      map.setXY(v, Math.max(rib, 1 - smoothstep(0.08, 0.35, u)), smoothstep(0.18, 0.7, u));
+      own.setXYZ(v, id, 0, smoothstep(0.7, 1, across));
+    }
+    // Faces outward (a positive volume), whichever way the rings ran.
+    if (signedVolumeOf(g) < 0) {
+      const index = g.getIndex()!;
+      for (let t = 0; t < index.count; t += 3) {
+        const a = index.getX(t + 1);
+        index.setX(t + 1, index.getX(t + 2));
+        index.setX(t + 2, a);
+      }
+    }
+    outer.push(g);
+  }
+
+  return finishPieces([
+    { role: 'head', geometry: head, keepNormals: true },
+    // The same role: the skin and the head's quiet sheen on the outer leaves too.
+    { role: 'head', geometry: mergeGeometries(outer)! },
+  ]);
 };
