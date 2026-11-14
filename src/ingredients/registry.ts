@@ -17,6 +17,7 @@ import { buildGrapes } from './forms/grapes';
 import { buildBlueberries } from './forms/blueberries';
 import { buildSpinach } from './forms/spinach';
 import { buildRomaine } from './forms/romaine';
+import { buildNapa } from './forms/napa';
 import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
@@ -632,6 +633,32 @@ export const REGISTRY: IngredientEntry[] = [
     rimGlints: false,
     shadowTint: 0.3,
     budget: [2000, 30000],
+  },
+  {
+    spec: {
+      id: 'napa',
+      name: 'Napa cabbage',
+      archetype: 'leafy',
+      family: 'napa',
+      layout: 'solo',
+      show: 'One napa cabbage lying on its side on a diagonal, its cut base to the front: a full, rounded barrel of broad leaves with wide white ribs, crinkled pale green at the top.',
+      forms: ['whole', 'half'],
+      scale: 'L',
+      size_cm: [24.7, 11.4, 12.9],
+      parts: ['head'],
+      light_case: 'pale',
+      notes:
+        'Round 2, the last leafy ingredient, after the user\'s references (2026-11-13). The romaine\'s approved head (buildHead) made fuller and shorter, with broader leaves and wide white ribs; the napa skin adds the crinkled top.',
+    },
+    form: buildNapa,
+    // The cut base toward the front left (the user's first reference).
+    turn: -35,
+    skin: { kind: 'napa', size_mm: 2, amount: 0.95 },
+    matte: true,
+    rimGlints: false,
+    shadowTint: 0.3,
+    // A bigger head, nine outer leaves.
+    budget: [2000, 34000],
   },
 ];
 

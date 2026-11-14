@@ -36,13 +36,32 @@ import { seededRandom, signed } from './kit/random';
  */
 
 /** The head's length (cm) and its radius along it: narrow at the base, fullest past the middle. */
-const LENGTH = 26;
 /** How far the blended inner head sits inside the separate outer leaves (cm). */
 const IN = 0.8;
-/** The separate outer leaves wrapped round the head (the user, 2026-11-13: "try the separate outer leaves approach. it looks like a log tree trunk now"). */
-const OUTER_LEAVES = 7;
-function radius(x: number): number {
-  const t = Math.min(1, Math.max(0, x / LENGTH));
+
+/**
+ * A head of leaves lying on its side (romaine; reused for the napa cabbage): its length, its radius
+ * along it, how many outer leaves, how wide its leaves are (a share of the romaine's) and its
+ * random salt. The romaine's own values below are the approved ones.
+ */
+export interface HeadShape {
+  length: number;
+  radius: (x: number) => number;
+  /** The separate outer leaves wrapped round the head (the user, 2026-11-13: "try the separate outer leaves approach. it looks like a log tree trunk now"). */
+  outerLeaves: number;
+  wide: number;
+  salt: number;
+  /** The blended head's grid size (cm): a bigger head can take a coarser grid. Default 0.33. */
+  cell?: number;
+  /** How far up the leaves stay pale (a share of their length), and where the green begins. */
+  paleTo?: number;
+  greenFrom?: number;
+}
+
+const ROMAINE: HeadShape = { length: 26, radius: romaineRadius, outerLeaves: 7, wide: 1, salt: 0x7e4a1 };
+
+function romaineRadius(x: number): number {
+  const t = Math.min(1, Math.max(0, x / 26));
   // A barrel: rounded in from the cut, swelling fullest just past the middle, easing in at the top
   // (the user, 2026-11-13: "more bulge and rounder body shape overall, very cilindrical right now").
   // Slimmer (the user's drawn outline, 2026-11-13: "make it less [thick]"): a small rounded base, the
@@ -53,7 +72,18 @@ function radius(x: number): number {
 
 export const buildRomaine: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Romaine: the "${state}" form is not built yet (whole only for now).`);
-  const random = seededRandom(seed ^ 0x7e4a1);
+  return buildHead(seed, ROMAINE);
+};
+
+/** A head of leaves lying on its side, cut base to the front (see the top of this file). */
+export function buildHead(seed: number, h: HeadShape) {
+  const random = seededRandom(seed ^ h.salt);
+  const LENGTH = h.length;
+  const OUTER_LEAVES = h.outerLeaves;
+  const radius = h.radius;
+  // Lengths along the head scale with it; widths across with `wide` (both 1 for the romaine).
+  const k = h.length / 26;
+  const w = h.wide;
 
   // Lying on its side: the axis runs along x, a little above the table, the head slightly
   // flattened where it rests (a heavy head settles).
@@ -65,10 +95,10 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
 
   // 1. The core: the head's shape, a little inside the leaves.
   // (It stops short of the top, so the leaves close over the end: its bare dome showed there.)
-  const core: MassBlob[] = [2.5, 7, 12, 16.5, 20].map((x) => ({
+  const core: MassBlob[] = [2.5, 7, 12, 16.5, 20].map((x) => x * k).map((x) => ({
     centre: axisAt(x),
     // (Close under the leaves, so no gap between them shows as a pit.)
-    radii: new Vector3(3.6, (radius(x) - IN - 0.15) * squash, radius(x) - IN - 0.15),
+    radii: new Vector3(3.6 * k, (radius(x) - IN - 0.15) * squash, radius(x) - IN - 0.15),
   }));
 
   // 2. The leaves, in three layers round the head, each its own size, width and ruffle.
@@ -87,8 +117,8 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     const turn = random() * Math.PI * 2;
     for (let i = 0; i < layer.count; i++) {
       const angle = turn + (2 * Math.PI * (i + 0.5 * layer.rank)) / layer.count + signed(random) * (layer.rank === 3 ? 0.5 : 0.18);
-      const x0 = layer.from + random() * 1.2;
-      const length = layer.length[0] + random() * (layer.length[1] - layer.length[0]);
+      const x0 = (layer.from + random() * 1.2) * k;
+      const length = (layer.length[0] + random() * (layer.length[1] - layer.length[0])) * k;
       const base = onSurface(x0, angle, layer.inset);
       // Along the head's surface toward its top (following the swell of the head).
       const toward = onSurface(Math.min(LENGTH, x0 + length * 0.75), angle, layer.inset);
@@ -100,7 +130,7 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
         along,
         normal,
         length,
-        width: layer.width[0] + random() * (layer.width[1] - layer.width[0]),
+        width: (layer.width[0] + random() * (layer.width[1] - layer.width[0])) * w,
         // Narrow at the base, widest toward the top, where the leaf opens and ruffles.
         widest: 0.68 + random() * 0.1,
         // (Thicker, so the meshed rims are smooth, never stair-stepped.)
@@ -146,7 +176,7 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     // The cut across the base: a flat face to the front.
     // Cut a little off square, its rim well rounded (the user: "round it more").
     cuts: [{ point: new Vector3(0.5, 0, 0), out: new Vector3(-1, 0.06, 0.1).normalize(), soft: 1.4 }],
-    cell: 0.33,
+    cell: h.cell ?? 0.33,
     smoothRounds: 6,
   });
   const head = mass.geometry();
@@ -168,9 +198,9 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
       const across = Math.abs(map.getY(i) - 0.5) * 2;
       const ribHalf = 0.44 - 0.32 * smoothstep(0, 0.85, u);
       const rib = 1 - smoothstep(ribHalf * 0.55, ribHalf * 1.35, across);
-      const pale = Math.max(rib, 1 - smoothstep(0.08, 0.35, u));
+      const pale = Math.max(rib, 1 - smoothstep(0.08, h.paleTo ?? 0.35, u));
       // (Green from a third of the way up, strongest at the top: the references' lime tops.)
-      map.setXY(i, pale, smoothstep(0.18, 0.7, u));
+      map.setXY(i, pale, smoothstep(h.greenFrom ?? 0.18, 0.7, u));
     }
   }
 
@@ -248,7 +278,7 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     const down = Math.cos(centreAngle) * squash;
     if (down < -0.8) continue;
     const x0 = 0.7 + random() * 0.9;
-    const length = 21 + random() * 4.5;
+    const length = (21 + random() * 4.5) * k;
     const span = (Math.PI / OUTER_LEAVES) * (1.25 + random() * 0.2);
     const flare = 0.45 + random() * 0.4;
     const ruffle = 0.22 + random() * 0.18;
@@ -306,7 +336,7 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
       const across = Math.abs(map.getY(v) - 0.5) * 2;
       const ribHalf = 0.44 - 0.32 * smoothstep(0, 0.85, u);
       const rib = 1 - smoothstep(ribHalf * 0.55, ribHalf * 1.35, across);
-      map.setXY(v, Math.max(rib, 1 - smoothstep(0.08, 0.35, u)), smoothstep(0.18, 0.7, u));
+      map.setXY(v, Math.max(rib, 1 - smoothstep(0.08, h.paleTo ?? 0.35, u)), smoothstep(h.greenFrom ?? 0.18, 0.7, u));
       own.setXYZ(v, id, 0, smoothstep(0.7, 1, across));
     }
     // Faces outward (a positive volume), whichever way the rings ran.
@@ -326,4 +356,4 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     // The same role: the skin and the head's quiet sheen on the outer leaves too.
     { role: 'head', geometry: mergeGeometries(outer)! },
   ]);
-};
+}
