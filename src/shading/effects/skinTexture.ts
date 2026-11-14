@@ -1168,8 +1168,8 @@ if (kind > 0 && amount > 0.0) {
     // The cabbage's wrapper leaves (the outer layer) a deeper, bluer green than its pale head.
     if (cabbage && vSurfaceUv.x > -1.5) {
       float wrapper = smoothstep(1.9, 2.1, layer);
-      lab = shadeOwn(lab, wrapper * 0.14 * green * amount);
-      lab.yz = mix(lab.yz, lab.yz * vec2(1.1, 0.9), wrapper * green);
+      lab = shadeOwn(lab, wrapper * 0.3 * green * amount);
+      lab.yz = mix(lab.yz, lab.yz * vec2(1.25, 0.72), wrapper * green);
     }
     // (A broken sheen showed as pale blocks along the cells: kept very quiet.)
     highlightBreak = 0.8 + vein * cellShow * 1.5 + crevice * 2.0;

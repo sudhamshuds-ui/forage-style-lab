@@ -644,11 +644,11 @@ export const REGISTRY: IngredientEntry[] = [
       show: 'One round green cabbage sitting upright: a pale, tight head of leaves wrapped over the top, cupped by big, darker wrapper leaves flaring out round it.',
       forms: ['whole', 'half'],
       scale: 'L',
-      size_cm: [17, 12.6, 17],
+      size_cm: [15.4, 11.9, 15.4],
       parts: ['head'],
       light_case: 'pale',
       notes:
-        'Round 2, the last leafy ingredient, after the user\'s watercolour references (2026-11-14), replacing the napa cabbage first tried. A blended head (kit/leafMass.ts) and separate wrapper leaves cupped round it; the cabbage skin (the romaine\'s painting, the wrappers deeper).',
+        'Round 2, the last leafy ingredient, after the user\'s watercolour references (2026-11-14), replacing the napa cabbage first tried. Every leaf is a real leaf (round 2, the user: the centre was \'just a ball instead of leaves\'): head leaves laid over a hidden core, each resting on the ones before, and six round-topped wrapper leaves cupped round it; the cabbage skin (the romaine\'s painting, the wrappers deeper).',
     },
     form: buildCabbage,
     turn: 0,
