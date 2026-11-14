@@ -34,6 +34,8 @@ export type FamilyId =
   | 'romaine'
   | 'cabbage'
   | 'salmon'
+  | 'albumen'
+  | 'yolk'
   | 'vine'
   | 'pit'
   | 'papery'
@@ -321,6 +323,21 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Salmon',
     colours: { lit: '#ffab82', base: '#f2734c', shadow: '#a3344f', glow: '#ff6f3c', highlight: '#fff0e4' },
     rooms: ['mist', 'celadon'],
+  },
+  // Not on board 04 yet (added 2026-11-14, round 2: the fried egg, after the user's oil painting):
+  // cooked egg white, a warm cream white in the light, lilac-blue in shadow (never grey), a golden
+  // glow where it is thin. Its browned, crisp rim is painted by the egg skin.
+  albumen: {
+    name: 'Albumen',
+    colours: { lit: '#fffaf0', base: '#f6efe2', shadow: '#aaa6cf', glow: '#ffd08a', highlight: '#ffffff' },
+    rooms: ['spruce', 'iris'],
+  },
+  // Not a board 04 family: only for parts (a yolk). A deep golden yellow, orange where it turns,
+  // a warm rose-brown shadow, a pale cream highlight.
+  yolk: {
+    name: 'Yolk',
+    colours: { lit: '#ffd95e', base: '#f9ab1c', shadow: '#c2562d', glow: '#ff8f17', highlight: '#fff8dc' },
+    rooms: [],
   },
   // Not a board 04 family: only for parts (a grape bunch's woody stem; later vines and tomato
   // trusses). A golden ochre, its shadow a warm olive-plum, never grey-green.

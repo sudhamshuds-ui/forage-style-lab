@@ -192,6 +192,11 @@ class FormSubject implements Subject {
             (material.uniforms.uMelonPale.value as Color).set('#ffe9d6');
             (material.uniforms.uMelonGreen.value as Color).set('#4f6488');
           }
+          // A fried egg: its crisp rim browns from gold to a warm sienna (never black).
+          if (entry.skin.kind === 'egg') {
+            (material.uniforms.uMelonPale.value as Color).set('#f4b64e');
+            (material.uniforms.uMelonGreen.value as Color).set('#a4522c');
+          }
           // A red onion: its papery flakes, root patch and dry neck are painted in the papery tan.
           if (entry.skin.kind === 'onion') (material.uniforms.uMelonPale.value as Color).set(FAMILIES.papery.colours.base);
           // Raw chicken: the pink meat (showing through, and bare on the shank) and the yellow fat.

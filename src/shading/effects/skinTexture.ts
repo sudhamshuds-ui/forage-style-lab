@@ -57,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon', 'egg'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -1270,6 +1270,62 @@ if (kind > 0 && amount > 0.0) {
     float fleck = smoothstep(0.66, 0.84, valueNoise3(objectPos * 26.0 + 9.0)) * smoothstep(0.5, 0.8, paperGrain);
     lab = shadeOwn(lab, fleck * 0.35 * show * (1.0 - line) * (1.0 - foot));
     fine = 0.0;
+  } else if (kind == 24) {
+    // Fried egg white, after the user's oil painting. Maps: uv.x 0 at the middle to 1 at the rim,
+    // uv.y cm from the yolk's centre; ownPos x how far the rim curls up here, y a bubble's height,
+    // z the angle round the pool.
+    float rn = vSurfaceUv.x;
+    float fromYolk = vSurfaceUv.y;
+    float curlUp = vOwnPos.x;
+    float bubble = vOwnPos.y;
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    vec3 cm = objectPos * 3.8169;
+    float paperGrain = valueNoise3(objectPos * 90.0);
+
+    // 1. Colour depth in the white (never one flat white): broad strokes of warm cream, of cool
+    //    lilac-blue and of pale gold, like the painting's loaded brushwork; a golden warmth round
+    //    the yolk where the white is thin over it; lilac-blue in the shade and the hollows.
+    float strokeA = fbm3(vec3(cm.x * 0.5, cm.y * 0.5, cm.z * 0.22) + 3.0);
+    float strokeB = fbm3(vec3(cm.x * 0.2 - cm.z * 0.3, 1.0, cm.z * 0.6 + cm.x * 0.2) + 8.0);
+    vec3 cream = vec3(lab.x + 0.01, lab.y + 0.012, lab.z + 0.035);
+    vec3 lilac = vec3(lab.x - 0.085, lab.y + 0.012, lab.z - 0.05);
+    lab = mix(lab, cream, smoothstep(0.5, 0.75, strokeA) * 0.45 * amount);
+    lab = mix(lab, lilac, smoothstep(0.45, 0.7, strokeB) * 0.8 * amount);
+    float halo = (1.0 - smoothstep(2.0, 3.0, fromYolk + (strokeA - 0.5) * 0.8));
+    lab = mix(lab, vec3(lab.x - 0.02, lab.y + 0.02, lab.z + 0.075), halo * 0.4 * amount);
+    lab = mix(lab, lilac, (1.0 - lit) * 0.5 * amount);
+    // Bubbles: a lit, paler top, a cool hollow round the foot.
+    lab.x += smoothstep(0.08, 0.3, bubble) * 0.03 * lit;
+    float footRing = smoothstep(0.02, 0.1, bubble) * (1.0 - smoothstep(0.1, 0.22, bubble));
+    lab = mix(lab, lilac, footRing * 0.35 * amount);
+
+    // 2. The crisp rim: gold, then caramel, then a warm sienna at the very edge, in a lacy band
+    //    whose width wanders (wide where the rim curled up and fried hard, thin elsewhere), with
+    //    blistered specks reaching in; soft-edged like wet paint.
+    float lace = fbm3(vec3(cm.x * 0.9, 2.0, cm.z * 0.9));
+    float fineLace = valueNoise3(vec3(cm.x * 3.5, 4.0, cm.z * 3.5));
+    float widthHere = 0.1 + 0.2 * smoothstep(0.15, 0.6, curlUp) + 0.14 * lace;
+    // (Not all the way round: some stretches fry hard and brown, others stay pale gold.)
+    float patchy = smoothstep(0.38, 0.6, fbm3(vec3(cos(vOwnPos.z) * 1.6, sin(vOwnPos.z) * 1.6, 5.0)) + curlUp * 0.35);
+    float brown = smoothstep(1.0 - widthHere, 1.0 - widthHere * 0.25, rn + (fineLace - 0.5) * 0.09) * mix(0.25, 1.0, patchy);
+    float gold = smoothstep(1.0 - widthHere * 2.0, 1.0 - widthHere * 0.7, rn + (lace - 0.5) * 0.12);
+    float speck = smoothstep(0.7, 0.86, fineLace) * smoothstep(0.5, 0.9, rn) * 0.6;
+    vec3 goldLab = linearToOklab(uMelonPale);
+    vec3 siennaLab = linearToOklab(uMelonGreen);
+    float tone = lab.x - linearToOklab(uBaseColour).x;
+    goldLab.x += tone * 0.7;
+    siennaLab.x += tone * 0.5 + (fineLace - 0.5) * 0.08;
+    lab = mix(lab, goldLab, clamp(gold * 0.75 + speck * 0.5, 0.0, 1.0) * amount);
+    lab = mix(lab, siennaLab, clamp(brown * (0.6 + 0.4 * lace) + speck * brown, 0.0, 1.0) * amount);
+    // The fried rim glows where the light comes through it.
+    float through = pow(max(dot(V, -L), 0.0), 2.0) + pow(1.0 - abs(dot(N, V)), 3.0) * 0.5;
+    lab = mix(lab, linearToOklab(uGlowColour), clamp(through, 0.0, 1.0) * gold * 0.35 * amount);
+    highlightOwn = max(highlightOwn, gold);
+
+    // 3. A light chalky dry-brush texture, like the other painted faces.
+    float dry = smoothstep(0.55, 0.8, valueNoise3(vec3(cm.x * 1.2, cm.y, cm.z * 4.0))) * smoothstep(0.4, 0.7, paperGrain);
+    lab.x += dry * 0.02 * show * (1.0 - brown);
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

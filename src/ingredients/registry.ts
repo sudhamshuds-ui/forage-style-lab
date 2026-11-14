@@ -19,6 +19,7 @@ import { buildSpinach } from './forms/spinach';
 import { buildRomaine } from './forms/romaine';
 import { buildCabbage } from './forms/cabbage';
 import { buildSalmon } from './forms/salmon';
+import { buildEgg } from './forms/egg';
 import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
@@ -684,6 +685,31 @@ export const REGISTRY: IngredientEntry[] = [
     rimGlints: false,
     shadowTint: 0.45,
     budget: [2000, 26000],
+  },
+  {
+    spec: {
+      id: 'egg',
+      name: 'Fried egg',
+      archetype: 'flat',
+      family: 'albumen',
+      layout: 'solo',
+      show: 'One fried egg, sunny side up: an uneven pool of white with a crisp, browned rim curling up in places, bubbles in the white, a tall glossy yolk a little off centre.',
+      forms: ['whole'],
+      scale: 'M',
+      size_cm: [12.8, 2.2, 11.2],
+      parts: ['white', 'yolk@yolk'],
+      light_case: 'pale',
+      notes:
+        'Round 2, the first cooked ingredient (the user: an exception to "all raw"), after the user\'s reference (Figma node 148:31, an oil painting). The puddle tool: an outline and a height at every point. The browned lace at the rim, the blooms of cream, lilac and gold in the white and the bubbles\' lit tops are a shader texture (the egg skin).',
+    },
+    form: buildEgg,
+    turn: 20,
+    skin: { kind: 'egg', size_mm: 3, amount: 0.9 },
+    // A soft, satin white; the yolk keeps its wet shine.
+    matte: true,
+    glossy: ['yolk'],
+    rimGlints: false,
+    shadowTint: 0.6,
   },
 ];
 
