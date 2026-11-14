@@ -1123,7 +1123,8 @@ if (kind > 0 && amount > 0.0) {
     lab = shadeOwn(lab, edgeBand * 0.22 * green * amount);
     lab = mix(lab, lime, smoothstep(0.92, 1.0, rim) * lit * green * 0.3 * amount);
     vec3 deep = vec3(mix(lab.x, shadowLab.x, 0.55), mix(shadowLab.yz, vec2(-0.035, -0.03), 0.4));
-    lab = mix(lab, deep, smoothstep(0.2, 0.85, crevice) * 0.55 * mix(0.35, 1.0, green) * amount);
+    // (None on the pale lower leaves: small dark notches showed along their edges.)
+    lab = mix(lab, deep, smoothstep(0.2, 0.85, crevice) * 0.55 * green * amount);
 
     // 5. Light through the leaves: a warm yellow-green glow at the turn into shadow and on thin
     //    edges seen side on; the shaded side leans cool (warm highlights, cool shadows).

@@ -254,7 +254,9 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
       const x = Math.min(LENGTH + 0.6, x0 + u * length);
       // The outline: narrow at the base, widest past the middle, a round tip.
       const tip = u > 0.72 ? Math.sqrt(Math.max(0, 1 - ((u - 0.72) / 0.28) ** 2)) : 1;
-      const halfAngle = span * (0.55 + 0.45 * smoothstep(0, 0.6, u)) * tip + 0.02;
+      // (Wide from the base on, so the outer leaves cover the lower head: the inner leaves' edges
+      // showed between them there as pale flakes, the user 2026-11-14.)
+      const halfAngle = span * (0.85 + 0.15 * smoothstep(0, 0.6, u)) * tip + 0.02;
       const ring: Vector3[] = [];
       for (let j = 0; j < around; j++) {
         const psi = (2 * Math.PI * j) / around;
@@ -264,7 +266,7 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
         const angle = centreAngle + c * halfAngle;
         // Its height off the head: a hair clear of it, the shingle tilt, the flaring top, the ruffle.
         // (Sitting in from the head's outline, so the size stays as the user approved it.)
-        let r = radius(x) - 0.35 + 0.22 * c * smoothstep(0.0, 0.25, u);
+        let r = radius(x) - 0.35 + 0.22 * c * (0.5 + 0.5 * smoothstep(0.0, 0.25, u));
         // The base tucks into the head (cut-off leaf ends showed as stripes round the base).
         r -= 0.75 * (1 - smoothstep(0, 0.14, u));
         r += flare * smoothstep(0.5, 1, u) ** 2 * (0.6 + 0.4 * edge);
