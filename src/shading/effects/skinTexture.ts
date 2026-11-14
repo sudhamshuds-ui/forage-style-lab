@@ -1170,6 +1170,24 @@ if (kind > 0 && amount > 0.0) {
       float wrapper = smoothstep(1.9, 2.1, layer);
       lab = shadeOwn(lab, wrapper * 0.3 * green * amount);
       lab.yz = mix(lab.yz, lab.yz * vec2(1.25, 0.72), wrapper * green);
+      // Colour depth (the user, 2026-11-14: "the colours just look flat 2 greens ... add more colour
+      // gradient or variation"), after the watercolour: every leaf runs through several greens. Broad
+      // wet blooms of warm yellow-lime and of deep viridian, a gradient along each leaf (yellower
+      // near its base and rib, bluer and deeper toward its rim), each leaf leaning its own way, a
+      // warm gold where the light is fullest, and blue-violet soaking into the shadows.
+      float lu2 = clamp(vLeafMap.x, 0.0, 1.0);
+      float leafLean = fract(own * 13.7) - 0.5;
+      float bloomA = fbm3(cm * 0.2 + vec3(own * 5.0, 1.7, 0.0));
+      float bloomB = fbm3(cm * 0.45 + vec3(3.0, own * 9.0, 6.0));
+      float toTeal = smoothstep(0.32, 0.72, bloomA * 0.75 + bloomB * 0.25 + (lu2 - 0.45) * 0.45 * wrapper + leafLean * 0.35 + (wrapper - 0.5) * 0.12);
+      vec3 limeLab = vec3(lab.x + 0.035, lab.y + 0.008, lab.z + 0.028);
+      vec3 tealLab = vec3(lab.x - 0.055, lab.y - 0.012, lab.z - 0.03);
+      lab = mix(lab, mix(limeLab, tealLab, toTeal), 0.85 * green * (1.0 - pale * 0.7) * amount);
+      // A warm gold wash where the light is fullest; blue-violet in the shade (never grey-green).
+      float fullLight = smoothstep(0.35, 0.95, NdotL) * lightMask;
+      lab = mix(lab, vec3(lab.x + 0.02, lab.y + 0.012, lab.z + 0.022), fullLight * 0.45 * amount);
+      float shadeSide = 1.0 - smoothstep(-0.3, 0.35, NdotL * mix(0.4, 1.0, lightMask));
+      lab = mix(lab, vec3(lab.x - 0.025, lab.y + 0.02, lab.z - 0.055), shadeSide * (0.3 + 0.25 * bloomB) * amount);
     }
     // (A broken sheen showed as pale blocks along the cells: kept very quiet.)
     highlightBreak = 0.8 + vein * cellShow * 1.5 + crevice * 2.0;
