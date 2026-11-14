@@ -47,6 +47,7 @@ function radius(x: number): number {
   // (the user, 2026-11-13: "more bulge and rounder body shape overall, very cilindrical right now").
   // Slimmer (the user's drawn outline, 2026-11-13: "make it less [thick]"): a small rounded base, the
   // sides widening gently, fullest near the top, which rounds over.
+  // (Round 4's profile: the user liked its rounded shape.)
   return 2.5 + 1.3 * smoothstep(0, 0.45, t) + 0.25 * smoothstep(0.45, 0.8, t) - 0.35 * smoothstep(0.85, 1, t);
 }
 
@@ -228,7 +229,7 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     // None straight underneath, pressed into the table.
     const down = Math.cos(centreAngle) * squash;
     if (down < -0.8) continue;
-    const x0 = 0.4 + random() * 1.6;
+    const x0 = 0.7 + random() * 0.9;
     const length = 21 + random() * 4.5;
     const span = (Math.PI / OUTER_LEAVES) * (1.25 + random() * 0.2);
     const flare = 0.45 + random() * 0.4;
@@ -254,7 +255,9 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
         const angle = centreAngle + c * halfAngle;
         // Its height off the head: a hair clear of it, the shingle tilt, the flaring top, the ruffle.
         // (Sitting in from the head's outline, so the size stays as the user approved it.)
-        let r = radius(x) - 0.35 + 0.22 * c;
+        let r = radius(x) - 0.35 + 0.22 * c * smoothstep(0.0, 0.25, u);
+        // The base tucks into the head (cut-off leaf ends showed as stripes round the base).
+        r -= 0.75 * (1 - smoothstep(0, 0.14, u));
         r += flare * smoothstep(0.5, 1, u) ** 2 * (0.6 + 0.4 * edge);
         r += ruffle * smoothstep(0.35, 0.85, u) * edge ** 2.5 * Math.sin(waves * Math.PI * u * 2 + phase + c * 3);
         // Thick along the rib, thin at the edge.
