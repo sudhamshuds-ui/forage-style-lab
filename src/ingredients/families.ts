@@ -40,6 +40,10 @@ export type FamilyId =
   | 'glaze'
   | 'milk'
   | 'print-green'
+  | 'tomato'
+  | 'pear'
+  | 'peach'
+  | 'potato'
   | 'vine'
   | 'pit'
   | 'papery'
@@ -371,6 +375,33 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Print green',
     colours: { lit: '#6dbb7c', base: '#2f8052', shadow: '#1b4a58', glow: '#6fbf5e', highlight: '#e3f3dc' },
     rooms: [],
+  },
+  // Round 3, batch 1 (2026-11-15, after the user's references).
+  // Tomato: a scarlet red, more orange than the apple's and hotter than the melon's; orange where
+  // lit, a deep wine-violet in shadow.
+  tomato: {
+    name: 'Tomato',
+    colours: { lit: '#ff8a5a', base: '#e63a2a', shadow: '#8c2148', glow: '#ff5a28', highlight: '#fff1e6' },
+    rooms: ['mist', 'seafoam'],
+  },
+  // Pear: a warm golden yellow, its shadow turning through orange to a soft brown-rose (yellows
+  // turn the warm way round), a honey glow.
+  pear: {
+    name: 'Pear',
+    colours: { lit: '#fbe884', base: '#e6bf3c', shadow: '#a9663e', glow: '#f6b62e', highlight: '#fffbe2' },
+    rooms: ['heather', 'iris'],
+  },
+  // Peach: a golden peach going to a rose-violet in shadow; the blush is painted by its skin.
+  peach: {
+    name: 'Peach',
+    colours: { lit: '#ffd3a2', base: '#f89c70', shadow: '#a63f60', glow: '#ff8656', highlight: '#fff2e2' },
+    rooms: ['seafoam', 'mist'],
+  },
+  // Potato: a golden tan, pale buttery gold where lit, a russet rose-brown in shadow.
+  potato: {
+    name: 'Potato',
+    colours: { lit: '#f3cf8e', base: '#cf9450', shadow: '#84483f', glow: '#e09640', highlight: '#fff0d0' },
+    rooms: ['iris', 'mist'],
   },
   // Not a board 04 family: only for parts (a grape bunch's woody stem; later vines and tomato
   // trusses). A golden ochre, its shadow a warm olive-plum, never grey-green.

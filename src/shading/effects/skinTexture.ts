@@ -57,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon', 'egg', 'rice', 'glaze', 'carton'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon', 'egg', 'rice', 'glaze', 'carton', 'tomato', 'pear', 'peach', 'potato'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -176,6 +176,15 @@ vec3 leafCells(vec2 p) {
     }
   }
   return vec3(first, second, which);
+}
+
+// Colour depth (the user, 2026-11-14: never flat colour): broad wet blooms that run a surface from
+// a warm shift to a cool shift of its own colour. q is the point in cm; lean nudges the mix.
+vec3 depthWash(vec3 lab, vec3 q, vec3 warmShift, vec3 coolShift, float lean, float amt) {
+  float a = fbm3(q * 0.2 + 2.0);
+  float b = fbm3(q * 0.47 + 7.0);
+  float t = smoothstep(0.3, 0.72, a * 0.7 + b * 0.3 + lean);
+  return mix(lab, mix(lab + warmShift, lab + coolShift, t), amt);
 }
 
 // Many small round pieces (grapes, blueberries): the shared tone steps repeat on each piece as a
@@ -1446,6 +1455,78 @@ if (kind > 0 && amount > 0.0) {
     inkLab = mix(inkLab, vec3(inkLab.x - 0.03, inkLab.y + 0.03, inkLab.z - 0.06), (1.0 - lit) * 0.4);
     lab = mix(lab, inkLab, ink * amount);
     highlightOwn = max(highlightOwn, ink);
+  } else if (kind >= 28 && kind <= 31) {
+    // Round 3, batch 1: tomato (28), pear (29), peach (30), potato (31). Maps (kit/maps.ts):
+    // uv.x height as a share of the body, ownPos the point in the body's own frame (cm).
+    float h = vSurfaceUv.x;
+    vec3 q = vOwnPos;
+    float around = atan(q.z, q.x);
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    float shadeSide = 1.0 - smoothstep(-0.35, 0.35, NdotL * mix(0.4, 1.0, lightMask));
+    float turnBand = smoothstep(-0.3, 0.0, NdotL) * (1.0 - smoothstep(0.0, 0.4, NdotL));
+    float edgeOn = pow(1.0 - abs(dot(N, V)), 2.5);
+    float paperGrain = valueNoise3(objectPos * 90.0);
+    float tone = lab.x - linearToOklab(uBaseColour).x;
+    if (kind == 28) {
+      // Tomato: scarlet running to hot orange and to deep crimson in broad blooms; orange-gold
+      // shoulders with a breath of green round the stem; faint streaks down from the stem.
+      lab = depthWash(lab, q, vec3(0.02, -0.005, 0.03), vec3(-0.05, 0.025, -0.035), (0.5 - h) * 0.35, 0.85 * amount);
+      float shoulder = smoothstep(0.62, 1.0, h + (fbm3(q * 0.5) - 0.5) * 0.25);
+      lab = mix(lab, vec3(lab.x + 0.04, lab.y - 0.04, lab.z + 0.05), shoulder * 0.35 * amount);
+      lab = mix(lab, vec3(lab.x + 0.02, lab.y - 0.1, lab.z + 0.06), smoothstep(0.93, 1.0, h) * 0.35 * amount);
+      float streak = valueNoise3(vec3(around * 5.0, h * 1.3, 3.0));
+      lab.x += (streak - 0.5) * 0.03 * smoothstep(0.3, 0.9, h) * amount;
+      lab = mix(lab, linearToOklab(uGlowColour), clamp(turnBand * 0.3 + edgeOn * 0.12, 0.0, 0.4) * amount);
+      lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.0, lab.z - 0.075), shadeSide * 0.45 * amount);
+    } else if (kind == 29) {
+      // Pear: golden yellow running greener toward the neck and warmer low down, a red-orange blush
+      // on one side (soft, wandering), russet freckles in loose patches, a little russet at the stem.
+      lab = depthWash(lab, q, vec3(0.02, 0.02, 0.03), vec3(-0.03, -0.035, -0.01), (h - 0.55) * 0.5, 0.8 * amount);
+      float blushField = cos(around - 0.6) * 0.55 + (fbm3(q * 0.3 + 5.0) - 0.5) * 0.9 + (0.45 - h) * 0.4;
+      float blush = smoothstep(-0.05, 0.6, blushField);
+      vec3 blushLab = vec3(0.66 + tone * 0.9, 0.17, 0.115);
+      lab = mix(lab, blushLab, blush * 0.8 * amount);
+      float freckle = (1.0 - smoothstep(0.1, 0.24, skinCells(p * 0.8))) * smoothstep(0.35, 0.65, fbm3(q * 0.6 + 9.0));
+      lab = shadeOwn(lab, freckle * 0.5 * show * (1.0 - edgeOn));
+      lab = shadeOwn(lab, smoothstep(0.93, 1.0, h) * 0.35 * amount);
+      lab = mix(lab, linearToOklab(uGlowColour), turnBand * 0.25 * amount);
+      lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.035, lab.z - 0.06), shadeSide * 0.35 * amount);
+    } else if (kind == 30) {
+      // Peach: gold to peach in soft blooms, a rose-red blush over much of it (each peach its own,
+      // from its own frame), deepest along the seam and round the stem; velvet: no shine, a pale
+      // bloom where the surface turns away; rose-violet shade.
+      lab = depthWash(lab, q, vec3(0.06, -0.045, 0.06), vec3(-0.01, 0.02, -0.01), 0.0, 0.85 * amount);
+      float seam = exp(-pow(around / 0.22, 2.0)) * smoothstep(0.15, 0.9, h);
+      float blushField = (fbm3(q * 0.24 + 3.0) - 0.5) * 1.6 + cos(around + 0.4) * 0.35 + (h - 0.5) * 0.5 + seam * 0.4;
+      float blush = smoothstep(0.05, 0.6, blushField);
+      vec3 blushLab = vec3(0.61 + tone * 0.9, 0.19, 0.075);
+      lab = mix(lab, blushLab, blush * 0.82 * amount);
+      lab = shadeOwn(lab, seam * 0.3 * amount);
+      float fleck = smoothstep(0.62, 0.85, valueNoise3(q * 9.0)) * smoothstep(0.4, 0.7, paperGrain);
+      lab = shadeOwn(lab, fleck * 0.25 * blush * show);
+      lab = mix(lab, vec3(lab.x + 0.07, lab.y * 0.6, lab.z * 0.6 + 0.01), edgeOn * 0.5 * amount);
+      lab = mix(lab, linearToOklab(uGlowColour), turnBand * 0.22 * amount);
+      lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.02, lab.z - 0.07), shadeSide * 0.45 * amount);
+    } else {
+      // Potato: golden tan to russet in broad washes; paler and more buttery where the surface
+      // faces you, russet-rose toward the outline (the watercolour's glow); pale scuffed patches;
+      // earthy specks in loose patches and a few darker eyes.
+      lab = depthWash(lab, q, vec3(0.02, 0.0, 0.035), vec3(-0.09, 0.045, -0.02), 0.08, 0.9 * amount);
+      float facing = pow(abs(dot(N, V)), 1.6);
+      lab = mix(lab, vec3(lab.x + 0.06, lab.y - 0.02, lab.z + 0.03), facing * 0.55 * lit * amount);
+      lab = mix(lab, vec3(lab.x - 0.09, lab.y + 0.06, lab.z - 0.01), smoothstep(0.0, 0.7, edgeOn) * 0.8 * amount);
+      float scuff = smoothstep(0.58, 0.8, fbm3(q * 0.55 + 12.0)) * smoothstep(0.35, 0.65, paperGrain);
+      lab = mix(lab, vec3(lab.x + 0.08, lab.y * 0.5, lab.z * 0.7), scuff * 0.55 * lit * amount);
+      float speck = (1.0 - smoothstep(0.08, 0.2, skinCells(p))) * smoothstep(0.4, 0.7, fbm3(q * 0.7 + 4.0));
+      lab = shadeOwn(lab, speck * 0.8 * show * (1.0 - edgeOn));
+      float eye = 1.0 - smoothstep(0.05, 0.16, skinCells(p * 0.16 + 5.0));
+      lab = shadeOwn(lab, eye * 0.5 * show);
+      lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.02, lab.z - 0.07), shadeSide * 0.4 * amount);
+    }
+    // The shared chalky dry-brush texture, light.
+    float dry = smoothstep(0.55, 0.8, valueNoise3(vec3(q.x * 1.3, q.y * 3.0, q.z * 1.3))) * smoothstep(0.4, 0.7, paperGrain);
+    lab.x += dry * 0.022 * show;
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

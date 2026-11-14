@@ -22,6 +22,10 @@ import { buildSalmon } from './forms/salmon';
 import { buildEgg } from './forms/egg';
 import { buildRice } from './forms/rice';
 import { buildMilk } from './forms/milk';
+import { buildTomato } from './forms/tomato';
+import { buildPear } from './forms/pear';
+import { buildPeach } from './forms/peach';
+import { buildPotato } from './forms/potato';
 import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
@@ -763,6 +767,97 @@ export const REGISTRY: IngredientEntry[] = [
     rimGlints: false,
     shadowTint: 0.15,
     budget: [1000, 12000],
+  },
+  // Round 3, batch 1 (2026-11-15): the round archetype, after the user's references (Figma node 184:349).
+  {
+    spec: {
+      id: 'tomato',
+      name: 'Tomato',
+      archetype: 'round',
+      family: 'tomato',
+      layout: 'solo',
+      show: 'One ripe tomato, squat and full-shouldered, its green calyx of five long sepals curling back, a thick stub of stem.',
+      forms: ['whole', 'half', 'slices', 'diced'],
+      scale: 'M',
+      size_cm: [7.6, 6.2, 7.6],
+      parts: ['skin:glow', 'calyx@leaf', 'stem@leaf'],
+      notes: 'Wider than tall, round shoulders, a soft dip at the stem, very soft ribs. The glossy skin, its orange shoulders and deeper crimson blooms are the tomato skin.',
+    },
+    form: buildTomato,
+    turn: 15,
+    skin: { kind: 'tomato', size_mm: 3, amount: 0.9 },
+    shadowTint: 0.5,
+    rimGlints: false,
+    budget: [2000, 8000],
+  },
+  {
+    spec: {
+      id: 'pear',
+      name: 'Pear',
+      archetype: 'round',
+      family: 'pear',
+      layout: 'solo',
+      show: 'One yellow pear standing, a red-orange blush on one side, a woody stem with two leaves.',
+      forms: ['whole', 'half', 'slices'],
+      scale: 'M',
+      size_cm: [7.3, 10, 7.3],
+      parts: ['skin:glow', 'stem@stalk', 'leaf@leaf'],
+      notes: 'One smooth outline: a heavy belly low down, shoulders pulling up into a narrower neck, a little lopsided. Yellow to green at the neck, the blush and russet freckles are the pear skin.',
+    },
+    form: buildPear,
+    turn: 0,
+    skin: { kind: 'pear', size_mm: 2.4, amount: 0.9 },
+    matte: true,
+    shadowTint: 0.35,
+    rimGlints: false,
+    budget: [2000, 8000],
+  },
+  {
+    spec: {
+      id: 'peach',
+      name: 'Peach',
+      archetype: 'round',
+      family: 'peach',
+      layout: 'cluster-2',
+      show: 'Two whole peaches, each with its seam and a long leaf, just touching.',
+      forms: ['whole', 'half', 'slices'],
+      scale: 'M',
+      size_cm: [7.1, 6.7, 7.1],
+      parts: ['skin:glow', 'stem@stalk', 'leaf@leaf'],
+      light_case: 'group',
+      notes: 'Round, a deep dip at the stem, a soft seam down one side with a fuller cheek each side. Velvet, never glossy: gold to rose blush and a pale bloom at the outline are the peach skin.',
+    },
+    form: buildPeach,
+    // The seam toward the camera and the light.
+    turn: -60,
+    skin: { kind: 'peach', size_mm: 2, amount: 0.9 },
+    matte: true,
+    shadowTint: 0.5,
+    rimGlints: false,
+    budget: [2000, 8000],
+  },
+  {
+    spec: {
+      id: 'potato',
+      name: 'Potato',
+      archetype: 'round',
+      family: 'potato',
+      layout: 'cluster-2',
+      show: 'Two potatoes lying side by side, each its own lopsided oblong, a few eyes.',
+      forms: ['whole', 'half', 'cubes', 'mashed'],
+      scale: 'M',
+      size_cm: [10, 5.9, 6.8],
+      parts: ['skin'],
+      light_case: 'group',
+      notes: 'A lopsided oblong on its side: one end fuller, broad soft lumps, a shallow waist, a few eyes. Golden to russet washes, pale scuffs and earthy specks are the potato skin.',
+    },
+    form: buildPotato,
+    turn: 25,
+    skin: { kind: 'potato', size_mm: 2.2, amount: 0.9 },
+    matte: true,
+    shadowTint: 0.4,
+    rimGlints: false,
+    budget: [2000, 8000],
   },
 ];
 
