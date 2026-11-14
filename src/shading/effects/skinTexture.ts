@@ -1094,17 +1094,8 @@ if (kind > 0 && amount > 0.0) {
       bladeLab = shadeOwn(bladeLab, smoothstep(0.55, 0.85, pucker) * 0.1 * cellShow);
       bladeLab.x += smoothstep(0.3, 0.05, pucker) * 0.03 * cellShow * lit;
       vein = max(vein * 0.4, leafVein);
-      // Crinkles (the user's napa reference, 2026-11-14: "can we get this sort of texture too"): dense
-      // ridges running out from the rib like the side veins, each lit on one side and shaded on the
-      // other, broken into irregular lengths, strongest on the green, gone on the pale rib.
-      float crinklePhase = lu * 30.0 - la * 3.4 + own * 11.0 + wob * 2.0;
-      float ridgeWave = sin(crinklePhase * 6.2832);
-      float ridgeBreak = smoothstep(0.3, 0.6, valueNoise3(vec3(lu * 18.0, la * 7.0, own * 5.0)));
-      float crinkleShow = green * (1.0 - pale) * ridgeBreak * smoothstep(0.08, 0.2, la) * amount;
-      bladeLab.x += ridgeWave * 0.045 * crinkleShow * mix(0.5, 1.0, lit);
-      bladeLab = shadeOwn(bladeLab, smoothstep(0.4, 1.0, -ridgeWave) * 0.08 * crinkleShow);
-      // Their crests catch a lighter lime.
-      bladeLab = mix(bladeLab, mix(bladeLab, ribLab, 0.35), smoothstep(0.7, 1.0, ridgeWave) * crinkleShow * 0.5);
+      // (A napa-style crinkle texture was tried on 2026-11-14 and taken out: the user preferred the
+      // veins alone. It is in history, round 8.)
     }
     bladeLab = mix(bladeLab, mix(bladeLab, ribLab, 0.65), vein * cellShow * 0.75);
     // Deeper green blots in loose patches (the watercolour's darker pools), never even.
