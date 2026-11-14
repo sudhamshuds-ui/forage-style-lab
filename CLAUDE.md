@@ -534,6 +534,8 @@ Shared mechanisms added along the way (code hooks other ingredients reuse):
   `lessons/romaine.md`.
 
 Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the cabbage next (a round head, replacing the napa).
+Then round 3 (`docs/ingredients/r3-plan.md`, approved 2026-11-14): 71 more in nine batches of about 8, each batch on
+its own branch; ask the user for references before a batch starts ("let me know before u start that round").
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after
