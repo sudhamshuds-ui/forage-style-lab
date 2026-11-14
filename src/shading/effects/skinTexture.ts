@@ -1140,29 +1140,24 @@ if (kind > 0 && amount > 0.0) {
     vec3 cool = vec3(lab.x - 0.01, -0.04, -0.03);
     lab = mix(lab, cool, (1.0 - smoothstep(-0.35, 0.4, NdotL)) * 0.2 * amount);
 
-    // 6. The cut base: a cream disc showing the leaf layers as wavy rings (each ring its own
-    //    wobble round the disc, the user: "add some leaf details to it"), each layer a touch
-    //    greener toward the outside, a soft ochre ring where it dried, drying a little brown, and
-    //    the green of the outer leaves at the rim.
+    // 6. The cut base, after the user's reference (2026-11-14: the wavy grey-brown rings were "ugly"):
+    //    a clean, pale cream disc, warm and light even where it turns from the light, the faintest
+    //    rings near its middle, a thin golden ring near its edge where the cut dried a little, and the
+    //    pale green-white of the leaf bases round it.
     if (vSurfaceUv.x < -1.5) {
       float r = vSurfaceUv.y;
-      float a = vOwnPos.x * 6.2832;
-      float warp = 0.06 * sin(a * 3.0 + r * 9.0) + 0.04 * sin(a * 5.0 - r * 13.0 + 1.7) + (valueNoise3(cm * 1.5) - 0.5) * 0.05;
-      float rw = r + warp * smoothstep(0.1, 0.5, r);
-      float layerR = rw * 7.0;
-      float ringLine = 1.0 - smoothstep(0.0, 0.12, abs(fract(layerR) - 0.5) * 2.0 - 0.75);
-      vec3 creamLab = vec3(highLab.x - 0.03 + shade * 0.6, -0.008, 0.04);
-      // Each leaf layer a slightly different cream, greener toward the rim.
-      float layerTone = hash13(vec3(floor(layerR), 2.0, 7.0));
-      creamLab.x -= layerTone * 0.025;
-      creamLab.yz = mix(creamLab.yz, vec2(-0.03, 0.05), smoothstep(0.45, 0.95, rw) * 0.6);
-      // The layer edges: soft, slightly darker, broken lines (never crisp).
-      creamLab.x -= ringLine * 0.05 * smoothstep(0.15, 0.4, r) * smoothstep(0.3, 0.6, valueNoise3(cm * 2.5 + 3.0) + 0.2);
-      float ochre = smoothstep(0.6, 0.78, rw) * (1.0 - smoothstep(0.88, 0.98, rw));
-      creamLab = mix(creamLab, vec3(creamLab.x - 0.07, 0.015, 0.075), ochre * 0.55);
-      float dots = smoothstep(0.7, 0.85, valueNoise3(cm * 6.0)) * ochre;
-      creamLab = mix(creamLab, vec3(creamLab.x - 0.1, 0.025, 0.065), dots * 0.45);
-      creamLab = mix(creamLab, ribLab, smoothstep(0.9, 1.0, r));
+      vec3 creamLab = vec3(highLab.x - 0.015 + shade * 0.3, 0.0, 0.045);
+      // The faintest rings, soft, only in the middle.
+      float rings = 0.5 + 0.5 * sin(r * 26.0 + valueNoise3(cm * 1.2) * 1.5);
+      creamLab.x -= rings * 0.012 * (1.0 - smoothstep(0.3, 0.6, r));
+      // A soft warm shading toward the middle (it is a little hollow there).
+      creamLab.x -= (1.0 - smoothstep(0.0, 0.35, r)) * 0.015;
+      // The golden ring: thin, soft-edged, warm ochre-gold (never brown), a little broken.
+      float gold = smoothstep(0.72, 0.78, r) * (1.0 - smoothstep(0.82, 0.88, r));
+      gold *= 0.75 + 0.25 * valueNoise3(cm * 3.0);
+      creamLab = mix(creamLab, vec3(creamLab.x - 0.035, 0.0, 0.085), gold * 0.6);
+      // The rim: the pale leaf bases.
+      creamLab = mix(creamLab, ribLab, smoothstep(0.86, 0.98, r));
       lab = creamLab;
     }
 

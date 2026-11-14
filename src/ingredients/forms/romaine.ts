@@ -145,7 +145,7 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     table: 0,
     // The cut across the base: a flat face to the front.
     // Cut a little off square, its rim well rounded (the user: "round it more").
-    cuts: [{ point: new Vector3(0.5, 0, 0), out: new Vector3(-1, 0.06, 0.1).normalize(), soft: 0.9 }],
+    cuts: [{ point: new Vector3(0.5, 0, 0), out: new Vector3(-1, 0.06, 0.1).normalize(), soft: 1.4 }],
     cell: 0.33,
     smoothRounds: 6,
   });
@@ -212,13 +212,22 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
   const centre = axisAt(0.5);
   const p = new Vector3();
   const nrm = new Vector3();
+  // Two passes: find the face's points and how far out the face reaches, then map them so the
+  // disc's own edge is at 1 (its rim and golden ring land where they should, whatever its size).
+  const onFace: number[] = [];
+  let reach = 0.01;
   for (let i = 0; i < position.count; i++) {
     p.fromBufferAttribute(position, i);
     nrm.fromBufferAttribute(normalAttr, i);
     if (p.clone().sub(cutAt).dot(cutOut) < -0.45 || nrm.dot(cutOut) < 0.55) continue;
+    onFace.push(i);
+    reach = Math.max(reach, Math.hypot((p.y - centre.y) / squash, p.z - centre.z));
+  }
+  for (const i of onFace) {
+    p.fromBufferAttribute(position, i);
     const dy = (p.y - centre.y) / squash;
     const dz = p.z - centre.z;
-    uv.setXY(i, -2, Math.min(1, Math.hypot(dy, dz) / radius(0.5)));
+    uv.setXY(i, -2, Math.min(1, Math.hypot(dy, dz) / reach));
     own.setX(i, (Math.atan2(dz, dy) / (2 * Math.PI) + 1) % 1);
   }
   own.needsUpdate = true;
