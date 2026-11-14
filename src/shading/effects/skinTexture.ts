@@ -57,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon', 'egg'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon', 'egg', 'rice', 'glaze'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -109,6 +109,12 @@ export const MELON_RIND_SKIN: Skin = { kind: 'melonRind', size_mm: 2, amount: 1 
  * pearly cartilage cap at the end, ivory bone, a faint pink blush where it leaves the meat.
  */
 export const KNUCKLE_SKIN: Skin = { kind: 'knuckle', size_mm: 1.5, amount: 1 };
+
+/**
+ * A glazed bowl (a piece named `bowl`, with a map: x 0 outside to 1 inside, y height as a share of
+ * the bowl): pooled glaze in the throwing rings, blooms of lime and teal, an orange-brown inside rim.
+ */
+export const GLAZE_SKIN: Skin = { kind: 'glaze', size_mm: 2, amount: 1 };
 
 /** Give one material its skin. */
 export function setSkin(material: ShaderMaterial, skin: Skin): void {
@@ -1326,6 +1332,80 @@ if (kind > 0 && amount > 0.0) {
     // 3. A light chalky dry-brush texture, like the other painted faces.
     float dry = smoothstep(0.55, 0.8, valueNoise3(vec3(cm.x * 1.2, cm.y, cm.z * 4.0))) * smoothstep(0.4, 0.7, paperGrain);
     lab.x += dry * 0.02 * show * (1.0 - brown);
+  } else if (kind == 25) {
+    // Steamed rice, after the user's reference. Map: uv.x how near the bowl's rim, uv.y cm above
+    // the mound's edge. Grains: a scatter of small capsules pointing every way, each lit on top,
+    // warm in the gaps between them (never grey), each a touch its own white.
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    vec3 cell = floor(p);
+    float best = 8.0;
+    float second = 8.0;
+    float gid = 0.0;
+    for (int x = -1; x <= 1; x++)
+    for (int y = -1; y <= 1; y++)
+    for (int z = -1; z <= 1; z++) {
+      vec3 c = cell + vec3(float(x), float(y), float(z));
+      vec3 pt = c + vec3(hash13(c), hash13(c + 17.3), hash13(c + 41.9)) * 0.8 + 0.1;
+      vec3 dirv = normalize(vec3(hash13(c + 5.1), hash13(c + 9.7), hash13(c + 23.3)) - 0.5);
+      vec3 v = p - pt;
+      float along = dot(v, dirv);
+      float dd = length(vec2(length(v - dirv * along) / 0.24, along / 0.68));
+      if (dd < best) { second = best; best = dd; gid = hash13(c + 3.3); }
+      else if (dd < second) { second = dd; }
+    }
+    float grain = 1.0 - smoothstep(0.55, 1.05, best);
+    float gap = smoothstep(0.02, 0.3, second - best);
+    gap = (1.0 - gap) * 0.6 + (1.0 - grain) * 0.6;
+    // Colour depth: broad blooms of warm pearl and cool lilac over the mound, a creamy gold low
+    // down by the bowl (its glaze bouncing up), blue-lilac on the shade side.
+    vec3 cm = objectPos * 3.8169;
+    float bloom = fbm3(cm * 0.28 + 4.0);
+    vec3 warm = vec3(lab.x + 0.005, lab.y + 0.012, lab.z + 0.04);
+    vec3 cool = vec3(lab.x - 0.07, lab.y + 0.012, lab.z - 0.05);
+    lab = mix(lab, warm, smoothstep(0.5, 0.75, bloom) * 0.3 * amount);
+    lab = mix(lab, cool, smoothstep(0.5, 0.75, 1.0 - bloom) * 0.4 * amount);
+    lab = mix(lab, vec3(lab.x - 0.03, lab.y - 0.005, lab.z + 0.05), (1.0 - smoothstep(0.0, 1.2, vSurfaceUv.y)) * 0.3 * amount);
+    lab = mix(lab, cool, (1.0 - smoothstep(-0.5, 0.5, NdotL)) * 0.45 * amount);
+    // The grains.
+    lab.x += grain * 0.035 * lit * amount;
+    lab.x += (gid - 0.5) * 0.03 * amount;
+    lab.z += (gid - 0.5) * 0.02 * amount;
+    vec3 gapWarm = mix(linearToOklab(uGlowColour), lab, 0.35);
+    gapWarm.x = lab.x - 0.05;
+    vec3 gapCool = vec3(lab.x - 0.08, lab.y + 0.015, lab.z - 0.03);
+    lab = mix(lab, mix(gapCool, gapWarm, lit), clamp(gap, 0.0, 1.0) * 0.55 * amount);
+    highlightBumpy = 1.0;
+    highlightBreak = clamp(gap * 1.5, 0.0, 1.0);
+    highlightGlint = grain * smoothstep(0.75, 0.95, gid) * 0.6;
+  } else if (kind == 26) {
+    // A glazed bowl. Map: uv.x 0 outside to 1 inside, uv.y height as a share of the bowl.
+    float inside = vSurfaceUv.x;
+    float up = vSurfaceUv.y;
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    vec3 cm = objectPos * 3.8169;
+    // Colour depth: the glaze runs from a warm lime where it is thin and lit to a deep blue-teal
+    // where it pooled, in broad soft blooms; darker in the throwing rings' grooves.
+    float bloom = fbm3(vec3(cm.x * 0.3, cm.y * 0.9, cm.z * 0.3) + 6.0);
+    vec3 lime = vec3(lab.x + 0.04, lab.y + 0.01, lab.z + 0.035);
+    vec3 teal = vec3(lab.x - 0.05, lab.y - 0.012, lab.z - 0.04);
+    lab = mix(lime, teal, smoothstep(0.3, 0.72, bloom + (0.5 - up) * 0.3));
+    float groove = 0.5 - 0.5 * sin(up * 6.2832 * 4.0 * 1.12 + 1.2);
+    lab = mix(lab, teal, groove * groove * 0.35 * (1.0 - inside));
+    lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.03, lab.z - 0.07), (1.0 - lit) * 0.35);
+    // The inside rim: an orange-brown glaze over the upper wall, fading softly into the green.
+    vec3 rust = linearToOklab(uMelonPale);
+    rust.x += (lab.x - linearToOklab(uBaseColour).x) * 0.8 + (bloom - 0.5) * 0.06;
+    float band = inside * smoothstep(0.5, 0.78, up + (bloom - 0.5) * 0.2);
+    lab = mix(lab, rust, band * 0.9);
+    // Where the glaze thins over the rim: a paler, warmer line, soft.
+    float rim = smoothstep(0.9, 0.99, up) * (1.0 - abs(inside - 0.5) * 1.2);
+    lab = mix(lab, vec3(lab.x + 0.07, lab.y + 0.02, lab.z + 0.03), clamp(rim, 0.0, 1.0) * 0.5);
+    // Fine iron specks in the glaze, in its own deep shade.
+    float speck = smoothstep(0.8, 0.92, valueNoise3(objectPos * 60.0));
+    lab = shadeOwn(lab, speck * 0.3 * show);
+    highlightOwn = max(highlightOwn, band);
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

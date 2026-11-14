@@ -36,6 +36,8 @@ export type FamilyId =
   | 'salmon'
   | 'albumen'
   | 'yolk'
+  | 'rice'
+  | 'glaze'
   | 'vine'
   | 'pit'
   | 'papery'
@@ -337,6 +339,21 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   yolk: {
     name: 'Yolk',
     colours: { lit: '#ffd95e', base: '#f9ab1c', shadow: '#c2562d', glow: '#ff8f17', highlight: '#fff8dc' },
+    rooms: [],
+  },
+  // Not on board 04 yet (added 2026-11-14, round 2: the rice bowl, after the user's reference):
+  // steamed white rice, a warm pearl white in the light, a soft lilac in shadow (never grey), a
+  // creamy gold glow between the grains.
+  rice: {
+    name: 'Rice',
+    colours: { lit: '#fffdf7', base: '#f6f2e8', shadow: '#b3a9cc', glow: '#fff0cf', highlight: '#ffffff' },
+    rooms: ['dusk', 'iris'],
+  },
+  // Not a board 04 family: only for parts (a glazed bowl or dish). A celadon green glaze, lime
+  // where the light catches it, a deep blue-teal in shadow, never grey-green.
+  glaze: {
+    name: 'Glaze',
+    colours: { lit: '#aecb8f', base: '#6c9a63', shadow: '#2c5560', glow: '#a5c66f', highlight: '#f1f7df' },
     rooms: [],
   },
   // Not a board 04 family: only for parts (a grape bunch's woody stem; later vines and tomato

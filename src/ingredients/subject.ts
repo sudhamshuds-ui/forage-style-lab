@@ -3,7 +3,7 @@ import type { Settings } from '../params';
 import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
 import { mixHex } from '../utils/colour';
-import { CRUMB_SKIN, KNUCKLE_SKIN, LABEL_SKIN, LEAF_SKIN, MELON_RIND_SKIN, setSkin } from '../shading/effects/skinTexture';
+import { CRUMB_SKIN, GLAZE_SKIN, KNUCKLE_SKIN, LABEL_SKIN, LEAF_SKIN, MELON_RIND_SKIN, setSkin } from '../shading/effects/skinTexture';
 import { hotSauceLabelTexture } from '../shading/labelArt';
 import { FAMILIES } from './families';
 import { seedFromId, seededRandom } from './forms/kit/random';
@@ -210,6 +210,12 @@ class FormSubject implements Subject {
         else if (piece.role === 'knuckle') {
           setSkin(material, KNUCKLE_SKIN);
           (material.uniforms.uMelonPale.value as Color).set(POULTRY_MEAT);
+        }
+        // A glazed bowl (before the leaf rule: it has a map too): pooled glaze, rings, an
+        // orange-brown inside rim.
+        else if (piece.role === 'bowl') {
+          setSkin(material, GLAZE_SKIN);
+          (material.uniforms.uMelonPale.value as Color).set('#d98a3c');
         }
         // Crumb (bread inside a slash) gets the crumb skin: holes, streaks, a toasted rim.
         else if (piece.role === 'crumb') setSkin(material, CRUMB_SKIN);

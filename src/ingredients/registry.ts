@@ -20,6 +20,7 @@ import { buildRomaine } from './forms/romaine';
 import { buildCabbage } from './forms/cabbage';
 import { buildSalmon } from './forms/salmon';
 import { buildEgg } from './forms/egg';
+import { buildRice } from './forms/rice';
 import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
@@ -710,6 +711,32 @@ export const REGISTRY: IngredientEntry[] = [
     glossy: ['yolk'],
     rimGlints: false,
     shadowTint: 0.6,
+  },
+  {
+    spec: {
+      id: 'rice',
+      name: 'Rice',
+      archetype: 'contained',
+      family: 'rice',
+      layout: 'solo',
+      show: 'A green glazed bowl heaped with steamed white rice, the lumpy dome standing well above the rim, the inside of the rim an orange brown.',
+      forms: ['whole'],
+      scale: 'M',
+      size_cm: [13.3, 10.6, 13.3],
+      parts: ['rice', 'bowl@glaze'],
+      light_case: 'pale',
+      notes:
+        'Round 2, after the user\'s reference (Figma node 148:9). The bowl kit (kit/bowl.ts): a bowl spun from an outline with a real wall, and a heaped mound closed underneath. The grains, the warm gaps between them and the colour depth are a shader texture (the rice skin); the bowl\'s pooled glaze, rings and orange-brown inside rim are the glaze skin.',
+    },
+    form: buildRice,
+    turn: 0,
+    skin: { kind: 'rice', size_mm: 5.5, amount: 0.9 },
+    // Steamed rice has a soft, moist sheen broken by its grains; the glazed bowl keeps its shine.
+    matte: true,
+    glossy: ['bowl'],
+    rimGlints: false,
+    shadowTint: 0.3,
+    budget: [2000, 24000],
   },
 ];
 
