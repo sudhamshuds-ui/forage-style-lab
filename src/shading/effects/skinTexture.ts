@@ -1094,6 +1094,17 @@ if (kind > 0 && amount > 0.0) {
       bladeLab = shadeOwn(bladeLab, smoothstep(0.55, 0.85, pucker) * 0.1 * cellShow);
       bladeLab.x += smoothstep(0.3, 0.05, pucker) * 0.03 * cellShow * lit;
       vein = max(vein * 0.4, leafVein);
+      // Crinkles (the user's napa reference, 2026-11-14: "can we get this sort of texture too"): dense
+      // ridges running out from the rib like the side veins, each lit on one side and shaded on the
+      // other, broken into irregular lengths, strongest on the green, gone on the pale rib.
+      float crinklePhase = lu * 30.0 - la * 3.4 + own * 11.0 + wob * 2.0;
+      float ridgeWave = sin(crinklePhase * 6.2832);
+      float ridgeBreak = smoothstep(0.3, 0.6, valueNoise3(vec3(lu * 18.0, la * 7.0, own * 5.0)));
+      float crinkleShow = green * (1.0 - pale) * ridgeBreak * smoothstep(0.08, 0.2, la) * amount;
+      bladeLab.x += ridgeWave * 0.045 * crinkleShow * mix(0.5, 1.0, lit);
+      bladeLab = shadeOwn(bladeLab, smoothstep(0.4, 1.0, -ridgeWave) * 0.08 * crinkleShow);
+      // Their crests catch a lighter lime.
+      bladeLab = mix(bladeLab, mix(bladeLab, ribLab, 0.35), smoothstep(0.7, 1.0, ridgeWave) * crinkleShow * 0.5);
     }
     bladeLab = mix(bladeLab, mix(bladeLab, ribLab, 0.65), vein * cellShow * 0.75);
     // Deeper green blots in loose patches (the watercolour's darker pools), never even.
@@ -1117,10 +1128,11 @@ if (kind > 0 && amount > 0.0) {
     // Each leaf's own edge reads as a soft, deeper green line just inside a lighter rim (the
     // references' leaf outlines down the side), so the leaves are told apart.
     float edgeBand = smoothstep(0.55, 0.85, rim) * (1.0 - smoothstep(0.92, 1.0, rim));
-    lab = shadeOwn(lab, edgeBand * mix(0.1, 0.22, green) * amount);
+    // (Only up on the green: on the pale lower leaves the edges blend in, never pale flakes.)
+    lab = shadeOwn(lab, edgeBand * 0.22 * green * amount);
     lab = mix(lab, lime, smoothstep(0.92, 1.0, rim) * lit * green * 0.3 * amount);
     vec3 deep = vec3(mix(lab.x, shadowLab.x, 0.55), mix(shadowLab.yz, vec2(-0.035, -0.03), 0.4));
-    lab = mix(lab, deep, smoothstep(0.2, 0.85, crevice) * 0.55 * amount);
+    lab = mix(lab, deep, smoothstep(0.2, 0.85, crevice) * 0.55 * mix(0.35, 1.0, green) * amount);
 
     // 5. Light through the leaves: a warm yellow-green glow at the turn into shadow and on thin
     //    edges seen side on; the shaded side leans cool (warm highlights, cool shadows).

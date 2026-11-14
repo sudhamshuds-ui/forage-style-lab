@@ -138,7 +138,8 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     stems: [],
     coreSoftness: 1.6,
     // A tight fillet: each leaf's edge stands a little proud of the one under it, so the leaves read.
-    leafSoftness: 0.22,
+    // (Softer joins: the inner leaves' edges showed as pale flakes between the outer leaves.)
+    leafSoftness: 0.4,
     stemSoftness: 0.1,
     joinSoftness: 0.4,
     table: 0,
