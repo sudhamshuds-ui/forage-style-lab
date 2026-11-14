@@ -33,6 +33,7 @@ export type FamilyId =
   | 'spinach'
   | 'romaine'
   | 'cabbage'
+  | 'salmon'
   | 'vine'
   | 'pit'
   | 'papery'
@@ -312,6 +313,14 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Spinach',
     colours: { lit: '#80b44f', base: '#2f6b2f', shadow: '#1f4552', glow: '#86b843', highlight: '#f2f1d4' },
     rooms: ['lavender', 'heather'],
+  },
+  // Not on board 04 yet (added 2026-11-14, round 2: the salmon fillet, after the user's watercolour):
+  // raw salmon, a coral orange (pinker than the pepper's orange, more orange than the melon's red),
+  // peach where lit, a deep rose-wine in shadow (cool, never brown), a hot orange glow.
+  salmon: {
+    name: 'Salmon',
+    colours: { lit: '#ffab82', base: '#f2734c', shadow: '#a3344f', glow: '#ff6f3c', highlight: '#fff0e4' },
+    rooms: ['mist', 'celadon'],
   },
   // Not a board 04 family: only for parts (a grape bunch's woody stem; later vines and tomato
   // trusses). A golden ochre, its shadow a warm olive-plum, never grey-green.

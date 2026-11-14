@@ -18,6 +18,7 @@ import { buildBlueberries } from './forms/blueberries';
 import { buildSpinach } from './forms/spinach';
 import { buildRomaine } from './forms/romaine';
 import { buildCabbage } from './forms/cabbage';
+import { buildSalmon } from './forms/salmon';
 import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
@@ -657,6 +658,32 @@ export const REGISTRY: IngredientEntry[] = [
     rimGlints: false,
     shadowTint: 0.3,
     budget: [2000, 34000],
+  },
+  {
+    spec: {
+      id: 'salmon',
+      name: 'Salmon',
+      archetype: 'block',
+      family: 'salmon',
+      layout: 'solo',
+      show: 'One raw salmon fillet lying skin down on a diagonal, a cut end toward the camera: white fat lines in V shapes across the top, nested arcs on the cut end, a thin silvery skin along the foot.',
+      forms: ['whole', 'slices', 'cubes', 'flaked'],
+      scale: 'M',
+      size_cm: [16.4, 4.1, 9.5],
+      parts: ['flesh:glow'],
+      light_case: 'cut-juicy',
+      notes:
+        'Round 2, after the user\'s reference (Figma node 148:6, a watercolour fillet). A soft rectangle with two cut ends, thick and rounded along the back, thin at the belly, a soft groove along the middle line. The fat lines, the flakes on the cut ends, the colour bands and the silvery skin are a shader texture (the salmon skin), never geometry.',
+    },
+    form: buildSalmon,
+    // On a diagonal, the thick back toward the key light, a cut end toward the camera on the right.
+    turn: 58,
+    skin: { kind: 'salmon', size_mm: 4, amount: 0.9 },
+    // A moist, soft sheen; no rim glints along the soft top edge (the steak's lesson).
+    matte: true,
+    rimGlints: false,
+    shadowTint: 0.45,
+    budget: [2000, 26000],
   },
 ];
 

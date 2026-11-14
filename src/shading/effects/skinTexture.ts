@@ -57,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -1192,6 +1192,84 @@ if (kind > 0 && amount > 0.0) {
     // (A broken sheen showed as pale blocks along the cells: kept very quiet.)
     highlightBreak = 0.8 + vein * cellShow * 1.5 + crevice * 2.0;
     highlightGlint = 0.0;
+  } else if (kind == 23) {
+    // Salmon (a raw fillet), after the user's watercolour reference. Maps: uv.x cm across from the
+    // middle line (positive toward the belly), uv.y height as a share of the top; ownPos x cm along,
+    // y cm up, z cm below the top.
+    float across = vSurfaceUv.x;
+    float share = vSurfaceUv.y;
+    vec3 q = vOwnPos;
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    vec3 baseLab = linearToOklab(uBaseColour);
+    float shade = lab.x - baseLab.x;
+    float paperGrain = valueNoise3(objectPos * 90.0);
+
+    // 1. Colour depth: the flesh runs from a hot orange through coral to a rosy pink, in broad wet
+    //    blooms; deeper and redder low on the walls and near the middle line, paler and peachier
+    //    toward the fatty belly; a rose-violet soaking into the shade (never brown).
+    float bloomA = fbm3(vec3(q.x * 0.16, q.y * 0.3, across * 0.22) + 2.0);
+    float bloomB = fbm3(vec3(q.x * 0.4, q.y * 0.5, across * 0.5) + 9.0);
+    vec3 hot = vec3(lab.x + 0.02, lab.y - 0.01, lab.z + 0.045);
+    vec3 rosy = vec3(lab.x - 0.02, lab.y + 0.03, lab.z - 0.035);
+    lab = mix(hot, rosy, smoothstep(0.3, 0.7, bloomA * 0.7 + bloomB * 0.3 + (0.5 - share) * 0.25));
+    float bellyPale = smoothstep(1.0, 4.6, across);
+    lab = mix(lab, vec3(lab.x + 0.05, lab.y - 0.025, lab.z + 0.01), bellyPale * 0.55);
+    lab = shadeOwn(lab, (1.0 - smoothstep(0.1, 0.75, share)) * 0.3 * amount);
+    lab = shadeOwn(lab, exp(-pow(across / 0.7, 2.0)) * 0.22 * smoothstep(0.5, 1.0, share) * amount);
+    lab = shadeOwn(lab, smoothstep(0.55, 0.8, bloomB) * 0.22 * amount);
+
+    // 2. The fat lines: sheets of fat between the flakes, cutting the top in V shapes that meet on
+    //    the middle line and the cut ends in nested arcs. One smooth field does both: the distance
+    //    along the fillet plus the distance from the middle line's top. Each line wavers, swells and
+    //    thins, and breaks in places; soft-edged, never a drawn stripe.
+    float wav = (fbm3(vec3(q.x * 0.5, across * 0.6, q.z * 0.6) + 4.0) - 0.5) * 1.5 + (fbm3(vec3(q.x * 0.17, across * 0.2, 1.0)) - 0.5) * 3.2;
+    float reach = length(vec2(across * 0.95, q.z * 1.7));
+    float phase = (q.x + reach * 0.9 + wav) / 1.45;
+    float cellId = floor(phase);
+    float f = abs(fract(phase) - 0.5) * 2.0;
+    float widthVar = 0.05 + 0.2 * pow(hash13(vec3(cellId, 3.0, 1.0)), 1.5) + 0.08 * exp(-pow(across / 1.2, 2.0)) + 0.1 * bellyPale + 0.06 * valueNoise3(vec3(q.x * 0.8, across, 5.0));
+    float line = 1.0 - smoothstep(widthVar * 0.35, widthVar + 0.09, 1.0 - f);
+    float broken = smoothstep(0.22, 0.5, valueNoise3(vec3(q.x * 0.9 + cellId * 3.1, across * 0.8, q.z * 1.2) + 7.0));
+    line *= mix(1.0, broken, 0.75);
+    // Fainter where the flesh is deepest red on the wall's foot; a soft second, finer set between.
+    float fine = 1.0 - smoothstep(0.02, 0.1, abs(fract(phase + 0.5) - 0.5) * 2.0 - 0.9 + 0.9);
+    line = clamp(line * (0.55 + 0.45 * smoothstep(0.15, 0.6, share)), 0.0, 1.0);
+    vec3 fatLab = linearToOklab(uMelonPale);
+    fatLab.x += shade * 0.8;
+    fatLab.yz = mix(fatLab.yz, lab.yz, 0.3);
+    fatLab = mix(fatLab, vec3(fatLab.x - 0.03, fatLab.y + 0.01, fatLab.z - 0.03), 1.0 - lit);
+    lab = mix(lab, fatLab, line * 0.8 * amount);
+    highlightOwn = max(highlightOwn, line);
+    // The flakes between the lines: each a touch its own tone, lighter toward its lit edge.
+    lab.x += (hash13(vec3(cellId, 9.0, 2.0)) - 0.5) * 0.035 * (1.0 - line);
+    lab.x += (fract(phase) - 0.5) * 0.03 * (1.0 - line) * lit;
+
+    // 3. The skin: a thin silvery slate-blue band along the foot of the walls, with a pale fat line
+    //    above it, each fading softly into the next (no crisp line).
+    float foot = 1.0 - smoothstep(0.2, 0.5, q.y + (bloomB - 0.5) * 0.12);
+    float under = smoothstep(0.3, 0.55, q.y) * (1.0 - smoothstep(0.55, 0.95, q.y));
+    lab = mix(lab, fatLab, under * 0.45 * amount);
+    vec3 skinLab = linearToOklab(uMelonGreen);
+    skinLab.x += shade * 0.6 + (valueNoise3(objectPos * 14.0) - 0.5) * 0.06;
+    skinLab = mix(skinLab, vec3(skinLab.x + 0.16, 0.0, -0.02), smoothstep(0.6, 0.9, valueNoise3(vec3(q.x * 2.5, q.y * 9.0, across * 2.5))) * 0.5 * lit);
+    lab = mix(lab, skinLab, foot * amount);
+    highlightOwn = max(highlightOwn, foot);
+
+    // 4. Moist and translucent: a warm glow at the turn into shadow and on thin edges seen side
+    //    on (the belly), the shade leaning rose-violet (warm highlights, cool shadows).
+    float turnBand = smoothstep(-0.3, 0.0, NdotL) * (1.0 - smoothstep(0.0, 0.4, NdotL));
+    float edgeOn = pow(1.0 - abs(dot(N, V)), 2.5);
+    lab = mix(lab, linearToOklab(uGlowColour), clamp(turnBand * 0.3 + edgeOn * 0.18, 0.0, 0.4) * (1.0 - foot) * (1.0 - line * 0.6) * amount);
+    lab = mix(lab, vec3(lab.x - 0.02, lab.y + 0.02, lab.z - 0.05), (1.0 - lit) * 0.3 * (1.0 - foot) * amount);
+
+    // 5. The shared chalky dry-brush texture (watermelon, steak), light.
+    float scratch = valueNoise3(vec3(q.x * 0.5 + reach * 0.5, q.y * 3.0, across * 2.2) * 2.0);
+    float dry = smoothstep(0.45, 0.7, scratch) * smoothstep(0.35, 0.65, paperGrain);
+    lab = mix(lab, vec3(lab.x + 0.06, lab.yz * 0.8), dry * 0.4 * show * (1.0 - foot));
+    float fleck = smoothstep(0.66, 0.84, valueNoise3(objectPos * 26.0 + 9.0)) * smoothstep(0.5, 0.8, paperGrain);
+    lab = shadeOwn(lab, fleck * 0.35 * show * (1.0 - line) * (1.0 - foot));
+    fine = 0.0;
   }
   colour = max(oklabToLinear(lab), 0.0);
 }
