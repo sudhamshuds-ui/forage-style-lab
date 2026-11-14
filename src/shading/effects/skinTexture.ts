@@ -57,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'napa'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -1016,8 +1016,8 @@ if (kind > 0 && amount > 0.0) {
     // Sparse: a white glint everywhere read as blotches.
     highlightGlint = smoothstep(0.75, 0.86, valueNoise3(cm * 2.5 + 9.0)) * (1.0 - side) * 0.3;
   } else if (kind == 21 || kind == 22) {
-    // (Kind 22, the napa cabbage, shares the romaine's painting and adds the crinkles below.)
-    bool napa = kind == 22;
+    // (Kind 22, the cabbage, shares the romaine's painting; its wrapper leaves go deeper.)
+    bool cabbage = kind == 22;
     // Romaine, after the user's references (2026-11-13: "the textures and colours need to be on the
     // mark"). The head is one surface (kit/leafMass.ts); its map is worked out in the form so it
     // blends where leaves meet: uv.x how pale (the broad rib, the white base), uv.y how green
@@ -1096,18 +1096,8 @@ if (kind > 0 && amount > 0.0) {
       bladeLab = shadeOwn(bladeLab, smoothstep(0.55, 0.85, pucker) * 0.1 * cellShow);
       bladeLab.x += smoothstep(0.3, 0.05, pucker) * 0.03 * cellShow * lit;
       vein = max(vein * 0.4, leafVein);
-      // (A crinkle texture was tried on the romaine on 2026-11-14 and taken out there: the user
-      // preferred its veins alone. The napa keeps it, softer: its reference is crinkled all over the
-      // green.)
-      if (napa) {
-        float crinklePhase = lu * 30.0 - la * 3.4 + own * 11.0 + wob * 2.0;
-        float ridgeWave = sin(crinklePhase * 6.2832);
-        float ridgeBreak = smoothstep(0.3, 0.6, valueNoise3(vec3(lu * 18.0, la * 7.0, own * 5.0)));
-        float crinkleShow = green * (1.0 - pale) * ridgeBreak * smoothstep(0.08, 0.2, la) * amount;
-        bladeLab.x += ridgeWave * 0.03 * crinkleShow * mix(0.5, 1.0, lit);
-        bladeLab = shadeOwn(bladeLab, smoothstep(0.4, 1.0, -ridgeWave) * 0.05 * crinkleShow);
-        bladeLab = mix(bladeLab, mix(bladeLab, ribLab, 0.35), smoothstep(0.7, 1.0, ridgeWave) * crinkleShow * 0.4);
-      }
+      // (A crinkle texture was tried on the romaine and the napa cabbage on 2026-11-14 and taken
+      // out: the user preferred the veins alone. It is in history.)
     }
     bladeLab = mix(bladeLab, mix(bladeLab, ribLab, 0.65), vein * cellShow * 0.75);
     // Deeper green blots in loose patches (the watercolour's darker pools), never even.
@@ -1175,6 +1165,12 @@ if (kind > 0 && amount > 0.0) {
 
     // 7. The shine: soft, broken by the cells and gone in the crevices.
     highlightBumpy = 1.0;
+    // The cabbage's wrapper leaves (the outer layer) a deeper, bluer green than its pale head.
+    if (cabbage && vSurfaceUv.x > -1.5) {
+      float wrapper = smoothstep(1.9, 2.1, layer);
+      lab = shadeOwn(lab, wrapper * 0.14 * green * amount);
+      lab.yz = mix(lab.yz, lab.yz * vec2(1.1, 0.9), wrapper * green);
+    }
     // (A broken sheen showed as pale blocks along the cells: kept very quiet.)
     highlightBreak = 0.8 + vein * cellShow * 1.5 + crevice * 2.0;
     highlightGlint = 0.0;

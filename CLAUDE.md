@@ -533,7 +533,7 @@ Shared mechanisms added along the way (code hooks other ingredients reuse):
   subsurface, a clean cream cut disc). The crinkle texture was taken out (in history). See
   `lessons/romaine.md`.
 
-Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the napa cabbage next.
+Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the cabbage next (a round head, replacing the napa).
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after

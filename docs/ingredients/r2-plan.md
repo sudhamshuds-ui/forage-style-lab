@@ -66,7 +66,7 @@ Grouped so each step adds one new tool and the next ones reuse it:
 3. **Avocado**: builds the cut tool and the whole-and-cut layout, which every later dish needs.
 4. **Grapes** (done 2026-11-12, see `lessons/grapes.md`), 5. **Blueberries** (done 2026-11-12, see `lessons/blueberries.md`): many small pieces; the bunch and the pile. Blueberries also
    bring the first warm room.
-6. **Spinach** (done 2026-11-13, a loose pile, see `lessons/spinach.md`), 7. **Romaine** (done 2026-11-14, see `lessons/romaine.md`), 8. **Napa cabbage**: the leafy kit, simplest first.
+6. **Spinach** (done 2026-11-13, a loose pile, see `lessons/spinach.md`), 7. **Romaine** (done 2026-11-14, see `lessons/romaine.md`), 8. **Cabbage** (a round green head, the user's references 2026-11-14; replaced the napa): the leafy kit, simplest first.
 9. **Salmon**: reuses the steak's painted-stripe approach on a slab.
 10. **Fried egg**: the first cooked state.
 11. **Rice bowl**, 12. **Milk carton**: containers.

@@ -32,7 +32,7 @@ export type FamilyId =
   | 'blueberry'
   | 'spinach'
   | 'romaine'
-  | 'napa'
+  | 'cabbage'
   | 'vine'
   | 'pit'
   | 'papery'
@@ -295,13 +295,12 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // bright yellow-green leaf, lime where lit (warm), its shadow a cool blue-green (warm highlights,
   // cool shadows). The pale ribs and the cream cut base come from its lit and highlight colours.
   // Thistle, a dusty mauve, sets the green off (its complement); not the spinach's Lavender.
-  // Not on board 04 yet (added 2026-11-14, round 2: napa cabbage, after the user's references): paler
-  // and more yellow than the romaine, the white ribs and cream base from its lit and highlight
-  // colours, shadows a cool blue-green (warm highlights, cool shadows). Iris, a cool blue-violet,
-  // sets it off; not the romaine's Thistle.
-  napa: {
-    name: 'Napa cabbage',
-    colours: { lit: '#e2eda2', base: '#a3c667', shadow: '#3d675c', glow: '#d2e374', highlight: '#fbfbea' },
+  // Not on board 04 yet (added 2026-11-14, round 2: cabbage, after the user's watercolours): a pale,
+  // fresh green head and deeper, bluer green wrapper leaves (the outer layer is shaded deeper by the
+  // skin), lime where lit, cool blue-green shadows. Iris, a cool blue-violet, sets it off.
+  cabbage: {
+    name: 'Cabbage',
+    colours: { lit: '#cfe59a', base: '#79ad5a', shadow: '#2a5652', glow: '#bfdc6c', highlight: '#f5f8e0' },
     rooms: ['iris'],
   },
   romaine: {
