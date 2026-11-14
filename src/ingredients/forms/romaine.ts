@@ -24,7 +24,9 @@ function radius(x: number): number {
   const t = Math.min(1, Math.max(0, x / LENGTH));
   // A barrel: rounded in from the cut, swelling fullest just past the middle, easing in at the top
   // (the user, 2026-11-13: "more bulge and rounder body shape overall, very cilindrical right now").
-  return 3.3 + 1.9 * Math.sin(Math.PI * Math.min(1, t * 0.95 + 0.04)) ** 0.8 * (1 - 0.25 * smoothstep(0.75, 1, t));
+  // Slimmer (the user's drawn outline, 2026-11-13: "make it less [thick]"): a small rounded base, the
+  // sides widening gently, fullest near the top, which rounds over.
+  return 2.5 + 1.3 * smoothstep(0, 0.45, t) + 0.25 * smoothstep(0.45, 0.8, t) - 0.35 * smoothstep(0.85, 1, t);
 }
 
 export const buildRomaine: FormBuilder = ({ state, seed }) => {
@@ -54,13 +56,13 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     // Heart: short pale leaves deep inside, showing at the top where the outer ones open.
     // (Eight outer leaves, the middle layer close under them: gaps between two outer leaves showed
     // a lower leaf as a small round pit.)
-    { count: 8, from: 0.6, length: [23, 26], width: [8.4, 10], inset: 0.15, rank: 2 },
-    { count: 6, from: 1.2, length: [23, 25.5], width: [7.2, 8.4], inset: 0.3, rank: 1 },
+    { count: 8, from: 0.6, length: [23, 26], width: [6.8, 8], inset: 0.15, rank: 2 },
+    { count: 6, from: 1.2, length: [23, 25.5], width: [5.8, 6.8], inset: 0.3, rank: 1 },
     // The heart reaches the top and folds over the end, filling it with leaves.
-    { count: 5, from: 5, length: [20.5, 22], width: [5.4, 6.6], inset: 0.9, rank: 0 },
+    { count: 5, from: 5, length: [20.5, 22], width: [4.4, 5.4], inset: 0.9, rank: 0 },
     // Loose wrapper leaves round the body, standing a little off it: more shape and a rounder,
     // less even outline (rank 3: painted as outer leaves).
-    { count: 4, from: 0.3, length: [17, 22], width: [9.5, 11], inset: -0.35, rank: 3 },
+    { count: 4, from: 0.3, length: [17, 22], width: [7.6, 8.8], inset: -0.35, rank: 3 },
   ];
   for (const layer of layers) {
     const turn = random() * Math.PI * 2;
@@ -96,8 +98,9 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
         // Only the outer leaves' tips curl out; an inner leaf's curled tip broke the surface as a
         // round pit.
         // Outer and wrapper tips ruffle out a little; the heart's tips fold in over the end.
-        tipCurl: layer.rank >= 2 ? 0.3 + random() * 0.4 : layer.rank === 0 ? -1.2 - random() * 0.6 : -0.2,
-        wave: 0.5 + random() * 0.35,
+        tipCurl: layer.rank >= 2 ? 0.3 + random() * 0.4 : layer.rank === 0 ? -0.7 - random() * 0.3 : -0.2,
+        // (Gentler: bigger waves and folds bubbled up on top.)
+        wave: 0.25 + random() * 0.2,
         waves: 6 + Math.floor(random() * 4),
         phase: random() * Math.PI * 2,
         fold: 0,
@@ -113,7 +116,7 @@ export const buildRomaine: FormBuilder = ({ state, seed }) => {
     stems: [],
     coreSoftness: 1.6,
     // A tight fillet: each leaf's edge stands a little proud of the one under it, so the leaves read.
-    leafSoftness: 0.16,
+    leafSoftness: 0.22,
     stemSoftness: 0.1,
     joinSoftness: 0.4,
     table: 0,
