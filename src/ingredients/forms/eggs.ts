@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { latheGeometry, smoothstep } from './kit/lathe';
 import { finishPieces, type FormBuilder } from './kit/piece';
 import { seededRandom, signed } from './kit/random';
+import { spinProfile, type ProfilePoint } from './kit/bowl';
 import { trayGeometry } from './kit/tray';
 
 /**
@@ -24,7 +25,7 @@ const TRAY = { width: 15.9, depth: 10.8 };
 
 function egg(random: () => number, tint: number): BufferGeometry {
   const half = 2.8 * (1 + signed(random) * 0.04);
-  const fat = 2.1 * (1 + signed(random) * 0.035);
+  const fat = 2.14 * (1 + signed(random) * 0.035);
   const g = latheGeometry({
     halfLength: half,
     // Blunt end first (it sits down in the cup), the narrower end up.
@@ -52,50 +53,64 @@ export const buildEggs: FormBuilder = ({ state, seed }) => {
   const cups: [number, number][] = [];
   for (const z of [-PITCH / 2, PITCH / 2]) for (const x of [-PITCH, 0, PITCH]) cups.push([x, z]);
 
-  // Where a point on the rim sits between two cups (1) or beside a cup's middle (0).
-  const between = (u: number, v: number) => {
-    const longSide = Math.abs(v) >= Math.abs(u);
-    const along = longSide ? (u * TRAY.width) / 2 : (v * TRAY.depth) / 2;
-    return longSide ? 0.5 - 0.5 * Math.cos((along / PITCH) * 2 * Math.PI) : 0.5 + 0.5 * Math.cos((along / PITCH) * 2 * Math.PI);
-  };
-  // After the user's photos of a real half-dozen carton (2026-11-15: "Egg carton form is wrong see
-  // refs"; a first tray was a plain box, a second had spikes along its rim):
-  //   - a flat, level rim all the way round, with a rounded edge,
-  //   - six deep round cups; under the rim each cup bulges out on its own, with a tuck between,
-  //   - down the middle, two tall posts: cones with flat tops, standing above the rim,
+  // Rebuilt 1:1 from the user's photos of a real half-dozen carton (2026-11-15: "why are u curving
+  // the egg carton like that in the corner, also the height. please 1:1 the form of the carton
+  // with ref"). Earlier tries made the tray one moulded block whose outer wall was invented (a
+  // box, then spikes, then a wall bent in at the corners). The real thing is simpler:
+  //   - a thin, flat rim plate: a plain rounded rectangle, level all round, low (the eggs stand
+  //     more than half out of it),
+  //   - under it, six separate round cups, each a small bowl on its own flat foot, their sides
+  //     just meeting their neighbours',
+  //   - down the middle, two tall posts: cones with flat tops,
   //   - the lid: a shallow box with rounded corners, hinged along the back, standing open.
   const posts: [number, number][] = [[-PITCH / 2, 0], [PITCH / 2, 0]];
-  const RIM = 3.3;
-  const tray = trayGeometry({
+  const RIM = 2.7;
+  const PLATE = 0.42;
+  const plate = trayGeometry({
     width: TRAY.width,
     depth: TRAY.depth,
-    tall: 5.2,
-    round: 0.52,
+    tall: 5,
+    round: 0.3,
     columns: 84,
     rows: 58,
     top: (x, z, u, v) => {
-      // Each cup: a deep round bowl; a saddle between neighbours, a little below the rim.
+      // Each cup: a round bowl; a saddle between neighbours, a little below the rim.
       let d = Infinity;
       for (const [cx, cz] of cups) d = Math.min(d, Math.hypot(x - cx, z - cz));
-      let y = 0.5 + (RIM - 0.95) * smoothstep(CUP * 0.42, CUP * 1.0, d) ** 1.2;
+      let y = 0.5 + (RIM - 0.8) * smoothstep(CUP * 0.42, CUP * 1.0, d) ** 1.2;
       // The posts: a cone with a flat top and a small dimple in it, standing above the rim.
       for (const [px, pz] of posts) {
         const r = Math.hypot(x - px, z - pz);
-        const cone = 5.2 - 3.4 * smoothstep(0.42, 1.75, r) ** 0.85 - 0.18 * (1 - smoothstep(0.12, 0.32, r));
-        y = Math.max(y, Math.min(cone, y + 3.2 * (1 - smoothstep(1.2, 1.9, r))));
+        const cone = 5.0 - 3.6 * smoothstep(0.42, 1.75, r) ** 0.85 - 0.18 * (1 - smoothstep(0.12, 0.32, r));
+        y = Math.max(y, Math.min(cone, y + 3.4 * (1 - smoothstep(1.2, 1.9, r))));
       }
       // The flat rim, with a rounded outer edge.
       const m = Math.max(Math.abs(u), Math.abs(v));
-      const lip = RIM - 0.16 * smoothstep(0.955, 1, m);
-      return y + (lip - y) * smoothstep(0.83, 0.91, m);
+      const lip = RIM - 0.14 * smoothstep(0.96, 1, m);
+      return y + (lip - y) * smoothstep(0.86, 0.93, m);
     },
-    // The foot tucks in between the cups and under the rim, so each cup shows from outside.
-    outline: (u, v) => 1 + 0.012 * (1 - 2 * between(u, v)),
-    inset: (u, v) => 0.55 + 0.95 * between(u, v),
-    // Each cup's wall swells out round its egg (round cups, never flat facets; with a straight wall
-    // the eggs poked out through the corners: the user, 2026-11-15).
-    wall: (u, v, t) => 0.42 * Math.sin(Math.PI * Math.min(1, t * 1.05)) ** 0.8 * (1 - 0.75 * between(u, v)),
+    // A thin plate: its edge drops straight down a few millimetres to its underside.
+    inset: () => 0.1,
+    footY: RIM - PLATE,
   });
+  // The cups, seen from outside: each a round bowl under the plate, a touch square, on a flat foot.
+  const cupOutline: ProfilePoint[] = [
+    { r: 0, y: 0, u: 1, v: 0 },
+    { r: 1.2, y: 0, u: 1, v: 0 },
+    { r: 1.5, y: 0.07, u: 1, v: 0.014 },
+  ];
+  for (let k = 1; k <= 9; k++) {
+    const t = k / 9;
+    const y = 0.07 + (RIM - PLATE + 0.1 - 0.07) * t;
+    cupOutline.push({ r: 1.5 + (2.62 - 1.5) * Math.sin((t * Math.PI) / 2) ** 0.72, y, u: 1, v: y / 5 });
+  }
+  cupOutline.push({ r: 0, y: RIM - PLATE + 0.1, u: 1, v: (RIM - PLATE) / 5 });
+  const cupShells = cups.map(([cx, cz], n) => {
+    const g = spinProfile(cupOutline, 44, (angle) => 1 - 0.03 * Math.cos(4 * angle) + 0.012 * Math.cos(2 * angle + n));
+    g.translate(cx, 0, cz);
+    return g;
+  });
+  const tray = mergeGeometries([plate, ...cupShells])!;
   // The lid: a shallow box, its floor (the carton's top when shut) flat, its corners round, a
   // soft hollow pressed into each end. Hinged to the back of the tray's rim, it stands open,
   // leaning back a little, its inside toward the camera.

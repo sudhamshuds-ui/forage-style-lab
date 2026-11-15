@@ -610,12 +610,16 @@ carton rebuilt from photos of a real one (flat rim, cups showing outside, two fl
 lid standing open on its hinge); lime wedge detail (sacs, segment walls, thick pith, a dark peel
 edge); garlic back to its earlier form with only a thinner neck; seven mushrooms, each turned at
 random; the pear's waist smoother. Lesson: **change only what a note asks about.**
-**Third look (2026-11-15)**: "All rest are approved and done": cabbage, salmon, rice, milk, tomato,
-potato, peach, garlic and mushrooms are **approved and locked**. Three were sent back and fixed,
-waiting for a last look: eggs (rounder corners, a curved tray wall so the eggs stay inside), lime
-(the wedge's flesh: calm pulp, faint streaks, thick pith), pear (a fuller bottom below the waist).
-Next: the user's look at those three; then `/forage-brand` for all twelve, the Figma queue, and the
-merge of `r3-batch-1` to `main`; then batch 2 (long), after asking for references.
+**Third and fourth looks (2026-11-15)**: cabbage, salmon, rice, milk, tomato, potato, peach, garlic
+and mushrooms are **approved and locked** ("All rest are approved and done"). The **lime** and the
+**pear** were restored exactly to their state in commit 5d1c87b at the user's request ("go back to
+this exact version") and are locked: do not add wedge detail or reshape the pear again. The **egg
+carton** was rebuilt 1:1 from the user's photos (a thin flat rim plate, six separate cups under it,
+two flat-topped posts, the lid standing open) and waits for a last look.
+Lessons: change only what a note asks about; after two failed tries at one thing, stop and offer
+the earlier version (the guide's rule), do not make a third guess.
+Next: the user's look at the egg carton; then `/forage-brand` for all twelve, the Figma queue, and
+the merge of `r3-batch-1` to `main`; then batch 2 (long), after asking for references.
 
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one

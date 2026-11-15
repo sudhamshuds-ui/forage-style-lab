@@ -29,6 +29,8 @@ export interface TrayOptions {
    * round cups rather than flat facets.
    */
   wall?: (u: number, v: number, t: number) => number;
+  /** Optional: where the underside sits (cm above the table, default 0): a thin plate instead of a solid block. */
+  footY?: number;
 }
 
 export function trayGeometry(o: TrayOptions): BufferGeometry {
@@ -67,6 +69,7 @@ export function trayGeometry(o: TrayOptions): BufferGeometry {
     uvs.push(1, positions[k + 1] / o.tall);
   }
   // The wall: rings from the rim down to the foot (one flat strip, or a curve when `wall` is given).
+  const footY = o.footY ?? 0;
   const steps = o.wall ? 6 : 1;
   const ringStart: number[] = [wallTop];
   for (let k = 1; k <= steps; k++) {
@@ -80,14 +83,15 @@ export function trayGeometry(o: TrayOptions): BufferGeometry {
       const topY = positions[(wallTop + e) * 3 + 1];
       // In toward the foot, eased so the wall leaves the rim almost upright, and out by its swell.
       const move = o.inset(u, v) * t ** 1.6 - (o.wall ? o.wall(u, v, t) : 0);
-      positions.push(x - (x / d) * move, topY * (1 - t), z - (z / d) * move);
-      uvs.push(1, (topY * (1 - t)) / o.tall);
+      const y = footY + (topY - footY) * (1 - t);
+      positions.push(x - (x / d) * move, y, z - (z / d) * move);
+      uvs.push(1, y / o.tall);
     });
   }
   const foot = ringStart[steps];
   const middle = positions.length / 3;
-  positions.push(0, 0, 0);
-  uvs.push(1, 0);
+  positions.push(0, footY, 0);
+  uvs.push(1, footY / o.tall);
   const n = edge.length;
   for (let k = 0; k < n; k++) {
     const next = (k + 1) % n;

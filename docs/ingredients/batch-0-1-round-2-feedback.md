@@ -39,3 +39,20 @@ texture, see refs again. pear can have more bulgier bottom? All rest are approve
   with only fine faint streaks, a thick soft pith, a pale core, a dark peel line.
 - Pear: fuller below the waist only (`fuller` in `forms/pear.ts`); the waist and neck are unchanged.
 - Waiting for the user's look at these three. Then `/forage-brand` for all twelve and the merge.
+
+## Fourth look (2026-11-15)
+
+"why are u curving the egg carton like that in the corner, also the height. please 1:1 the form of
+the carton with ref. its fine i dont think u can do it for lime, just go back to this version.
+peach as well. go back to this exact version" (the third picture is the pear, so the pear was
+restored; the peach was already approved and is unchanged).
+
+- **Lime: restored exactly** to the wedge flesh of commit 5d1c87b (the pale, soft fan with light
+  inside), which the user chose over two tries at more detail. Locked. Lesson: after two failed
+  tries at the same thing, stop and offer the earlier version instead of a third guess.
+- **Pear: restored exactly** to commit 5d1c87b (the waisted outline, fillet 1.9). The smoother waist
+  and the fuller bottom are both undone. Locked.
+- **Egg carton**: rebuilt as the real object is made: a thin flat rim plate (a plain rounded
+  rectangle, lower than before so the eggs stand more than half out), six separate round cups
+  under it (`spinProfile`), two flat-topped posts, the lid standing open. The invented outer wall
+  (and the corner it bent in) is gone. `footY` in `kit/tray.ts` makes the thin plate.
