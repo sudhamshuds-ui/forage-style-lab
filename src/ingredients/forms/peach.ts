@@ -39,12 +39,21 @@ export const buildPeach: FormBuilder = ({ state, seed }) => {
   // The seam (at angle 0 round the fruit, toward +x): a soft crease from the stem down the side,
   // fading out near the foot, with a fuller cheek each side of it.
   sculpt(skin, (x, y, z) => {
+    // The peach's signature (the user, 2026-11-15: "missing their iconic peach bump"): a clear
+    // cleft from the stem right down the side to the tip, deepest at the shoulder, with a full,
+    // rounded cheek bulging each side of it, one a little fuller than the other.
     const a = Math.atan2(z, x);
-    const up = smoothstep(0.4, HEIGHT * 0.75, y);
-    const crease = Math.exp(-((a / 0.2) ** 2));
-    const cheeks = Math.exp(-(((Math.abs(a) - 0.5) / 0.4) ** 2));
-    const k = 1 - 0.1 * crease * up + 0.035 * cheeks * up;
-    return [x * k, y, z * k];
+    // (The recipe builds the body round its middle: measure the height from its foot.)
+    const h = (y + half) / (2 * half);
+    const along = smoothstep(0.02, 0.3, h) * (0.55 + 0.45 * smoothstep(0.35, 0.95, h));
+    const crease = Math.exp(-((a / 0.17) ** 2));
+    const cheekA = Math.exp(-(((a - 0.5) / 0.42) ** 2));
+    const cheekB = Math.exp(-(((a + 0.5) / 0.42) ** 2));
+    const k = 1 - 0.17 * crease * along + (0.075 * cheekA + 0.055 * cheekB) * along;
+    // The cleft runs on into the dip at the stem, and ends in a small soft point underneath.
+    const dip = 0.25 * crease * smoothstep(0.75, 1, h);
+    const tip = 0.12 * Math.exp(-((Math.hypot(x, z) / 0.9) ** 2)) * (1 - smoothstep(0, 0.2, h));
+    return [x * k, y - dip - tip * 0, z * k];
   });
   const position = skin.getAttribute('position') as BufferAttribute;
   const top = new Vector3().fromBufferAttribute(position, position.count - 1);

@@ -24,9 +24,9 @@ import { roundedIntersection } from './kit/wedge';
  */
 
 /** Length (x), width (z) and the thickest height (cm). */
-const LENGTH = 15.5;
-const WIDTH = 8.8;
-const HEIGHT = 3.8;
+const LENGTH = 10.6;
+const WIDTH = 7.6;
+const HEIGHT = 3.3;
 /** Where the middle line runs (z, cm): a little toward the back. */
 const MIDLINE = -0.5;
 const ROUNDING = 0.36;
@@ -64,7 +64,7 @@ export const buildSalmon: FormBuilder = ({ state, seed }) => {
   const flesh = (x: number, y: number, z: number) => {
     const top = topAt(x, z);
     // The walls bulge a hair at mid height; the skin stands a hair proud at the foot.
-    const bulge = 0.1 * Math.sin(Math.PI * Math.min(1, Math.max(0, y / top))) + 0.05 * (1 - smoothstep(0.1, 0.32, y));
+    const bulge = 0.1 * Math.sin(Math.PI * Math.min(1, Math.max(0, y / top))) + 0.11 * (1 - smoothstep(0.22, 0.42, y));
     // Only the top edge is rounded: the underside meets the table flush (the steak's lesson).
     const d = roundedIntersection([y - top, outline(x, z) - bulge], ROUNDING);
     return Math.max(d, -y);

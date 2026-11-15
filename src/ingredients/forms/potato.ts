@@ -35,7 +35,7 @@ export const buildPotato: FormBuilder = ({ state, seed }) => {
     lopsided: 1,
     random,
     flatBase: 0,
-    crossSection: (u, angle) => 1 + 0.05 * Math.sin(2 * angle + ph[0] + u * 1.3) + 0.035 * Math.sin(3 * angle + ph[1] - u * 2.1),
+    crossSection: (u, angle) => 1 + 0.075 * Math.sin(2 * angle + ph[0] + u * 1.3) + 0.05 * Math.sin(3 * angle + ph[1] - u * 2.1) + 0.03 * Math.sin(5 * angle + ph[2] + u * 3.4),
     rings: 48,
     segments: 52,
   });
@@ -50,7 +50,7 @@ export const buildPotato: FormBuilder = ({ state, seed }) => {
     for (const e of eyes) {
       const da = Math.atan2(Math.sin(a - e.a), Math.cos(a - e.a)) * r;
       const d2 = ((x - e.x) ** 2 + da * da) / (e.size * e.size);
-      k -= (0.13 * e.size * Math.exp(-d2)) / Math.max(1, r);
+      k -= (0.22 * e.size * Math.exp(-d2)) / Math.max(1, r);
       k += (0.06 * e.size * Math.exp(-(((x - e.x - e.size * 0.9) ** 2 + da * da) / (e.size * e.size * 1.5)))) / Math.max(1, r);
     }
     ny *= k;

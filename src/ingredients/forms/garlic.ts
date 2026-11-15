@@ -22,7 +22,7 @@ import { flattenBase, roundBody } from './kit/round';
  * 1 for a clove; ownPos the point in the body's own frame.
  */
 const WIDTH = 5.9;
-const HEIGHT = 6.4;
+const HEIGHT = 6.1;
 
 export const buildGarlic: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Garlic: the "${state}" form is not built yet (the bulb and two cloves only for now).`);
@@ -34,8 +34,11 @@ export const buildGarlic: FormBuilder = ({ state, seed }) => {
       const t = (x + half) / HEIGHT;
       // The bulb: squat and full; the neck: slim, flaring a little where it was cut.
       const body = (WIDTH / 2) * Math.sin(Math.PI * Math.min(1, t / 0.72)) ** 0.6;
-      const neck = t < 0.42 ? -2 : 0.5 + 0.16 * smoothstep(0.82, 1, t) - 0.05 * Math.sin(t * 20);
-      return smoothMax(body, neck, 1.1) * Math.sqrt(Math.min(1, (1 - t) / 0.012));
+      // The neck (the user, 2026-11-15: "like a tree trunk too thick and upright"): slim and
+      // tapering, the shoulders sweeping up into it in one long hollow curve, a small dry flare
+      // where it was cut.
+      const neck = t < 0.5 ? -2 : 0.36 - 0.11 * smoothstep(0.62, 0.93, t) + 0.08 * smoothstep(0.93, 1, t);
+      return smoothMax(body, neck, 1.7) * Math.sqrt(Math.min(1, (1 - t) / 0.012));
     },
     lying: false,
     lopsided: 0.55,
@@ -49,7 +52,9 @@ export const buildGarlic: FormBuilder = ({ state, seed }) => {
   const turn0 = random() * Math.PI * 2;
   const edges = Array.from({ length: cloves }, (_, i) => turn0 + ((i + signed(random) * 0.22) * Math.PI * 2) / cloves);
   const swell = Array.from({ length: cloves }, () => 0.02 + random() * 0.035);
-  sculpt(bulb, (x, y, z) => {
+  sculpt(bulb, (x, y0, z) => {
+    // (The recipe builds the body round its middle: measure the height from its foot.)
+    const y = y0 + half;
     const a = Math.atan2(z, x);
     const onBulb = smoothstep(0.1, 1.2, y) * (1 - smoothstep(HEIGHT * 0.5, HEIGHT * 0.72, y));
     let k = 1;
@@ -68,7 +73,8 @@ export const buildGarlic: FormBuilder = ({ state, seed }) => {
     k += (bulge / Math.max(weight, 1e-3)) * onBulb;
     // The neck twists a little and leans.
     const up = smoothstep(HEIGHT * 0.7, HEIGHT, y);
-    return [x * k + 0.35 * up * up, y, z * k + 0.2 * up * up];
+    // The neck leans and bends over a little, as a dried stalk does (never bolt upright).
+    return [x * k + 0.95 * up ** 1.6 - 0.12 * Math.sin(up * Math.PI), y0 - 0.25 * up * up, z * k + 0.45 * up ** 1.8];
   });
   bodyMap(bulb, () => 0);
   rest(bulb);
@@ -110,5 +116,5 @@ export const buildGarlic: FormBuilder = ({ state, seed }) => {
     return g;
   };
   // One piece (the bulb and its two cloves), so contact shadows come from where each one rests.
-  return finishPieces([{ role: 'bulb', geometry: mergeGeometries([bulb, clove(3.5, 0.95, 0.5, [2.6, 2.2], 0.4), clove(3.1, 0.85, -2.5, [-1.8, 3.6], 0.35)])! }]);
+  return finishPieces([{ role: 'bulb', geometry: mergeGeometries([bulb, clove(3.5, 0.95, 0.5, [1.9, 1.5], 0.4), clove(3.1, 0.85, -2.6, [-1.5, 2.3], 0.35)])! }]);
 };

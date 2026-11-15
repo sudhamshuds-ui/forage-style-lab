@@ -1278,12 +1278,18 @@ if (kind > 0 && amount > 0.0) {
 
     // 3. The skin: a thin silvery slate-blue band along the foot of the walls, with a pale fat line
     //    above it, each fading softly into the next (no crisp line).
-    float foot = 1.0 - smoothstep(0.2, 0.5, q.y + (bloomB - 0.5) * 0.12);
-    float under = smoothstep(0.3, 0.55, q.y) * (1.0 - smoothstep(0.55, 0.95, q.y));
+    float foot = 1.0 - smoothstep(0.3, 0.52, q.y + (bloomB - 0.5) * 0.08);
+    float under = smoothstep(0.4, 0.6, q.y) * (1.0 - smoothstep(0.6, 0.95, q.y));
     lab = mix(lab, fatLab, under * 0.45 * amount);
     vec3 skinLab = linearToOklab(uMelonGreen);
     skinLab.x += shade * 0.6 + (valueNoise3(objectPos * 14.0) - 0.5) * 0.06;
-    skinLab = mix(skinLab, vec3(skinLab.x + 0.16, 0.0, -0.02), smoothstep(0.6, 0.9, valueNoise3(vec3(q.x * 2.5, q.y * 9.0, across * 2.5))) * 0.5 * lit);
+    // Refined (the user, 2026-11-15: "skin can be a bit refined, its just a line for now"): a
+    // silvery band with its own depth: a deep slate-blue at the table, a brighter silver along its
+    // upper edge, small soft scale glints along it, a breath of the flesh's coral reflected in it.
+    skinLab.x += smoothstep(0.05, 0.4, q.y) * 0.12;
+    float scales = 1.0 - smoothstep(0.1, 0.34, skinCells(vec3(q.x * 2.6, q.y * 5.0, across * 2.6)));
+    skinLab = mix(skinLab, vec3(skinLab.x + 0.2, -0.005, -0.03), scales * 0.55 * mix(0.4, 1.0, lit));
+    skinLab = mix(skinLab, vec3(skinLab.x, 0.05, 0.03), 0.14);
     lab = mix(lab, skinLab, foot * amount);
     highlightOwn = max(highlightOwn, foot);
 
@@ -1500,12 +1506,12 @@ if (kind > 0 && amount > 0.0) {
       // from its own frame), deepest along the seam and round the stem; velvet: no shine, a pale
       // bloom where the surface turns away; rose-violet shade.
       lab = depthWash(lab, q, vec3(0.06, -0.045, 0.06), vec3(-0.01, 0.02, -0.01), 0.0, 0.85 * amount);
-      float seam = exp(-pow(around / 0.22, 2.0)) * smoothstep(0.15, 0.9, h);
+      float seam = exp(-pow(around / 0.16, 2.0)) * smoothstep(0.05, 0.5, h);
       float blushField = (fbm3(q * 0.24 + 3.0) - 0.5) * 1.6 + cos(around + 0.4) * 0.35 + (h - 0.5) * 0.5 + seam * 0.4;
       float blush = smoothstep(0.05, 0.6, blushField);
       vec3 blushLab = vec3(0.61 + tone * 0.9, 0.19, 0.075);
       lab = mix(lab, blushLab, blush * 0.82 * amount);
-      lab = shadeOwn(lab, seam * 0.3 * amount);
+      lab = shadeOwn(lab, seam * 0.5 * amount);
       float fleck = smoothstep(0.62, 0.85, valueNoise3(q * 9.0)) * smoothstep(0.4, 0.7, paperGrain);
       lab = shadeOwn(lab, fleck * 0.25 * blush * show);
       lab = mix(lab, vec3(lab.x + 0.07, lab.y * 0.6, lab.z * 0.6 + 0.01), edgeOn * 0.5 * amount);
@@ -1525,7 +1531,21 @@ if (kind > 0 && amount > 0.0) {
       lab = shadeOwn(lab, speck * 0.8 * show * (1.0 - edgeOn));
       float eye = 1.0 - smoothstep(0.05, 0.16, skinCells(p * 0.16 + 5.0));
       lab = shadeOwn(lab, eye * 0.5 * show);
-      lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.02, lab.z - 0.07), shadeSide * 0.4 * amount);
+      // Rough painted texture, like the watermelon's (the user, 2026-11-15: "more texture ...
+      // those rough textures, they look very flat in shading"): chalky dry-brush scratches running
+      // along the potato, broken by a paper grain; russet blotches and paler dusty patches in
+      // loose shapes; the form's turn pushed harder (a warm gold light, a deep rose-violet shade).
+      float scratchA = valueNoise3(vec3(q.x * 1.1, q.y * 7.0, q.z * 7.0));
+      float scratchB = valueNoise3(vec3(q.x * 0.6, q.y * 3.0, q.z * 3.0) + 5.0);
+      float chalk = smoothstep(0.28, 0.5, scratchA * scratchB) * smoothstep(0.3, 0.62, paperGrain);
+      lab = mix(lab, vec3(lab.x + 0.1, lab.y * 0.65, lab.z * 0.8), chalk * 0.6 * show);
+      float blotch = fbm3(q * 0.42 + 21.0);
+      lab = shadeOwn(lab, smoothstep(0.52, 0.72, blotch) * 0.45 * amount);
+      lab.x += (fbm3(q * 1.3 + 2.0) - 0.5) * 0.09 * amount;
+      float grit = smoothstep(0.6, 0.85, valueNoise3(q * 12.0)) * smoothstep(0.45, 0.75, paperGrain);
+      lab = shadeOwn(lab, grit * 0.5 * show);
+      lab = mix(lab, vec3(lab.x + 0.035, lab.y + 0.005, lab.z + 0.035), smoothstep(0.3, 0.95, NdotL) * lightMask * 0.6 * amount);
+      lab = mix(lab, vec3(lab.x - 0.075, lab.y + 0.03, lab.z - 0.085), shadeSide * 0.7 * amount);
     }
     // The shared chalky dry-brush texture, light.
     float dry = smoothstep(0.55, 0.8, valueNoise3(vec3(q.x * 1.3, q.y * 3.0, q.z * 1.3))) * smoothstep(0.4, 0.7, paperGrain);
@@ -1548,22 +1568,36 @@ if (kind > 0 && amount > 0.0) {
       float pit = 1.0 - smoothstep(0.08, 0.3, skinCells(p));
       peel = shadeOwn(peel, pit * 0.3 * show);
       peel = mix(peel, vec3(peel.x - 0.03, peel.y + 0.02, peel.z - 0.07), shadeSide * 0.4 * amount);
-      // The cut flesh: pale, wet yellow-green, juice sacs streaking out from the inner edge, a
-      // soft pale membrane or two, a cream pith band fading into the green peel at the rim.
+      // The cut flesh, after the user's references (2026-11-15: "the texture is glitching or
+      // wrong ... add some translucency and subsurface"): wet, see-through lime-yellow pulp, deeper
+      // and greener toward the middle of the face, lit from inside; soft juice sacs fanning out from
+      // the inner edge (broad, low-contrast, never bars); a thick cream pith along the peel, a pale
+      // core strip along the inner edge, each melting into the pulp.
       float r = vSurfaceUv.x;
-      vec3 flesh = vec3(0.86 + tone * 0.8, -0.07, 0.115);
-      float sacs = valueNoise3(vec3(q.x * 9.0, r * 2.2, q.z * 3.0 + 5.0));
-      float sacs2 = valueNoise3(vec3(q.x * 22.0, r * 5.0, 9.0));
-      flesh.x += (sacs - 0.5) * 0.07 + (sacs2 - 0.5) * 0.035;
-      flesh.z += (sacs - 0.5) * 0.04;
-      flesh = mix(flesh, vec3(flesh.x - 0.07, -0.1, 0.13), (1.0 - smoothstep(0.0, 0.5, r)) * 0.35);
-      float membrane = exp(-pow((q.x - 0.12) / 0.035, 2.0)) + exp(-pow((q.x + 0.42) / 0.03, 2.0));
-      flesh = mix(flesh, vec3(0.94 + tone * 0.6, -0.02, 0.05), clamp(membrane, 0.0, 1.0) * 0.55 * smoothstep(0.1, 0.4, r));
-      float wander = (fbm3(vec3(q.x * 3.0, 2.0, q.z)) - 0.5) * 0.05;
-      vec3 pith = vec3(0.95 + tone * 0.6, -0.015, 0.045);
-      flesh = mix(flesh, pith, smoothstep(0.8, 0.88, r + wander));
-      flesh = mix(flesh, peel, smoothstep(0.93, 0.99, r + wander));
-      flesh = mix(flesh, linearToOklab(uGlowColour), clamp(turnBand * 0.25 + edgeOn * 0.15 + (1.0 - lit) * 0.12, 0.0, 0.4));
+      float alongW = q.x;
+      vec3 pulp = vec3(0.84 + tone * 0.7, -0.085, 0.135);
+      vec3 pulpDeep = vec3(0.7 + tone * 0.7, -0.105, 0.125);
+      float depth = smoothstep(0.05, 0.5, r) * (1.0 - smoothstep(0.5, 0.85, r)) * (1.0 - alongW * alongW * 0.6);
+      vec3 flesh = mix(pulp, pulpDeep, depth * 0.75);
+      float fan = fbm3(vec3(alongW * 5.0 / max(r, 0.25), r * 1.6, q.z * 2.0 + 3.0));
+      flesh.x += (fan - 0.5) * 0.06 * smoothstep(0.1, 0.3, r);
+      flesh.z += (fan - 0.5) * 0.03;
+      float sac = smoothstep(0.55, 0.8, valueNoise3(vec3(alongW * 16.0, r * 7.0, q.z * 3.0 + 9.0)));
+      flesh.x += sac * 0.035 * smoothstep(0.15, 0.4, r) * (1.0 - smoothstep(0.7, 0.85, r));
+      float wander = (fbm3(vec3(alongW * 2.5, 2.0, q.z)) - 0.5) * 0.06;
+      vec3 pith = vec3(0.95 + tone * 0.5, -0.012, 0.045);
+      flesh = mix(flesh, pith, smoothstep(0.74, 0.86, r + wander));
+      flesh = mix(flesh, pith, (1.0 - smoothstep(0.02, 0.13, r + wander * 0.5)) * (1.0 - smoothstep(0.55, 0.9, abs(alongW))) * 0.85);
+      flesh = mix(flesh, peel, smoothstep(0.93, 0.985, r + wander * 0.4));
+      // Light inside it: a glow through the pulp from behind and at the turn, brightest where the
+      // wedge is thin (toward its tips and its inner edge); never dull in shade.
+      float through = pow(max(dot(V, -L), 0.0), 1.5);
+      float thin = clamp(1.0 - depth, 0.0, 1.0);
+      vec3 glowLab = vec3(0.9, -0.07, 0.16);
+      float inner = (1.0 - smoothstep(0.74, 0.86, r));
+      flesh = mix(flesh, glowLab, clamp(through * 0.5 + turnBand * 0.3 + (1.0 - lit) * 0.3 + thin * 0.12, 0.0, 0.6) * inner);
+      highlightBumpy = max(highlightBumpy, cut);
+      highlightGlint = max(highlightGlint, sac * cut * 0.5);
       lab = mix(peel, flesh, cut);
       highlightOwn = max(highlightOwn, cut);
     } else if (kind == 33) {

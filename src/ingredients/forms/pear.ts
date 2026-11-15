@@ -1,6 +1,6 @@
 import { Vector3, type BufferAttribute } from 'three';
 import { bodyMap } from './kit/maps';
-import { smoothstep } from './kit/lathe';
+import { smoothMax, smoothstep } from './kit/lathe';
 import { finishPieces, type FormBuilder } from './kit/piece';
 import { seededRandom, signed } from './kit/random';
 import { roundBody } from './kit/round';
@@ -20,6 +20,7 @@ import { sweepGeometry } from './kit/sweep';
  */
 const HEIGHT = 10;
 const BELLY = 3.75;
+const NECK = 2.0;
 
 export const buildPear: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Pear: the "${state}" form is not built yet (whole only for now).`);
@@ -30,11 +31,12 @@ export const buildPear: FormBuilder = ({ state, seed }) => {
     radius: (x) => {
       // t: 0 at the foot, 1 at the top.
       const t = (x + half) / (2 * half);
-      // One smooth outline, never two balls (the avocado's lesson): a single curve, fullest about
-      // a third of the way up, easing into a narrower neck with only the faintest hollow.
-      const body = Math.sin(Math.PI * Math.min(1, Math.max(0, t))) ** 0.72 * (1 - 0.5 * t ** 1.5);
-      const hollow = 1 - 0.045 * Math.exp(-(((t - 0.62) / 0.12) ** 2));
-      return BELLY * 1.19 * body * hollow;
+      // The outline the user chose (2026-11-15: "this form for pear was better ... looks so bad in
+      // the current form", of a later teardrop): a round belly low down and a rounder neck above,
+      // joined by a soft waist. Kept exactly; do not smooth the waist away.
+      const belly = BELLY * Math.sqrt(Math.max(0, 1 - ((t - 0.32) / 0.335) ** 2));
+      const neck = NECK * Math.sqrt(Math.max(0, 1 - ((t - 0.74) / 0.262) ** 2));
+      return smoothMax(belly, neck, 1.9) * Math.sqrt(Math.min(1, t / 0.03)) * Math.sqrt(Math.min(1, (1 - t) / 0.03)) * 0.9;
     },
     lying: false,
     lopsided: 0.75,
