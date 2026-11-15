@@ -57,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon', 'egg', 'rice', 'glaze', 'carton', 'tomato', 'pear', 'peach', 'potato', 'lime', 'garlic', 'mushroom', 'eggshell', 'pulp'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon', 'egg', 'rice', 'glaze', 'carton', 'tomato', 'pear', 'peach', 'potato', 'lime', 'garlic', 'mushroom', 'eggshell', 'pulp', 'yolk'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -118,6 +118,9 @@ export const GLAZE_SKIN: Skin = { kind: 'glaze', size_mm: 2, amount: 1 };
 
 /** A moulded pulp tray (a piece named `tray`; map: x 0 top to 1 outer wall, y height share). */
 export const PULP_SKIN: Skin = { kind: 'pulp', size_mm: 1.2, amount: 1 };
+
+/** A fried egg's yolk (a piece named `yolk`; map y: height share, 0 at its foot). */
+export const YOLK_SKIN: Skin = { kind: 'yolk', size_mm: 2, amount: 1 };
 
 /** Give one material its skin. */
 export function setSkin(material: ShaderMaterial, skin: Skin): void {
@@ -1331,6 +1334,9 @@ if (kind > 0 && amount > 0.0) {
     lab = mix(lab, lilac, smoothstep(0.45, 0.7, strokeB) * 0.8 * amount);
     float halo = (1.0 - smoothstep(2.0, 3.0, fromYolk + (strokeA - 0.5) * 0.8));
     lab = mix(lab, vec3(lab.x - 0.02, lab.y + 0.02, lab.z + 0.075), halo * 0.4 * amount);
+    // Right against the yolk: a warm, golden rise (the yolk's colour bleeding into the white).
+    float hug = 1.0 - smoothstep(1.95, 2.55, fromYolk + (strokeA - 0.5) * 0.3);
+    lab = mix(lab, vec3(lab.x - 0.035, lab.y + 0.035, lab.z + 0.11), hug * 0.6 * amount);
     lab = mix(lab, lilac, (1.0 - lit) * 0.5 * amount);
     // Bubbles: a lit, paler top, a cool hollow round the foot.
     lab.x += smoothstep(0.08, 0.3, bubble) * 0.03 * lit;
@@ -1636,24 +1642,34 @@ if (kind > 0 && amount > 0.0) {
       float each = floor(q.y / 10.0 + 0.01);
       float around = atan(own.z, own.x);
       float outR = length(own.xz);
-      // The cap: chestnut washes from warm tan to deep umber (each mushroom leaning its own way),
-      // darker at its crown, pale scuffs, faint fibres running out from the crown.
-      vec3 capLab = depthWash(lab, cm + each * 3.0, vec3(0.05, -0.01, 0.03), vec3(-0.08, 0.02, -0.03), (fract(each * 0.37) - 0.5) * 0.25 + 0.14, 0.9 * amount);
-      capLab = shadeOwn(capLab, (1.0 - smoothstep(0.0, 1.4, outR)) * 0.25);
-      float fibre = valueNoise3(vec3(around * 16.0, outR * 0.8, each));
-      capLab.x += (fibre - 0.5) * 0.045;
-      float scuff = smoothstep(0.62, 0.82, fbm3(cm * 0.7 + 4.0)) * smoothstep(0.4, 0.7, paperGrain);
-      capLab = mix(capLab, vec3(capLab.x + 0.1, capLab.y * 0.6, capLab.z * 0.8), scuff * 0.5 * lit);
-      // The gills: a rosy brown, fine lines running out from the stem, soft.
-      vec3 gillLab = vec3(0.56 + tone * 0.9, 0.05, 0.035);
-      float gillLine = 0.5 + 0.5 * sin(around * 64.0 + valueNoise3(vec3(around * 4.0, outR, 1.0)) * 2.0);
-      gillLab = shadeOwn(gillLab, smoothstep(0.35, 0.85, gillLine) * 0.45);
-      gillLab.x -= (1.0 - smoothstep(0.9, 1.7, outR)) * 0.05;
-      // The stem: a warm cream with tan fibres running along it, paler at its cut end.
-      vec3 stemLab = vec3(0.87 + tone * 0.9, 0.012, 0.05);
-      float along = valueNoise3(vec3(around * 9.0, own.y * 0.5, each + 3.0));
-      stemLab = mix(stemLab, vec3(0.72 + tone * 0.9, 0.04, 0.07), smoothstep(0.5, 0.8, along) * 0.55);
-      stemLab = mix(stemLab, vec3(0.74 + tone * 0.9, 0.04, 0.06), (fbm3(cm * 0.9 + 6.0) - 0.4) * 0.5);
+      // Redone after the user's note (2026-11-15: "their texture needs a lot of improvement"), from
+      // the watercolour: no drawn fibres or planks; soft washes and a few loose marks.
+      // The cap: chestnut washes from a warm tan to a deep red-brown (each mushroom leaning its own
+      // way), deepest at the crown and under the rolled rim, a pale dusty bloom where the light
+      // lands, a few soft pale scuffs and darker freckles in loose patches.
+      vec3 capLab = depthWash(lab, cm + each * 3.0, vec3(0.06, -0.012, 0.035), vec3(-0.085, 0.03, -0.025), (fract(each * 0.37) - 0.5) * 0.3 + 0.1, 0.92 * amount);
+      capLab = shadeOwn(capLab, (1.0 - smoothstep(0.0, 1.5, outR)) * 0.22);
+      capLab = shadeOwn(capLab, smoothstep(0.12, 0.3, part) * 0.3);
+      float bloomCap = smoothstep(0.35, 0.95, NdotL) * lightMask * (0.55 + 0.45 * fbm3(cm * 0.5 + each));
+      capLab = mix(capLab, vec3(capLab.x + 0.11, capLab.y * 0.55, capLab.z * 0.85 + 0.01), bloomCap * 0.5 * amount);
+      float scuff = smoothstep(0.66, 0.84, fbm3(cm * 0.75 + 4.0)) * smoothstep(0.4, 0.7, paperGrain);
+      capLab = mix(capLab, vec3(capLab.x + 0.09, capLab.y * 0.6, capLab.z * 0.8), scuff * 0.4 * lit);
+      float freckle = (1.0 - smoothstep(0.08, 0.22, skinCells(own * 1.6 + each))) * smoothstep(0.5, 0.75, fbm3(cm * 0.6 + 9.0));
+      capLab = shadeOwn(capLab, freckle * 0.3 * show);
+      // The gills: a deep rosy brown, deeper toward the stem, fine soft lines running out from it.
+      vec3 gillLab = vec3(0.5 + tone * 0.9, 0.055, 0.035);
+      float gillLine = 0.5 + 0.5 * sin(around * 58.0 + valueNoise3(vec3(around * 4.0, outR, 1.0)) * 2.0);
+      gillLab.x -= smoothstep(0.3, 0.9, gillLine) * 0.045;
+      gillLab.x -= (1.0 - smoothstep(0.9, 1.8, outR)) * 0.06;
+      gillLab = mix(gillLab, vec3(gillLab.x + 0.04, 0.07, 0.02), (fbm3(cm + 3.0) - 0.4) * 0.5);
+      // The stem: a warm ivory, tan where it turns and near the cap, a few faint long streaks,
+      // soft blooms; its cut end a little paler.
+      vec3 stemLab = vec3(0.88 + tone * 0.9, 0.012, 0.045);
+      vec3 stemTan = vec3(0.74 + tone * 0.9, 0.04, 0.07);
+      float along = valueNoise3(vec3(around * 5.0, own.y * 0.35, each + 3.0));
+      stemLab = mix(stemLab, stemTan, smoothstep(0.55, 0.85, along) * 0.28);
+      stemLab = mix(stemLab, stemTan, smoothstep(0.45, 0.75, fbm3(cm * 0.6 + 6.0)) * 0.4);
+      stemLab = mix(stemLab, stemTan, smoothstep(0.62, 0.8, part) * (1.0 - smoothstep(0.8, 0.97, part)) * 0.35);
       lab = capLab * capW + gillLab * gillW + stemLab * stemW;
       lab = mix(lab, vec3(lab.x - 0.035, lab.y + 0.015, lab.z - 0.06), shadeSide * 0.45 * amount);
       lab = mix(lab, linearToOklab(uGlowColour), turnBand * 0.18 * capW * amount);
@@ -1686,6 +1702,21 @@ if (kind > 0 && amount > 0.0) {
     }
     float dry = smoothstep(0.55, 0.8, valueNoise3(vec3(cm.x * 1.3, cm.y * 3.0, cm.z * 1.3))) * smoothstep(0.4, 0.7, paperGrain);
     lab.x += dry * 0.02 * show;
+  } else if (kind == 37) {
+    // A yolk. Its foot melts into the white (the user, 2026-11-15: "the yolk has a hard edge, can
+    // u add some blending around it"): low down it pales toward the white's warm cream, through a
+    // soft, wandering band, as if a thin film of white ran up over it; gold to deep orange above.
+    float hgt = vSurfaceUv.y;
+    vec3 cm = objectPos * 3.8169;
+    float NdotL = dot(N, L);
+    float shadeSide = 1.0 - smoothstep(-0.35, 0.35, NdotL * mix(0.4, 1.0, lightMask));
+    lab = depthWash(lab, cm, vec3(0.03, -0.02, 0.04), vec3(-0.04, 0.035, -0.01), (0.5 - hgt) * 0.4, 0.8 * amount);
+    float wander = (fbm3(cm * 1.4 + 3.0) - 0.5) * 0.18;
+    float film = 1.0 - smoothstep(0.04, 0.42, hgt + wander);
+    vec3 cream = vec3(0.93 + (lab.x - linearToOklab(uBaseColour).x) * 0.6, 0.01, 0.065);
+    lab = mix(lab, cream, film * 0.85 * amount);
+    lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.03, lab.z - 0.05), shadeSide * 0.35 * (1.0 - film) * amount);
+    highlightOwn = max(highlightOwn, film);
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

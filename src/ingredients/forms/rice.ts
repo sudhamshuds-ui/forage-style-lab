@@ -1,6 +1,7 @@
-import { BufferAttribute } from 'three';
+import { BufferAttribute, Matrix4, Quaternion, Vector3, type BufferGeometry } from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { bowlInner, bowlProfile, moundGeometry, spinProfile, type BowlShape } from './kit/bowl';
-import { smoothstep } from './kit/lathe';
+import { latheGeometry, smoothstep } from './kit/lathe';
 import { finishPieces, type FormBuilder } from './kit/piece';
 import { seededRandom } from './kit/random';
 
@@ -27,7 +28,7 @@ export const buildRice: FormBuilder = ({ state, seed }) => {
   const ph = Array.from({ length: 12 }, () => random() * Math.PI * 2);
 
   // The bowl: never a perfect circle (a hand-thrown bowl is a touch oval, its rim a touch uneven).
-  const bowl = spinProfile(bowlProfile(BOWL), 72, (angle, y) => 1 + 0.012 * Math.cos(2 * angle + ph[0]) * (y / BOWL.height));
+  const bowl = spinProfile(bowlProfile(BOWL), 56, (angle, y) => 1 + 0.012 * Math.cos(2 * angle + ph[0]) * (y / BOWL.height));
 
   // The rice: its edge sits a little below the rim, tucked into the wall; the dome rises well
   // above it, lumpy with clumps.
@@ -38,18 +39,49 @@ export const buildRice: FormBuilder = ({ state, seed }) => {
     0.2 * Math.sin(x * 2.3 + z * 0.7 + ph[3]) * Math.sin(z * 2.1 - x * 0.5 + ph[4]) +
     0.13 * Math.abs(Math.sin(x * 3.9 + ph[5]) * Math.sin(z * 4.3 + ph[6])) +
     0.08 * Math.sin(x * 6.7 + z * 2.0 + ph[7]) * Math.sin(z * 7.1 - x * 1.6 + ph[8]);
-  const rice = moundGeometry({
-    radius,
-    edge,
-    rings: 56,
-    segments: 120,
-    height: (x, z, rn) => {
-      // A heaped dome, its top a little off centre, flatter on one side.
-      const off = Math.hypot((x - 0.5) / radius, (z + 0.3) / radius);
-      const dome = 3.7 * Math.max(0, 1 - Math.min(1, off) ** 2.1) ** 0.75 + 0.5 * (1 - rn * rn);
-      return (dome + 1.5 * lumps(x, z)) * smoothstep(1, 0.86, rn) + 0.25 * (1 - rn);
-    },
-  });
+  /** The mound's height above its edge at a point (cm). */
+  const moundAt = (x: number, z: number) => {
+    const rn = Math.min(1, Math.hypot(x, z) / radius);
+    // A heaped dome, its top a little off centre, flatter on one side, lumpy with clumps.
+    const off = Math.hypot((x - 0.5) / radius, (z + 0.3) / radius);
+    const dome = 3.7 * Math.max(0, 1 - Math.min(1, off) ** 2.1) ** 0.75 + 0.5 * (1 - rn * rn);
+    return (dome + 1.5 * lumps(x, z)) * smoothstep(1, 0.86, rn) + 0.25 * (1 - rn);
+  };
+  const mound = moundGeometry({ radius, edge, rings: 40, segments: 88, height: (x, z) => moundAt(x, z) });
+
+  // Real grains (the user, 2026-11-15: "i want some visible grain forms seen, match the ref, it
+  // looks like 1 blob of icecream"): hundreds of small grains lying on the mound, each its own
+  // size, pointing its own way, half sunk in, some tipped up so they break the outline, more of
+  // them toward the edge where the reference shows them best. The mound under them is the mass of
+  // rice between; the skin paints its grains too.
+  const grainOf = (length: number, fat: number) =>
+    latheGeometry({ halfLength: length / 2, radius: (x) => fat * Math.sqrt(Math.max(0, 1 - (x / (length / 2)) ** 2)) ** 0.8, rings: 3, segments: 6 });
+  const grains: BufferGeometry[] = [];
+  const up = new Vector3(0, 1, 0);
+  for (let n = 0; n < 620; n++) {
+    // (The square root spreads them evenly over the disc; the extra power crowds a few more to the edge.)
+    const rn = Math.sqrt(random()) ** 0.85 * 0.97;
+    const a = random() * Math.PI * 2;
+    const x = Math.cos(a) * radius * rn;
+    const z = Math.sin(a) * radius * rn;
+    const y = edge + moundAt(x, z);
+    // The mound's slope here, for the way the surface faces.
+    const e = 0.08;
+    const normal = new Vector3(moundAt(x - e, z) - moundAt(x + e, z), 2 * e, moundAt(x, z - e) - moundAt(x, z + e)).normalize();
+    const length = 0.62 + random() * 0.3;
+    const fat = 0.135 + random() * 0.035;
+    const g = grainOf(length, fat);
+    // Lying along the surface, pointing any way round, some tipped up a little.
+    const along = new Vector3(Math.cos(a * 7 + n), 0, Math.sin(a * 7 + n));
+    along.addScaledVector(normal, -along.dot(normal)).normalize();
+    along.addScaledVector(normal, (random() - 0.35) * 0.7).normalize();
+    const turn = new Quaternion().setFromUnitVectors(new Vector3(1, 0, 0), along);
+    const at = new Vector3(x, y, z).addScaledVector(normal, fat * (0.25 + random() * 0.7));
+    g.applyMatrix4(new Matrix4().compose(at, turn, new Vector3(1, 1, 1)));
+    // Never below the mound's edge (inside the bowl's wall).
+    if (at.y > edge + 0.05 && up.dot(normal) > 0.2) grains.push(g);
+  }
+  const rice = mergeGeometries([mound, ...grains])!;
   // The rice's map for the skin: x how near the bowl's rim (1 at the edge), y height above the edge (cm).
   const pos = rice.getAttribute('position');
   const uv = new Float32Array(pos.count * 2);

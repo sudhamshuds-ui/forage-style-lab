@@ -36,6 +36,7 @@ export type FamilyId =
   | 'salmon'
   | 'albumen'
   | 'yolk'
+  | 'iron'
   | 'rice'
   | 'glaze'
   | 'milk'
@@ -438,7 +439,14 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // lilac-blue in shadow, never a dead grey.
   pulp: {
     name: 'Pulp',
-    colours: { lit: '#f5f0e6', base: '#ded7cd', shadow: '#9a8f9c', glow: '#f1e1c8', highlight: '#ffffff' },
+    colours: { lit: '#ece1d0', base: '#d0c2b0', shadow: '#84758c', glow: '#ecd6b4', highlight: '#fbf5ea' },
+    rooms: [],
+  },
+  // Not a board 04 family: only for props (a frying pan). A deep slate blue-violet, never black:
+  // a dusty periwinkle where the light lands, a deep indigo-plum in shadow.
+  iron: {
+    name: 'Iron',
+    colours: { lit: '#747aa6', base: '#494d77', shadow: '#2c2a50', glow: '#7d6fa4', highlight: '#d6dbf0' },
     rooms: [],
   },
   // Not a board 04 family: only for parts (a grape bunch's woody stem; later vines and tomato

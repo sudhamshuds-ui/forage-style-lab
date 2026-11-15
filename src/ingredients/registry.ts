@@ -134,6 +134,11 @@ export interface IngredientEntry {
    * avocado's polished pit, the user 2026-11-12: "seed needs highlight").
    */
   glossy?: string[];
+  /**
+   * True to keep it out of Shuffle (built and tested, but not in the pantry yet): a cooked state
+   * waiting for the "states of an ingredient" tool (the fried egg).
+   */
+  shelved?: boolean;
 }
 
 export const REGISTRY: IngredientEntry[] = [
@@ -707,14 +712,19 @@ export const REGISTRY: IngredientEntry[] = [
       forms: ['whole'],
       scale: 'M',
       size_cm: [12.8, 2.2, 11.2],
-      parts: ['white', 'yolk@yolk'],
+      parts: ['white', 'yolk@yolk', 'pan@iron'],
       light_case: 'pale',
       notes:
         'Round 2, the first cooked ingredient (the user: an exception to "all raw"), after the user\'s reference (Figma node 148:31, an oil painting). The puddle tool: an outline and a height at every point. The browned lace at the rim, the blooms of cream, lilac and gold in the white and the bubbles\' lit tops are a shader texture (the egg skin).',
     },
     form: buildEgg,
     turn: 20,
+    // Left out of the pantry for now (the user, 2026-11-15: "Lets not include for now, will show it
+    // in states of ingredient later"). It can still be put on stage by id, and on a preview's list.
+    shelved: true,
     skin: { kind: 'egg', size_mm: 3, amount: 0.9 },
+    // The egg and its pan (a prop).
+    budget: [1000, 22000],
     // A soft, satin white; the yolk keeps its wet shine.
     matte: true,
     glossy: ['yolk'],
@@ -745,7 +755,7 @@ export const REGISTRY: IngredientEntry[] = [
     glossy: ['bowl'],
     rimGlints: false,
     shadowTint: 0.3,
-    budget: [2000, 24000],
+    budget: [2000, 38000],
   },
   {
     spec: {
@@ -896,7 +906,7 @@ export const REGISTRY: IngredientEntry[] = [
       show: 'One bulb of garlic standing, swollen into cloves, its dry neck leaning; two loose cloves lying in front.',
       forms: ['whole', 'clove', 'minced'],
       scale: 'S',
-      size_cm: [7.6, 6.1, 9.2],
+      size_cm: [7, 5.5, 7.9],
       parts: ['bulb'],
       light_case: 'pale',
       notes: 'A squat bulb of soft lobes with shallow grooves, shoulders pulling up into a papery neck cut off at the top, a flat root end. A clove is a curved teardrop. The lilac streaks, cream blooms, tan root and the cloves\' gold are the garlic skin.',
@@ -917,10 +927,10 @@ export const REGISTRY: IngredientEntry[] = [
       archetype: 'round',
       family: 'mushroom',
       layout: 'solo',
-      show: 'Four chestnut mushrooms: one standing, a small one beside it, two tipped over on their caps\' rims, a stem toward the camera and gills showing.',
+      show: 'Five chestnut mushrooms in a small heap, all tipped over on their caps\' rims and leaning in together, stems and gills showing, one cap toward the camera.',
       forms: ['whole', 'sliced', 'quartered'],
       scale: 'M',
-      size_cm: [12.9, 4.7, 9],
+      size_cm: [12.7, 4.6, 10.9],
       parts: ['cap'],
       light_case: 'group',
       notes: 'Each one outline spun round its axis: a domed cap, a rim rolling under, gills rising in to a stout stem with a rounded cut end. Chestnut washes on the cap, pink-brown gill lines, a cream stem with tan fibres are the mushroom skin, blended where the parts meet.',
@@ -932,7 +942,7 @@ export const REGISTRY: IngredientEntry[] = [
     shadowTint: 0.5,
     rimGlints: false,
     contactsFromFeet: true,
-    budget: [2000, 13000],
+    budget: [2000, 16000],
   },
   {
     spec: {
@@ -1004,7 +1014,7 @@ export class ShuffleDeck {
 
   next(onStage: string): IngredientEntry {
     if (this.queue.length === 0) {
-      const all = REGISTRY.map((entry) => entry.spec.id);
+      const all = REGISTRY.filter((entry) => !entry.shelved).map((entry) => entry.spec.id);
       this.queue = planCycle(this.first ? all.filter((id) => id !== onStage) : all, onStage, this.random);
       this.first = false;
     }
@@ -1025,7 +1035,7 @@ export function roomOf(entry: IngredientEntry): string | undefined {
 
 /** A random ingredient that is not the one on stage now. */
 export function pickOther(currentId: string, random: () => number = Math.random): IngredientEntry {
-  const others = REGISTRY.filter((entry) => entry.spec.id !== currentId);
+  const others = REGISTRY.filter((entry) => entry.spec.id !== currentId && !entry.shelved);
   if (others.length === 0) return REGISTRY[0];
   return others[Math.floor(random() * others.length) % others.length];
 }

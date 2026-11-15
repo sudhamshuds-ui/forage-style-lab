@@ -1,4 +1,7 @@
-import { BufferAttribute, BufferGeometry, SphereGeometry } from 'three';
+import { BufferAttribute, BufferGeometry, SphereGeometry, Vector3 } from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { spinProfile, type ProfilePoint } from './kit/bowl';
+import { sweepGeometry } from './kit/sweep';
 import { smoothstep } from './kit/lathe';
 import { finishPieces, type FormBuilder } from './kit/piece';
 import { seededRandom } from './kit/random';
@@ -124,8 +127,46 @@ export const buildEgg: FormBuilder = ({ state, seed }) => {
     yp.setXYZ(i, YOLK.x + x * YOLK.radius * wob, Math.max(0.03, baseY + yy), YOLK.z + z * YOLK.radius * wob);
   }
 
+  // The yolk's map for its skin: y its height as a share (0 at its foot in the white, 1 on top).
+  {
+    const uv = new Float32Array(yp.count * 2);
+    for (let i = 0; i < yp.count; i++) uv[2 * i + 1] = Math.min(1, Math.max(0, (yp.getY(i) - baseY) / YOLK.height));
+    yolk.setAttribute('uv', new BufferAttribute(uv, 2));
+  }
+
+  // The pan (the user, 2026-11-15: "show it in a pan"): a shallow frying pan, a prop. Low, flared
+  // walls so the egg still shows from the card's low view; a short handle.
+  const PAN = { floor: 7.3, wall: 1.15, flare: 1.25, thick: 0.38 };
+  const outline: ProfilePoint[] = [{ r: 0, y: 0, u: 0, v: 0 }, { r: PAN.floor - 0.4, y: 0, u: 0, v: 0 }, { r: PAN.floor + 0.1, y: 0.12, u: 0, v: 0.1 }];
+  for (let k = 1; k <= 6; k++) outline.push({ r: PAN.floor + 0.1 + (PAN.flare * k) / 6, y: 0.12 + ((PAN.wall + PAN.thick - 0.12) * k) / 6, u: 0, v: k / 6 });
+  // Over the rounded rim, down the inside wall, across the floor.
+  outline.push({ r: PAN.floor + PAN.flare + 0.02, y: PAN.wall + PAN.thick + 0.1, u: 0.5, v: 1 });
+  outline.push({ r: PAN.floor + PAN.flare - 0.2, y: PAN.wall + PAN.thick + 0.08, u: 0.8, v: 1 });
+  for (let k = 5; k >= 0; k--) outline.push({ r: PAN.floor - 0.25 + ((PAN.flare - 0.1) * k) / 6, y: PAN.thick + (PAN.wall * k) / 6 + (k === 0 ? 0 : 0.02), u: 1, v: k / 6 });
+  outline.push({ r: 0, y: PAN.thick, u: 1, v: 0 });
+  const panBody = spinProfile(outline, 72);
+  const rimAt = new Vector3(PAN.floor + PAN.flare - 0.3, PAN.wall + PAN.thick - 0.25, 0);
+  const handle = sweepGeometry({
+    points: [rimAt, rimAt.clone().add(new Vector3(2.5, 0.75, 0)), rimAt.clone().add(new Vector3(6, 1.5, 0)), rimAt.clone().add(new Vector3(9.5, 1.9, 0))],
+    radius: (t) => (0.8 + 0.35 * Math.sin(Math.PI * Math.min(1, t * 1.15)) * (t > 0.25 ? 1 : t * 4)) * Math.sqrt(Math.min(1, (1 - t) / 0.06)),
+    rings: 22,
+    segments: 12,
+    // Flatter than round, like a pressed handle.
+    around: (_t, a) => 1 / Math.hypot(Math.cos(a), Math.sin(a) / 0.55),
+  });
+  for (const g of [panBody, handle]) {
+    g.deleteAttribute('uv');
+  }
+  const pan = mergeGeometries([panBody, handle])!;
+  // The handle away to the back right; the egg sits on the pan's floor, a little off its middle.
+  pan.rotateY(0.6);
+  pan.translate(0.5, 0, -0.3);
+  white.translate(0, PAN.thick, 0);
+  yolk.translate(0, PAN.thick, 0);
+
   return finishPieces([
     { role: 'white', geometry: white },
     { role: 'yolk', geometry: yolk },
+    { role: 'pan', geometry: pan },
   ]);
 };

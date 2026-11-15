@@ -582,16 +582,27 @@ light's rainbow fringe) loads the room's colour, and room strokes pick up the co
 thresholds.
 
 ## Where we are (2026-11-15)
-**Batch 0** (round 2's last five) was reviewed: `docs/ingredients/batch-0-feedback.md`. The user is
-making those changes in another session on `claude/loving-gauss-efvivl`; do not redo them here.
-**Batch 1** is built on branch `r3-batch-1` and waiting for one review (not approved, not merged):
-tomato, eggs (six in an open carton, `kit/tray.ts`), potato (pair), lime (whole and two wedges),
-garlic (bulb and two cloves), mushrooms (four, `spinProfile`), pear, peach (pair). Skins 28 to 36
-in `skinTexture.ts`, with `depthWash` for colour depth; maps from `kit/maps.ts`. Traps met: a body
-from `roundBody` is built round its middle (`rest` it before placing others beside it); an outline
-spun from the top down comes out wound inward (the mushrooms: the form test's volume check caught
-it); `out` is a reserved word in GLSL, and a syntax error in one skin breaks every skin's shader.
-Next: batch 2 (long): ask for its references first.
+Both batches were reviewed and their feedback applied here, on branch `r3-batch-1` (it holds batch 0
+too; `claude/loving-gauss-efvivl` is the older batch 0 state). **Waiting for the user's second
+look; nothing approved or merged.** The user's words are in `docs/ingredients/batch-0-feedback.md`
+and `batch-1-feedback.md` (read both before the next batch: they were unhappy with batch 1,
+"most of the forms were easy to do still u got them wrong").
+- Batch 0 fixes: salmon a medium fillet with a refined silvery skin; fried egg in a pan (a prop,
+  `pan@iron`), its yolk melting into the white (`yolk` skin), and **shelved** (`shelved: true` keeps
+  it out of Shuffle until the "states of an ingredient" tool); rice with real grains on the mound;
+  milk print: the word only. The cabbage was approved as it is ("FULL PERFECT GOOD JOB").
+- Batch 1 fixes: tomato (ribs, five curling sepals on a star, a knuckled stem); eggs (a moulded
+  tray with peaks between the cups, a scalloped rim, a domed lid); potato (rough painted texture);
+  pear (**the waisted outline the user chose, locked**); lime (whole lime locked as "perfect"; wedge
+  flesh redone with light inside); garlic (a slim, leaning neck; cloves close); mushrooms (a heap of
+  five, all tipped and touching, the tilt solved so both ends rest; texture redone); peach (the
+  cleft and two cheeks).
+- Traps met: a body from `roundBody` is built round its middle: measure heights from its foot
+  (`y + half`) in any sculpting pass, and `rest` it before placing others beside it (the peach's
+  cleft and the garlic's lean silently did nothing); an outline spun from the top down comes out
+  wound inward (the mushrooms); `out` is a reserved word in GLSL, and a syntax error in one skin
+  breaks every skin's shader. **The user sees the working renders**: never swap a form quietly.
+Next: the user's second look at both batches; then batch 2 (long), after asking for references.
 
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one

@@ -170,4 +170,6 @@ The whole fish, parsley, pineapple, mussels and kale. Ask before their batch sta
   wedges; the peach is a pair of whole peaches with leaves (no cut half); the mushrooms are four,
   built in the form. New kit: `kit/maps.ts` (`bodyMap`, `sculpt`, `rest`), `kit/tray.ts` (a
   moulded tray), the wedge sheets in `forms/lime.ts`; `depthWash` in the skin shader.
+- 2026-11-15: the user reviewed batch 1 (`batch-1-feedback.md`) and asked for both batches'
+  feedback to be applied first. Done on `r3-batch-1`; waiting for their second look.
 - Next: batch 2 (long). Ask the user for its references first.

@@ -3,7 +3,7 @@ import type { Settings } from '../params';
 import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
 import { mixHex } from '../utils/colour';
-import { CRUMB_SKIN, GLAZE_SKIN, KNUCKLE_SKIN, PULP_SKIN, LABEL_SKIN, LEAF_SKIN, MELON_RIND_SKIN, setSkin } from '../shading/effects/skinTexture';
+import { CRUMB_SKIN, GLAZE_SKIN, KNUCKLE_SKIN, PULP_SKIN, YOLK_SKIN, LABEL_SKIN, LEAF_SKIN, MELON_RIND_SKIN, setSkin } from '../shading/effects/skinTexture';
 import { hotSauceLabelTexture, milkLabelTexture } from '../shading/labelArt';
 import { FAMILIES } from './families';
 import { seedFromId, seededRandom } from './forms/kit/random';
@@ -222,6 +222,8 @@ class FormSubject implements Subject {
           setSkin(material, GLAZE_SKIN);
           (material.uniforms.uMelonPale.value as Color).set('#d98a3c');
         }
+        // A yolk: its foot melts into the white round it (no hard edge).
+        else if (piece.role === 'yolk') setSkin(material, YOLK_SKIN);
         // A moulded pulp tray (an egg carton): fibres and soft colour, cooler down in its cups.
         else if (piece.role === 'tray') setSkin(material, PULP_SKIN);
         // Crumb (bread inside a slash) gets the crumb skin: holes, streaks, a toasted rim.

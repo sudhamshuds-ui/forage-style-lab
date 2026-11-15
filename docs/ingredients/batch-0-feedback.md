@@ -1,9 +1,8 @@
 # Batch 0 feedback (round 2's last five)
 
 The user's review, 2026-11-15, from their Figma board "Batch 0 feedback" (file
-537QrQ0QsVjcT4u3st7M20, node 191:34, with screenshots). **Not applied yet**: the user will make
-these changes in another session ("i dont want you to work on this yet ... ill use opus 5.5 to do
-these small changes in another session"). The code is on branch `claude/loving-gauss-efvivl`.
+537QrQ0QsVjcT4u3st7M20, node 191:34, with screenshots). **Applied 2026-11-15** on branch `r3-batch-1`, after the user asked for it here ("fix both batch
+0-1 first according to feedback"); waiting for their second look.
 
 | Ingredient | Verdict (the user's words) | Changes asked |
 |---|---|---|

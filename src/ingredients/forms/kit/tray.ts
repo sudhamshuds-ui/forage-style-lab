@@ -17,6 +17,8 @@ export interface TrayOptions {
   round: number;
   /** The top's height at (x, z); u and v run -1 to 1 across the tray. */
   top: (x: number, z: number, u: number, v: number) => number;
+  /** Optional: the outline pushed out or in at (u, v) on its edge (1 = unchanged), for a scalloped rim. */
+  outline?: (u: number, v: number) => number;
   /** How far the foot is inset from the top's outline (cm) at (u, v) on the outline. */
   inset: (u: number, v: number) => number;
   columns: number;
@@ -27,7 +29,12 @@ export function trayGeometry(o: TrayOptions): BufferGeometry {
   const positions: number[] = [];
   const uvs: number[] = [];
   // A square grid squeezed into a rounded rectangle.
-  const place = (u: number, v: number) => [(o.width / 2) * u * Math.sqrt(1 - (o.round * v * v) / 2), (o.depth / 2) * v * Math.sqrt(1 - (o.round * u * u) / 2)] as const;
+  const place = (u: number, v: number) => {
+    // The scallop only moves points near the edge (it fades out toward the middle).
+    const m = Math.max(Math.abs(u), Math.abs(v));
+    const k = o.outline && m > 1e-6 ? 1 + (o.outline(u / m, v / m) - 1) * m ** 4 : 1;
+    return [(o.width / 2) * u * Math.sqrt(1 - (o.round * v * v) / 2) * k, (o.depth / 2) * v * Math.sqrt(1 - (o.round * u * u) / 2) * k] as const;
+  };
   for (let j = 0; j <= o.rows; j++) {
     for (let i = 0; i <= o.columns; i++) {
       const u = (2 * i) / o.columns - 1;

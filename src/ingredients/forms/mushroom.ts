@@ -6,8 +6,8 @@ import { seededRandom, signed } from './kit/random';
 
 /**
  * Mushrooms (archetype: round). Round 3, batch 1, after the user's references (Figma node
- * 184:349: a watercolour cluster of brown mushrooms, stems showing): four chestnut mushrooms, one
- * standing, the others tipped over the way they fall, a stem toward the camera, gills showing.
+ * 184:349: a watercolour cluster of brown mushrooms, stems showing): five chestnut mushrooms in a
+ * small heap, all tipped over the way they fall and leaning in together, stems and gills showing.
  *
  * Each mushroom is one outline spun round its axis (the bowl kit's `spinProfile`): a domed cap,
  * its rim rolling under, the gills rising in to the stem, a stout stem with a rounded cut end.
@@ -65,17 +65,23 @@ function inside(s: Shape, p: Vector3): boolean {
 export const buildMushroom: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Mushroom: the "${state}" form is not built yet (whole only for now).`);
   const random = seededRandom(seed ^ 0x3a54);
-  // Where each one sits, which way its stem points if it lies down (`down`), and its size.
+  // A small heap, after the reference (the user, 2026-11-15: "the way they are placed feels wrong,
+  // some are levitating and upright. the composition isnt working"): five mushrooms tipped over
+  // and leaning in together, none standing. Each has its place and the way its stem points along
+  // the table (`down`); stems mostly point in toward the middle and the camera, so the caps face
+  // out, and one in the middle shows its cap. They are laid middle first; each next one slides in
+  // until it just touches the heap.
   const plan = [
-    { at: [0.2, -2.6], down: null as number | null, size: 1.06 },
-    { at: [-3.3, 0.9], down: 2.3, size: 1 },
-    { at: [2.0, 2.4], down: 1.25, size: 0.94 },
-    { at: [4.4, -1.4], down: null, size: 0.78 },
+    { at: [0.3, -0.4], down: -1.75, size: 1.0 },
+    { at: [-2.9, -1.6], down: 0.55, size: 1.06 },
+    { at: [2.4, -2.3], down: 2.35, size: 0.96 },
+    { at: [-1.2, 2.7], down: 0.2, size: 0.98 },
+    { at: [3.6, 1.1], down: 2.85, size: 0.76 },
   ];
   const placed: { shape: Shape; matrix: Matrix4 }[] = [];
   const meshes: BufferGeometry[] = [];
   plan.forEach((m, n) => {
-    const shape: Shape = { cap: 2.45 * m.size * (1 + signed(random) * 0.05), dome: 2.0 * m.size * (1 + signed(random) * 0.1), stem: 1.0 * m.size, length: 2.5 * m.size * (1 + signed(random) * 0.08) };
+    const shape: Shape = { cap: 2.5 * m.size * (1 + signed(random) * 0.05), dome: 2.05 * m.size * (1 + signed(random) * 0.1), stem: 1.0 * m.size, length: 2.5 * m.size * (1 + signed(random) * 0.08) };
     const ph = random() * Math.PI * 2;
     const g = spinProfile(outline(shape), 44, (angle, y) => (y > shape.length - 0.5 ? 1 + 0.035 * Math.cos(2 * angle + ph) + 0.025 * Math.cos(3 * angle + ph * 2) : 1 + 0.03 * Math.cos(2 * angle + ph)));
     // The outline runs from the cap's top down (the bowl kit's runs from the foot up), so the
@@ -91,41 +97,63 @@ export const buildMushroom: FormBuilder = ({ state, seed }) => {
     const own = new Float32Array(p.count * 3);
     for (let i = 0; i < p.count; i++) own.set([p.getX(i), p.getY(i) + n * 10, p.getZ(i)], i * 3);
     g.setAttribute('ownPos', new BufferAttribute(own, 3));
-    // Standing with a slight lean, or tipped over: resting on its cap's rim and its stem's end.
-    const turn = new Quaternion();
-    if (m.down === null) {
-      turn.setFromAxisAngle(new Vector3(Math.cos(n * 2.1), 0, Math.sin(n * 2.1)), 0.06 + random() * 0.06);
-    } else {
-      const tilt = Math.atan2(shape.cap - shape.stem, shape.length);
+    // Tipped over, resting on its cap's rim and the end of its stem. The tilt is found, not
+    // guessed: the angle at which the cap's lowest point and the stem's lowest point are level
+    // (with a guessed tilt one end hovered a little: "levitating").
+    const roll = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), random() * Math.PI * 2);
+    const turnAt = (tilt: number) => {
       const stemWay = new Vector3(Math.cos(m.down) * Math.cos(tilt), -Math.sin(tilt), Math.sin(m.down) * Math.cos(tilt));
-      turn.setFromUnitVectors(new Vector3(0, 1, 0), stemWay.clone().negate());
-      turn.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), random() * Math.PI * 2));
+      return new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), stemWay.negate()).multiply(roll);
+    };
+    const v = new Vector3();
+    const lows = (q: Quaternion) => {
+      let cap = Infinity;
+      let stem = Infinity;
+      for (let i = 0; i < p.count; i++) {
+        const y = v.fromBufferAttribute(p, i).applyQuaternion(q).y;
+        if (p.getY(i) > shape.length - 0.6) cap = Math.min(cap, y);
+        else if (p.getY(i) < 0.6) stem = Math.min(stem, y);
+      }
+      return cap - stem;
+    };
+    let lo = 0;
+    let hi = 1.3;
+    for (let k = 0; k < 24; k++) {
+      const mid = (lo + hi) / 2;
+      if (lows(turnAt(mid)) < 0) lo = mid;
+      else hi = mid;
     }
+    const turn = turnAt((lo + hi) / 2);
     const lay = (x: number, z: number) => {
       const matrix = new Matrix4().compose(new Vector3(x, 0, z), turn, new Vector3(1, 1, 1));
-      // Rest it on the table: lift it by its lowest point.
       let low = Infinity;
-      const v = new Vector3();
       for (let i = 0; i < p.count; i++) low = Math.min(low, v.fromBufferAttribute(p, i).applyMatrix4(matrix).y);
       matrix.setPosition(x, -low, z);
       return matrix;
     };
-    // Slide it out from the middle until it is clear of the ones already there.
-    let [x, z] = m.at;
-    const away = new Vector3(x, 0, z).normalize();
-    let matrix = lay(x, z);
-    const v = new Vector3();
-    for (let step = 0; step < 80; step++) {
-      let hit = false;
+    const hits = (matrix: Matrix4) => {
       for (const other of placed) {
         const inverse = other.matrix.clone().invert();
-        for (let i = 0; i < p.count && !hit; i += 2) hit = inside(other.shape, v.fromBufferAttribute(p, i).applyMatrix4(matrix).applyMatrix4(inverse));
-        if (hit) break;
+        for (let i = 0; i < p.count; i += 2) if (inside(other.shape, v.fromBufferAttribute(p, i).applyMatrix4(matrix).applyMatrix4(inverse))) return true;
       }
-      if (!hit) break;
-      x += away.x * 0.12;
-      z += away.z * 0.12;
-      matrix = lay(x, z);
+      return false;
+    };
+    // From well outside, slide in along the line to the middle until it touches the heap (or
+    // reaches the middle, for the first one), then step back out a hair so they just touch.
+    const away = new Vector3(m.at[0], 0, m.at[1]);
+    if (away.lengthSq() < 0.5) away.set(0, 0, -1);
+    const reach0 = placed.length === 0 ? 0 : away.length();
+    away.normalize();
+    let reach = placed.length === 0 ? 0 : reach0 + 7;
+    let matrix = lay(m.at[0], m.at[1]);
+    if (placed.length > 0) {
+      matrix = lay(away.x * reach, away.z * reach);
+      while (reach > 0.2 && !hits(matrix)) {
+        reach -= 0.1;
+        matrix = lay(away.x * reach, away.z * reach);
+      }
+      reach += 0.12;
+      matrix = lay(away.x * reach, away.z * reach);
     }
     placed.push({ shape, matrix });
     g.applyMatrix4(matrix);
