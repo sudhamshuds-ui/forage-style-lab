@@ -44,6 +44,11 @@ export type FamilyId =
   | 'pear'
   | 'peach'
   | 'potato'
+  | 'lime'
+  | 'garlic'
+  | 'mushroom'
+  | 'eggshell'
+  | 'pulp'
   | 'vine'
   | 'pit'
   | 'papery'
@@ -402,6 +407,39 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Potato',
     colours: { lit: '#f3cf8e', base: '#cf9450', shadow: '#84483f', glow: '#e09640', highlight: '#fff0d0' },
     rooms: ['iris', 'mist'],
+  },
+  // Lime: a fresh deep green, yellow-lime where lit, a blue-teal in shadow; the pale cut flesh is
+  // painted by its skin.
+  lime: {
+    name: 'Lime',
+    colours: { lit: '#c2dc58', base: '#6ea42c', shadow: '#28594c', glow: '#b9d93a', highlight: '#f7fbda' },
+    rooms: ['thistle', 'heather'],
+  },
+  // Garlic: a warm pearl white, cream where lit, lilac-violet in shadow (never grey); its violet
+  // streaks are painted by its skin.
+  garlic: {
+    name: 'Garlic',
+    colours: { lit: '#fffaf1', base: '#f2e8dc', shadow: '#9c8cc2', glow: '#f7d6b0', highlight: '#ffffff' },
+    rooms: ['lavender', 'iris'],
+  },
+  // Mushroom: a warm chestnut brown, tan where lit, a plum-brown in shadow (never grey-brown).
+  mushroom: {
+    name: 'Mushroom',
+    colours: { lit: '#e3b78c', base: '#b47b50', shadow: '#5e3a4b', glow: '#da9862', highlight: '#fbefdd' },
+    rooms: ['spruce', 'mist'],
+  },
+  // Eggshell: a warm terracotta-tan brown egg, peach where lit, a rose-plum in shadow.
+  eggshell: {
+    name: 'Eggshell',
+    colours: { lit: '#f7cba6', base: '#db966b', shadow: '#8b4a54', glow: '#f1a274', highlight: '#fff4e8' },
+    rooms: ['celadon', 'mist'],
+  },
+  // Not a board 04 family: only for parts (a moulded pulp carton or tray). A pale warm grey-cream,
+  // lilac-blue in shadow, never a dead grey.
+  pulp: {
+    name: 'Pulp',
+    colours: { lit: '#f5f0e6', base: '#ded7cd', shadow: '#9a8f9c', glow: '#f1e1c8', highlight: '#ffffff' },
+    rooms: [],
   },
   // Not a board 04 family: only for parts (a grape bunch's woody stem; later vines and tomato
   // trusses). A golden ochre, its shadow a warm olive-plum, never grey-green.

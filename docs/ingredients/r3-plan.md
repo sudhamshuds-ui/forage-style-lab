@@ -161,4 +161,13 @@ The whole fish, parsley, pineapple, mussels and kale. Ask before their batch sta
 
 ## Progress
 
-Nothing built yet. Update this section as each batch lands.
+- **Batch 0** (round 2's last five) reviewed 2026-11-15: see `batch-0-feedback.md`. The user is
+  applying those changes in another session, on `claude/loving-gauss-efvivl`.
+- **Batch 1** built 2026-11-15 on branch `r3-batch-1`, after the user's references (Figma node
+  184:349), waiting for one review on the Style Lab preview (`NEXT=tomato,eggs,potato,lime,garlic,
+  mushroom,pear,peach`). Changes from the plan, to match the references: the egg is six brown eggs
+  in an open pulp carton (the user's label: "Egg (in carton)"); the lime is one whole lime and two
+  wedges; the peach is a pair of whole peaches with leaves (no cut half); the mushrooms are four,
+  built in the form. New kit: `kit/maps.ts` (`bodyMap`, `sculpt`, `rest`), `kit/tray.ts` (a
+  moulded tray), the wedge sheets in `forms/lime.ts`; `depthWash` in the skin shader.
+- Next: batch 2 (long). Ask the user for its references first.

@@ -42,3 +42,12 @@ export function sculpt(geometry: BufferGeometry, move: (x: number, y: number, z:
   p.needsUpdate = true;
   return geometry;
 }
+
+/** Rest a body on the table: lift it so its lowest point sits at y = 0. Returns how far it moved. */
+export function rest(geometry: BufferGeometry): number {
+  const p = geometry.getAttribute('position');
+  let low = Infinity;
+  for (let i = 0; i < p.count; i++) low = Math.min(low, p.getY(i));
+  geometry.translate(0, -low, 0);
+  return -low;
+}

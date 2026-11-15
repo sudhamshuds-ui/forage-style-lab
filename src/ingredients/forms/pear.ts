@@ -20,7 +20,6 @@ import { sweepGeometry } from './kit/sweep';
  */
 const HEIGHT = 10;
 const BELLY = 3.75;
-const NECK = 2.0;
 
 export const buildPear: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Pear: the "${state}" form is not built yet (whole only for now).`);

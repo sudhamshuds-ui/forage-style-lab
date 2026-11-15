@@ -581,7 +581,19 @@ light's rainbow fringe) loads the room's colour, and room strokes pick up the co
 (wet-in-wet). A pick-up that reacted to every small change flattened the wall's slabs: keep the
 thresholds.
 
-## Where we are (2026-11-14)
+## Where we are (2026-11-15)
+**Batch 0** (round 2's last five) was reviewed: `docs/ingredients/batch-0-feedback.md`. The user is
+making those changes in another session on `claude/loving-gauss-efvivl`; do not redo them here.
+**Batch 1** is built on branch `r3-batch-1` and waiting for one review (not approved, not merged):
+tomato, eggs (six in an open carton, `kit/tray.ts`), potato (pair), lime (whole and two wedges),
+garlic (bulb and two cloves), mushrooms (four, `spinProfile`), pear, peach (pair). Skins 28 to 36
+in `skinTexture.ts`, with `depthWash` for colour depth; maps from `kit/maps.ts`. Traps met: a body
+from `roundBody` is built round its middle (`rest` it before placing others beside it); an outline
+spun from the top down comes out wound inward (the mushrooms: the form test's volume check caught
+it); `out` is a reserved word in GLSL, and a syntax error in one skin breaks every skin's shader.
+Next: batch 2 (long): ask for its references first.
+
+## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one
 review** (not approved, not merged; `/forage-brand` after approval, then merge to `main`):
 cabbage (every leaf a real leaf laid on a height map of the ball, `forms/cabbage.ts`), salmon
