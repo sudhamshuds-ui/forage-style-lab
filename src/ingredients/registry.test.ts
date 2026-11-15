@@ -58,7 +58,8 @@ describe('ingredient registry', () => {
   it('Shuffle shows every ingredient once before any comes back, in a new order each cycle', () => {
     const deck = new ShuffleDeck(seededRandom(7));
     const start = REGISTRY[0].spec.id;
-    const n = REGISTRY.length;
+    // (Shelved ingredients, like the fried egg, are built but kept out of Shuffle.)
+    const n = REGISTRY.filter((entry) => !entry.shelved).length;
     const shown = [start];
     for (let i = 0; i < n * 5 - 1; i++) shown.push(deck.next(shown[shown.length - 1]).spec.id);
     // Each full cycle (the first one counts the ingredient on stage at load) holds every ingredient once.
@@ -70,6 +71,7 @@ describe('ingredient registry', () => {
     const again = [start];
     for (let i = 0; i < n - 1; i++) again.push(other.next(again[again.length - 1]).spec.id);
     expect(again.join()).not.toBe(shown.slice(0, n).join());
+    for (const entry of REGISTRY.filter((e) => e.shelved)) expect(shown).not.toContain(entry.spec.id);
   });
 
   it('reads part names: glow parts and parts in another family', () => {

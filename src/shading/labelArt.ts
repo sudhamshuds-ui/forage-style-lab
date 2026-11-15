@@ -129,3 +129,61 @@ export function hotSauceLabelTexture(): CanvasTexture | null {
   }
   return cached;
 }
+
+/**
+ * The milk carton's print (round 2, 2026-11-14): our own design, in the spirit of the user's
+ * reference (a white carton with a bold green word and cow spots), never its brand. The strip
+ * runs once round the four faces (each a quarter of the width: front, right side, back, left
+ * side) and up the whole carton (the body is the lower four fifths, the gable above it).
+ * White = ink (painted green by the `carton` skin), black = the white paper.
+ */
+export function drawMilkLabel(): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  const W = 2048;
+  const H = 1024;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#fff';
+  const face = W / 4;
+  // The body ends at about four fifths of the height (canvas y runs down: the body is the lower part).
+  const bodyTop = H * 0.215;
+  const bodyH = H - bodyTop;
+
+  // The front: the word, hand-lettered, running up the face; a small line below.
+  ctx.save();
+  ctx.translate(face * 0.5, bodyTop + bodyH * 0.5);
+  ctx.rotate(-Math.PI / 2);
+  // Set straight (the user, 2026-11-15: "milk texture is crooked"): no hand-lettered wobble here.
+  ctx.font = '900 205px "Arial Black", "Helvetica Neue", Impact, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('MILK', 0, 0);
+  ctx.textBaseline = 'alphabetic';
+  ctx.restore();
+  ctx.font = '700 34px "Helvetica Neue", Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('FRESH  ·  1 LITRE', face * 0.5, H - 60);
+
+  // (A milk drop above the word and cow spots on the other faces were taken out, the user,
+  // 2026-11-15: "remove that drop, and the cow spots pattern". The other three faces are plain.)
+  return canvas;
+}
+
+let cachedMilk: CanvasTexture | null = null;
+
+/** The milk carton's print as a texture (made once). Null where there is no page (tests). */
+export function milkLabelTexture(): CanvasTexture | null {
+  if (typeof document === 'undefined') return null;
+  if (!cachedMilk) {
+    cachedMilk = new CanvasTexture(drawMilkLabel());
+    cachedMilk.colorSpace = NoColorSpace;
+    cachedMilk.wrapS = RepeatWrapping;
+    cachedMilk.minFilter = LinearFilter;
+    cachedMilk.anisotropy = 4;
+  }
+  return cachedMilk;
+}

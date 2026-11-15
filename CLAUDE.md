@@ -106,6 +106,23 @@ keep code readable with friendly comments.
   fades over a soft band like wet paint, never a crisp cut-out line. Crisp edges are kept only for
   a few niche places, each a deliberate choice: the lit side of the outline and the cast shadow's
   edge (the style direction), and printed artwork such as the hot sauce label.
+- **Never flat colour: gradients and variation, a bit dramatic** (the user, 2026-11-14, of the cabbage: "the
+  colours just look flat 2 greens ... add more colour gradient or variation (keep this in mind for next
+  ones too)"; "its a painting stylization at the end of the day, so make it a bit dramatic, add colours,
+  add some colours to the shadows ... like how we have our apple, orange"). Every ingredient runs
+  through several hues of its colour (warm blooms, cooler deeper blooms, a gradient along each part),
+  with colour in its shadows. **Match the reference 1:1** in form, colour and texture.
+- **Batch review, in the Style Lab itself** (the user, 2026-11-14): build a whole batch without waiting
+  for approval on each one, then publish the usual "Forage Style Lab" preview with
+  `NEXT=<the batch's ids in order>`, so the first clicks of New ingredient show the batch. Merge to
+  `main` after their review and approval. **No separate switcher page**: one was built
+  (`prototypes/review.html`) and the user had it deleted ("you are making my browser and system crash
+  with this artifact, scrap this artifact, just show me this rounds ingredients normally in style
+  lab, ill shuffle through them"). The page file stays in the repo, unpublished.
+- **Each material's shader holds only its own skin** (2026-11-14): `setSkin` sets a `SKIN_KIND`
+  define, so the other skins' code drops out when the shader is built. One shader with all 27 skins
+  had grown very large; the user's browser lost its graphics (WebGL disabled) while viewing round 2's
+  batch. Not proven to be the cause, but keep shaders small: never go back to one shader for all.
 - **Warm highlights, cool shadows, always** (the user, 2026-11-12): light and its glow lean warm
   (coral, gold, cream), shadows lean cool (violet, plum, indigo, blue-green), never grey and never
   the same hue as the light. Check every new family and skin against it.
@@ -533,7 +550,32 @@ Shared mechanisms added along the way (code hooks other ingredients reuse):
   subsurface, a clean cream cut disc). The crinkle texture was taken out (in history). See
   `lessons/romaine.md`.
 
-Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the napa cabbage next.
+- **Cabbage** (round 2): a round head, every leaf a real leaf laid on a height map of the ball
+  (`cover`), seven head leaves and six wrappers, the `cabbage` family and skin, Iris, 34k budget.
+  See `lessons/cabbage.md`.
+- **Salmon** (round 2): a medium raw fillet on a diagonal, fat lines as one field (V shapes on top,
+  arcs on the cut ends), a thin silvery skin; `salmon` family and skin. See `lessons/salmon.md`.
+- **Rice** (round 2): a celadon bowl (`kit/bowl.ts`, the `glaze` skin, `glossy: ['bowl']`) heaped
+  with rice, 380 real grains half sunk into the mound. See `lessons/rice.md`.
+- **Milk** (round 2): a gable-top carton, our own print: the word only, set straight
+  (`milkLabelTexture`), a green cap; `milk` and `print-green`. See `lessons/milk.md`.
+- **Tomato** (round 3, batch 1): ribs, five curling sepals on a star, a knuckled stem. Locked.
+  See `lessons/tomato.md`.
+- **Eggs**: six brown eggs in an open pulp carton built 1:1 from photos (a thin rim plate, six
+  separate cups, two flat-topped posts, the lid standing open; `kit/tray.ts`, `eggshell`, `pulp`),
+  36k budget. See `lessons/eggs.md`.
+- **Potato**: a pair, rough painted texture, eyes. Locked. See `lessons/potato.md`.
+- **Lime**: a whole lime and two wedges; the wedge flesh is commit 5d1c87b's pale soft fan.
+  **Locked**: no more wedge detail unless asked. See `lessons/lime.md`.
+- **Garlic**: a bulb with a slim neck and two cloves close by. See `lessons/garlic.md`.
+- **Mushrooms**: a heap of seven, each tipped (tilt solved so both ends rest) and turned at random,
+  23k budget. See `lessons/mushroom.md`.
+- **Pear**: the very first outline, a belly, a neck and a small bulge at the waist
+  (`Math.max(belly, neck, fill)`). **Locked**: never smooth the waist. See `lessons/pear.md`.
+- **Peach**: a pair, each with its cleft and two cheeks, velvet. Locked. See `lessons/peach.md`.
+
+Next: round 3 (`docs/ingredients/r3-plan.md`, approved 2026-11-14): nine batches of about 8, each on
+its own branch; ask the user for references before a batch starts ("let me know before u start that round").
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
 zoom redraws straight away (the controls' change event), idle spin eases back in 1.5 s after
@@ -562,7 +604,46 @@ light's rainbow fringe) loads the room's colour, and room strokes pick up the co
 (wet-in-wet). A pick-up that reacted to every small change flattened the wall's slabs: keep the
 thresholds.
 
-## Where we are (2026-11-11, night)
+## Where we are (2026-11-15)
+**Round 2 is complete and round 3's batch 1 is done**: all twelve are approved and merged to `main`
+(from branch `r3-batch-1`): cabbage, salmon, rice bowl, milk carton (batch 0, round 2's last) and
+tomato, eggs, potato, lime, garlic, mushrooms, pear, peach (batch 1). `/forage-brand` has run: a
+lessons record and painting for each, the guide updated. The fried egg was removed from the
+registry (the user: "remove fried egg, lets not keep this now"; `forms/egg.ts`, its families and
+skins stay for the "states of an ingredient" tool).
+The user's review words: `docs/ingredients/batch-0-feedback.md`, `batch-1-feedback.md`,
+`batch-0-1-round-2-feedback.md`. **Read them before the next batch**: they were unhappy with batch
+1's first showing ("most of the forms were easy to do still u got them wrong").
+What the two batches taught (all in the guide's lessons and pre-check):
+- **The reference's form comes first, even on an easy shape**: build the signature feature and push
+  it (a peach's cleft, a tomato's sepals, a carton's real parts from a photo). Match 1:1.
+- **Change only what a note asks about.** What is approved is locked.
+- **After two failed tries at one thing, stop** and offer the earlier version; no third guess.
+- **"Go back" means the exact earlier version**, checked side by side with the user's screenshot.
+- **The user sees the working renders**: never swap a form quietly.
+- Traps: a body from `roundBody` is centred on its middle (measure from its foot, `y + half`, and
+  `rest` it before placing others beside it); an outline spun from the top down is wound inward;
+  `out` and `patch` are reserved words in GLSL, and a syntax error in one skin breaks every skin.
+**Figma is due** (round 2 ended): everything in `docs/ingredients/lessons/figma-pending.md` waits
+for the user's one OK, then goes in together and the file is emptied.
+Next: batch 2 (long: carrot, cucumber, eggplant, corn, banana, leek, sweet potato, asparagus) on its
+own branch, **after asking the user for its references**.
+
+## Earlier (2026-11-14)
+Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one
+review** (not approved, not merged; `/forage-brand` after approval, then merge to `main`):
+cabbage (every leaf a real leaf laid on a height map of the ball, `forms/cabbage.ts`), salmon
+(`forms/salmon.ts`, the `salmon` skin: fat lines as one field, V shapes on top and arcs on the cut
+ends), fried egg (`forms/egg.ts`, the puddle tool, the ninth archetype `flat`, `albumen` and `yolk`),
+rice bowl (`kit/bowl.ts`: `spinProfile`, `bowlProfile`, `moundGeometry`; the `rice` and `glaze`
+skins) and milk carton (`forms/milk.ts`, the carton tool; our own print, `milkLabelTexture`, the
+`carton` skin). Shown on the Style Lab preview (built with
+`NEXT=cabbage,salmon,egg,rice,milk`); the review switcher artifact was deleted at the user's
+request. Open point told to the user: the fried
+egg lies flat, so from the low starting view it is a thin oval. Then round 3
+(`docs/ingredients/r3-plan.md`): ask for batch 1's references first.
+
+## Earlier (2026-11-11, night)
 The chicken drumstick is approved (branch `chicken`, with `steak-melon` merged into it; see the
 Chicken line under "Done so far"). On `steak-melon`: the steak's rounder eye and the watermelon
 seeds left out of Playful strokes. Two shared fixes came with the drumstick: outline pixels are no

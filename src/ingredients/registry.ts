@@ -17,6 +17,18 @@ import { buildGrapes } from './forms/grapes';
 import { buildBlueberries } from './forms/blueberries';
 import { buildSpinach } from './forms/spinach';
 import { buildRomaine } from './forms/romaine';
+import { buildCabbage } from './forms/cabbage';
+import { buildSalmon } from './forms/salmon';
+import { buildRice } from './forms/rice';
+import { buildMilk } from './forms/milk';
+import { buildTomato } from './forms/tomato';
+import { buildPear } from './forms/pear';
+import { buildPeach } from './forms/peach';
+import { buildPotato } from './forms/potato';
+import { buildLime } from './forms/lime';
+import { buildGarlic } from './forms/garlic';
+import { buildMushroom } from './forms/mushroom';
+import { buildEggs } from './forms/eggs';
 import { FAMILIES } from './families';
 import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
@@ -121,6 +133,11 @@ export interface IngredientEntry {
    * avocado's polished pit, the user 2026-11-12: "seed needs highlight").
    */
   glossy?: string[];
+  /**
+   * True to keep it out of Shuffle (built and tested, but not in the pantry yet): a cooked state
+   * waiting for the "states of an ingredient" tool (the fried egg).
+   */
+  shelved?: boolean;
 }
 
 export const REGISTRY: IngredientEntry[] = [
@@ -633,6 +650,295 @@ export const REGISTRY: IngredientEntry[] = [
     shadowTint: 0.3,
     budget: [2000, 30000],
   },
+  {
+    spec: {
+      id: 'cabbage',
+      name: 'Cabbage',
+      archetype: 'leafy',
+      family: 'cabbage',
+      layout: 'solo',
+      show: 'One round green cabbage sitting upright: a pale, tight head of leaves wrapped over the top, cupped by big, darker wrapper leaves flaring out round it.',
+      forms: ['whole', 'half'],
+      scale: 'L',
+      size_cm: [15.4, 11.9, 15.4],
+      parts: ['head'],
+      light_case: 'pale',
+      notes:
+        'Round 2, the last leafy ingredient, after the user\'s watercolour references (2026-11-14), replacing the napa cabbage first tried. Every leaf is a real leaf (round 2, the user: the centre was \'just a ball instead of leaves\'): head leaves laid over a hidden core, each resting on the ones before, and six round-topped wrapper leaves cupped round it; the cabbage skin (the romaine\'s painting, the wrappers deeper).',
+    },
+    form: buildCabbage,
+    turn: 0,
+    skin: { kind: 'cabbage', size_mm: 2, amount: 0.95 },
+    matte: true,
+    rimGlints: false,
+    shadowTint: 0.3,
+    budget: [2000, 34000],
+  },
+  {
+    spec: {
+      id: 'salmon',
+      name: 'Salmon',
+      archetype: 'block',
+      family: 'salmon',
+      layout: 'solo',
+      show: 'One raw salmon fillet lying skin down on a diagonal, a cut end toward the camera: white fat lines in V shapes across the top, nested arcs on the cut end, a thin silvery skin along the foot.',
+      forms: ['whole', 'slices', 'cubes', 'flaked'],
+      scale: 'M',
+      size_cm: [11.5, 2.7, 8.3],
+      parts: ['flesh:glow'],
+      light_case: 'cut-juicy',
+      notes:
+        'Round 2, after the user\'s reference (Figma node 148:6, a watercolour fillet). A soft rectangle with two cut ends, thick and rounded along the back, thin at the belly, a soft groove along the middle line. The fat lines, the flakes on the cut ends, the colour bands and the silvery skin are a shader texture (the salmon skin), never geometry.',
+    },
+    form: buildSalmon,
+    // On a diagonal, the thick back toward the key light, a cut end toward the camera on the right.
+    turn: 58,
+    skin: { kind: 'salmon', size_mm: 4, amount: 0.9 },
+    // A moist, soft sheen; no rim glints along the soft top edge (the steak's lesson).
+    matte: true,
+    rimGlints: false,
+    shadowTint: 0.45,
+    budget: [2000, 26000],
+  },
+  // (The fried egg was taken out, the user, 2026-11-15: "remove fried egg, lets not keep this
+  // now". Its form, families and skins stay in the code: forms/egg.ts, to register again later.)
+  {
+    spec: {
+      id: 'rice',
+      name: 'Rice',
+      archetype: 'contained',
+      family: 'rice',
+      layout: 'solo',
+      show: 'A green glazed bowl heaped with steamed white rice, the lumpy dome standing well above the rim, the inside of the rim an orange brown.',
+      forms: ['whole'],
+      scale: 'M',
+      size_cm: [13.3, 10.6, 13.3],
+      parts: ['rice', 'bowl@glaze'],
+      light_case: 'pale',
+      notes:
+        'Round 2, after the user\'s reference (Figma node 148:9). The bowl kit (kit/bowl.ts): a bowl spun from an outline with a real wall, and a heaped mound closed underneath. The grains, the warm gaps between them and the colour depth are a shader texture (the rice skin); the bowl\'s pooled glaze, rings and orange-brown inside rim are the glaze skin.',
+    },
+    form: buildRice,
+    turn: 0,
+    skin: { kind: 'rice', size_mm: 5.5, amount: 0.9 },
+    // Steamed rice has a soft, moist sheen broken by its grains; the glazed bowl keeps its shine.
+    matte: true,
+    glossy: ['bowl'],
+    rimGlints: false,
+    shadowTint: 0.3,
+    budget: [2000, 38000],
+  },
+  {
+    spec: {
+      id: 'milk',
+      name: 'Milk',
+      archetype: 'contained',
+      family: 'milk',
+      layout: 'solo',
+      show: 'One gable-top milk carton standing up, turned three-quarter: a green screw cap on the front slope, our own green print (the word only).',
+      forms: ['whole'],
+      scale: 'M',
+      size_cm: [7.1, 20.4, 7.1],
+      parts: ['carton', 'cap@print-green'],
+      light_case: 'pale',
+      notes:
+        'Round 2, after the user\'s reference (Figma node 148:3: the form only; the print is our own, like the hot sauce\'s). The carton tool: a box built as rings, a gable whose ends fold in, a sealed fin. Crisp folds, each a small bevel. The print and the paper\'s colour depth are the carton skin (artwork in src/shading/labelArt.ts).',
+    },
+    form: buildMilk,
+    // Three-quarter: the front (the word, the cap) toward the key light, a spotted side to the camera.
+    turn: -32,
+    skin: { kind: 'carton', size_mm: 1, amount: 1 },
+    matte: true,
+    rimGlints: false,
+    shadowTint: 0.15,
+    budget: [1000, 12000],
+  },
+  // Round 3, batch 1 (2026-11-15): the round archetype, after the user's references (Figma node 184:349).
+  {
+    spec: {
+      id: 'tomato',
+      name: 'Tomato',
+      archetype: 'round',
+      family: 'tomato',
+      layout: 'solo',
+      show: 'One ripe tomato, squat and full-shouldered, its green calyx of five long sepals curling back, a thick stub of stem.',
+      forms: ['whole', 'half', 'slices', 'diced'],
+      scale: 'M',
+      size_cm: [7.8, 6.8, 7.6],
+      parts: ['skin:glow', 'calyx@leaf', 'star@leaf', 'stem@leaf'],
+      notes: 'Wider than tall, round shoulders, a soft dip at the stem, very soft ribs. The glossy skin, its orange shoulders and deeper crimson blooms are the tomato skin.',
+    },
+    form: buildTomato,
+    turn: 15,
+    skin: { kind: 'tomato', size_mm: 3, amount: 0.9 },
+    shadowTint: 0.5,
+    rimGlints: false,
+    budget: [2000, 8000],
+  },
+  {
+    spec: {
+      id: 'pear',
+      name: 'Pear',
+      archetype: 'round',
+      family: 'pear',
+      layout: 'solo',
+      show: 'One yellow pear standing, a red-orange blush on one side, a woody stem with two leaves.',
+      forms: ['whole', 'half', 'slices'],
+      scale: 'M',
+      size_cm: [7.3, 9.9, 7.3],
+      parts: ['skin:glow', 'stem@stalk', 'leaf@leaf'],
+      notes: 'One smooth outline: a heavy belly low down, shoulders pulling up into a narrower neck, a little lopsided. Yellow to green at the neck, the blush and russet freckles are the pear skin.',
+    },
+    form: buildPear,
+    turn: 0,
+    skin: { kind: 'pear', size_mm: 2.4, amount: 0.9 },
+    matte: true,
+    shadowTint: 0.35,
+    rimGlints: false,
+    budget: [2000, 8000],
+  },
+  {
+    spec: {
+      id: 'peach',
+      name: 'Peach',
+      archetype: 'round',
+      family: 'peach',
+      layout: 'cluster-2',
+      show: 'Two whole peaches, each with its seam and a long leaf, just touching.',
+      forms: ['whole', 'half', 'slices'],
+      scale: 'M',
+      size_cm: [7.1, 6.7, 7],
+      parts: ['skin:glow', 'stem@stalk', 'leaf@leaf'],
+      light_case: 'group',
+      notes: 'Round, a deep dip at the stem, a soft seam down one side with a fuller cheek each side. Velvet, never glossy: gold to rose blush and a pale bloom at the outline are the peach skin.',
+    },
+    form: buildPeach,
+    // The seam toward the camera and the light.
+    turn: -60,
+    skin: { kind: 'peach', size_mm: 2, amount: 0.9 },
+    matte: true,
+    shadowTint: 0.5,
+    rimGlints: false,
+    budget: [2000, 8000],
+  },
+  {
+    spec: {
+      id: 'potato',
+      name: 'Potato',
+      archetype: 'round',
+      family: 'potato',
+      layout: 'cluster-2',
+      show: 'Two potatoes lying side by side, each its own lopsided oblong, a few eyes.',
+      forms: ['whole', 'half', 'cubes', 'mashed'],
+      scale: 'M',
+      size_cm: [9.6, 5.5, 7.6],
+      parts: ['skin'],
+      light_case: 'group',
+      notes: 'A lopsided oblong on its side: one end fuller, broad soft lumps, a shallow waist, a few eyes. Golden to russet washes, pale scuffs and earthy specks are the potato skin.',
+    },
+    form: buildPotato,
+    turn: 25,
+    skin: { kind: 'potato', size_mm: 2.2, amount: 0.9 },
+    matte: true,
+    shadowTint: 0.4,
+    rimGlints: false,
+    budget: [2000, 8000],
+  },
+  {
+    spec: {
+      id: 'lime',
+      name: 'Lime',
+      archetype: 'round',
+      family: 'lime',
+      layout: 'whole-and-cut',
+      show: 'One whole lime standing behind with its stem and two leaves, two wedges lying in front on a cut face, their pale flesh tipped up.',
+      forms: ['whole', 'half', 'wedge', 'slice', 'zest'],
+      scale: 'S',
+      size_cm: [10, 5.3, 9.5],
+      parts: ['peel:glow', 'stem@stalk', 'leaf@leaf'],
+      light_case: 'whole-next-to-cut',
+      notes: 'A slightly oval ball; the wedges are slices cut along its axis (the wedge tool, three clean sheets), resting on a cut face. The peel\'s pores and greens and the pale, streaked cut flesh with its soft pith rim are the lime skin.',
+    },
+    form: buildLime,
+    turn: 0,
+    skin: { kind: 'lime', size_mm: 1.6, amount: 0.9 },
+    shadowTint: 0.4,
+    rimGlints: false,
+    contactsFromFeet: true,
+    budget: [2000, 9000],
+  },
+  {
+    spec: {
+      id: 'garlic',
+      name: 'Garlic',
+      archetype: 'round',
+      family: 'garlic',
+      layout: 'solo',
+      show: 'One bulb of garlic standing, swollen into cloves, its dry neck leaning; two loose cloves lying in front.',
+      forms: ['whole', 'clove', 'minced'],
+      scale: 'S',
+      size_cm: [6.9, 6.1, 7.7],
+      parts: ['bulb'],
+      light_case: 'pale',
+      notes: 'A squat bulb of soft lobes with shallow grooves, shoulders pulling up into a papery neck cut off at the top, a flat root end. A clove is a curved teardrop. The lilac streaks, cream blooms, tan root and the cloves\' gold are the garlic skin.',
+    },
+    form: buildGarlic,
+    turn: 0,
+    skin: { kind: 'garlic', size_mm: 2, amount: 0.9 },
+    matte: true,
+    shadowTint: 0.45,
+    rimGlints: false,
+    contactsFromFeet: true,
+    budget: [2000, 12000],
+  },
+  {
+    spec: {
+      id: 'mushroom',
+      name: 'Mushrooms',
+      archetype: 'round',
+      family: 'mushroom',
+      layout: 'solo',
+      show: 'Seven chestnut mushrooms in a small heap, all tipped over on their caps\' rims and leaning in together, stems and gills showing, one cap toward the camera.',
+      forms: ['whole', 'sliced', 'quartered'],
+      scale: 'M',
+      size_cm: [12.5, 4.7, 17.4],
+      parts: ['cap'],
+      light_case: 'group',
+      notes: 'Each one outline spun round its axis: a domed cap, a rim rolling under, gills rising in to a stout stem with a rounded cut end. Chestnut washes on the cap, pink-brown gill lines, a cream stem with tan fibres are the mushroom skin, blended where the parts meet.',
+    },
+    form: buildMushroom,
+    turn: 0,
+    skin: { kind: 'mushroom', size_mm: 2, amount: 0.9 },
+    matte: true,
+    shadowTint: 0.5,
+    rimGlints: false,
+    contactsFromFeet: true,
+    budget: [2000, 23000],
+  },
+  {
+    spec: {
+      id: 'eggs',
+      name: 'Eggs',
+      archetype: 'contained',
+      family: 'eggshell',
+      layout: 'solo',
+      show: 'Six brown eggs in an open half-dozen pulp carton, each its own brown, the lid standing open behind on its hinge.',
+      forms: ['whole', 'cracked'],
+      scale: 'M',
+      size_cm: [15.9, 12.9, 15.7],
+      parts: ['egg', 'tray@pulp'],
+      light_case: 'group',
+      notes: 'The tray kit: a thin flat rim plate, six separate round cups under it, two flat-topped posts, the lid standing open on its hinge behind (1:1 from photos of a real carton). Each egg its own shape, tilt and brown; speckles and the pulp\'s fibres are shader textures (the eggshell and pulp skins).',
+    },
+    form: buildEggs,
+    // On a diagonal: a front corner toward the camera, the lid away to the back right.
+    turn: 28,
+    skin: { kind: 'eggshell', size_mm: 1.6, amount: 0.9 },
+    matte: true,
+    shadowTint: 0.25,
+    rimGlints: false,
+    budget: [2000, 36000],
+  },
 ];
 
 export function findIngredient(id: string): IngredientEntry | undefined {
@@ -679,7 +985,7 @@ export class ShuffleDeck {
 
   next(onStage: string): IngredientEntry {
     if (this.queue.length === 0) {
-      const all = REGISTRY.map((entry) => entry.spec.id);
+      const all = REGISTRY.filter((entry) => !entry.shelved).map((entry) => entry.spec.id);
       this.queue = planCycle(this.first ? all.filter((id) => id !== onStage) : all, onStage, this.random);
       this.first = false;
     }
@@ -700,7 +1006,7 @@ export function roomOf(entry: IngredientEntry): string | undefined {
 
 /** A random ingredient that is not the one on stage now. */
 export function pickOther(currentId: string, random: () => number = Math.random): IngredientEntry {
-  const others = REGISTRY.filter((entry) => entry.spec.id !== currentId);
+  const others = REGISTRY.filter((entry) => entry.spec.id !== currentId && !entry.shelved);
   if (others.length === 0) return REGISTRY[0];
   return others[Math.floor(random() * others.length) % others.length];
 }

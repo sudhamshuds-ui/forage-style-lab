@@ -3,8 +3,8 @@ import type { Settings } from '../params';
 import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
 import { mixHex } from '../utils/colour';
-import { CRUMB_SKIN, KNUCKLE_SKIN, LABEL_SKIN, LEAF_SKIN, MELON_RIND_SKIN, setSkin } from '../shading/effects/skinTexture';
-import { hotSauceLabelTexture } from '../shading/labelArt';
+import { CRUMB_SKIN, GLAZE_SKIN, KNUCKLE_SKIN, PULP_SKIN, YOLK_SKIN, LABEL_SKIN, LEAF_SKIN, MELON_RIND_SKIN, setSkin } from '../shading/effects/skinTexture';
+import { hotSauceLabelTexture, milkLabelTexture } from '../shading/labelArt';
 import { FAMILIES } from './families';
 import { seedFromId, seededRandom } from './forms/kit/random';
 import { LAYOUT_COUNT, arrangeCluster, footprintSpots, samplePoints, transformed } from './layout';
@@ -187,6 +187,21 @@ class FormSubject implements Subject {
             (material.uniforms.uMelonPale.value as Color).set(AVOCADO_FLESH.cream);
             (material.uniforms.uMelonGreen.value as Color).set(AVOCADO_FLESH.green);
           }
+          // Salmon: the fat lines in a creamy peach, the skin a deep silvery slate-blue.
+          if (entry.skin.kind === 'salmon') {
+            (material.uniforms.uMelonPale.value as Color).set('#ffe9d6');
+            (material.uniforms.uMelonGreen.value as Color).set('#4f6488');
+          }
+          // A fried egg: its crisp rim browns from gold to a warm sienna (never black).
+          if (entry.skin.kind === 'egg') {
+            (material.uniforms.uMelonPale.value as Color).set('#f4b64e');
+            (material.uniforms.uMelonGreen.value as Color).set('#a4522c');
+          }
+          // A printed carton: its artwork, in the print's green.
+          if (entry.skin.kind === 'carton') {
+            material.uniforms.uLabelMap.value = milkLabelTexture();
+            (material.uniforms.uLabelInk.value as Color).set(FAMILIES['print-green'].colours.base);
+          }
           // A red onion: its papery flakes, root patch and dry neck are painted in the papery tan.
           if (entry.skin.kind === 'onion') (material.uniforms.uMelonPale.value as Color).set(FAMILIES.papery.colours.base);
           // Raw chicken: the pink meat (showing through, and bare on the shank) and the yellow fat.
@@ -201,6 +216,16 @@ class FormSubject implements Subject {
           setSkin(material, KNUCKLE_SKIN);
           (material.uniforms.uMelonPale.value as Color).set(POULTRY_MEAT);
         }
+        // A glazed bowl (before the leaf rule: it has a map too): pooled glaze, rings, an
+        // orange-brown inside rim.
+        else if (piece.role === 'bowl') {
+          setSkin(material, GLAZE_SKIN);
+          (material.uniforms.uMelonPale.value as Color).set('#d98a3c');
+        }
+        // A yolk: its foot melts into the white round it (no hard edge).
+        else if (piece.role === 'yolk') setSkin(material, YOLK_SKIN);
+        // A moulded pulp tray (an egg carton): fibres and soft colour, cooler down in its cups.
+        else if (piece.role === 'tray') setSkin(material, PULP_SKIN);
         // Crumb (bread inside a slash) gets the crumb skin: holes, streaks, a toasted rim.
         else if (piece.role === 'crumb') setSkin(material, CRUMB_SKIN);
         // A melon's rind shell: stripes, mottling and specks (before the leaf rule: it has a map too).

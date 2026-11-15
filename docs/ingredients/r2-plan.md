@@ -66,7 +66,7 @@ Grouped so each step adds one new tool and the next ones reuse it:
 3. **Avocado**: builds the cut tool and the whole-and-cut layout, which every later dish needs.
 4. **Grapes** (done 2026-11-12, see `lessons/grapes.md`), 5. **Blueberries** (done 2026-11-12, see `lessons/blueberries.md`): many small pieces; the bunch and the pile. Blueberries also
    bring the first warm room.
-6. **Spinach** (done 2026-11-13, a loose pile, see `lessons/spinach.md`), 7. **Romaine** (done 2026-11-14, see `lessons/romaine.md`), 8. **Napa cabbage**: the leafy kit, simplest first.
+6. **Spinach** (done 2026-11-13, a loose pile, see `lessons/spinach.md`), 7. **Romaine** (done 2026-11-14, see `lessons/romaine.md`), 8. **Cabbage** (a round green head, the user's references 2026-11-14; replaced the napa): the leafy kit, simplest first.
 9. **Salmon**: reuses the steak's painted-stripe approach on a slab.
 10. **Fried egg**: the first cooked state.
 11. **Rice bowl**, 12. **Milk carton**: containers.
@@ -143,3 +143,11 @@ Claude's plan for next time:
 - **Every leaf its own.** Several outline types (broad spade, long narrow, round, slightly
   lobed), a wide spread of sizes (small young inner leaves, big outer ones), its own cut at the
   stem, its own fold and its own wrinkle seed in the skin, so no two read the same.
+
+## The last five (2026-11-14): built, waiting for one review
+
+The user asked for the rest of the round without an approval on each one, shown together (first on a
+switcher page, deleted at the user's request the same day; now the Style Lab preview's first five clicks), and for more colour:
+"the colours just look flat 2 greens", "make it a bit dramatic, add colours, add some colours to
+the shadows", "match the reference 1:1". Built: cabbage (rounds 2 and 3), salmon, fried egg, rice
+bowl, milk carton. Merge to `main` and `/forage-brand` after the user's review.

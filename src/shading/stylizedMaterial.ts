@@ -205,6 +205,8 @@ export class StylizedLook {
         ...labelUniforms(),
       ...melonUniforms(),
       },
+      // No skin until setSkin gives it one: the shader is built with only that skin's code.
+      defines: { SKIN_KIND: 0 },
       vertexShader,
       fragmentShader: this.fragmentShader,
       side: options.doubleSided ? DoubleSide : FrontSide,

@@ -42,7 +42,12 @@ describe.each(built)('$spec.name (whole)', ({ spec, build, budget }) => {
     // (Skipped for a sheet painted on both sides, and for leafy forms: from the middle of a long,
     // thin leaf, half its faces rightly point back toward that middle. The signed volume above
     // still proves they are wound outward.)
-    if (!pieces[0].doubleSided && spec.archetype !== 'leafy') expect(outwardFraction(pieces[0]), pieces[0].role).toBeGreaterThan(spec.archetype === 'wedge' ? 0.85 : 0.9);
+    // (So does a whole-and-cut form: a wedge's flat cut faces are sheets of their own, and a flat
+    // sheet has no "outward from its middle".)
+    // (And a mushroom's cap: the gills under it rightly face in toward the stem.)
+    // (A flat pool asks a little less too: its crisp rim curls up, so part of its underside there
+    // rightly faces the middle.)
+    if (!pieces[0].doubleSided && spec.archetype !== 'leafy') expect(outwardFraction(pieces[0]), pieces[0].role).toBeGreaterThan(spec.archetype === 'wedge' || spec.layout === 'whole-and-cut' || pieces[0].role === 'cap' ? 0.85 : spec.archetype === 'flat' ? 0.8 : 0.9);
   });
 
   it('has no floating pieces: every extra piece touches another one (a leaf can hang from its stem)', () => {

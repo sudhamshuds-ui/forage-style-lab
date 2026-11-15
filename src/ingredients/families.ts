@@ -32,6 +32,24 @@ export type FamilyId =
   | 'blueberry'
   | 'spinach'
   | 'romaine'
+  | 'cabbage'
+  | 'salmon'
+  | 'albumen'
+  | 'yolk'
+  | 'iron'
+  | 'rice'
+  | 'glaze'
+  | 'milk'
+  | 'print-green'
+  | 'tomato'
+  | 'pear'
+  | 'peach'
+  | 'potato'
+  | 'lime'
+  | 'garlic'
+  | 'mushroom'
+  | 'eggshell'
+  | 'pulp'
   | 'vine'
   | 'pit'
   | 'papery'
@@ -294,6 +312,14 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // bright yellow-green leaf, lime where lit (warm), its shadow a cool blue-green (warm highlights,
   // cool shadows). The pale ribs and the cream cut base come from its lit and highlight colours.
   // Thistle, a dusty mauve, sets the green off (its complement); not the spinach's Lavender.
+  // Not on board 04 yet (added 2026-11-14, round 2: cabbage, after the user's watercolours): a pale,
+  // fresh green head and deeper, bluer green wrapper leaves (the outer layer is shaded deeper by the
+  // skin), lime where lit, cool blue-green shadows. Iris, a cool blue-violet, sets it off.
+  cabbage: {
+    name: 'Cabbage',
+    colours: { lit: '#cfe59a', base: '#79ad5a', shadow: '#2a5652', glow: '#bfdc6c', highlight: '#f5f8e0' },
+    rooms: ['iris'],
+  },
   romaine: {
     name: 'Romaine',
     colours: { lit: '#c6e07e', base: '#6ea648', shadow: '#2d5b57', glow: '#bcdc58', highlight: '#f6f7dc' },
@@ -303,6 +329,125 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Spinach',
     colours: { lit: '#80b44f', base: '#2f6b2f', shadow: '#1f4552', glow: '#86b843', highlight: '#f2f1d4' },
     rooms: ['lavender', 'heather'],
+  },
+  // Not on board 04 yet (added 2026-11-14, round 2: the salmon fillet, after the user's watercolour):
+  // raw salmon, a coral orange (pinker than the pepper's orange, more orange than the melon's red),
+  // peach where lit, a deep rose-wine in shadow (cool, never brown), a hot orange glow.
+  salmon: {
+    name: 'Salmon',
+    colours: { lit: '#ffab82', base: '#f2734c', shadow: '#a3344f', glow: '#ff6f3c', highlight: '#fff0e4' },
+    rooms: ['mist', 'celadon'],
+  },
+  // Not on board 04 yet (added 2026-11-14, round 2: the fried egg, after the user's oil painting):
+  // cooked egg white, a warm cream white in the light, lilac-blue in shadow (never grey), a golden
+  // glow where it is thin. Its browned, crisp rim is painted by the egg skin.
+  albumen: {
+    name: 'Albumen',
+    colours: { lit: '#fffaf0', base: '#f6efe2', shadow: '#aaa6cf', glow: '#ffd08a', highlight: '#ffffff' },
+    rooms: ['spruce', 'iris'],
+  },
+  // Not a board 04 family: only for parts (a yolk). A deep golden yellow, orange where it turns,
+  // a warm rose-brown shadow, a pale cream highlight.
+  yolk: {
+    name: 'Yolk',
+    colours: { lit: '#ffd95e', base: '#f9ab1c', shadow: '#c2562d', glow: '#ff8f17', highlight: '#fff8dc' },
+    rooms: [],
+  },
+  // Not on board 04 yet (added 2026-11-14, round 2: the rice bowl, after the user's reference):
+  // steamed white rice, a warm pearl white in the light, a soft lilac in shadow (never grey), a
+  // creamy gold glow between the grains.
+  rice: {
+    name: 'Rice',
+    colours: { lit: '#fffdf7', base: '#f6f2e8', shadow: '#b3a9cc', glow: '#fff0cf', highlight: '#ffffff' },
+    rooms: ['dusk', 'iris'],
+  },
+  // Not a board 04 family: only for parts (a glazed bowl or dish). A celadon green glaze, lime
+  // where the light catches it, a deep blue-teal in shadow, never grey-green.
+  glaze: {
+    name: 'Glaze',
+    colours: { lit: '#aecb8f', base: '#6c9a63', shadow: '#2c5560', glow: '#a5c66f', highlight: '#f1f7df' },
+    rooms: [],
+  },
+  // Not on board 04 yet (added 2026-11-14, round 2: the milk carton): white coated card, a warm
+  // white in the light, a blue-lilac in shadow (never grey), a faint cream glow.
+  milk: {
+    name: 'Milk',
+    colours: { lit: '#fffefa', base: '#f3f1ec', shadow: '#a4a6d2', glow: '#fff1d0', highlight: '#ffffff' },
+    rooms: ['seafoam', 'spruce'],
+  },
+  // Not a board 04 family: only for parts (a carton's printed green and its cap). A fresh deep
+  // green, lime where lit, blue-teal in shadow.
+  'print-green': {
+    name: 'Print green',
+    colours: { lit: '#6dbb7c', base: '#2f8052', shadow: '#1b4a58', glow: '#6fbf5e', highlight: '#e3f3dc' },
+    rooms: [],
+  },
+  // Round 3, batch 1 (2026-11-15, after the user's references).
+  // Tomato: a scarlet red, more orange than the apple's and hotter than the melon's; orange where
+  // lit, a deep wine-violet in shadow.
+  tomato: {
+    name: 'Tomato',
+    colours: { lit: '#ff8a5a', base: '#e63a2a', shadow: '#8c2148', glow: '#ff5a28', highlight: '#fff1e6' },
+    rooms: ['mist', 'seafoam'],
+  },
+  // Pear: a warm golden yellow, its shadow turning through orange to a soft brown-rose (yellows
+  // turn the warm way round), a honey glow.
+  pear: {
+    name: 'Pear',
+    colours: { lit: '#fbe884', base: '#e6bf3c', shadow: '#a9663e', glow: '#f6b62e', highlight: '#fffbe2' },
+    rooms: ['heather', 'iris'],
+  },
+  // Peach: a golden peach going to a rose-violet in shadow; the blush is painted by its skin.
+  peach: {
+    name: 'Peach',
+    colours: { lit: '#ffd3a2', base: '#f89c70', shadow: '#a63f60', glow: '#ff8656', highlight: '#fff2e2' },
+    rooms: ['seafoam', 'mist'],
+  },
+  // Potato: a golden tan, pale buttery gold where lit, a russet rose-brown in shadow.
+  potato: {
+    name: 'Potato',
+    colours: { lit: '#f3cf8e', base: '#cf9450', shadow: '#84483f', glow: '#e09640', highlight: '#fff0d0' },
+    rooms: ['iris', 'mist'],
+  },
+  // Lime: a fresh deep green, yellow-lime where lit, a blue-teal in shadow; the pale cut flesh is
+  // painted by its skin.
+  lime: {
+    name: 'Lime',
+    colours: { lit: '#c2dc58', base: '#6ea42c', shadow: '#28594c', glow: '#b9d93a', highlight: '#f7fbda' },
+    rooms: ['thistle', 'heather'],
+  },
+  // Garlic: a warm pearl white, cream where lit, lilac-violet in shadow (never grey); its violet
+  // streaks are painted by its skin.
+  garlic: {
+    name: 'Garlic',
+    colours: { lit: '#fffaf1', base: '#f2e8dc', shadow: '#9c8cc2', glow: '#f7d6b0', highlight: '#ffffff' },
+    rooms: ['lavender', 'iris'],
+  },
+  // Mushroom: a warm chestnut brown, tan where lit, a plum-brown in shadow (never grey-brown).
+  mushroom: {
+    name: 'Mushroom',
+    colours: { lit: '#e3b78c', base: '#b47b50', shadow: '#5e3a4b', glow: '#da9862', highlight: '#fbefdd' },
+    rooms: ['spruce', 'mist'],
+  },
+  // Eggshell: a warm terracotta-tan brown egg, peach where lit, a rose-plum in shadow.
+  eggshell: {
+    name: 'Eggshell',
+    colours: { lit: '#f7cba6', base: '#db966b', shadow: '#8b4a54', glow: '#f1a274', highlight: '#fff4e8' },
+    rooms: ['celadon', 'mist'],
+  },
+  // Not a board 04 family: only for parts (a moulded pulp carton or tray). A pale warm grey-cream,
+  // lilac-blue in shadow, never a dead grey.
+  pulp: {
+    name: 'Pulp',
+    colours: { lit: '#ece1d0', base: '#d0c2b0', shadow: '#84758c', glow: '#ecd6b4', highlight: '#fbf5ea' },
+    rooms: [],
+  },
+  // Not a board 04 family: only for props (a frying pan). A deep slate blue-violet, never black:
+  // a dusty periwinkle where the light lands, a deep indigo-plum in shadow.
+  iron: {
+    name: 'Iron',
+    colours: { lit: '#747aa6', base: '#494d77', shadow: '#2c2a50', glow: '#7d6fa4', highlight: '#d6dbf0' },
+    rooms: [],
   },
   // Not a board 04 family: only for parts (a grape bunch's woody stem; later vines and tomato
   // trusses). A golden ochre, its shadow a warm olive-plum, never grey-green.

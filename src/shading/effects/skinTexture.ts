@@ -57,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon', 'egg', 'rice', 'glaze', 'carton', 'tomato', 'pear', 'peach', 'potato', 'lime', 'garlic', 'mushroom', 'eggshell', 'pulp', 'yolk'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -110,11 +110,29 @@ export const MELON_RIND_SKIN: Skin = { kind: 'melonRind', size_mm: 2, amount: 1 
  */
 export const KNUCKLE_SKIN: Skin = { kind: 'knuckle', size_mm: 1.5, amount: 1 };
 
+/**
+ * A glazed bowl (a piece named `bowl`, with a map: x 0 outside to 1 inside, y height as a share of
+ * the bowl): pooled glaze in the throwing rings, blooms of lime and teal, an orange-brown inside rim.
+ */
+export const GLAZE_SKIN: Skin = { kind: 'glaze', size_mm: 2, amount: 1 };
+
+/** A moulded pulp tray (a piece named `tray`; map: x 0 top to 1 outer wall, y height share). */
+export const PULP_SKIN: Skin = { kind: 'pulp', size_mm: 1.2, amount: 1 };
+
+/** A fried egg's yolk (a piece named `yolk`; map y: height share, 0 at its foot). */
+export const YOLK_SKIN: Skin = { kind: 'yolk', size_mm: 2, amount: 1 };
+
 /** Give one material its skin. */
 export function setSkin(material: ShaderMaterial, skin: Skin): void {
   // Cells per scene unit: 10 mm per cm, then centimetres to scene units.
   const cellsPerUnit = 10 / Math.max(0.1, skin.size_mm) / UNITS_PER_CM;
   (material.uniforms.uSkin.value as Vector4).set(SKIN_KINDS.indexOf(skin.kind), cellsPerUnit, skin.amount, 0);
+  // Build this material's shader with only this skin's code (see `SKIN_KIND` in the shader).
+  const kind = SKIN_KINDS.indexOf(skin.kind);
+  if (material.defines?.SKIN_KIND !== kind) {
+    material.defines = { ...(material.defines ?? {}), SKIN_KIND: kind };
+    material.needsUpdate = true;
+  }
 }
 
 export const skinTexture: ShaderEffect = {
@@ -166,6 +184,15 @@ vec3 leafCells(vec2 p) {
   return vec3(first, second, which);
 }
 
+// Colour depth (the user, 2026-11-14: never flat colour): broad wet blooms that run a surface from
+// a warm shift to a cool shift of its own colour. q is the point in cm; lean nudges the mix.
+vec3 depthWash(vec3 lab, vec3 q, vec3 warmShift, vec3 coolShift, float lean, float amt) {
+  float a = fbm3(q * 0.2 + 2.0);
+  float b = fbm3(q * 0.47 + 7.0);
+  float t = smoothstep(0.3, 0.72, a * 0.7 + b * 0.3 + lean);
+  return mix(lab, mix(lab + warmShift, lab + coolShift, t), amt);
+}
+
 // Many small round pieces (grapes, blueberries): the shared tone steps repeat on each piece as a
 // stripe pattern (the user, 2026-11-12), so the colour turns smoothly from lit to shadow instead.
 // Cast shadows from neighbours stay (lightMask).
@@ -184,7 +211,14 @@ vec3 smoothTurn(vec3 lab, vec3 N, vec3 L, float lightMask) {
 }
 `,
   body: /* glsl */ `
+// Each material is compiled with only its own skin (SKIN_KIND, set by setSkin): the number is
+// fixed when the shader is built, so every other skin's code drops out. One shader holding all the
+// skins had grown very large (27 skins by round 2's end), heavy for a graphics card to build.
+#ifdef SKIN_KIND
+const int kind = SKIN_KIND;
+#else
 int kind = int(uSkin.x + 0.5);
+#endif
 float amount = uSkin.z;
 if (kind > 0 && amount > 0.0) {
   vec3 p = objectPos * uSkin.y;
@@ -1015,7 +1049,9 @@ if (kind > 0 && amount > 0.0) {
     highlightBreak = side * 1.5 + rib + smoothstep(0.45, 0.25, wash);
     // Sparse: a white glint everywhere read as blotches.
     highlightGlint = smoothstep(0.75, 0.86, valueNoise3(cm * 2.5 + 9.0)) * (1.0 - side) * 0.3;
-  } else if (kind == 21) {
+  } else if (kind == 21 || kind == 22) {
+    // (Kind 22, the cabbage, shares the romaine's painting; its wrapper leaves go deeper.)
+    bool cabbage = kind == 22;
     // Romaine, after the user's references (2026-11-13: "the textures and colours need to be on the
     // mark"). The head is one surface (kit/leafMass.ts); its map is worked out in the form so it
     // blends where leaves meet: uv.x how pale (the broad rib, the white base), uv.y how green
@@ -1094,8 +1130,8 @@ if (kind > 0 && amount > 0.0) {
       bladeLab = shadeOwn(bladeLab, smoothstep(0.55, 0.85, pucker) * 0.1 * cellShow);
       bladeLab.x += smoothstep(0.3, 0.05, pucker) * 0.03 * cellShow * lit;
       vein = max(vein * 0.4, leafVein);
-      // (A napa-style crinkle texture was tried on 2026-11-14 and taken out: the user preferred the
-      // veins alone. It is in history, round 8.)
+      // (A crinkle texture was tried on the romaine and the napa cabbage on 2026-11-14 and taken
+      // out: the user preferred the veins alone. It is in history.)
     }
     bladeLab = mix(bladeLab, mix(bladeLab, ribLab, 0.65), vein * cellShow * 0.75);
     // Deeper green blots in loose patches (the watercolour's darker pools), never even.
@@ -1163,9 +1199,523 @@ if (kind > 0 && amount > 0.0) {
 
     // 7. The shine: soft, broken by the cells and gone in the crevices.
     highlightBumpy = 1.0;
+    // The cabbage's wrapper leaves (the outer layer) a deeper, bluer green than its pale head.
+    if (cabbage && vSurfaceUv.x > -1.5) {
+      float wrapper = smoothstep(1.9, 2.1, layer);
+      lab = shadeOwn(lab, wrapper * 0.3 * green * amount);
+      lab.yz = mix(lab.yz, lab.yz * vec2(1.25, 0.72), wrapper * green);
+      // Colour depth (the user, 2026-11-14: "the colours just look flat 2 greens ... add more colour
+      // gradient or variation"), after the watercolour: every leaf runs through several greens. Broad
+      // wet blooms of warm yellow-lime and of deep viridian, a gradient along each leaf (yellower
+      // near its base and rib, bluer and deeper toward its rim), each leaf leaning its own way, a
+      // warm gold where the light is fullest, and blue-violet soaking into the shadows.
+      float lu2 = clamp(vLeafMap.x, 0.0, 1.0);
+      float leafLean = fract(own * 13.7) - 0.5;
+      float bloomA = fbm3(cm * 0.2 + vec3(own * 5.0, 1.7, 0.0));
+      float bloomB = fbm3(cm * 0.45 + vec3(3.0, own * 9.0, 6.0));
+      float toTeal = smoothstep(0.32, 0.72, bloomA * 0.75 + bloomB * 0.25 + (lu2 - 0.45) * 0.45 * wrapper + leafLean * 0.35 + (wrapper - 0.5) * 0.12);
+      vec3 limeLab = vec3(lab.x + 0.035, lab.y + 0.008, lab.z + 0.028);
+      vec3 tealLab = vec3(lab.x - 0.055, lab.y - 0.012, lab.z - 0.03);
+      lab = mix(lab, mix(limeLab, tealLab, toTeal), 0.85 * green * (1.0 - pale * 0.7) * amount);
+      // A warm gold wash where the light is fullest; blue-violet in the shade (never grey-green).
+      float fullLight = smoothstep(0.35, 0.95, NdotL) * lightMask;
+      lab = mix(lab, vec3(lab.x + 0.02, lab.y + 0.012, lab.z + 0.022), fullLight * 0.45 * amount);
+      float shadeSide = 1.0 - smoothstep(-0.3, 0.35, NdotL * mix(0.4, 1.0, lightMask));
+      lab = mix(lab, vec3(lab.x - 0.025, lab.y + 0.02, lab.z - 0.055), shadeSide * (0.3 + 0.25 * bloomB) * amount);
+    }
     // (A broken sheen showed as pale blocks along the cells: kept very quiet.)
     highlightBreak = 0.8 + vein * cellShow * 1.5 + crevice * 2.0;
     highlightGlint = 0.0;
+  } else if (kind == 23) {
+    // Salmon (a raw fillet), after the user's watercolour reference. Maps: uv.x cm across from the
+    // middle line (positive toward the belly), uv.y height as a share of the top; ownPos x cm along,
+    // y cm up, z cm below the top.
+    float across = vSurfaceUv.x;
+    float share = vSurfaceUv.y;
+    vec3 q = vOwnPos;
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    vec3 baseLab = linearToOklab(uBaseColour);
+    float shade = lab.x - baseLab.x;
+    float paperGrain = valueNoise3(objectPos * 90.0);
+
+    // 1. Colour depth: the flesh runs from a hot orange through coral to a rosy pink, in broad wet
+    //    blooms; deeper and redder low on the walls and near the middle line, paler and peachier
+    //    toward the fatty belly; a rose-violet soaking into the shade (never brown).
+    float bloomA = fbm3(vec3(q.x * 0.16, q.y * 0.3, across * 0.22) + 2.0);
+    float bloomB = fbm3(vec3(q.x * 0.4, q.y * 0.5, across * 0.5) + 9.0);
+    vec3 hot = vec3(lab.x + 0.02, lab.y - 0.01, lab.z + 0.045);
+    vec3 rosy = vec3(lab.x - 0.02, lab.y + 0.03, lab.z - 0.035);
+    lab = mix(hot, rosy, smoothstep(0.3, 0.7, bloomA * 0.7 + bloomB * 0.3 + (0.5 - share) * 0.25));
+    float bellyPale = smoothstep(1.0, 4.6, across);
+    lab = mix(lab, vec3(lab.x + 0.05, lab.y - 0.025, lab.z + 0.01), bellyPale * 0.55);
+    lab = shadeOwn(lab, (1.0 - smoothstep(0.1, 0.75, share)) * 0.3 * amount);
+    lab = shadeOwn(lab, exp(-pow(across / 0.7, 2.0)) * 0.22 * smoothstep(0.5, 1.0, share) * amount);
+    lab = shadeOwn(lab, smoothstep(0.55, 0.8, bloomB) * 0.22 * amount);
+
+    // 2. The fat lines: sheets of fat between the flakes, cutting the top in V shapes that meet on
+    //    the middle line and the cut ends in nested arcs. One smooth field does both: the distance
+    //    along the fillet plus the distance from the middle line's top. Each line wavers, swells and
+    //    thins, and breaks in places; soft-edged, never a drawn stripe.
+    float wav = (fbm3(vec3(q.x * 0.5, across * 0.6, q.z * 0.6) + 4.0) - 0.5) * 1.5 + (fbm3(vec3(q.x * 0.17, across * 0.2, 1.0)) - 0.5) * 3.2;
+    float reach = length(vec2(across * 0.95, q.z * 1.7));
+    float phase = (q.x + reach * 0.9 + wav) / 1.45;
+    float cellId = floor(phase);
+    float f = abs(fract(phase) - 0.5) * 2.0;
+    float widthVar = 0.05 + 0.2 * pow(hash13(vec3(cellId, 3.0, 1.0)), 1.5) + 0.08 * exp(-pow(across / 1.2, 2.0)) + 0.1 * bellyPale + 0.06 * valueNoise3(vec3(q.x * 0.8, across, 5.0));
+    float line = 1.0 - smoothstep(widthVar * 0.35, widthVar + 0.09, 1.0 - f);
+    float broken = smoothstep(0.22, 0.5, valueNoise3(vec3(q.x * 0.9 + cellId * 3.1, across * 0.8, q.z * 1.2) + 7.0));
+    line *= mix(1.0, broken, 0.75);
+    // Fainter where the flesh is deepest red on the wall's foot; a soft second, finer set between.
+    float fine = 1.0 - smoothstep(0.02, 0.1, abs(fract(phase + 0.5) - 0.5) * 2.0 - 0.9 + 0.9);
+    line = clamp(line * (0.55 + 0.45 * smoothstep(0.15, 0.6, share)), 0.0, 1.0);
+    vec3 fatLab = linearToOklab(uMelonPale);
+    fatLab.x += shade * 0.8;
+    fatLab.yz = mix(fatLab.yz, lab.yz, 0.3);
+    fatLab = mix(fatLab, vec3(fatLab.x - 0.03, fatLab.y + 0.01, fatLab.z - 0.03), 1.0 - lit);
+    lab = mix(lab, fatLab, line * 0.8 * amount);
+    highlightOwn = max(highlightOwn, line);
+    // The flakes between the lines: each a touch its own tone, lighter toward its lit edge.
+    lab.x += (hash13(vec3(cellId, 9.0, 2.0)) - 0.5) * 0.035 * (1.0 - line);
+    lab.x += (fract(phase) - 0.5) * 0.03 * (1.0 - line) * lit;
+
+    // 3. The skin: a thin silvery slate-blue band along the foot of the walls, with a pale fat line
+    //    above it, each fading softly into the next (no crisp line).
+    float foot = 1.0 - smoothstep(0.2, 0.5, q.y + (bloomB - 0.5) * 0.12);
+    float under = smoothstep(0.3, 0.55, q.y) * (1.0 - smoothstep(0.55, 0.95, q.y));
+    lab = mix(lab, fatLab, under * 0.45 * amount);
+    vec3 skinLab = linearToOklab(uMelonGreen);
+    skinLab.x += shade * 0.6 + (valueNoise3(objectPos * 14.0) - 0.5) * 0.06;
+    // (A taller, scaled band was tried and taken back: the user, 2026-11-15, "go back to the prev
+    // skin...is too thick now". It is in history.)
+    skinLab = mix(skinLab, vec3(skinLab.x + 0.16, 0.0, -0.02), smoothstep(0.6, 0.9, valueNoise3(vec3(q.x * 2.5, q.y * 9.0, across * 2.5))) * 0.5 * lit);
+    lab = mix(lab, skinLab, foot * amount);
+    highlightOwn = max(highlightOwn, foot);
+
+    // 4. Moist and translucent: a warm glow at the turn into shadow and on thin edges seen side
+    //    on (the belly), the shade leaning rose-violet (warm highlights, cool shadows).
+    float turnBand = smoothstep(-0.3, 0.0, NdotL) * (1.0 - smoothstep(0.0, 0.4, NdotL));
+    float edgeOn = pow(1.0 - abs(dot(N, V)), 2.5);
+    lab = mix(lab, linearToOklab(uGlowColour), clamp(turnBand * 0.3 + edgeOn * 0.18, 0.0, 0.4) * (1.0 - foot) * (1.0 - line * 0.6) * amount);
+    lab = mix(lab, vec3(lab.x - 0.02, lab.y + 0.02, lab.z - 0.05), (1.0 - lit) * 0.3 * (1.0 - foot) * amount);
+
+    // 5. The shared chalky dry-brush texture (watermelon, steak), light.
+    float scratch = valueNoise3(vec3(q.x * 0.5 + reach * 0.5, q.y * 3.0, across * 2.2) * 2.0);
+    float dry = smoothstep(0.45, 0.7, scratch) * smoothstep(0.35, 0.65, paperGrain);
+    lab = mix(lab, vec3(lab.x + 0.06, lab.yz * 0.8), dry * 0.4 * show * (1.0 - foot));
+    float fleck = smoothstep(0.66, 0.84, valueNoise3(objectPos * 26.0 + 9.0)) * smoothstep(0.5, 0.8, paperGrain);
+    lab = shadeOwn(lab, fleck * 0.35 * show * (1.0 - line) * (1.0 - foot));
+    fine = 0.0;
+  } else if (kind == 24) {
+    // Fried egg white, after the user's oil painting. Maps: uv.x 0 at the middle to 1 at the rim,
+    // uv.y cm from the yolk's centre; ownPos x how far the rim curls up here, y a bubble's height,
+    // z the angle round the pool.
+    float rn = vSurfaceUv.x;
+    float fromYolk = vSurfaceUv.y;
+    float curlUp = vOwnPos.x;
+    float bubble = vOwnPos.y;
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    vec3 cm = objectPos * 3.8169;
+    float paperGrain = valueNoise3(objectPos * 90.0);
+
+    // 1. Colour depth in the white (never one flat white): broad strokes of warm cream, of cool
+    //    lilac-blue and of pale gold, like the painting's loaded brushwork; a golden warmth round
+    //    the yolk where the white is thin over it; lilac-blue in the shade and the hollows.
+    float strokeA = fbm3(vec3(cm.x * 0.5, cm.y * 0.5, cm.z * 0.22) + 3.0);
+    float strokeB = fbm3(vec3(cm.x * 0.2 - cm.z * 0.3, 1.0, cm.z * 0.6 + cm.x * 0.2) + 8.0);
+    vec3 cream = vec3(lab.x + 0.01, lab.y + 0.012, lab.z + 0.035);
+    vec3 lilac = vec3(lab.x - 0.085, lab.y + 0.012, lab.z - 0.05);
+    lab = mix(lab, cream, smoothstep(0.5, 0.75, strokeA) * 0.45 * amount);
+    lab = mix(lab, lilac, smoothstep(0.45, 0.7, strokeB) * 0.8 * amount);
+    float halo = (1.0 - smoothstep(2.0, 3.0, fromYolk + (strokeA - 0.5) * 0.8));
+    lab = mix(lab, vec3(lab.x - 0.02, lab.y + 0.02, lab.z + 0.075), halo * 0.4 * amount);
+    // Right against the yolk: a warm, golden rise (the yolk's colour bleeding into the white).
+    float hug = 1.0 - smoothstep(1.95, 2.55, fromYolk + (strokeA - 0.5) * 0.3);
+    lab = mix(lab, vec3(lab.x - 0.035, lab.y + 0.035, lab.z + 0.11), hug * 0.6 * amount);
+    lab = mix(lab, lilac, (1.0 - lit) * 0.5 * amount);
+    // Bubbles: a lit, paler top, a cool hollow round the foot.
+    lab.x += smoothstep(0.08, 0.3, bubble) * 0.03 * lit;
+    float footRing = smoothstep(0.02, 0.1, bubble) * (1.0 - smoothstep(0.1, 0.22, bubble));
+    lab = mix(lab, lilac, footRing * 0.35 * amount);
+
+    // 2. The crisp rim: gold, then caramel, then a warm sienna at the very edge, in a lacy band
+    //    whose width wanders (wide where the rim curled up and fried hard, thin elsewhere), with
+    //    blistered specks reaching in; soft-edged like wet paint.
+    float lace = fbm3(vec3(cm.x * 0.9, 2.0, cm.z * 0.9));
+    float fineLace = valueNoise3(vec3(cm.x * 3.5, 4.0, cm.z * 3.5));
+    float widthHere = 0.1 + 0.2 * smoothstep(0.15, 0.6, curlUp) + 0.14 * lace;
+    // (Not all the way round: some stretches fry hard and brown, others stay pale gold.)
+    float patchy = smoothstep(0.38, 0.6, fbm3(vec3(cos(vOwnPos.z) * 1.6, sin(vOwnPos.z) * 1.6, 5.0)) + curlUp * 0.35);
+    float brown = smoothstep(1.0 - widthHere, 1.0 - widthHere * 0.25, rn + (fineLace - 0.5) * 0.09) * mix(0.25, 1.0, patchy);
+    float gold = smoothstep(1.0 - widthHere * 2.0, 1.0 - widthHere * 0.7, rn + (lace - 0.5) * 0.12);
+    float speck = smoothstep(0.7, 0.86, fineLace) * smoothstep(0.5, 0.9, rn) * 0.6;
+    vec3 goldLab = linearToOklab(uMelonPale);
+    vec3 siennaLab = linearToOklab(uMelonGreen);
+    float tone = lab.x - linearToOklab(uBaseColour).x;
+    goldLab.x += tone * 0.7;
+    siennaLab.x += tone * 0.5 + (fineLace - 0.5) * 0.08;
+    lab = mix(lab, goldLab, clamp(gold * 0.75 + speck * 0.5, 0.0, 1.0) * amount);
+    lab = mix(lab, siennaLab, clamp(brown * (0.6 + 0.4 * lace) + speck * brown, 0.0, 1.0) * amount);
+    // The fried rim glows where the light comes through it.
+    float through = pow(max(dot(V, -L), 0.0), 2.0) + pow(1.0 - abs(dot(N, V)), 3.0) * 0.5;
+    lab = mix(lab, linearToOklab(uGlowColour), clamp(through, 0.0, 1.0) * gold * 0.35 * amount);
+    highlightOwn = max(highlightOwn, gold);
+
+    // 3. A light chalky dry-brush texture, like the other painted faces.
+    float dry = smoothstep(0.55, 0.8, valueNoise3(vec3(cm.x * 1.2, cm.y, cm.z * 4.0))) * smoothstep(0.4, 0.7, paperGrain);
+    lab.x += dry * 0.02 * show * (1.0 - brown);
+  } else if (kind == 25) {
+    // Steamed rice, after the user's reference. Map: uv.x how near the bowl's rim, uv.y cm above
+    // the mound's edge. Grains: a scatter of small capsules pointing every way, each lit on top,
+    // warm in the gaps between them (never grey), each a touch its own white.
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    vec3 cell = floor(p);
+    float best = 8.0;
+    float second = 8.0;
+    float gid = 0.0;
+    for (int x = -1; x <= 1; x++)
+    for (int y = -1; y <= 1; y++)
+    for (int z = -1; z <= 1; z++) {
+      vec3 c = cell + vec3(float(x), float(y), float(z));
+      vec3 pt = c + vec3(hash13(c), hash13(c + 17.3), hash13(c + 41.9)) * 0.8 + 0.1;
+      vec3 dirv = normalize(vec3(hash13(c + 5.1), hash13(c + 9.7), hash13(c + 23.3)) - 0.5);
+      vec3 v = p - pt;
+      float along = dot(v, dirv);
+      float dd = length(vec2(length(v - dirv * along) / 0.24, along / 0.68));
+      if (dd < best) { second = best; best = dd; gid = hash13(c + 3.3); }
+      else if (dd < second) { second = dd; }
+    }
+    float grain = 1.0 - smoothstep(0.55, 1.05, best);
+    float gap = smoothstep(0.02, 0.3, second - best);
+    gap = (1.0 - gap) * 0.6 + (1.0 - grain) * 0.6;
+    // Colour depth: broad blooms of warm pearl and cool lilac over the mound, a creamy gold low
+    // down by the bowl (its glaze bouncing up), blue-lilac on the shade side.
+    vec3 cm = objectPos * 3.8169;
+    float bloom = fbm3(cm * 0.28 + 4.0);
+    vec3 warm = vec3(lab.x + 0.005, lab.y + 0.012, lab.z + 0.04);
+    vec3 cool = vec3(lab.x - 0.07, lab.y + 0.012, lab.z - 0.05);
+    lab = mix(lab, warm, smoothstep(0.5, 0.75, bloom) * 0.3 * amount);
+    lab = mix(lab, cool, smoothstep(0.5, 0.75, 1.0 - bloom) * 0.4 * amount);
+    lab = mix(lab, vec3(lab.x - 0.03, lab.y - 0.005, lab.z + 0.05), (1.0 - smoothstep(0.0, 1.2, vSurfaceUv.y)) * 0.3 * amount);
+    lab = mix(lab, cool, (1.0 - smoothstep(-0.5, 0.5, NdotL)) * 0.45 * amount);
+    // The grains.
+    lab.x += grain * 0.035 * lit * amount;
+    lab.x += (gid - 0.5) * 0.03 * amount;
+    lab.z += (gid - 0.5) * 0.02 * amount;
+    vec3 gapWarm = mix(linearToOklab(uGlowColour), lab, 0.35);
+    gapWarm.x = lab.x - 0.05;
+    vec3 gapCool = vec3(lab.x - 0.08, lab.y + 0.015, lab.z - 0.03);
+    lab = mix(lab, mix(gapCool, gapWarm, lit), clamp(gap, 0.0, 1.0) * 0.3 * amount);
+    highlightBumpy = 1.0;
+    highlightBreak = clamp(gap * 1.5, 0.0, 1.0);
+    highlightGlint = grain * smoothstep(0.75, 0.95, gid) * 0.6;
+  } else if (kind == 26) {
+    // A glazed bowl. Map: uv.x 0 outside to 1 inside, uv.y height as a share of the bowl.
+    float inside = vSurfaceUv.x;
+    float up = vSurfaceUv.y;
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    vec3 cm = objectPos * 3.8169;
+    // Colour depth: the glaze runs from a warm lime where it is thin and lit to a deep blue-teal
+    // where it pooled, in broad soft blooms; darker in the throwing rings' grooves.
+    float bloom = fbm3(vec3(cm.x * 0.3, cm.y * 0.9, cm.z * 0.3) + 6.0);
+    vec3 lime = vec3(lab.x + 0.04, lab.y + 0.01, lab.z + 0.035);
+    vec3 teal = vec3(lab.x - 0.05, lab.y - 0.012, lab.z - 0.04);
+    lab = mix(lime, teal, smoothstep(0.3, 0.72, bloom + (0.5 - up) * 0.3));
+    float groove = 0.5 - 0.5 * sin(up * 6.2832 * 4.0 * 1.12 + 1.2);
+    lab = mix(lab, teal, groove * groove * 0.35 * (1.0 - inside));
+    lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.03, lab.z - 0.07), (1.0 - lit) * 0.35);
+    // The inside rim: an orange-brown glaze over the upper wall, fading softly into the green.
+    vec3 rust = linearToOklab(uMelonPale);
+    rust.x += (lab.x - linearToOklab(uBaseColour).x) * 0.8 + (bloom - 0.5) * 0.06;
+    float band = inside * smoothstep(0.5, 0.78, up + (bloom - 0.5) * 0.2);
+    lab = mix(lab, rust, band * 0.9);
+    // Where the glaze thins over the rim: a paler, warmer line, soft.
+    float rim = smoothstep(0.9, 0.99, up) * (1.0 - abs(inside - 0.5) * 1.2);
+    lab = mix(lab, vec3(lab.x + 0.07, lab.y + 0.02, lab.z + 0.03), clamp(rim, 0.0, 1.0) * 0.5);
+    // Fine iron specks in the glaze, in its own deep shade.
+    float speck = smoothstep(0.8, 0.92, valueNoise3(objectPos * 60.0));
+    lab = shadeOwn(lab, speck * 0.3 * show);
+    highlightOwn = max(highlightOwn, band);
+  } else if (kind == 27) {
+    // A printed carton (the milk carton): white coated card with colour depth, and the print on it.
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    vec3 cm = objectPos * 3.8169;
+    // Colour depth in the white: broad soft washes of warm cream and of cool blue-lilac, a cool
+    // blue rising from the table's bounce low down, a warm blush near the top; the shade side a
+    // clear blue-violet (a painted white is never grey).
+    float wash = fbm3(vec3(cm.x * 0.16, cm.y * 0.1, cm.z * 0.16) + 2.0);
+    vec3 warm = vec3(lab.x + 0.005, lab.y + 0.012, lab.z + 0.032);
+    vec3 cool = vec3(lab.x - 0.06, lab.y + 0.008, lab.z - 0.055);
+    lab = mix(lab, warm, smoothstep(0.45, 0.72, wash) * 0.7);
+    lab = mix(lab, cool, smoothstep(0.5, 0.78, 1.0 - wash) * 0.45);
+    lab = mix(lab, vec3(lab.x - 0.035, lab.y - 0.012, lab.z - 0.03), (1.0 - smoothstep(0.0, 0.3, vSurfaceUv.y)) * 0.5);
+    lab = mix(lab, vec3(lab.x - 0.01, lab.y + 0.02, lab.z + 0.02), smoothstep(0.7, 1.0, vSurfaceUv.y) * 0.4);
+    lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.03, lab.z - 0.075), (1.0 - lit) * 0.45);
+    // The print: shaded with the card under it, each area of ink a little uneven like a loose
+    // screen print (deeper and bluer in places, lime where the light is full).
+    float ink = texture2D(uLabelMap, vSurfaceUv).r;
+    vec3 inkLab = linearToOklab(uLabelInk);
+    inkLab.x += (lab.x - linearToOklab(uBaseColour).x) * 1.1;
+    float inkWash = fbm3(cm * 0.5 + 7.0);
+    inkLab = mix(inkLab, vec3(inkLab.x - 0.05, inkLab.y + 0.01, inkLab.z - 0.045), smoothstep(0.4, 0.75, inkWash) * 0.7);
+    inkLab = mix(inkLab, vec3(inkLab.x + 0.05, inkLab.y - 0.01, inkLab.z + 0.05), smoothstep(0.55, 0.8, 1.0 - inkWash) * lit * 0.7);
+    inkLab = mix(inkLab, vec3(inkLab.x - 0.03, inkLab.y + 0.03, inkLab.z - 0.06), (1.0 - lit) * 0.4);
+    lab = mix(lab, inkLab, ink * amount);
+    highlightOwn = max(highlightOwn, ink);
+  } else if (kind >= 28 && kind <= 31) {
+    // Round 3, batch 1: tomato (28), pear (29), peach (30), potato (31). Maps (kit/maps.ts):
+    // uv.x height as a share of the body, ownPos the point in the body's own frame (cm).
+    float h = vSurfaceUv.x;
+    vec3 q = vOwnPos;
+    float around = atan(q.z, q.x);
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    float shadeSide = 1.0 - smoothstep(-0.35, 0.35, NdotL * mix(0.4, 1.0, lightMask));
+    float turnBand = smoothstep(-0.3, 0.0, NdotL) * (1.0 - smoothstep(0.0, 0.4, NdotL));
+    float edgeOn = pow(1.0 - abs(dot(N, V)), 2.5);
+    float paperGrain = valueNoise3(objectPos * 90.0);
+    float tone = lab.x - linearToOklab(uBaseColour).x;
+    if (kind == 28) {
+      // Tomato: scarlet running to hot orange and to deep crimson in broad blooms; orange-gold
+      // shoulders with a breath of green round the stem; faint streaks down from the stem.
+      lab = depthWash(lab, q, vec3(0.02, -0.005, 0.03), vec3(-0.05, 0.025, -0.035), (0.5 - h) * 0.35, 0.85 * amount);
+      float shoulder = smoothstep(0.62, 1.0, h + (fbm3(q * 0.5) - 0.5) * 0.25);
+      lab = mix(lab, vec3(lab.x + 0.04, lab.y - 0.04, lab.z + 0.05), shoulder * 0.35 * amount);
+      lab = mix(lab, vec3(lab.x + 0.02, lab.y - 0.1, lab.z + 0.06), smoothstep(0.93, 1.0, h) * 0.35 * amount);
+      float streak = valueNoise3(vec3(around * 5.0, h * 1.3, 3.0));
+      lab.x += (streak - 0.5) * 0.03 * smoothstep(0.3, 0.9, h) * amount;
+      lab = mix(lab, linearToOklab(uGlowColour), clamp(turnBand * 0.3 + edgeOn * 0.12, 0.0, 0.4) * amount);
+      lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.0, lab.z - 0.075), shadeSide * 0.45 * amount);
+    } else if (kind == 29) {
+      // Pear: golden yellow running greener toward the neck and warmer low down, a red-orange blush
+      // on one side (soft, wandering), russet freckles in loose patches, a little russet at the stem.
+      lab = depthWash(lab, q, vec3(0.02, 0.02, 0.03), vec3(-0.03, -0.035, -0.01), (h - 0.55) * 0.5, 0.8 * amount);
+      float blushField = cos(around - 0.6) * 0.55 + (fbm3(q * 0.3 + 5.0) - 0.5) * 0.9 + (0.45 - h) * 0.4;
+      float blush = smoothstep(-0.05, 0.6, blushField);
+      vec3 blushLab = vec3(0.66 + tone * 0.9, 0.17, 0.115);
+      lab = mix(lab, blushLab, blush * 0.8 * amount);
+      float freckle = (1.0 - smoothstep(0.1, 0.24, skinCells(p * 0.8))) * smoothstep(0.35, 0.65, fbm3(q * 0.6 + 9.0));
+      lab = shadeOwn(lab, freckle * 0.5 * show * (1.0 - edgeOn));
+      lab = shadeOwn(lab, smoothstep(0.93, 1.0, h) * 0.35 * amount);
+      lab = mix(lab, linearToOklab(uGlowColour), turnBand * 0.25 * amount);
+      lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.035, lab.z - 0.06), shadeSide * 0.35 * amount);
+    } else if (kind == 30) {
+      // Peach: gold to peach in soft blooms, a rose-red blush over much of it (each peach its own,
+      // from its own frame), deepest along the seam and round the stem; velvet: no shine, a pale
+      // bloom where the surface turns away; rose-violet shade.
+      lab = depthWash(lab, q, vec3(0.06, -0.045, 0.06), vec3(-0.01, 0.02, -0.01), 0.0, 0.85 * amount);
+      float seam = exp(-pow(around / 0.16, 2.0)) * smoothstep(0.05, 0.5, h);
+      float blushField = (fbm3(q * 0.24 + 3.0) - 0.5) * 1.6 + cos(around + 0.4) * 0.35 + (h - 0.5) * 0.5 + seam * 0.4;
+      float blush = smoothstep(0.05, 0.6, blushField);
+      vec3 blushLab = vec3(0.61 + tone * 0.9, 0.19, 0.075);
+      lab = mix(lab, blushLab, blush * 0.82 * amount);
+      lab = shadeOwn(lab, seam * 0.5 * amount);
+      float fleck = smoothstep(0.62, 0.85, valueNoise3(q * 9.0)) * smoothstep(0.4, 0.7, paperGrain);
+      lab = shadeOwn(lab, fleck * 0.25 * blush * show);
+      lab = mix(lab, vec3(lab.x + 0.07, lab.y * 0.6, lab.z * 0.6 + 0.01), edgeOn * 0.5 * amount);
+      lab = mix(lab, linearToOklab(uGlowColour), turnBand * 0.22 * amount);
+      lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.02, lab.z - 0.07), shadeSide * 0.45 * amount);
+    } else {
+      // Potato: golden tan to russet in broad washes; paler and more buttery where the surface
+      // faces you, russet-rose toward the outline (the watercolour's glow); pale scuffed patches;
+      // earthy specks in loose patches and a few darker eyes.
+      lab = depthWash(lab, q, vec3(0.02, 0.0, 0.035), vec3(-0.09, 0.045, -0.02), 0.08, 0.9 * amount);
+      float facing = pow(abs(dot(N, V)), 1.6);
+      lab = mix(lab, vec3(lab.x + 0.06, lab.y - 0.02, lab.z + 0.03), facing * 0.55 * lit * amount);
+      lab = mix(lab, vec3(lab.x - 0.09, lab.y + 0.06, lab.z - 0.01), smoothstep(0.0, 0.7, edgeOn) * 0.8 * amount);
+      float scuff = smoothstep(0.58, 0.8, fbm3(q * 0.55 + 12.0)) * smoothstep(0.35, 0.65, paperGrain);
+      lab = mix(lab, vec3(lab.x + 0.08, lab.y * 0.5, lab.z * 0.7), scuff * 0.55 * lit * amount);
+      float speck = (1.0 - smoothstep(0.08, 0.2, skinCells(p))) * smoothstep(0.4, 0.7, fbm3(q * 0.7 + 4.0));
+      lab = shadeOwn(lab, speck * 0.8 * show * (1.0 - edgeOn));
+      float eye = 1.0 - smoothstep(0.05, 0.16, skinCells(p * 0.16 + 5.0));
+      lab = shadeOwn(lab, eye * 0.5 * show);
+      // Rough painted texture, like the watermelon's (the user, 2026-11-15: "more texture ...
+      // those rough textures, they look very flat in shading"): chalky dry-brush scratches running
+      // along the potato, broken by a paper grain; russet blotches and paler dusty patches in
+      // loose shapes; the form's turn pushed harder (a warm gold light, a deep rose-violet shade).
+      float scratchA = valueNoise3(vec3(q.x * 1.1, q.y * 7.0, q.z * 7.0));
+      float scratchB = valueNoise3(vec3(q.x * 0.6, q.y * 3.0, q.z * 3.0) + 5.0);
+      float chalk = smoothstep(0.28, 0.5, scratchA * scratchB) * smoothstep(0.3, 0.62, paperGrain);
+      lab = mix(lab, vec3(lab.x + 0.1, lab.y * 0.65, lab.z * 0.8), chalk * 0.6 * show);
+      float blotch = fbm3(q * 0.42 + 21.0);
+      lab = shadeOwn(lab, smoothstep(0.52, 0.72, blotch) * 0.45 * amount);
+      lab.x += (fbm3(q * 1.3 + 2.0) - 0.5) * 0.09 * amount;
+      float grit = smoothstep(0.6, 0.85, valueNoise3(q * 12.0)) * smoothstep(0.45, 0.75, paperGrain);
+      lab = shadeOwn(lab, grit * 0.5 * show);
+      lab = mix(lab, vec3(lab.x + 0.035, lab.y + 0.005, lab.z + 0.035), smoothstep(0.3, 0.95, NdotL) * lightMask * 0.6 * amount);
+      lab = mix(lab, vec3(lab.x - 0.075, lab.y + 0.03, lab.z - 0.085), shadeSide * 0.7 * amount);
+    }
+    // The shared chalky dry-brush texture, light.
+    float dry = smoothstep(0.55, 0.8, valueNoise3(vec3(q.x * 1.3, q.y * 3.0, q.z * 1.3))) * smoothstep(0.4, 0.7, paperGrain);
+    lab.x += dry * 0.022 * show;
+  } else if (kind >= 32 && kind <= 36) {
+    // Round 3, batch 1: lime (32), garlic (33), mushroom (34), eggshell (35), pulp (36).
+    vec3 q = vOwnPos;
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    float shadeSide = 1.0 - smoothstep(-0.35, 0.35, NdotL * mix(0.4, 1.0, lightMask));
+    float turnBand = smoothstep(-0.3, 0.0, NdotL) * (1.0 - smoothstep(0.0, 0.4, NdotL));
+    float edgeOn = pow(1.0 - abs(dot(N, V)), 2.5);
+    float paperGrain = valueNoise3(objectPos * 90.0);
+    float tone = lab.x - linearToOklab(uBaseColour).x;
+    vec3 cm = objectPos * 3.8169;
+    if (kind == 32) {
+      float cut = smoothstep(0.4, 0.6, vSurfaceUv.y);
+      // The peel: greens from a warm yellow-lime to a deep blue-green in broad blooms, fine pores.
+      vec3 peel = depthWash(lab, cm, vec3(0.05, 0.012, 0.05), vec3(-0.05, -0.01, -0.03), 0.0, 0.85 * amount);
+      float pit = 1.0 - smoothstep(0.08, 0.3, skinCells(p));
+      peel = shadeOwn(peel, pit * 0.3 * show);
+      peel = mix(peel, vec3(peel.x - 0.03, peel.y + 0.02, peel.z - 0.07), shadeSide * 0.4 * amount);
+      // (This is the version the user chose to keep, 2026-11-15: "just go back to this version",
+      // after two tries at more detail, sacs and segment lines, then fine streaks, were turned
+      // down. Locked; the tries are in history.)
+      // The cut flesh, after the user's references (2026-11-15: "the texture is glitching or
+      // wrong ... add some translucency and subsurface"): wet, see-through lime-yellow pulp, deeper
+      // and greener toward the middle of the face, lit from inside; soft juice sacs fanning out from
+      // the inner edge (broad, low-contrast, never bars); a thick cream pith along the peel, a pale
+      // core strip along the inner edge, each melting into the pulp.
+      float r = vSurfaceUv.x;
+      float alongW = q.x;
+      vec3 pulp = vec3(0.84 + tone * 0.7, -0.085, 0.135);
+      vec3 pulpDeep = vec3(0.7 + tone * 0.7, -0.105, 0.125);
+      float depth = smoothstep(0.05, 0.5, r) * (1.0 - smoothstep(0.5, 0.85, r)) * (1.0 - alongW * alongW * 0.6);
+      vec3 flesh = mix(pulp, pulpDeep, depth * 0.75);
+      float fan = fbm3(vec3(alongW * 5.0 / max(r, 0.25), r * 1.6, q.z * 2.0 + 3.0));
+      flesh.x += (fan - 0.5) * 0.06 * smoothstep(0.1, 0.3, r);
+      flesh.z += (fan - 0.5) * 0.03;
+      float sac = smoothstep(0.55, 0.8, valueNoise3(vec3(alongW * 16.0, r * 7.0, q.z * 3.0 + 9.0)));
+      flesh.x += sac * 0.035 * smoothstep(0.15, 0.4, r) * (1.0 - smoothstep(0.7, 0.85, r));
+      float wander = (fbm3(vec3(alongW * 2.5, 2.0, q.z)) - 0.5) * 0.06;
+      vec3 pith = vec3(0.95 + tone * 0.5, -0.012, 0.045);
+      flesh = mix(flesh, pith, smoothstep(0.74, 0.86, r + wander));
+      flesh = mix(flesh, pith, (1.0 - smoothstep(0.02, 0.13, r + wander * 0.5)) * (1.0 - smoothstep(0.55, 0.9, abs(alongW))) * 0.85);
+      flesh = mix(flesh, peel, smoothstep(0.93, 0.985, r + wander * 0.4));
+      // Light inside it: a glow through the pulp from behind and at the turn, brightest where the
+      // wedge is thin (toward its tips and its inner edge); never dull in shade.
+      float through = pow(max(dot(V, -L), 0.0), 1.5);
+      float thin = clamp(1.0 - depth, 0.0, 1.0);
+      vec3 glowLab = vec3(0.9, -0.07, 0.16);
+      float inner = (1.0 - smoothstep(0.74, 0.86, r));
+      flesh = mix(flesh, glowLab, clamp(through * 0.5 + turnBand * 0.3 + (1.0 - lit) * 0.3 + thin * 0.12, 0.0, 0.6) * inner);
+      highlightBumpy = max(highlightBumpy, cut);
+      highlightGlint = max(highlightGlint, sac * cut * 0.5);
+      lab = mix(peel, flesh, cut);
+      highlightOwn = max(highlightOwn, cut);
+    } else if (kind == 33) {
+      // Garlic. uv.x: height share (a clove: along it); uv.y: 0 the bulb, 1 a clove.
+      float h = vSurfaceUv.x;
+      float clove = smoothstep(0.4, 0.6, vSurfaceUv.y);
+      float around = mix(atan(q.z, q.x), atan(q.z, q.y), clove);
+      // Cream and pearl in soft blooms; lilac-violet streaks running root to neck in smooth arcs,
+      // each its own strength, broken in places, in broad soft bands with finer lines inside.
+      lab = depthWash(lab, cm, vec3(0.0, 0.012, 0.035), vec3(-0.04, 0.012, -0.035), 0.0, 0.7 * amount);
+      float bandNoise = valueNoise3(vec3(around * 2.2, h * 0.7, 3.0 + clove * 7.0));
+      float band = smoothstep(0.52, 0.8, bandNoise) * smoothstep(0.05, 0.3, h) * (1.0 - smoothstep(0.62, 0.85, h));
+      float lineNoise = valueNoise3(vec3(around * 13.0, h * 1.1, 8.0));
+      float fineLine = smoothstep(0.62, 0.8, lineNoise) * smoothstep(0.3, 0.6, valueNoise3(vec3(around * 3.0, h * 4.0, 1.0)));
+      vec3 violet = vec3(0.68 + tone * 0.9, 0.055, -0.075);
+      lab = mix(lab, violet, clamp(band * 0.6 + fineLine * 0.3, 0.0, 0.75) * (1.0 - clove * 0.5) * amount);
+      // The dry neck: warmer, papery tan toward its cut top; the root end: a tan patch.
+      vec3 tan = vec3(0.8 + tone * 0.9, 0.03, 0.075);
+      lab = mix(lab, tan, (smoothstep(0.72, 1.0, h) * 0.6 + (1.0 - smoothstep(0.0, 0.07, h)) * 0.7) * (1.0 - clove) * amount);
+      lab = shadeOwn(lab, smoothstep(0.55, 0.75, valueNoise3(vec3(around * 9.0, h * 30.0, 2.0))) * smoothstep(0.75, 0.95, h) * 0.3 * (1.0 - clove));
+      // A clove: a warm gold toward its root end and its belly, rosy-lilac toward the tip.
+      vec3 gold = vec3(0.86 + tone * 0.9, 0.02, 0.11);
+      float golden = (1.0 - smoothstep(0.1, 0.75, h + (fbm3(cm * 0.8) - 0.5) * 0.4));
+      lab = mix(lab, gold, golden * 0.75 * clove * amount);
+      lab = mix(lab, vec3(0.8 + tone * 0.9, 0.06, 0.01), smoothstep(0.6, 1.0, h) * 0.45 * clove * amount);
+      // Papery and a little translucent: a warm glow at the turn and thin edges; lilac shade.
+      lab = mix(lab, linearToOklab(uGlowColour), clamp(turnBand * 0.25 + edgeOn * 0.12, 0.0, 0.35) * amount);
+      lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.02, lab.z - 0.06), shadeSide * 0.4 * amount);
+    } else if (kind == 34) {
+      // Mushrooms. uv.x: 0 the cap, 0.5 the gills, 1 the stem; ownPos: each one's upright frame.
+      float part = vSurfaceUv.x;
+      float capW = 1.0 - smoothstep(0.16, 0.44, part);
+      float stemW = smoothstep(0.58, 0.9, part);
+      float gillW = clamp(1.0 - capW - stemW, 0.0, 1.0);
+      vec3 own = vec3(q.x, mod(q.y, 10.0), q.z);
+      float each = floor(q.y / 10.0 + 0.01);
+      float around = atan(own.z, own.x);
+      float outR = length(own.xz);
+      // Redone after the user's note (2026-11-15: "their texture needs a lot of improvement"), from
+      // the watercolour: no drawn fibres or planks; soft washes and a few loose marks.
+      // The cap: chestnut washes from a warm tan to a deep red-brown (each mushroom leaning its own
+      // way), deepest at the crown and under the rolled rim, a pale dusty bloom where the light
+      // lands, a few soft pale scuffs and darker freckles in loose patches.
+      vec3 capLab = depthWash(lab, cm + each * 3.0, vec3(0.06, -0.012, 0.035), vec3(-0.085, 0.03, -0.025), (fract(each * 0.37) - 0.5) * 0.3 + 0.1, 0.92 * amount);
+      capLab = shadeOwn(capLab, (1.0 - smoothstep(0.0, 1.5, outR)) * 0.22);
+      capLab = shadeOwn(capLab, smoothstep(0.12, 0.3, part) * 0.3);
+      float bloomCap = smoothstep(0.35, 0.95, NdotL) * lightMask * (0.55 + 0.45 * fbm3(cm * 0.5 + each));
+      capLab = mix(capLab, vec3(capLab.x + 0.11, capLab.y * 0.55, capLab.z * 0.85 + 0.01), bloomCap * 0.5 * amount);
+      float scuff = smoothstep(0.66, 0.84, fbm3(cm * 0.75 + 4.0)) * smoothstep(0.4, 0.7, paperGrain);
+      capLab = mix(capLab, vec3(capLab.x + 0.09, capLab.y * 0.6, capLab.z * 0.8), scuff * 0.4 * lit);
+      float freckle = (1.0 - smoothstep(0.08, 0.22, skinCells(own * 1.6 + each))) * smoothstep(0.5, 0.75, fbm3(cm * 0.6 + 9.0));
+      capLab = shadeOwn(capLab, freckle * 0.3 * show);
+      // The gills: a deep rosy brown, deeper toward the stem, fine soft lines running out from it.
+      vec3 gillLab = vec3(0.5 + tone * 0.9, 0.055, 0.035);
+      float gillLine = 0.5 + 0.5 * sin(around * 58.0 + valueNoise3(vec3(around * 4.0, outR, 1.0)) * 2.0);
+      gillLab.x -= smoothstep(0.3, 0.9, gillLine) * 0.045;
+      gillLab.x -= (1.0 - smoothstep(0.9, 1.8, outR)) * 0.06;
+      gillLab = mix(gillLab, vec3(gillLab.x + 0.04, 0.07, 0.02), (fbm3(cm + 3.0) - 0.4) * 0.5);
+      // The stem: a warm ivory, tan where it turns and near the cap, a few faint long streaks,
+      // soft blooms; its cut end a little paler.
+      vec3 stemLab = vec3(0.88 + tone * 0.9, 0.012, 0.045);
+      vec3 stemTan = vec3(0.74 + tone * 0.9, 0.04, 0.07);
+      float along = valueNoise3(vec3(around * 5.0, own.y * 0.35, each + 3.0));
+      stemLab = mix(stemLab, stemTan, smoothstep(0.55, 0.85, along) * 0.28);
+      stemLab = mix(stemLab, stemTan, smoothstep(0.45, 0.75, fbm3(cm * 0.6 + 6.0)) * 0.4);
+      stemLab = mix(stemLab, stemTan, smoothstep(0.62, 0.8, part) * (1.0 - smoothstep(0.8, 0.97, part)) * 0.35);
+      lab = capLab * capW + gillLab * gillW + stemLab * stemW;
+      lab = mix(lab, vec3(lab.x - 0.035, lab.y + 0.015, lab.z - 0.06), shadeSide * 0.45 * amount);
+      lab = mix(lab, linearToOklab(uGlowColour), turnBand * 0.18 * capW * amount);
+    } else if (kind == 35) {
+      // Brown eggs. uv.x: each egg's own mix; uv.y: height share.
+      float mixv = vSurfaceUv.x;
+      // Each egg its own brown: terracotta, a paler tan, a rosy cream.
+      vec3 deep = vec3(lab.x - 0.06, lab.y + 0.02, lab.z + 0.005);
+      vec3 pale = vec3(lab.x + 0.075, lab.y - 0.03, lab.z - 0.005);
+      lab = mix(deep, pale, smoothstep(0.15, 0.85, mixv));
+      lab = mix(lab, vec3(lab.x + 0.02, lab.y + 0.02, lab.z - 0.03), smoothstep(0.75, 1.0, fract(mixv * 3.7)) * 0.5);
+      lab = depthWash(lab, q + mixv * 20.0, vec3(0.03, -0.005, 0.03), vec3(-0.035, 0.02, -0.02), 0.0, 0.7 * amount);
+      // Speckles in loose patches, each a little different; a paler bloom toward the top.
+      float speckle = (1.0 - smoothstep(0.06, 0.2, skinCells(q * 5.0 + mixv * 9.0))) * smoothstep(0.42, 0.7, fbm3(q * 0.9 + mixv * 5.0));
+      lab = shadeOwn(lab, speckle * 0.5 * show * (1.0 - edgeOn));
+      lab.x += smoothstep(0.55, 1.0, vSurfaceUv.y) * 0.02;
+      lab = mix(lab, linearToOklab(uGlowColour), turnBand * 0.2 * amount);
+      lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.02, lab.z - 0.07), shadeSide * 0.45 * amount);
+    } else {
+      // Moulded pulp. uv.x: 0 the top, 1 the outer wall; uv.y: height share.
+      float hgt = vSurfaceUv.y;
+      lab = depthWash(lab, cm, vec3(0.01, 0.01, 0.03), vec3(-0.045, 0.006, -0.04), 0.0, 0.75 * amount);
+      // Down in the cups: deeper and bluer; fibres: flecks and short soft streaks.
+      lab = mix(lab, vec3(lab.x - 0.06, lab.y + 0.006, lab.z - 0.03), (1.0 - smoothstep(0.15, 0.75, hgt)) * (1.0 - vSurfaceUv.x) * 0.6 * amount);
+      float fleck = smoothstep(0.66, 0.86, valueNoise3(cm * 9.0));
+      float fibre = smoothstep(0.6, 0.8, valueNoise3(vec3(cm.x * 3.0, cm.y * 12.0, cm.z * 3.0)));
+      lab.x -= (fleck * 0.03 + fibre * 0.02) * show;
+      lab.z += fleck * 0.012 * show;
+      lab = mix(lab, vec3(lab.x - 0.02, lab.y + 0.012, lab.z - 0.035), shadeSide * 0.4 * amount);
+    }
+    float dry = smoothstep(0.55, 0.8, valueNoise3(vec3(cm.x * 1.3, cm.y * 3.0, cm.z * 1.3))) * smoothstep(0.4, 0.7, paperGrain);
+    lab.x += dry * 0.02 * show;
+  } else if (kind == 37) {
+    // A yolk. Its foot melts into the white (the user, 2026-11-15: "the yolk has a hard edge, can
+    // u add some blending around it"): low down it pales toward the white's warm cream, through a
+    // soft, wandering band, as if a thin film of white ran up over it; gold to deep orange above.
+    float hgt = vSurfaceUv.y;
+    vec3 cm = objectPos * 3.8169;
+    float NdotL = dot(N, L);
+    float shadeSide = 1.0 - smoothstep(-0.35, 0.35, NdotL * mix(0.4, 1.0, lightMask));
+    lab = depthWash(lab, cm, vec3(0.03, -0.02, 0.04), vec3(-0.04, 0.035, -0.01), (0.5 - hgt) * 0.4, 0.8 * amount);
+    float wander = (fbm3(cm * 1.4 + 3.0) - 0.5) * 0.18;
+    float film = 1.0 - smoothstep(0.04, 0.42, hgt + wander);
+    vec3 cream = vec3(0.93 + (lab.x - linearToOklab(uBaseColour).x) * 0.6, 0.01, 0.065);
+    lab = mix(lab, cream, film * 0.85 * amount);
+    lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.03, lab.z - 0.05), shadeSide * 0.35 * (1.0 - film) * amount);
+    highlightOwn = max(highlightOwn, film);
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

@@ -19,17 +19,19 @@ export const TRIANGLE_BUDGET = {
   branching: [6000, 18000],
   leafy: [1000, 3000],
   contained: [0, 1000],
+  // The ninth archetype (the user, 2026-11-14): flat things, a fried egg, bacon, tortillas.
+  flat: [1000, 18000],
 } as const;
 
 /** Small parts that may stick out past an ingredient's real size (a stem, a leaf, a calyx, a butter curl). */
-export const SMALL_PARTS = ['stem', 'leaf', 'calyx', 'curl'];
+export const SMALL_PARTS = ['stem', 'leaf', 'calyx', 'star', 'curl'];
 
 /**
  * Props: what an ingredient rests on, not the ingredient itself (the butter's paper sheet;
  * later a plate or a board). Left out of its real size and of the card's subject zone (the
  * framing only keeps a prop inside the card).
  */
-export const PROPS = ['paper'];
+export const PROPS = ['paper', 'pan'];
 
 /** The pieces that make up the ingredient's real size: everything but its small parts and props. */
 export function bodyPieces(pieces: FormPiece[]): FormPiece[] {

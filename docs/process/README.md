@@ -213,3 +213,17 @@ User said: "i think keep it upright and one variation with 2 onions(1up 1 side) 
 with 1 full 1 cut". Three arrangements: Upright, Pair (one standing, one on its side, just
 touching) and Whole and cut (the first cut face: pale rings edged in violet). Still (top: the
 soft look, bottom: Playful strokes): `img/2026-11-11-onion-variations.png`.
+
+## Batch review page (2026-11-14)
+
+User said: "how i want u to present them...like how we did the ui variations...like a switcher
+artifact, so i can switch between them and review them. after my review and approval u can merge
+all the done ingredients to main." A new page, `prototypes/review.html`: the real Forage page with
+a picker of the batch on top (keys 1 to 9 and the arrows switch). First used for round 2's last
+five: cabbage, salmon, fried egg, rice, milk. Preview: "Forage round 2 review".
+
+Scrapped the same day. The user's browser lost its graphics while the page was open (WebGL
+disabled, a blank card). User said: "you are making my browser and system crash with this artifact,
+scrap this artifact, just show me this rounds ingredients normally in style lab, ill shuffle
+through them and view them". The preview was deleted; batches are reviewed in the Style Lab
+itself, its first clicks set with `NEXT=<ids>`. The page file stays in the repo.
