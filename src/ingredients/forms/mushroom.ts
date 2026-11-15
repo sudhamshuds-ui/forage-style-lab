@@ -6,7 +6,7 @@ import { seededRandom, signed } from './kit/random';
 
 /**
  * Mushrooms (archetype: round). Round 3, batch 1, after the user's references (Figma node
- * 184:349: a watercolour cluster of brown mushrooms, stems showing): five chestnut mushrooms in a
+ * 184:349: a watercolour cluster of brown mushrooms, stems showing): seven chestnut mushrooms in a
  * small heap, all tipped over the way they fall and leaning in together, stems and gills showing.
  *
  * Each mushroom is one outline spun round its axis (the bowl kit's `spinProfile`): a domed cap,
@@ -71,13 +71,15 @@ export const buildMushroom: FormBuilder = ({ state, seed }) => {
   // the table (`down`); stems mostly point in toward the middle and the camera, so the caps face
   // out, and one in the middle shows its cap. They are laid middle first; each next one slides in
   // until it just touches the heap.
-  const plan = [
-    { at: [0.3, -0.4], down: -1.75, size: 1.0 },
-    { at: [-2.9, -1.6], down: 0.55, size: 1.06 },
-    { at: [2.4, -2.3], down: 2.35, size: 0.96 },
-    { at: [-1.2, 2.7], down: 0.2, size: 0.98 },
-    { at: [3.6, 1.1], down: 2.85, size: 0.76 },
-  ];
+  // (Seven now, each pointing its own way: the user, 2026-11-15, "maybe increase number, and
+  // random rotation". The first sits in the middle; the others come in from all round, their
+  // stems turned at random rather than all toward the middle.)
+  const COUNT = 7;
+  const plan = Array.from({ length: COUNT }, (_, n) => {
+    if (n === 0) return { at: [0.2, -0.3], down: random() * Math.PI * 2, size: 1.02 };
+    const around = ((n - 1) / (COUNT - 1)) * Math.PI * 2 + signed(random) * 0.35;
+    return { at: [Math.cos(around) * 3, Math.sin(around) * 3], down: random() * Math.PI * 2, size: 0.74 + random() * 0.34 };
+  });
   const placed: { shape: Shape; matrix: Matrix4 }[] = [];
   const meshes: BufferGeometry[] = [];
   plan.forEach((m, n) => {

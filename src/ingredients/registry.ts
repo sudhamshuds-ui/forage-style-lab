@@ -19,7 +19,6 @@ import { buildSpinach } from './forms/spinach';
 import { buildRomaine } from './forms/romaine';
 import { buildCabbage } from './forms/cabbage';
 import { buildSalmon } from './forms/salmon';
-import { buildEgg } from './forms/egg';
 import { buildRice } from './forms/rice';
 import { buildMilk } from './forms/milk';
 import { buildTomato } from './forms/tomato';
@@ -685,7 +684,7 @@ export const REGISTRY: IngredientEntry[] = [
       show: 'One raw salmon fillet lying skin down on a diagonal, a cut end toward the camera: white fat lines in V shapes across the top, nested arcs on the cut end, a thin silvery skin along the foot.',
       forms: ['whole', 'slices', 'cubes', 'flaked'],
       scale: 'M',
-      size_cm: [11.5, 3.6, 8.3],
+      size_cm: [11.5, 2.7, 8.3],
       parts: ['flesh:glow'],
       light_case: 'cut-juicy',
       notes:
@@ -701,36 +700,8 @@ export const REGISTRY: IngredientEntry[] = [
     shadowTint: 0.45,
     budget: [2000, 26000],
   },
-  {
-    spec: {
-      id: 'egg',
-      name: 'Fried egg',
-      archetype: 'flat',
-      family: 'albumen',
-      layout: 'solo',
-      show: 'One fried egg, sunny side up: an uneven pool of white with a crisp, browned rim curling up in places, bubbles in the white, a tall glossy yolk a little off centre.',
-      forms: ['whole'],
-      scale: 'M',
-      size_cm: [12.8, 2.2, 11.2],
-      parts: ['white', 'yolk@yolk', 'pan@iron'],
-      light_case: 'pale',
-      notes:
-        'Round 2, the first cooked ingredient (the user: an exception to "all raw"), after the user\'s reference (Figma node 148:31, an oil painting). The puddle tool: an outline and a height at every point. The browned lace at the rim, the blooms of cream, lilac and gold in the white and the bubbles\' lit tops are a shader texture (the egg skin).',
-    },
-    form: buildEgg,
-    turn: 20,
-    // Left out of the pantry for now (the user, 2026-11-15: "Lets not include for now, will show it
-    // in states of ingredient later"). It can still be put on stage by id, and on a preview's list.
-    shelved: true,
-    skin: { kind: 'egg', size_mm: 3, amount: 0.9 },
-    // The egg and its pan (a prop).
-    budget: [1000, 22000],
-    // A soft, satin white; the yolk keeps its wet shine.
-    matte: true,
-    glossy: ['yolk'],
-    rimGlints: false,
-    shadowTint: 0.6,
-  },
+  // (The fried egg was taken out, the user, 2026-11-15: "remove fried egg, lets not keep this
+  // now". Its form, families and skins stay in the code: forms/egg.ts, to register again later.)
   {
     spec: {
       id: 'rice',
@@ -814,7 +785,7 @@ export const REGISTRY: IngredientEntry[] = [
       show: 'One yellow pear standing, a red-orange blush on one side, a woody stem with two leaves.',
       forms: ['whole', 'half', 'slices'],
       scale: 'M',
-      size_cm: [6.9, 9.9, 6.9],
+      size_cm: [6.6, 9.9, 6.6],
       parts: ['skin:glow', 'stem@stalk', 'leaf@leaf'],
       notes: 'One smooth outline: a heavy belly low down, shoulders pulling up into a narrower neck, a little lopsided. Yellow to green at the neck, the blush and russet freckles are the pear skin.',
     },
@@ -906,7 +877,7 @@ export const REGISTRY: IngredientEntry[] = [
       show: 'One bulb of garlic standing, swollen into cloves, its dry neck leaning; two loose cloves lying in front.',
       forms: ['whole', 'clove', 'minced'],
       scale: 'S',
-      size_cm: [7, 5.5, 7.9],
+      size_cm: [6.9, 6.1, 7.7],
       parts: ['bulb'],
       light_case: 'pale',
       notes: 'A squat bulb of soft lobes with shallow grooves, shoulders pulling up into a papery neck cut off at the top, a flat root end. A clove is a curved teardrop. The lilac streaks, cream blooms, tan root and the cloves\' gold are the garlic skin.',
@@ -927,10 +898,10 @@ export const REGISTRY: IngredientEntry[] = [
       archetype: 'round',
       family: 'mushroom',
       layout: 'solo',
-      show: 'Five chestnut mushrooms in a small heap, all tipped over on their caps\' rims and leaning in together, stems and gills showing, one cap toward the camera.',
+      show: 'Seven chestnut mushrooms in a small heap, all tipped over on their caps\' rims and leaning in together, stems and gills showing, one cap toward the camera.',
       forms: ['whole', 'sliced', 'quartered'],
       scale: 'M',
-      size_cm: [12.7, 4.6, 10.9],
+      size_cm: [12.5, 4.7, 17.4],
       parts: ['cap'],
       light_case: 'group',
       notes: 'Each one outline spun round its axis: a domed cap, a rim rolling under, gills rising in to a stout stem with a rounded cut end. Chestnut washes on the cap, pink-brown gill lines, a cream stem with tan fibres are the mushroom skin, blended where the parts meet.',
@@ -942,7 +913,7 @@ export const REGISTRY: IngredientEntry[] = [
     shadowTint: 0.5,
     rimGlints: false,
     contactsFromFeet: true,
-    budget: [2000, 16000],
+    budget: [2000, 23000],
   },
   {
     spec: {
@@ -951,10 +922,10 @@ export const REGISTRY: IngredientEntry[] = [
       archetype: 'contained',
       family: 'eggshell',
       layout: 'solo',
-      show: 'Six brown eggs in an open half-dozen pulp carton, each its own brown, the lid lying open behind.',
+      show: 'Six brown eggs in an open half-dozen pulp carton, each its own brown, the lid standing open behind on its hinge.',
       forms: ['whole', 'cracked'],
       scale: 'M',
-      size_cm: [16.2, 6.4, 21.4],
+      size_cm: [15.9, 13.5, 15.7],
       parts: ['egg', 'tray@pulp'],
       light_case: 'group',
       notes: 'The tray kit: six round cups, a ridge between them, two pointed posts, a foot pinched in between the cups; the lid a shallow tray hinged at the back. Each egg its own shape, tilt and brown; speckles and the pulp\'s fibres are shader textures (the eggshell and pulp skins).',

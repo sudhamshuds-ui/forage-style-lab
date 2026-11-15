@@ -602,7 +602,16 @@ and `batch-1-feedback.md` (read both before the next batch: they were unhappy wi
   cleft and the garlic's lean silently did nothing); an outline spun from the top down comes out
   wound inward (the mushrooms); `out` is a reserved word in GLSL, and a syntax error in one skin
   breaks every skin's shader. **The user sees the working renders**: never swap a form quietly.
-Next: the user's second look at both batches; then batch 2 (long), after asking for references.
+**Second review applied the same day** (`docs/ingredients/batch-0-1-round-2-feedback.md`): tomato,
+potato and peach are **approved and locked** ("perfect. done"); salmon back to its earlier
+thickness and skin (only its length was ever asked for); rice grains fewer and sunk in; milk
+lettering set straight; the **fried egg removed** from the registry (`forms/egg.ts` stays); the egg
+carton rebuilt from photos of a real one (flat rim, cups showing outside, two flat-topped posts, the
+lid standing open on its hinge); lime wedge detail (sacs, segment walls, thick pith, a dark peel
+edge); garlic back to its earlier form with only a thinner neck; seven mushrooms, each turned at
+random; the pear's waist smoother. Lesson: **change only what a note asks about.**
+Next: the user's third look; then `/forage-brand` and merging what is approved; then batch 2
+(long), after asking for references.
 
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one

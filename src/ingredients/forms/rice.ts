@@ -58,7 +58,7 @@ export const buildRice: FormBuilder = ({ state, seed }) => {
     latheGeometry({ halfLength: length / 2, radius: (x) => fat * Math.sqrt(Math.max(0, 1 - (x / (length / 2)) ** 2)) ** 0.8, rings: 3, segments: 6 });
   const grains: BufferGeometry[] = [];
   const up = new Vector3(0, 1, 0);
-  for (let n = 0; n < 620; n++) {
+  for (let n = 0; n < 380; n++) {
     // (The square root spreads them evenly over the disc; the extra power crowds a few more to the edge.)
     const rn = Math.sqrt(random()) ** 0.85 * 0.97;
     const a = random() * Math.PI * 2;
@@ -74,9 +74,11 @@ export const buildRice: FormBuilder = ({ state, seed }) => {
     // Lying along the surface, pointing any way round, some tipped up a little.
     const along = new Vector3(Math.cos(a * 7 + n), 0, Math.sin(a * 7 + n));
     along.addScaledVector(normal, -along.dot(normal)).normalize();
-    along.addScaledVector(normal, (random() - 0.35) * 0.7).normalize();
+    along.addScaledVector(normal, (random() - 0.45) * 0.3).normalize();
     const turn = new Quaternion().setFromUnitVectors(new Vector3(1, 0, 0), along);
-    const at = new Vector3(x, y, z).addScaledVector(normal, fat * (0.25 + random() * 0.7));
+    // Sunk well into the mound (the user, 2026-11-15: "i like the grains, but its too much noise...
+    // blend them a bit into the main form"): only the top third or so of each grain stands proud.
+    const at = new Vector3(x, y, z).addScaledVector(normal, fat * (-0.35 + random() * 0.45));
     g.applyMatrix4(new Matrix4().compose(at, turn, new Vector3(1, 1, 1)));
     // Never below the mound's edge (inside the bowl's wall).
     if (at.y > edge + 0.05 && up.dot(normal) > 0.2) grains.push(g);

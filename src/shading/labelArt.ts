@@ -144,7 +144,6 @@ export function drawMilkLabel(): HTMLCanvasElement {
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d')!;
-  const random = seeded(23);
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = '#fff';
@@ -156,9 +155,14 @@ export function drawMilkLabel(): HTMLCanvasElement {
 
   // The front: the word, hand-lettered, running up the face; a small line below.
   ctx.save();
-  ctx.translate(face * 0.5 + 18, bodyTop + bodyH * 0.53);
+  ctx.translate(face * 0.5, bodyTop + bodyH * 0.5);
   ctx.rotate(-Math.PI / 2);
-  letter(ctx, 'MILK', 0, 0, 205, random);
+  // Set straight (the user, 2026-11-15: "milk texture is crooked"): no hand-lettered wobble here.
+  ctx.font = '900 205px "Arial Black", "Helvetica Neue", Impact, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('MILK', 0, 0);
+  ctx.textBaseline = 'alphabetic';
   ctx.restore();
   ctx.font = '700 34px "Helvetica Neue", Arial, sans-serif';
   ctx.textAlign = 'center';

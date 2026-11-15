@@ -20,7 +20,7 @@ import { trayGeometry } from './kit/tray';
  */
 const PITCH = 5.0;
 const CUP = 2.42;
-const TRAY = { width: 15.9, depth: 10.8, tall: 4.4 };
+const TRAY = { width: 15.9, depth: 10.8 };
 
 function egg(random: () => number, tint: number): BufferGeometry {
   const half = 2.8 * (1 + signed(random) * 0.04);
@@ -58,59 +58,71 @@ export const buildEggs: FormBuilder = ({ state, seed }) => {
     const along = longSide ? (u * TRAY.width) / 2 : (v * TRAY.depth) / 2;
     return longSide ? 0.5 - 0.5 * Math.cos((along / PITCH) * 2 * Math.PI) : 0.5 + 0.5 * Math.cos((along / PITCH) * 2 * Math.PI);
   };
-  // The peaks: two tall pointed posts where four cups meet, and a shorter pointed peak on the
-  // rim between each pair of cups (the user's references, 2026-11-15: the first tray was "too
-  // simple": a plain box). The rim itself dips low beside each cup, so the eggs show.
-  const peaks: [number, number, number, number][] = [
-    [-PITCH / 2, 0, 3.3, 1.35],
-    [PITCH / 2, 0, 3.3, 1.35],
-  ];
-  for (const x of [-PITCH / 2, PITCH / 2]) for (const z of [-1, 1]) peaks.push([x, z * (TRAY.depth / 2 - 0.8), 2.9, 1.3]);
-  for (const x of [-1, 1]) peaks.push([x * (TRAY.width / 2 - 0.8), 0, 2.9, 1.3]);
+  // After the user's photos of a real half-dozen carton (2026-11-15: "Egg carton form is wrong see
+  // refs"; a first tray was a plain box, a second had spikes along its rim):
+  //   - a flat, level rim all the way round, with a rounded edge,
+  //   - six deep round cups; under the rim each cup bulges out on its own, with a tuck between,
+  //   - down the middle, two tall posts: cones with flat tops, standing above the rim,
+  //   - the lid: a shallow box with rounded corners, hinged along the back, standing open.
+  const posts: [number, number][] = [[-PITCH / 2, 0], [PITCH / 2, 0]];
+  const RIM = 3.3;
   const tray = trayGeometry({
-    ...TRAY,
-    round: 0.3,
+    width: TRAY.width,
+    depth: TRAY.depth,
+    tall: 5.2,
+    round: 0.34,
     columns: 84,
     rows: 58,
     top: (x, z, u, v) => {
-      // Each cup: a round bowl with its own wall; a low saddle between neighbours.
+      // Each cup: a deep round bowl; a saddle between neighbours, a little below the rim.
       let d = Infinity;
       for (const [cx, cz] of cups) d = Math.min(d, Math.hypot(x - cx, z - cz));
-      let y = 0.5 + 1.65 * smoothstep(CUP * 0.5, CUP * 1.02, d) ** 1.25;
-      // The rim: low beside each cup, rising a little toward the peaks, a rounded edge.
+      let y = 0.5 + (RIM - 0.95) * smoothstep(CUP * 0.42, CUP * 1.0, d) ** 1.2;
+      // The posts: a cone with a flat top and a small dimple in it, standing above the rim.
+      for (const [px, pz] of posts) {
+        const r = Math.hypot(x - px, z - pz);
+        const cone = 5.2 - 3.4 * smoothstep(0.42, 1.75, r) ** 0.85 - 0.18 * (1 - smoothstep(0.12, 0.32, r));
+        y = Math.max(y, Math.min(cone, y + 3.2 * (1 - smoothstep(1.2, 1.9, r))));
+      }
+      // The flat rim, with a rounded outer edge.
       const m = Math.max(Math.abs(u), Math.abs(v));
-      const lip = 1.75 + 0.5 * between(u / Math.max(m, 1e-6), v / Math.max(m, 1e-6)) - 0.14 * smoothstep(0.95, 1, m);
-      y += (lip - y) * smoothstep(0.86, 0.95, m);
-      for (const [px, pz, tall, wide] of peaks) y += tall * Math.max(0, 1 - Math.hypot(x - px, z - pz) / wide) ** 1.25;
-      return y;
+      const lip = RIM - 0.16 * smoothstep(0.955, 1, m);
+      return y + (lip - y) * smoothstep(0.83, 0.91, m);
     },
-    // The outline swells round each cup and tucks in between them; the foot is pinched in further
-    // there, so each cup reads from outside.
-    outline: (u, v) => 1 + 0.028 * (1 - 2 * between(u, v)),
-    inset: (u, v) => 0.85 + 0.85 * between(u, v),
+    // The foot tucks in between the cups and under the rim, so each cup shows from outside.
+    outline: (u, v) => 1 + 0.012 * (1 - 2 * between(u, v)),
+    inset: (u, v) => 1.0 + 0.95 * between(u, v),
   });
-  // The lid: a shallow tray lying open behind, hinged to the tray's back rim: a flat lip, sloping
-  // walls, and six soft domes pressed into its floor where the eggs sit when it is shut.
-  const lidTall = 2.5;
+  // The lid: a shallow box, its floor (the carton's top when shut) flat, its corners round, a
+  // soft hollow pressed into each end. Hinged to the back of the tray's rim, it stands open,
+  // leaning back a little, its inside toward the camera.
+  const lidTall = 3.1;
   const lid = trayGeometry({
-    width: TRAY.width,
-    depth: TRAY.depth,
+    width: TRAY.width - 0.1,
+    depth: TRAY.depth - 0.2,
     tall: lidTall,
-    round: 0.3,
+    round: 0.4,
     columns: 56,
     rows: 40,
     top: (x, z, u, v) => {
       const m = Math.max(Math.abs(u), Math.abs(v));
-      let d = Infinity;
-      for (const [cx, cz] of cups) d = Math.min(d, Math.hypot(x - cx, z - cz));
-      const floor = 0.4 + 0.5 * (1 - smoothstep(0.6, 2.3, d)) ** 1.3;
-      const lip = lidTall - 0.12 * smoothstep(0.96, 1, m);
-      return floor + (lip - floor) * smoothstep(0.74, 0.9, m) ** 1.2;
+      const hollow = 0.25 * (Math.exp(-(((Math.abs(x) - 5.6) / 1.5) ** 2)) * Math.exp(-((z / 3.2) ** 2)));
+      const floor = 0.4 + hollow;
+      const lip = lidTall - 0.14 * smoothstep(0.955, 1, m);
+      return floor + (lip - floor) * smoothstep(0.7, 0.9, m) ** 1.3;
     },
-    inset: () => 0.75,
+    inset: () => 0.55,
   });
-  lid.translate(0.2, 0, -(TRAY.depth - 0.35));
-  lid.applyMatrix4(new Matrix4().makeRotationY(0.04));
+  // Stand it up on its hinge edge: its opening turned from up to forward, leaning back 12 degrees.
+  const open = (78 * Math.PI) / 180;
+  lid.applyMatrix4(new Matrix4().makeRotationX(open));
+  {
+    // The hinge: the lid's near rim edge meets the back of the tray's rim.
+    const hz = (TRAY.depth - 0.2) / 2;
+    const hingeY = lidTall * Math.cos(open) - hz * Math.sin(open);
+    const hingeZ = lidTall * Math.sin(open) + hz * Math.cos(open);
+    lid.translate(0, RIM - 0.15 - hingeY, -(TRAY.depth / 2 - 0.25) - hingeZ);
+  }
 
   // Six eggs, each its own shape and colour, each sitting a little differently in its cup.
   const eggs = cups.map(([cx, cz]) => {

@@ -36,7 +36,9 @@ export const buildPear: FormBuilder = ({ state, seed }) => {
       // joined by a soft waist. Kept exactly; do not smooth the waist away.
       const belly = BELLY * Math.sqrt(Math.max(0, 1 - ((t - 0.32) / 0.335) ** 2));
       const neck = NECK * Math.sqrt(Math.max(0, 1 - ((t - 0.74) / 0.262) ** 2));
-      return smoothMax(belly, neck, 1.9) * Math.sqrt(Math.min(1, t / 0.03)) * Math.sqrt(Math.min(1, (1 - t) / 0.03)) * 0.9;
+      // (The waist's fillet widened from 1.9, the user, 2026-11-15: "make this edge a bit smoother...
+      // the middle deform"; the outline is otherwise the same.)
+      return smoothMax(belly, neck, 3.1) * Math.sqrt(Math.min(1, t / 0.03)) * Math.sqrt(Math.min(1, (1 - t) / 0.03)) * 0.87;
     },
     lying: false,
     lopsided: 0.75,

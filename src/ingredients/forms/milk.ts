@@ -36,7 +36,8 @@ const ARC = 4;
 export const buildMilk: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Milk: the "${state}" form is not built yet (the carton only for now).`);
   const random = seededRandom(seed ^ 0x3117c);
-  const lean = [(random() - 0.5) * 0.02, (random() - 0.5) * 0.02];
+  // (Standing dead straight: a slight lean made the print look crooked, the user, 2026-11-15.)
+  const lean = [0 * random(), 0 * random()];
   const wave = random() * Math.PI * 2;
 
   /** One ring of the carton at a height: `t` runs 0 at the shoulder to 1 at the ridge (0 below). */
