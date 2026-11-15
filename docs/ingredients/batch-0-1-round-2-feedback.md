@@ -56,3 +56,14 @@ restored; the peach was already approved and is unchanged).
   rectangle, lower than before so the eggs stand more than half out), six separate round cups
   under it (`spinProfile`), two flat-topped posts, the lid standing open. The invented outer wall
   (and the corner it bent in) is gone. `footY` in `kit/tray.ts` makes the thin plate.
+
+## Fifth look (2026-11-15)
+
+"its missing this bulge. rest all are approved, fix this, then merge to main" (the pear, with the
+waist circled on their screenshot of the first render).
+
+- **Pear**: the restore to commit 5d1c87b was the wrong version (a smoothed waist). The very first
+  outline is back: a belly, a neck and a small bulge where they meet (`Math.max(belly, neck, fill)`
+  in `forms/pear.ts`). Locked. Lesson: check a restore side by side with the user's screenshot.
+- **All twelve approved**: cabbage, salmon, rice, milk, tomato, eggs, potato, lime, garlic,
+  mushrooms, pear, peach. `/forage-brand` run and merged to `main` the same day.

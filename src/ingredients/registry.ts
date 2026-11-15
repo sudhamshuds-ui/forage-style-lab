@@ -735,7 +735,7 @@ export const REGISTRY: IngredientEntry[] = [
       archetype: 'contained',
       family: 'milk',
       layout: 'solo',
-      show: 'One gable-top milk carton standing up, turned three-quarter: a green screw cap on the front slope, our own green print (the word, a drop, cow spots).',
+      show: 'One gable-top milk carton standing up, turned three-quarter: a green screw cap on the front slope, our own green print (the word only).',
       forms: ['whole'],
       scale: 'M',
       size_cm: [7.1, 20.4, 7.1],
@@ -928,7 +928,7 @@ export const REGISTRY: IngredientEntry[] = [
       size_cm: [15.9, 12.9, 15.7],
       parts: ['egg', 'tray@pulp'],
       light_case: 'group',
-      notes: 'The tray kit: six round cups, a ridge between them, two pointed posts, a foot pinched in between the cups; the lid a shallow tray hinged at the back. Each egg its own shape, tilt and brown; speckles and the pulp\'s fibres are shader textures (the eggshell and pulp skins).',
+      notes: 'The tray kit: a thin flat rim plate, six separate round cups under it, two flat-topped posts, the lid standing open on its hinge behind (1:1 from photos of a real carton). Each egg its own shape, tilt and brown; speckles and the pulp\'s fibres are shader textures (the eggshell and pulp skins).',
     },
     form: buildEggs,
     // On a diagonal: a front corner toward the camera, the lid away to the back right.

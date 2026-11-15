@@ -550,8 +550,31 @@ Shared mechanisms added along the way (code hooks other ingredients reuse):
   subsurface, a clean cream cut disc). The crinkle texture was taken out (in history). See
   `lessons/romaine.md`.
 
-Next, one at a time with feedback: round 2 (`docs/ingredients/r2-plan.md`): the cabbage next (a round head, replacing the napa).
-Then round 3 (`docs/ingredients/r3-plan.md`, approved 2026-11-14): 71 more in nine batches of about 8, each batch on
+- **Cabbage** (round 2): a round head, every leaf a real leaf laid on a height map of the ball
+  (`cover`), seven head leaves and six wrappers, the `cabbage` family and skin, Iris, 34k budget.
+  See `lessons/cabbage.md`.
+- **Salmon** (round 2): a medium raw fillet on a diagonal, fat lines as one field (V shapes on top,
+  arcs on the cut ends), a thin silvery skin; `salmon` family and skin. See `lessons/salmon.md`.
+- **Rice** (round 2): a celadon bowl (`kit/bowl.ts`, the `glaze` skin, `glossy: ['bowl']`) heaped
+  with rice, 380 real grains half sunk into the mound. See `lessons/rice.md`.
+- **Milk** (round 2): a gable-top carton, our own print: the word only, set straight
+  (`milkLabelTexture`), a green cap; `milk` and `print-green`. See `lessons/milk.md`.
+- **Tomato** (round 3, batch 1): ribs, five curling sepals on a star, a knuckled stem. Locked.
+  See `lessons/tomato.md`.
+- **Eggs**: six brown eggs in an open pulp carton built 1:1 from photos (a thin rim plate, six
+  separate cups, two flat-topped posts, the lid standing open; `kit/tray.ts`, `eggshell`, `pulp`),
+  36k budget. See `lessons/eggs.md`.
+- **Potato**: a pair, rough painted texture, eyes. Locked. See `lessons/potato.md`.
+- **Lime**: a whole lime and two wedges; the wedge flesh is commit 5d1c87b's pale soft fan.
+  **Locked**: no more wedge detail unless asked. See `lessons/lime.md`.
+- **Garlic**: a bulb with a slim neck and two cloves close by. See `lessons/garlic.md`.
+- **Mushrooms**: a heap of seven, each tipped (tilt solved so both ends rest) and turned at random,
+  23k budget. See `lessons/mushroom.md`.
+- **Pear**: the very first outline, a belly, a neck and a small bulge at the waist
+  (`Math.max(belly, neck, fill)`). **Locked**: never smooth the waist. See `lessons/pear.md`.
+- **Peach**: a pair, each with its cleft and two cheeks, velvet. Locked. See `lessons/peach.md`.
+
+Next: round 3 (`docs/ingredients/r3-plan.md`, approved 2026-11-14): nine batches of about 8, each on
 its own branch; ask the user for references before a batch starts ("let me know before u start that round").
 
 Polish and painters (branch `claude/happy-babbage-016gw2`, merged to `main` 2026-11-05):
@@ -582,44 +605,29 @@ light's rainbow fringe) loads the room's colour, and room strokes pick up the co
 thresholds.
 
 ## Where we are (2026-11-15)
-Both batches were reviewed and their feedback applied here, on branch `r3-batch-1` (it holds batch 0
-too; `claude/loving-gauss-efvivl` is the older batch 0 state). **Waiting for the user's second
-look; nothing approved or merged.** The user's words are in `docs/ingredients/batch-0-feedback.md`
-and `batch-1-feedback.md` (read both before the next batch: they were unhappy with batch 1,
-"most of the forms were easy to do still u got them wrong").
-- Batch 0 fixes: salmon a medium fillet with a refined silvery skin; fried egg in a pan (a prop,
-  `pan@iron`), its yolk melting into the white (`yolk` skin), and **shelved** (`shelved: true` keeps
-  it out of Shuffle until the "states of an ingredient" tool); rice with real grains on the mound;
-  milk print: the word only. The cabbage was approved as it is ("FULL PERFECT GOOD JOB").
-- Batch 1 fixes: tomato (ribs, five curling sepals on a star, a knuckled stem); eggs (a moulded
-  tray with peaks between the cups, a scalloped rim, a domed lid); potato (rough painted texture);
-  pear (**the waisted outline the user chose, locked**); lime (whole lime locked as "perfect"; wedge
-  flesh redone with light inside); garlic (a slim, leaning neck; cloves close); mushrooms (a heap of
-  five, all tipped and touching, the tilt solved so both ends rest; texture redone); peach (the
-  cleft and two cheeks).
-- Traps met: a body from `roundBody` is built round its middle: measure heights from its foot
-  (`y + half`) in any sculpting pass, and `rest` it before placing others beside it (the peach's
-  cleft and the garlic's lean silently did nothing); an outline spun from the top down comes out
-  wound inward (the mushrooms); `out` is a reserved word in GLSL, and a syntax error in one skin
-  breaks every skin's shader. **The user sees the working renders**: never swap a form quietly.
-**Second review applied the same day** (`docs/ingredients/batch-0-1-round-2-feedback.md`): tomato,
-potato and peach are **approved and locked** ("perfect. done"); salmon back to its earlier
-thickness and skin (only its length was ever asked for); rice grains fewer and sunk in; milk
-lettering set straight; the **fried egg removed** from the registry (`forms/egg.ts` stays); the egg
-carton rebuilt from photos of a real one (flat rim, cups showing outside, two flat-topped posts, the
-lid standing open on its hinge); lime wedge detail (sacs, segment walls, thick pith, a dark peel
-edge); garlic back to its earlier form with only a thinner neck; seven mushrooms, each turned at
-random; the pear's waist smoother. Lesson: **change only what a note asks about.**
-**Third and fourth looks (2026-11-15)**: cabbage, salmon, rice, milk, tomato, potato, peach, garlic
-and mushrooms are **approved and locked** ("All rest are approved and done"). The **lime** and the
-**pear** were restored exactly to their state in commit 5d1c87b at the user's request ("go back to
-this exact version") and are locked: do not add wedge detail or reshape the pear again. The **egg
-carton** was rebuilt 1:1 from the user's photos (a thin flat rim plate, six separate cups under it,
-two flat-topped posts, the lid standing open) and waits for a last look.
-Lessons: change only what a note asks about; after two failed tries at one thing, stop and offer
-the earlier version (the guide's rule), do not make a third guess.
-Next: the user's look at the egg carton; then `/forage-brand` for all twelve, the Figma queue, and
-the merge of `r3-batch-1` to `main`; then batch 2 (long), after asking for references.
+**Round 2 is complete and round 3's batch 1 is done**: all twelve are approved and merged to `main`
+(from branch `r3-batch-1`): cabbage, salmon, rice bowl, milk carton (batch 0, round 2's last) and
+tomato, eggs, potato, lime, garlic, mushrooms, pear, peach (batch 1). `/forage-brand` has run: a
+lessons record and painting for each, the guide updated. The fried egg was removed from the
+registry (the user: "remove fried egg, lets not keep this now"; `forms/egg.ts`, its families and
+skins stay for the "states of an ingredient" tool).
+The user's review words: `docs/ingredients/batch-0-feedback.md`, `batch-1-feedback.md`,
+`batch-0-1-round-2-feedback.md`. **Read them before the next batch**: they were unhappy with batch
+1's first showing ("most of the forms were easy to do still u got them wrong").
+What the two batches taught (all in the guide's lessons and pre-check):
+- **The reference's form comes first, even on an easy shape**: build the signature feature and push
+  it (a peach's cleft, a tomato's sepals, a carton's real parts from a photo). Match 1:1.
+- **Change only what a note asks about.** What is approved is locked.
+- **After two failed tries at one thing, stop** and offer the earlier version; no third guess.
+- **"Go back" means the exact earlier version**, checked side by side with the user's screenshot.
+- **The user sees the working renders**: never swap a form quietly.
+- Traps: a body from `roundBody` is centred on its middle (measure from its foot, `y + half`, and
+  `rest` it before placing others beside it); an outline spun from the top down is wound inward;
+  `out` and `patch` are reserved words in GLSL, and a syntax error in one skin breaks every skin.
+**Figma is due** (round 2 ended): everything in `docs/ingredients/lessons/figma-pending.md` waits
+for the user's one OK, then goes in together and the file is emptied.
+Next: batch 2 (long: carrot, cucumber, eggplant, corn, banana, leek, sweet potato, asparagus) on its
+own branch, **after asking the user for its references**.
 
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one

@@ -1,7 +1,7 @@
 # Figma changes waiting for the end of the round
 
-Figma is updated once per planned round of ingredients (the user, 2026-11-12). These wait until
-round 2's last ingredient (the milk carton) is approved, then go in together. Each entry names
+Figma is updated once per planned round of ingredients (the user, 2026-11-12). Round 2's last ingredient (the milk carton) was approved on 2026-11-15, so everything here is **due now**, waiting for
+the user's one OK; batch 1 of round 3 rides along. Each entry names
 the board and what it gets, in the shape of the brand skill's step 5 table.
 
 ## Blueberries (approved 2026-11-12)
@@ -57,3 +57,27 @@ the board and what it gets, in the shape of the brand skill's step 5 table.
   (`docs/ingredients/lessons/img/romaine.png`).
 - **09 How Claude Code builds a form**: the pre-check gains "no lower layer showing through gaps
   between leaves; look close up near the base".
+
+## Round 2's last four and round 3's batch 1 (approved 2026-11-15)
+
+- **02 Seven rules**: Never items "flat colour: two tones of one hue" (cabbage), "a plain lathe
+  where the reference has a signature feature" (peach, tomato), "changing more than the note asked"
+  (salmon, garlic).
+- **04 Warm subject, cool room**: family rows for Cabbage, Salmon, Rice, Milk, Tomato, Pear, Peach,
+  Potato, Lime, Garlic, Mushroom, Eggshell (values in the guide's table and `families.ts`);
+  part-only cards Glaze, Print green, Pulp, Yolk, Iron. Colour lessons "Never flat colour: several
+  hues, a bit dramatic" (cabbage), "White food: warm pearl, lilac shadow" (rice, milk, garlic),
+  "Rough texture carries form on a matte surface" (potato), "Cut flesh needs light inside" (lime),
+  "Prints stay minimal" (milk).
+- **06 Composition and size**: table rows for the twelve (layout and size from the registry);
+  composition lessons "A group is a composition, not a scatter" (mushrooms), "The subject, not its
+  vessel" (rice, eggs); tag garlic on the strays lesson.
+- **07 Ingredient system**: Built lines: round (tomato, pear, peach, potato, lime, garlic,
+  mushrooms), contained (rice bowl, milk carton, eggs), block (salmon), leafy (cabbage). Form
+  lessons "The reference's form first, even on an easy shape" (tomato, peach, garlic), "Built the
+  way it is made, from a photo" (eggs), "Many small things, sunk into the mass" (rice), "Real
+  leaves all the way in" (cabbage).
+- **08 The first 12**: a card for each of the twelve, the user's reference beside our painting
+  (`docs/ingredients/lessons/img/{id}.png`).
+- **09 How Claude Code builds a form**: the pre-check gains "the signature feature reads",
+  "colour depth: three hues and coloured shadows", "only what was asked".

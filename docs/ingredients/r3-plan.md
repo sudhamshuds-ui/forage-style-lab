@@ -172,4 +172,7 @@ The whole fish, parsley, pineapple, mussels and kale. Ask before their batch sta
   moulded tray), the wedge sheets in `forms/lime.ts`; `depthWash` in the skin shader.
 - 2026-11-15: the user reviewed batch 1 (`batch-1-feedback.md`) and asked for both batches'
   feedback to be applied first. Done on `r3-batch-1`; waiting for their second look.
+- 2026-11-15: after five looks all twelve of batches 0 and 1 were approved, `/forage-brand` run
+  (lessons in `lessons/{id}.md`) and `r3-batch-1` merged to `main`. The fried egg is out of the
+  registry.
 - Next: batch 2 (long). Ask the user for its references first.
