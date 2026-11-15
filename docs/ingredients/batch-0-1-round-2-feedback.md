@@ -25,3 +25,17 @@ The user's second look, 2026-11-15, from their Figma board "batch 0-1 R2 feedbac
   light; hundreds of raised pieces each catching their own light read as static.
 - **A real object's form comes from a photo of the real object** (the carton): a painting of it
   was not enough to get the moulded shape right.
+
+## Third look (2026-11-15)
+
+"egg carton corners are a bit wrong, refer refs, also they are coming out. Lime this isnt the
+texture, see refs again. pear can have more bulgier bottom? All rest are approved and done"
+
+- **Approved and locked**: cabbage, salmon, rice, milk, tomato, potato, peach, garlic, mushrooms.
+- Eggs: the tray's wall was one flat strip from rim to foot, so its corners were flat facets and the
+  eggs poked out through them. Now a curved wall of several rings (`wall` in `kit/tray.ts`), rounder
+  corners, slightly slimmer eggs.
+- Lime: teardrop sacs and bold branching lines read as a leaf's veins. Now one calm mass of pulp
+  with only fine faint streaks, a thick soft pith, a pale core, a dark peel line.
+- Pear: fuller below the waist only (`fuller` in `forms/pear.ts`); the waist and neck are unchanged.
+- Waiting for the user's look at these three. Then `/forage-brand` for all twelve and the merge.

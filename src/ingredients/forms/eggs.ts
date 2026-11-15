@@ -24,7 +24,7 @@ const TRAY = { width: 15.9, depth: 10.8 };
 
 function egg(random: () => number, tint: number): BufferGeometry {
   const half = 2.8 * (1 + signed(random) * 0.04);
-  const fat = 2.17 * (1 + signed(random) * 0.04);
+  const fat = 2.1 * (1 + signed(random) * 0.035);
   const g = latheGeometry({
     halfLength: half,
     // Blunt end first (it sits down in the cup), the narrower end up.
@@ -70,7 +70,7 @@ export const buildEggs: FormBuilder = ({ state, seed }) => {
     width: TRAY.width,
     depth: TRAY.depth,
     tall: 5.2,
-    round: 0.34,
+    round: 0.52,
     columns: 84,
     rows: 58,
     top: (x, z, u, v) => {
@@ -91,7 +91,10 @@ export const buildEggs: FormBuilder = ({ state, seed }) => {
     },
     // The foot tucks in between the cups and under the rim, so each cup shows from outside.
     outline: (u, v) => 1 + 0.012 * (1 - 2 * between(u, v)),
-    inset: (u, v) => 1.0 + 0.95 * between(u, v),
+    inset: (u, v) => 0.55 + 0.95 * between(u, v),
+    // Each cup's wall swells out round its egg (round cups, never flat facets; with a straight wall
+    // the eggs poked out through the corners: the user, 2026-11-15).
+    wall: (u, v, t) => 0.42 * Math.sin(Math.PI * Math.min(1, t * 1.05)) ** 0.8 * (1 - 0.75 * between(u, v)),
   });
   // The lid: a shallow box, its floor (the carton's top when shut) flat, its corners round, a
   // soft hollow pressed into each end. Hinged to the back of the tray's rim, it stands open,
@@ -101,7 +104,7 @@ export const buildEggs: FormBuilder = ({ state, seed }) => {
     width: TRAY.width - 0.1,
     depth: TRAY.depth - 0.2,
     tall: lidTall,
-    round: 0.4,
+    round: 0.52,
     columns: 56,
     rows: 40,
     top: (x, z, u, v) => {
@@ -112,6 +115,7 @@ export const buildEggs: FormBuilder = ({ state, seed }) => {
       return floor + (lip - floor) * smoothstep(0.7, 0.9, m) ** 1.3;
     },
     inset: () => 0.55,
+    wall: (_u, _v, t) => 0.12 * Math.sin(Math.PI * t),
   });
   // Stand it up on its hinge edge: its opening turned from up to forward, leaning back 12 degrees.
   const open = (78 * Math.PI) / 180;

@@ -23,6 +23,12 @@ export interface TrayOptions {
   inset: (u: number, v: number) => number;
   columns: number;
   rows: number;
+  /**
+   * Optional: how far the wall swells out between the rim (t = 0) and the foot (t = 1), in cm, at
+   * (u, v) on the outline. With it the wall is a curve of several rings instead of one flat strip:
+   * round cups rather than flat facets.
+   */
+  wall?: (u: number, v: number, t: number) => number;
 }
 
 export function trayGeometry(o: TrayOptions): BufferGeometry {
@@ -60,23 +66,36 @@ export function trayGeometry(o: TrayOptions): BufferGeometry {
     positions.push(positions[k], positions[k + 1], positions[k + 2]);
     uvs.push(1, positions[k + 1] / o.tall);
   }
-  const foot = positions.length / 3;
-  for (const [i, j] of edge) {
-    const u = (2 * i) / o.columns - 1;
-    const v = (2 * j) / o.rows - 1;
-    const [x, z] = place(u, v);
-    const d = Math.hypot(x, z) || 1;
-    const inset = o.inset(u, v);
-    positions.push(x - (x / d) * inset, 0, z - (z / d) * inset);
-    uvs.push(1, 0);
+  // The wall: rings from the rim down to the foot (one flat strip, or a curve when `wall` is given).
+  const steps = o.wall ? 6 : 1;
+  const ringStart: number[] = [wallTop];
+  for (let k = 1; k <= steps; k++) {
+    const t = k / steps;
+    ringStart.push(positions.length / 3);
+    edge.forEach(([i, j], e) => {
+      const u = (2 * i) / o.columns - 1;
+      const v = (2 * j) / o.rows - 1;
+      const [x, z] = place(u, v);
+      const d = Math.hypot(x, z) || 1;
+      const topY = positions[(wallTop + e) * 3 + 1];
+      // In toward the foot, eased so the wall leaves the rim almost upright, and out by its swell.
+      const move = o.inset(u, v) * t ** 1.6 - (o.wall ? o.wall(u, v, t) : 0);
+      positions.push(x - (x / d) * move, topY * (1 - t), z - (z / d) * move);
+      uvs.push(1, (topY * (1 - t)) / o.tall);
+    });
   }
+  const foot = ringStart[steps];
   const middle = positions.length / 3;
   positions.push(0, 0, 0);
   uvs.push(1, 0);
   const n = edge.length;
   for (let k = 0; k < n; k++) {
     const next = (k + 1) % n;
-    index.push(wallTop + k, wallTop + next, foot + k, wallTop + next, foot + next, foot + k);
+    for (let r = 0; r < steps; r++) {
+      const a = ringStart[r];
+      const b = ringStart[r + 1];
+      index.push(a + k, a + next, b + k, a + next, b + next, b + k);
+    }
     index.push(middle, foot + k, foot + next);
   }
   const geometry = new BufferGeometry();

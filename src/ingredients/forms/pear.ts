@@ -19,6 +19,7 @@ import { sweepGeometry } from './kit/sweep';
  * russet freckles), stem (woody) and leaf.
  */
 const HEIGHT = 10;
+// (A fuller bottom, the user, 2026-11-15: "pear can have more bulgier bottom?": see `fuller` below.)
 const BELLY = 3.75;
 const NECK = 2.0;
 
@@ -34,7 +35,10 @@ export const buildPear: FormBuilder = ({ state, seed }) => {
       // The outline the user chose (2026-11-15: "this form for pear was better ... looks so bad in
       // the current form", of a later teardrop): a round belly low down and a rounder neck above,
       // joined by a soft waist. Kept exactly; do not smooth the waist away.
-      const belly = BELLY * Math.sqrt(Math.max(0, 1 - ((t - 0.32) / 0.335) ** 2));
+      // (Fuller only below the waist: from its widest point down it swells out, and it eases back
+      // to the earlier outline by the waist, so the waist and neck stay exactly as they were.)
+      const fuller = 1 + 0.17 * (1 - smoothstep(0.3, 0.52, t));
+      const belly = BELLY * fuller * Math.sqrt(Math.max(0, 1 - ((t - 0.32) / 0.335) ** 2));
       const neck = NECK * Math.sqrt(Math.max(0, 1 - ((t - 0.74) / 0.262) ** 2));
       // (The waist's fillet widened from 1.9, the user, 2026-11-15: "make this edge a bit smoother...
       // the middle deform"; the outline is otherwise the same.)

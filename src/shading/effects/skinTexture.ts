@@ -1577,45 +1577,43 @@ if (kind > 0 && amount > 0.0) {
       // core strip along the inner edge, each melting into the pulp.
       float r = vSurfaceUv.x;
       float alongW = q.x;
-      // Round 3 (the user, 2026-11-15: "lime cuts still missing this details. see ref"): the pale,
-      // washed face became a full lime green with what the painting shows: juice sacs as long
-      // teardrops fanning out from the core, each with a lighter side; one or two soft segment
-      // walls; a thick white pith; a clear, dark green edge of peel.
+      // Round 4, from the painted wedge again (the user, 2026-11-15: "this isnt the texture, see
+      // refs again", of teardrop sacs and bold white branching lines, which read as a leaf's
+      // veins). What the painting has is simpler: one calm, juicy mass of pulp, a full lime green,
+      // lighter and yellower toward the pith and the inner edge, deeper in its middle; only the
+      // faintest fine streaks running out from the core; a thick white pith that melts into it; a
+      // pale core along the inner edge; a dark green line of peel.
       float fanAngle = atan(r * 1.6, alongW);
       float fanOut = length(vec2(alongW, r * 1.6));
-      vec3 pulp = vec3(0.8 + tone * 0.7, -0.105, 0.15);
-      vec3 pulpDeep = vec3(0.64 + tone * 0.7, -0.115, 0.13);
-      float depth = smoothstep(0.08, 0.45, r) * (1.0 - smoothstep(0.5, 0.82, r)) * (1.0 - alongW * alongW * 0.5);
-      vec3 flesh = mix(pulp, pulpDeep, depth * 0.8);
-      // The sacs: long cells in the fan's own space (round the core, and out from it).
-      vec3 sq = vec3(fanAngle * 11.0, fanOut * 3.2, q.z * 5.0 + 2.0);
-      float sacCell = skinCells(sq);
-      float sacEdge = smoothstep(0.28, 0.5, sacCell);
-      float sacLit = 1.0 - smoothstep(0.0, 0.3, skinCells(sq + vec3(0.18, -0.12, 0.0)));
-      float inPulp = smoothstep(0.1, 0.24, r) * (1.0 - smoothstep(0.66, 0.8, r));
-      flesh = mix(flesh, vec3(flesh.x - 0.07, flesh.y - 0.005, flesh.z - 0.01), sacEdge * 0.55 * inPulp);
-      flesh.x += sacLit * 0.075 * inPulp;
-      flesh.z += sacLit * 0.03 * inPulp;
-      float bloomF = fbm3(vec3(alongW * 2.2, r * 2.0, q.z * 3.0 + 1.0));
-      flesh = mix(flesh, vec3(flesh.x + 0.03, flesh.y + 0.02, flesh.z + 0.04), smoothstep(0.5, 0.75, bloomF) * 0.6 * inPulp);
-      // Segment walls: one or two pale lines from the core out to the pith, soft and a little bent.
-      float wallA = exp(-pow((fanAngle - 1.1 - (bloomF - 0.5) * 0.25) / 0.045, 2.0));
-      float wallB = exp(-pow((fanAngle - 2.25 + (bloomF - 0.5) * 0.25) / 0.04, 2.0));
-      vec3 pith = vec3(0.955 + tone * 0.5, -0.012, 0.04);
-      flesh = mix(flesh, pith, clamp(wallA * 0.75 + wallB * 0.55, 0.0, 0.8) * smoothstep(0.12, 0.3, fanOut));
-      // The core (a short pale strip at the inner edge) and the thick pith under the peel.
+      vec3 pulp = vec3(0.83 + tone * 0.7, -0.1, 0.155);
+      vec3 pulpDeep = vec3(0.69 + tone * 0.7, -0.118, 0.135);
+      float depth = smoothstep(0.1, 0.42, r) * (1.0 - smoothstep(0.48, 0.74, r)) * (1.0 - alongW * alongW * 0.45);
+      vec3 flesh = mix(pulp, pulpDeep, depth);
+      float inPulp = smoothstep(0.08, 0.22, r) * (1.0 - smoothstep(0.62, 0.78, r));
+      // Fine streaks: many, thin, low in contrast, a little broken (never lines you could count).
+      float streak = valueNoise3(vec3(fanAngle * 26.0, fanOut * 1.3, q.z * 4.0 + 2.0));
+      float streakB = valueNoise3(vec3(fanAngle * 60.0, fanOut * 2.2, q.z * 4.0 + 7.0));
+      flesh.x += ((streak - 0.5) * 0.045 + (streakB - 0.5) * 0.025) * inPulp;
+      // Broad wet blooms of lighter and deeper green.
+      float bloomF = fbm3(vec3(alongW * 1.8, r * 1.8, q.z * 3.0 + 1.0));
+      flesh = mix(flesh, vec3(flesh.x + 0.035, flesh.y + 0.012, flesh.z + 0.03), smoothstep(0.5, 0.78, bloomF) * 0.6 * inPulp);
+      flesh = mix(flesh, vec3(flesh.x - 0.035, flesh.y - 0.006, flesh.z - 0.01), smoothstep(0.52, 0.8, 1.0 - bloomF) * 0.5 * inPulp);
+      // The pith: thick and white under the peel, melting into the pulp over a wide soft band; a
+      // pale core strip along the middle of the inner edge.
       float wander = (fbm3(vec3(alongW * 2.5, 2.0, q.z)) - 0.5) * 0.05;
-      flesh = mix(flesh, pith, (1.0 - smoothstep(0.03, 0.14, r + wander * 0.5)) * (1.0 - smoothstep(0.35, 0.75, abs(alongW))) * 0.9);
-      flesh = mix(flesh, pith, smoothstep(0.7, 0.8, r + wander));
-      // The peel's edge: a clear band of the deep green, a soft step in from the pith.
+      vec3 pith = vec3(0.955 + tone * 0.5, -0.014, 0.045);
+      flesh = mix(flesh, pith, smoothstep(0.6, 0.8, r + wander));
+      flesh = mix(flesh, pith, (1.0 - smoothstep(0.02, 0.16, r + wander * 0.5)) * (1.0 - smoothstep(0.3, 0.8, abs(alongW))) * 0.8);
+      // The peel's edge: a clear dark green line, a soft step in from the pith.
       vec3 peelEdge = vec3(peel.x - 0.1, peel.y - 0.01, peel.z - 0.03);
       flesh = mix(flesh, peelEdge, smoothstep(0.9, 0.95, r + wander * 0.3));
       // Light inside the pulp: a glow at the turn and from behind, kept off the pith.
       float through = pow(max(dot(V, -L), 0.0), 1.5);
       vec3 glowLab = vec3(0.88, -0.09, 0.17);
       flesh = mix(flesh, glowLab, clamp(through * 0.4 + turnBand * 0.25 + (1.0 - lit) * 0.22, 0.0, 0.4) * inPulp);
+      // A wet, broken shine on the pulp.
       highlightBumpy = max(highlightBumpy, cut);
-      highlightGlint = max(highlightGlint, sacLit * cut * inPulp * 0.7);
+      highlightGlint = max(highlightGlint, smoothstep(0.72, 0.9, streakB) * cut * inPulp * 0.5);
       lab = mix(peel, flesh, cut);
       highlightOwn = max(highlightOwn, cut);
     } else if (kind == 33) {
