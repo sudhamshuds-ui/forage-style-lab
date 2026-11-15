@@ -785,7 +785,7 @@ export const REGISTRY: IngredientEntry[] = [
       show: 'One yellow pear standing, a red-orange blush on one side, a woody stem with two leaves.',
       forms: ['whole', 'half', 'slices'],
       scale: 'M',
-      size_cm: [6.8, 9.9, 6.9],
+      size_cm: [7.3, 9.9, 7.3],
       parts: ['skin:glow', 'stem@stalk', 'leaf@leaf'],
       notes: 'One smooth outline: a heavy belly low down, shoulders pulling up into a narrower neck, a little lopsided. Yellow to green at the neck, the blush and russet freckles are the pear skin.',
     },

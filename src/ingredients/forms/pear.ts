@@ -1,6 +1,6 @@
 import { Vector3, type BufferAttribute } from 'three';
 import { bodyMap } from './kit/maps';
-import { smoothMax, smoothstep } from './kit/lathe';
+import { smoothstep } from './kit/lathe';
 import { finishPieces, type FormBuilder } from './kit/piece';
 import { seededRandom, signed } from './kit/random';
 import { roundBody } from './kit/round';
@@ -19,8 +19,8 @@ import { sweepGeometry } from './kit/sweep';
  * russet freckles), stem (woody) and leaf.
  */
 const HEIGHT = 10;
-const BELLY = 3.75;
-const NECK = 2.0;
+const BELLY = 3.6;
+const NECK = 2.05;
 
 export const buildPear: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Pear: the "${state}" form is not built yet (whole only for now).`);
@@ -31,12 +31,15 @@ export const buildPear: FormBuilder = ({ state, seed }) => {
     radius: (x) => {
       // t: 0 at the foot, 1 at the top.
       const t = (x + half) / (2 * half);
-      // The outline the user chose (2026-11-15: "this form for pear was better ... looks so bad in
-      // the current form", of a later teardrop): a round belly low down and a rounder neck above,
-      // joined by a soft waist. Kept exactly; do not smooth the waist away.
+      // The outline the user chose, exactly (2026-11-15: "This form for pear was better"; later,
+      // of a restored version without it, "its missing this bulge"): the very first outline. A
+      // round belly low down and a rounder neck above, and between them a soft band that fills
+      // the waist and stands a little proud: the small bulge at the waist. Locked: do not smooth
+      // the waist, fill it in or reshape the belly.
       const belly = BELLY * Math.sqrt(Math.max(0, 1 - ((t - 0.32) / 0.335) ** 2));
       const neck = NECK * Math.sqrt(Math.max(0, 1 - ((t - 0.74) / 0.262) ** 2));
-      return smoothMax(belly, neck, 1.9) * Math.sqrt(Math.min(1, t / 0.03)) * Math.sqrt(Math.min(1, (1 - t) / 0.03)) * 0.9;
+      const fill = (BELLY * (1 - t) + NECK * t) * 0.86 * smoothstep(0.3, 0.5, t) * (1 - smoothstep(0.62, 0.86, t));
+      return Math.max(belly, neck, fill) * Math.sqrt(Math.min(1, t / 0.02)) * Math.sqrt(Math.min(1, (1 - t) / 0.02));
     },
     lying: false,
     lopsided: 0.75,
