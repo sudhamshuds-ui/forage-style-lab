@@ -213,27 +213,39 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
       // all ease back together (CSS transitions on the ghost, kitchen.css) and it lands exactly
       // as the tile, which then takes over with no fade or jump of its own. (Before, two
       // animations fought over its size and lean, and it landed with a jolt; the user, 2026-11-16.)
+      // One animation takes it from exactly where and how it is now (its place, its lean, its
+      // size, read from the screen) to the tile, slowing gently as it arrives: 460 ms on the
+      // drawer curve, which starts quickly and takes its time to settle.
       const home = tile.getBoundingClientRect();
+      const now = getComputedStyle(flying);
+      const from = { translate: now.translate, rotate: now.rotate === 'none' ? '0deg' : now.rotate, scale: now.scale === 'none' ? '1' : now.scale };
       flying.setAttribute('data-landing', '');
-      // Read a layout value so the browser starts the move from where the ghost is now.
-      void flying.offsetWidth;
-      flying.style.translate = `${home.left}px ${home.top}px`;
-      window.setTimeout(
-        () => {
-          tile.style.transition = 'none';
-          cleanUp();
-          // Let the tile's own transitions (hover, greying) work again from the next frame.
-          requestAnimationFrame(() => requestAnimationFrame(() => (tile.style.transition = '')));
-        },
-        prefersReducedMotion() ? 0 : 330,
-      );
+      const land = () => {
+        tile.style.transition = 'none';
+        cleanUp();
+        // Let the tile's own transitions (hover, greying) work again from the next frame.
+        requestAnimationFrame(() => requestAnimationFrame(() => (tile.style.transition = '')));
+      };
+      if (prefersReducedMotion()) return land();
+      const flight = flying.animate([from, { translate: `${home.left}px ${home.top}px`, rotate: '0deg', scale: '1' }], {
+        duration: 460,
+        easing: 'cubic-bezier(0.32, 0.72, 0, 1)',
+        fill: 'forwards',
+      });
+      flight.finished.then(land, land);
     };
 
     tile.addEventListener('pointerdown', (event) => {
       if (event.button !== 0 || tile.hasAttribute('data-used')) return;
       start = { x: event.clientX, y: event.clientY, id: event.pointerId };
       dragged = false;
-      tile.setPointerCapture(event.pointerId);
+      // Keep getting the pointer's moves even when it leaves the tile. (Some browsers refuse if
+      // the pointer has already gone, a quick tap on a phone: the drag still works without it.)
+      try {
+        tile.setPointerCapture(event.pointerId);
+      } catch {
+        /* no capture: fine */
+      }
     });
     tile.addEventListener('pointermove', (event) => {
       if (!start || event.pointerId !== start.id) return;

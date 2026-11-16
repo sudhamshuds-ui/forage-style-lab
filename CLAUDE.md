@@ -680,6 +680,13 @@ Spacing: neighbours never overlap and keep a small gap (`arrange`); the user: cl
 together", only overlapping was wrong. The tile's flight home is CSS transitions on translate,
 rotate and scale (two animations fighting over its size made it land with a jolt). Cook hugs its
 label.
+**Round 5 (2026-11-16)**: the panel's contents are centred, with a small grey "Cooking
+parameters" above it; on Cook the card's column glides to the middle of the page (`--to-middle`)
+while the tray and panel fade, the title dissolves into the dish's name (a GSAP timeline in
+`setWords`) with the description a beat behind, the buttons last; the way back runs through two
+more modes (returning, settling). The timeline is written out in `kitchen.css`. The tile's flight
+home is one Web Animations move from its live place, lean and size (460 ms, the drawer curve);
+`setPointerCapture` is wrapped (it threw on a quick tap).
 **Dish references**: Figma page "Dish refs (generated)" (node 214:8, board 214:9), batch 1: six
 dishes made with Figma AI (`generate_image`, the user's go-ahead) from our ingredients, for plating
 and composition only. New images land on the "Feedback sessions" page: move them to this page.

@@ -570,11 +570,12 @@ mountStyleBar(document.getElementById('bar-root') as HTMLElement, {
 /* ---------- Cooking: from the table to the dish, and back ---------- */
 
 /**
- * Where we are: the table (ingredients, tray, panel), cooking (the transition is playing), or
- * the dish (the result screen). The page shows and hides its parts from this (`data-mode` on
+ * Where we are: the table (ingredients, tray, panel), cooking (the transition to the dish is
+ * playing), the dish (the result screen), returning (the transition back has begun) or
+ * settling (the table is being painted back in). The page shows and hides its parts from this (`data-mode` on
  * the body, kitchen.css).
  */
-type Mode = 'table' | 'cooking' | 'dish';
+type Mode = 'table' | 'cooking' | 'dish' | 'returning' | 'settling';
 let mode: Mode = 'table';
 /** The table's ingredients, set aside while the dish is on the card. */
 let parked: Item[] = [];
@@ -594,12 +595,20 @@ function setMode(next: Mode): void {
 
 /** The words that go with the picture: the page's title becomes the dish's name. */
 function setWords(dish: (typeof DISHES)[number] | null): void {
-  pageTitle.classList.add('is-changing');
-  window.setTimeout(() => {
-    pageTitle.textContent = dish ? dish.title : 'Forage';
-    dishText.textContent = dish ? dish.description : '';
-    pageTitle.classList.remove('is-changing');
-  }, 140);
+  // The description (it fades and rises in CSS, a beat behind the title).
+  if (dish) dishText.textContent = dish.description;
+  document.body.dataset.words = dish ? 'dish' : 'forage';
+  const text = dish ? dish.title : 'Forage';
+  if (prefersReducedMotion()) return void (pageTitle.textContent = text);
+  // The title dissolves into the new one: the old words soften and lift away, the new ones
+  // rise into place more slowly. (A plain swap made them "appear suddenly and disappear
+  // suddenly", the user, 2026-11-16.) A new change takes over from wherever the last one was.
+  gsap.killTweensOf(pageTitle);
+  gsap
+    .timeline()
+    .to(pageTitle, { opacity: 0, y: -4, filter: 'blur(4px)', duration: 0.26, ease: 'power1.in' })
+    .call(() => (pageTitle.textContent = text))
+    .fromTo(pageTitle, { opacity: 0, y: 6, filter: 'blur(4px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.5, ease: EASE.out, clearProps: 'transform,filter,opacity' });
 }
 
 /** Put a different set of things on the card at once (no animation of its own). */
@@ -670,10 +679,13 @@ function cook(): void {
 /** Back to the table, with the same ingredients as before. */
 function backToTable(): void {
   if (mode !== 'dish') return;
-  setMode('cooking');
+  setMode('returning');
   playSwap(
     parked,
-    () => setWords(null),
+    () => {
+      setWords(null);
+      setMode('settling');
+    },
     () => {
       parked = [];
       setMode('table');

@@ -281,19 +281,12 @@
   scale: 1.12;
   box-shadow: 0 2px 4px rgba(40, 32, 20, 0.12), 0 22px 44px rgba(40, 32, 20, 0.28);
 }
-/* Flying home: place, lean, size and shadow all ease back together, and it lands exactly as
-   the tile (same size, no shadow), so nothing jumps when the tile takes over. */
+/* Flying home (the move itself is one animation in tray.ts): its shadow and corners settle on
+   the way, so it lands exactly as the tile and nothing jumps when the tile takes over. */
 .tile-ghost[data-landing] {
-  scale: 1;
-  rotate: 0deg !important;
   border-radius: 4px;
   box-shadow: 0 0 0 rgba(40, 32, 20, 0);
-  transition:
-    translate 320ms var(--ease-out),
-    rotate 320ms var(--ease-out),
-    scale 320ms var(--ease-out),
-    box-shadow 320ms var(--ease-out),
-    border-radius 320ms var(--ease-out);
+  transition: box-shadow 460ms var(--ease-out), border-radius 460ms var(--ease-out);
 }
 /* Dropped on the table: it melts into it. */
 .tile-ghost[data-dropped] {
@@ -340,9 +333,25 @@
  * A small, quiet surface beside the card (about the size of the user's mockup). Spacing on a
  * 4 px grid: 24 round the edge, 24 between groups, 10 from a label to its control.
  */
+/* The small grey line above the panel, and the panel under it, as one column. */
+.cook-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transition: opacity 240ms ease;
+}
+.cook-caption {
+  margin: 0;
+  color: var(--ink-3);
+  font: 400 12px / 1 'Geist', var(--font);
+  letter-spacing: 0.01em;
+}
 .cook-panel {
   width: 264px;
   padding: 24px;
+  /* Everything in it sits on the middle line (the user, 2026-11-16). */
+  text-align: center;
   border-radius: 16px;
   background: #f6f5f2;
   box-shadow: inset 0 0 0 0.5px rgba(31, 30, 28, 0.06);
@@ -368,6 +377,7 @@
 .cook-chips {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 6px;
 }
 .chip {
@@ -465,6 +475,7 @@
 .cook-foot {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   margin-top: 4px;
 }
@@ -540,10 +551,41 @@
 /* ---------- From the table to the dish ---------- */
 
 /*
- * The page keeps its layout in every mode, so the card never jumps: parts only fade. While
- * cooking the tray and the panel step back; with the dish on the card they are gone, the title
- * becomes the dish's name, its description sits under the card and the card gets its buttons.
+ * The choreography (the choreograph skill; the card is the lead, everything else supports it).
+ *
+ * Cook is pressed:
+ *   0 ms      the tray and the panel fade out together (240 ms); they are leaving, so no stagger
+ *   0 ms      the card's column glides to the middle of the page (720 ms, ease-in-out), since
+ *             the panel beside it is going. One move, started with the fade, not after it.
+ *   ~1.1 s    as the dish starts to be painted in: the title dissolves from "Forage" into the
+ *             dish's name (out 260 ms, in 500 ms, main.ts) and, 120 ms behind it, the
+ *             description rises in under the card
+ *   2.4 s     the painting is done: Save recipe and the back button fade up
+ *
+ * Back is pressed: the buttons and the description go at once (exits are quick and together);
+ * as the table is painted back in, the title changes back, the column glides home and the tray
+ * and the panel return together.
+ *
+ * The page keeps its layout in every mode, so nothing jumps: parts only fade or glide.
  */
+.kitchen {
+  /* How far the card's column moves to reach the middle once the panel is gone: half the
+     panel and the gap. Only where the panel sits beside the card. */
+  --to-middle: 0px;
+}
+@media (min-width: 900px) {
+  .kitchen {
+    --to-middle: 148px;
+  }
+}
+.kitchen-main {
+  transition: translate 720ms cubic-bezier(0.77, 0, 0.175, 1);
+}
+body[data-mode='cooking'] .kitchen-main,
+body[data-mode='dish'] .kitchen-main,
+body[data-mode='returning'] .kitchen-main {
+  translate: var(--to-middle) 0;
+}
 .below-card {
   position: relative;
   align-self: stretch;
@@ -557,10 +599,7 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  transition: opacity 260ms ease;
-}
-.cook-panel {
-  transition: opacity 260ms ease;
+  transition: opacity 240ms ease;
 }
 .dish-text {
   margin: 4px 0 0;
@@ -568,27 +607,32 @@
   font: 400 14px / 1.5 'Geist', var(--font);
   text-wrap: pretty;
   opacity: 0;
-  translate: 0 6px;
+  translate: 0 8px;
   pointer-events: none;
-  transition: opacity 320ms ease, translate 420ms var(--ease-out);
+  /* Leaving: quick. */
+  transition: opacity 200ms ease, translate 200ms ease;
 }
-.lab-title {
-  transition: opacity 140ms ease, filter 140ms ease;
-}
-.lab-title.is-changing {
-  opacity: 0;
-  filter: blur(3px);
-}
-body[data-mode='cooking'] .tray-wrap,
-body[data-mode='cooking'] .cook-panel,
-body[data-mode='dish'] .tray-wrap,
-body[data-mode='dish'] .cook-panel {
-  opacity: 0;
-  pointer-events: none;
-}
+/* Arriving: a little after the title, slower, rising into place. */
+body[data-mode='cooking'][data-words='dish'] .dish-text,
 body[data-mode='dish'] .dish-text {
   opacity: 1;
   translate: 0 0;
+  transition: opacity 480ms ease 120ms, translate 560ms var(--ease-out) 120ms;
+}
+/* Away while a dish is cooking or showing; back (a beat after the table is painted in) on return. */
+body[data-mode='cooking'] .tray-wrap,
+body[data-mode='cooking'] .cook-side,
+body[data-mode='dish'] .tray-wrap,
+body[data-mode='dish'] .cook-side,
+body[data-mode='returning'] .tray-wrap,
+body[data-mode='returning'] .cook-side {
+  opacity: 0;
+  pointer-events: none;
+}
+body[data-mode='settling'] .tray-wrap,
+body[data-mode='settling'] .cook-side {
+  pointer-events: none;
+  transition: opacity 420ms ease 200ms;
 }
 body:not([data-mode='table']) .empty-hint {
   opacity: 0;
