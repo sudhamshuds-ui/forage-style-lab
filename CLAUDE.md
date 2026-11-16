@@ -759,6 +759,12 @@ highest cube under it, its middle over that cube, inside a mound-shaped height l
 tilts cut into each other and hung in the air, and without the limit they built a tower);
 chopped is a quarter of a dice's size and about nine times as many; **the heat slider snaps** to
 its five stops (step 25).
+**Round 4 (2026-11-16, the user's notes)**: the quantity pill is **back to round 2's**: floating
+above the ingredient while the card is hovered (the select-first outline was taken out: "revert
+back to prev interaction setup"); the slider's stop dots are gone (it still snaps); **about a
+quarter of the cubes lean** (`cubes`, pass 2: each stands on one bottom edge on the table and
+tips until its top edge rests against the side of a flat cube beside it, the angle worked out
+exactly so it touches and never cuts in; nothing is set down on a leaning cube).
 Not done yet: sizing in the viewport, per-ingredient
 slice shapes (citrus segments, onion rings, a hollow pepper), parameter categories per kind of
 ingredient (rice, sauces), a reduction in a bottle.

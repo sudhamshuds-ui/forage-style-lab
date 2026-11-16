@@ -75,33 +75,43 @@ function sliced(o: CutOptions): CutShape {
   return { flesh: mergeGeometries(flesh)!, skin: mergeGeometries(skin)! };
 }
 
-/** A cube lying flat on the table or on other cubes: its middle, its size and its turn. */
+/**
+ * A cube in the heap, seen from above as a rectangle: its middle, half its size each way, and
+ * its turn. A cube lying flat is a square; one leaning on a neighbour covers a longer patch.
+ */
 interface Die {
   x: number;
   z: number;
-  /** The height of its underside. */
+  hx: number;
+  hz: number;
+  yaw: number;
+  /** The height of its underside and its size (for a flat cube). */
   y: number;
   s: number;
-  yaw: number;
+  /** A leaning cube: nothing may be set down on it. */
+  leaning?: boolean;
+  /** Where the cube itself goes (its middle and its turn), ready for the mesh. */
+  matrix: Matrix4;
 }
 
-/** The four corners of a die's square footprint, seen from above. */
+/** The four corners of a die's footprint, seen from above. */
 function corners(d: Die, shrink = 1): [number, number][] {
-  const h = (d.s / 2) * shrink;
+  const hx = d.hx * shrink;
+  const hz = d.hz * shrink;
   const c = Math.cos(d.yaw);
   const n = Math.sin(d.yaw);
-  return [[-h, -h], [h, -h], [h, h], [-h, h]].map(([px, pz]) => [d.x + px * c - pz * n, d.z + px * n + pz * c]);
+  return [[-hx, -hz], [hx, -hz], [hx, hz], [-hx, hz]].map(([px, pz]) => [d.x + px * c - pz * n, d.z + px * n + pz * c]);
 }
 
-/** Do two square footprints overlap? (They do unless some edge of one has the other wholly beyond it.) */
-function footprintsOverlap(a: Die, b: Die): boolean {
-  const ca = corners(a);
-  const cb = corners(b);
+/** Do two footprints overlap? (They do unless some edge of one has the other wholly beyond it.) */
+function footprintsOverlap(a: Die, b: Die, shrink = 1): boolean {
+  const ca = corners(a, shrink);
+  const cb = corners(b, shrink);
   for (const [points, others] of [[ca, cb], [cb, ca]] as const) {
     for (let i = 0; i < 4; i++) {
       const [x1, z1] = points[i];
       const [x2, z2] = points[(i + 1) % 4];
-      // The edge's outward direction; if every corner of the other square is beyond it, they are apart.
+      // The edge's outward direction; if every corner of the other is beyond it, they are apart.
       const nx = z2 - z1;
       const nz = -(x2 - x1);
       if (others.every(([x, z]) => (x - x1) * nx + (z - z1) * nz > 1e-6)) return false;
@@ -116,16 +126,19 @@ function inside(d: Die, x: number, z: number): boolean {
   const n = Math.sin(-d.yaw);
   const lx = (x - d.x) * c - (z - d.z) * n;
   const lz = (x - d.x) * n + (z - d.z) * c;
-  const h = d.s * 0.42;
-  return Math.abs(lx) < h && Math.abs(lz) < h;
+  return Math.abs(lx) < d.hx * 0.84 && Math.abs(lz) < d.hz * 0.84;
 }
 
 /**
- * A heap of cubes, built the way you would build one by hand: each cube is set down flat, one
- * at a time. It rests on the table, or squarely on top of the highest cube under it, with its
- * middle over that cube so it would really stay there. Nothing is tilted, so no cube cuts into
- * another and none hangs in the air (both happened when cubes were scattered and tipped at
- * random; the user, 2026-11-16).
+ * A heap of cubes, built the way you would build one by hand, in two passes.
+ *
+ * 1. Flat cubes are set down one at a time: on the table, or squarely on top of the highest
+ *    cube under them, middle over it, inside a mound-shaped height limit (without the limit
+ *    they built a tower).
+ * 2. Leaning cubes are added round them (the user, 2026-11-16: "tilt resting on eachother on
+ *    some ... right now all are straight"): each stands on one bottom edge on the table and
+ *    tips over until its top edge rests against the side of a cube beside it, like a book
+ *    leaning on a bookend. The lean is worked out exactly, so it touches and never cuts in.
  *
  * `side` is the cube's size: dice are about 1.3 cm; finely chopped pieces a quarter of that,
  * and many more of them. Edges are sharp, with no bevel. Some cubes keep the peel on one face.
@@ -133,45 +146,83 @@ function inside(d: Die, x: number, z: number): boolean {
 function cubes(o: CutOptions, side: number, perMedium: number): CutShape {
   const random = seededRandom(o.seed ^ 0xd1ced);
   const count = Math.max(4, Math.round(perMedium * o.holds));
+  // About a quarter of them lean; the rest lie flat.
+  const leaners = Math.round(count * 0.26);
+  const flats = count - leaners;
   // How far the heap spreads: tight enough that cubes land on each other and it mounds.
-  const spread = side * Math.sqrt(count) * 0.5;
+  const spread = side * Math.sqrt(flats) * 0.5;
   /** How high the heap may stand in its middle: about a third as high as it is wide. */
   const peak = Math.max(side * 1.05, spread * 0.62);
   const dice: Die[] = [];
-  for (let i = 0; i < count; i++) {
+  const up = new Vector3(0, 1, 0);
+
+  // 1. The flat ones.
+  for (let i = 0; i < flats; i++) {
     const s = side * (0.85 + random() * 0.3);
-    let placed: Die | null = null;
-    for (let attempt = 0; attempt < 24 && !placed; attempt++) {
+    for (let attempt = 0; attempt < 24; attempt++) {
       // More land near the middle than at the edge; later attempts look further out.
       const reach = spread * (0.8 + attempt * 0.035);
       const a = random() * Math.PI * 2;
       const rn = random() ** 1.2;
-      const die: Die = { x: Math.cos(a) * reach * rn, z: Math.sin(a) * reach * rn, y: 0, s, yaw: random() * Math.PI };
+      const die: Die = { x: Math.cos(a) * reach * rn, z: Math.sin(a) * reach * rn, hx: s / 2, hz: s / 2, y: 0, s, yaw: random() * Math.PI, matrix: new Matrix4() };
       const under = dice.filter((other) => footprintsOverlap(die, other));
-      if (under.length === 0) {
-        placed = die;
-        break;
+      let fits = under.length === 0;
+      if (!fits) {
+        // It rests on the highest thing under it, only if its middle is over that cube, and
+        // only while the heap stays a mound: tall in the middle, low at the edge.
+        const top = Math.max(...under.map((other) => other.y + other.s));
+        const holders = under.filter((other) => other.y + other.s > top - 1e-4);
+        const limit = peak * Math.max(0, 1 - Math.hypot(die.x, die.z) / (spread * 1.15));
+        if (top <= limit && holders.some((other) => inside(other, die.x, die.z))) {
+          die.y = top;
+          fits = true;
+        }
       }
-      // It rests on the highest thing under it, and only if its middle is over that cube.
-      const top = Math.max(...under.map((other) => other.y + other.s));
-      const holders = under.filter((other) => other.y + other.s > top - 1e-4);
-      // And only while the heap stays a mound: tall in the middle, low at the edge. (Without
-      // this limit the cubes kept landing on the topmost one and built a tower.)
-      const limit = peak * Math.max(0, 1 - Math.hypot(die.x, die.z) / (spread * 1.15));
-      if (top <= limit && holders.some((other) => inside(other, die.x, die.z))) {
-        die.y = top;
-        placed = die;
-      }
+      if (!fits) continue;
+      die.matrix.compose(new Vector3(die.x, die.y + s / 2, die.z), new Quaternion().setFromAxisAngle(up, -die.yaw), new Vector3(1, 1, 1));
+      dice.push(die);
+      break;
     }
-    if (placed) dice.push(placed);
+  }
+
+  // 2. The leaning ones, each against the side of a cube standing on the table.
+  const onTable = dice.filter((d) => d.y === 0);
+  for (let i = 0; i < leaners && onTable.length > 0; i++) {
+    const s = side * (0.85 + random() * 0.3);
+    for (let attempt = 0; attempt < 16; attempt++) {
+      const prop = onTable[Math.floor(random() * onTable.length)];
+      // One of the prop's four sides, and a spot along it.
+      const face = prop.yaw + (Math.floor(random() * 4) * Math.PI) / 2;
+      const nx = Math.cos(face);
+      const nz = Math.sin(face);
+      const along = (random() - 0.5) * prop.s * 0.5;
+      // How far it tips: enough that its top edge meets the prop's side below the prop's top.
+      const least = Math.acos(Math.min(1, (prop.s * 0.96) / s));
+      const tip = Math.max(least + 0.04, 0.2 + random() * 0.38);
+      // Seen from the side, measuring out from the prop's face: its near bottom edge stands
+      // `gap` away, and the cube tips back by `tip` until its top edge touches the face.
+      const gap = s * Math.sin(tip);
+      const reach = gap + s * Math.cos(tip);
+      const fx = prop.x + nx * (prop.s / 2) - nz * along;
+      const fz = prop.z + nz * (prop.s / 2) + nx * along;
+      const die: Die = { x: fx + (nx * reach) / 2, z: fz + (nz * reach) / 2, hx: reach / 2, hz: s / 2, y: 0, s, yaw: face, leaning: true, matrix: new Matrix4() };
+      // Free ground only: it may touch its prop, nothing else.
+      if (dice.some((other) => other !== prop && footprintsOverlap(die, other)) || footprintsOverlap(die, prop, 0.97)) continue;
+      // The cube's own three directions: along its tipped base, up its tipped side, and across.
+      const base = new Vector3(nx, 0, nz).multiplyScalar(Math.cos(tip)).addScaledVector(up, Math.sin(tip));
+      const rise = new Vector3(nx, 0, nz).multiplyScalar(-Math.sin(tip)).addScaledVector(up, Math.cos(tip));
+      const across = new Vector3().crossVectors(base, rise);
+      const middle = new Vector3(fx + nx * gap, 0, fz + nz * gap).addScaledVector(base, s / 2).addScaledVector(rise, s / 2);
+      die.matrix.makeBasis(base, rise, across).setPosition(middle);
+      dice.push(die);
+      break;
+    }
   }
 
   const flesh: BufferGeometry[] = [];
   const skin: BufferGeometry[] = [];
   for (const d of dice) {
-    const turn = new Euler(0, -d.yaw, 0);
-    const at = new Vector3(d.x, d.y + d.s / 2, d.z);
-    flesh.push(place(plain(new BoxGeometry(d.s, d.s, d.s)), at, turn));
+    flesh.push(plain(new BoxGeometry(d.s, d.s, d.s)).applyMatrix4(d.matrix));
     // About four in ten keep the peel on one face (an apple cube with one red side): a thin
     // sheet set into the top or one of the sides, a hair proud of it.
     if (random() < 0.42) {
@@ -185,7 +236,7 @@ function cubes(o: CutOptions, side: number, perMedium: number): CutShape {
       ];
       const [offset, flat] = sides[Math.floor(random() * sides.length)];
       place(sheet, offset, flat);
-      skin.push(place(sheet, at, turn));
+      skin.push(sheet.applyMatrix4(d.matrix));
     }
   }
   return { flesh: mergeGeometries(flesh)!, skin: skin.length ? mergeGeometries(skin)! : undefined };

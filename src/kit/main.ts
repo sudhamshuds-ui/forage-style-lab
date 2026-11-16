@@ -3,7 +3,7 @@ import '../style.css';
 import '../ui/styleBar.css';
 import '../kitchen/kitchen.css';
 import './kit.css';
-import { Group, Mesh, Raycaster, Vector2, Vector3, type IUniform, type ShaderMaterial } from 'three';
+import { Group, Mesh, Vector2, Vector3, type IUniform, type ShaderMaterial } from 'three';
 import { DEFAULTS, defaultSettings } from '../params';
 import { applyPalette, findPalette } from '../palettes';
 import { Stage } from '../scene/stage';
@@ -29,7 +29,6 @@ import { mixHex } from '../utils/colour';
 import { CUTS, buildCut, type Cut } from './cuts';
 import { RAW, heatLook, heatName, heated } from './heat';
 import { mountKitPanel } from './panel';
-import { OutlineTracer } from '../kitchen/outline';
 
 /**
  * The Forage kit: the parts a dish is built from, tried out one ingredient at a time.
@@ -86,14 +85,12 @@ const ground = new Ground();
 const framed = new Group();
 const painter = new Painter();
 const transition = new ShuffleTransition();
-const tracer = new OutlineTracer();
 stage.scene.add(background.mesh, ground.mesh, framed);
 let needsFraming = true;
 let swapping = false;
 stage.onResize = (width, height) => {
   painter.setSize(width, height);
   transition.setSize(width, height);
-  tracer.setSize(stage.size.width, stage.size.height);
   needsFraming = true;
 };
 
@@ -326,8 +323,7 @@ function update(): void {
   background.update(settings, context);
   ground.update(settings.scene, context.lightDirection, true);
   stage.keyLight.castShadow = settings.scene.castShadow;
-  // The slow turn rests while the ingredient is pointed at or selected, so the outline holds still.
-  stage.setIdleSpin(settings.scene.idleSpin && !reducedMotion.matches && !hovered && !selected, settings.scene.spinSpeed);
+  stage.setIdleSpin(settings.scene.idleSpin && !reducedMotion.matches, settings.scene.spinSpeed);
 
   const centre = context.objectCentre;
   const radius = context.objectRadius;
@@ -346,83 +342,13 @@ function update(): void {
     const above = new Vector3(spot.x, context.groundY, spot.y).addScaledVector(stage.camera.up, spot.z).project(stage.camera);
     return new Vector3(floor.x * 0.5 + 0.5, floor.y * 0.5 + 0.5, Math.abs(above.y - floor.y) * 0.5);
   });
+
+  // The quantity stepper floats just above the ingredient.
+  qty.style.left = `${Math.min(0.86, Math.max(0.14, paintFrame.objectUv.x)) * 100}%`;
+  qty.style.top = `${Math.min(0.8, Math.max(0.16, 1 - paintFrame.objectUv.y - paintFrame.objectRadius * 1.25)) * 100}%`;
 }
 
-/*
- * Pointing at the ingredient and selecting it, as in the kitchen: hover shows a light veil and
- * a dashed outline traced from its real silhouette; a click selects it (the veil breathes, the
- * dashes travel) and the quantity stepper appears at its top right.
- */
-let hovered = false;
-let selected = false;
-const overlay = document.getElementById('outline') as unknown as SVGSVGElement;
-const outlinePaths = ['.outline-fill', '.outline-shade', '.outline-dash'].map((name) => overlay.querySelector(name) as SVGPathElement);
-
-function drawOutline(): void {
-  if ((!hovered && !selected) || swapping) {
-    overlay.dataset.state = 'off';
-    qty.hidden = true;
-    return;
-  }
-  // Everything on the table is the one ingredient: trace it all as one shape.
-  const traced = tracer.trace(stage.renderer, stage.scene, stage.camera, framed, [], [background.mesh, ground.mesh]);
-  overlay.setAttribute('viewBox', `0 0 ${traced.width} ${traced.height}`);
-  for (const path of outlinePaths) path.setAttribute('d', traced.path);
-  overlay.dataset.state = selected ? 'selected' : 'hover';
-  if (selected && traced.box) {
-    qty.style.left = `${Math.min(0.86, Math.max(0.14, (traced.box.maxX + 16) / traced.width)) * 100}%`;
-    qty.style.top = `${Math.min(0.9, Math.max(0.07, (traced.box.minY + 4) / traced.height)) * 100}%`;
-    qty.hidden = false;
-  } else qty.hidden = true;
-}
-
-const draw = () => {
-  painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame);
-  drawOutline();
-};
-
-const raycaster = new Raycaster();
-const pointer = new Vector2();
-/** Is the ingredient under this point on the page? */
-function hit(clientX: number, clientY: number): boolean {
-  const rect = canvas.getBoundingClientRect();
-  pointer.set(((clientX - rect.left) / rect.width) * 2 - 1, -(((clientY - rect.top) / rect.height) * 2 - 1));
-  raycaster.setFromCamera(pointer, stage.camera);
-  return raycaster.intersectObject(framed, true).length > 0;
-}
-function select(on: boolean): void {
-  if (selected === on) return;
-  selected = on;
-  stage.invalidate();
-}
-let pressedAt: { x: number; y: number } | null = null;
-canvas.addEventListener('pointermove', (event) => {
-  if (event.buttons !== 0 || swapping) return;
-  const over = hit(event.clientX, event.clientY);
-  if (over === hovered) return;
-  hovered = over;
-  canvas.style.cursor = over ? 'pointer' : '';
-  stage.invalidate();
-});
-canvas.addEventListener('pointerleave', () => {
-  if (!hovered) return;
-  hovered = false;
-  canvas.style.cursor = '';
-  stage.invalidate();
-});
-canvas.addEventListener('pointerdown', (event) => (pressedAt = { x: event.clientX, y: event.clientY }));
-canvas.addEventListener('pointerup', (event) => {
-  // A click, not a drag of the view: select the ingredient, or clear the selection.
-  if (!pressedAt || Math.hypot(event.clientX - pressedAt.x, event.clientY - pressedAt.y) > 5) return;
-  select(hit(event.clientX, event.clientY));
-});
-window.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape') select(false);
-});
-// A press anywhere outside the card clears the selection.
-document.addEventListener('pointerdown', (event) => {
-  if (selected && !card.contains(event.target as Node)) select(false);
-});
+const draw = () => painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame);
 
 /* ---------- Changing things ---------- */
 
@@ -485,8 +411,6 @@ function newIngredient(): void {
     return crossfade(() => put(build()));
   }
   swapping = true;
-  select(false);
-  hovered = false;
   card.toggleAttribute('data-busy', true);
   for (const listener of busyListeners) listener(true);
   update();

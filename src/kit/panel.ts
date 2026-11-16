@@ -67,10 +67,7 @@ export function mountKitPanel(
   const ends = document.createElement('span');
   ends.className = 'cook-slider-ends';
   ends.innerHTML = '<span>Frozen</span><span>Burnt</span>';
-  const stops = document.createElement('span');
-  stops.className = 'kit-heat-stops';
-  stops.innerHTML = '<i></i>'.repeat(Math.round(100 / options.heatStep) + 1);
-  heat.append(name, input, stops, ends);
+  heat.append(name, input, ends);
   root.append(heat);
 
   const foot = document.createElement('div');
