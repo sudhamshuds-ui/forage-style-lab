@@ -337,7 +337,7 @@
 .cook-side {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   transition: opacity 240ms ease;
 }
@@ -350,8 +350,7 @@
 .cook-panel {
   width: 264px;
   padding: 24px;
-  /* Everything in it sits on the middle line (the user, 2026-11-16). */
-  text-align: center;
+  /* Left-aligned (centring was tried in round 5 and reverted by the user, 2026-11-16). */
   border-radius: 16px;
   background: #f6f5f2;
   box-shadow: inset 0 0 0 0.5px rgba(31, 30, 28, 0.06);
@@ -377,7 +376,6 @@
 .cook-chips {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 6px;
 }
 .chip {
@@ -475,7 +473,6 @@
 .cook-foot {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
   margin-top: 4px;
 }
@@ -579,12 +576,35 @@
   }
 }
 .kitchen-main {
-  transition: translate 720ms cubic-bezier(0.77, 0, 0.175, 1);
+  /* The card morphs into the middle (the user, 2026-11-16: "instead of moving the viewport to
+     centre, just expand it a bit, sort of morph it into center"): its column eases over while the
+     card grows a little from its top edge, and the words under it move down with its foot, all as
+     one soft motion that settles gently (ease-out), never a slide that stops hard. */
+  --grow: 1.08;
+  transition: translate 820ms var(--ease-out);
+}
+.kitchen-main .card {
+  transform-origin: 50% 0;
+  transition: scale 820ms var(--ease-out), outline-color 160ms ease, outline-width 160ms var(--ease-out), outline-offset 160ms var(--ease-out);
+}
+.kitchen-main .below-card {
+  transition: translate 820ms var(--ease-out);
 }
 body[data-mode='cooking'] .kitchen-main,
 body[data-mode='dish'] .kitchen-main,
 body[data-mode='returning'] .kitchen-main {
   translate: var(--to-middle) 0;
+}
+body[data-mode='cooking'] .kitchen-main .card,
+body[data-mode='dish'] .kitchen-main .card,
+body[data-mode='returning'] .kitchen-main .card {
+  scale: var(--grow);
+}
+body[data-mode='cooking'] .kitchen-main .below-card,
+body[data-mode='dish'] .kitchen-main .below-card,
+body[data-mode='returning'] .kitchen-main .below-card {
+  /* The card's foot moves down by the extra height it grew (its height is 6/5 of its width). */
+  translate: 0 calc(var(--card-w) * 6 / 5 * (var(--grow) - 1));
 }
 .below-card {
   position: relative;
@@ -632,7 +652,16 @@ body[data-mode='returning'] .cook-side {
 body[data-mode='settling'] .tray-wrap,
 body[data-mode='settling'] .cook-side {
   pointer-events: none;
+}
+body[data-mode='settling'] .tray-wrap,
+body[data-mode='table'] .tray-wrap {
   transition: opacity 420ms ease 200ms;
+}
+/* The panel comes back last, only once the card has moved home (820 ms), so the two never
+   overlap (the user, 2026-11-16). */
+body[data-mode='settling'] .cook-side,
+body[data-mode='table'] .cook-side {
+  transition: opacity 360ms ease 820ms;
 }
 body:not([data-mode='table']) .empty-hint {
   opacity: 0;

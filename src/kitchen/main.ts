@@ -599,16 +599,29 @@ function setWords(dish: (typeof DISHES)[number] | null): void {
   if (dish) dishText.textContent = dish.description;
   document.body.dataset.words = dish ? 'dish' : 'forage';
   const text = dish ? dish.title : 'Forage';
-  if (prefersReducedMotion()) return void (pageTitle.textContent = text);
+  if (prefersReducedMotion()) {
+    pageTitle.textContent = text;
+    pageTitle.style.opacity = '';
+    return;
+  }
   // The title dissolves into the new one: the old words soften and lift away, the new ones
   // rise into place more slowly. (A plain swap made them "appear suddenly and disappear
   // suddenly", the user, 2026-11-16.) A new change takes over from wherever the last one was.
   gsap.killTweensOf(pageTitle);
+  // Already faded away (Cook hides "Forage" at once): the new words only come in.
+  const hidden = Number(gsap.getProperty(pageTitle, 'opacity')) < 0.05;
   gsap
     .timeline()
-    .to(pageTitle, { opacity: 0, y: -4, filter: 'blur(4px)', duration: 0.26, ease: 'power1.in' })
+    .to(pageTitle, { opacity: 0, y: -4, filter: 'blur(4px)', duration: hidden ? 0 : 0.26, ease: 'power1.in' })
     .call(() => (pageTitle.textContent = text))
     .fromTo(pageTitle, { opacity: 0, y: 6, filter: 'blur(4px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.5, ease: EASE.out, clearProps: 'transform,filter,opacity' });
+}
+
+/** The title leaves at once (Cook: "Forage" should go the moment it is clicked, the user, 2026-11-16). */
+function hideTitle(): void {
+  if (prefersReducedMotion()) return void (pageTitle.style.opacity = '0');
+  gsap.killTweensOf(pageTitle);
+  gsap.to(pageTitle, { opacity: 0, y: -4, filter: 'blur(4px)', duration: 0.18, ease: 'power1.in' });
 }
 
 /** Put a different set of things on the card at once (no animation of its own). */
@@ -668,6 +681,7 @@ function cook(): void {
   const item = dishItem ?? makeItemFrom(dish.entry);
   dishItem = item;
   parked = staying();
+  hideTitle();
   setMode('cooking');
   playSwap(
     [item],

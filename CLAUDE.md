@@ -687,6 +687,12 @@ while the tray and panel fade, the title dissolves into the dish's name (a GSAP 
 more modes (returning, settling). The timeline is written out in `kitchen.css`. The tile's flight
 home is one Web Animations move from its live place, lean and size (460 ms, the drawer curve);
 `setPointerCapture` is wrapped (it threw on a quick tap).
+**Round 6 (2026-11-16, the user's notes)**: the panel's contents left-aligned again (round 5's
+centring reverted); on Cook the card morphs to the middle instead of sliding: its column eases over
+while the card grows by 8% from its top edge (`--grow`) and the words under it move down with its
+foot, one ease-out motion (820 ms); "Forage" leaves the moment Cook is pressed (`hideTitle`), the
+dish's name comes in at the swap; on the way back the tray returns with the table and the panel
+last, once the card is home (an 820 ms delay), so they never overlap.
 **Dish references**: Figma page "Dish refs (generated)" (node 214:8, board 214:9), batch 1: six
 dishes made with Figma AI (`generate_image`, the user's go-ahead) from our ingredients, for plating
 and composition only. New images land on the "Feedback sessions" page: move them to this page.
