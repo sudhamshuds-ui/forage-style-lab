@@ -15,7 +15,7 @@ export interface KitPanel {
 
 export function mountKitPanel(
   root: HTMLElement,
-  options: { preps: readonly string[]; defaults: KitChoices; heatName: (value: number) => string; onChange: (values: KitChoices, what: 'prep' | 'heat' | 'reset') => void },
+  options: { preps: readonly string[]; defaults: KitChoices; heatStep: number; heatName: (value: number) => string; onChange: (values: KitChoices, what: 'prep' | 'heat' | 'reset') => void },
 ): KitPanel {
   const values: KitChoices = { ...options.defaults };
 
@@ -57,7 +57,8 @@ export function mountKitPanel(
   input.type = 'range';
   input.min = '0';
   input.max = '100';
-  input.step = '1';
+  // It snaps to the five heats (the user, 2026-11-16).
+  input.step = String(options.heatStep);
   input.addEventListener('input', () => {
     values.heat = Number(input.value);
     paint();
@@ -66,7 +67,10 @@ export function mountKitPanel(
   const ends = document.createElement('span');
   ends.className = 'cook-slider-ends';
   ends.innerHTML = '<span>Frozen</span><span>Burnt</span>';
-  heat.append(name, input, ends);
+  const stops = document.createElement('span');
+  stops.className = 'kit-heat-stops';
+  stops.innerHTML = '<i></i>'.repeat(Math.round(100 / options.heatStep) + 1);
+  heat.append(name, input, stops, ends);
   root.append(heat);
 
   const foot = document.createElement('div');

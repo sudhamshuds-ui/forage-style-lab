@@ -750,6 +750,15 @@ a little differently), one to five helpings of a cut (`HELPINGS`); **heat is a s
 100, the five heats as stops a quarter apart, blended between: `heated`, `heatLook`, `heatName`);
 **New ingredient puts the parameters back** to Whole, Raw, one. Next (the user): go into the
 detail of each form and texture.
+**Round 3 (2026-11-16, the user's notes)**: the ingredient is hovered and selected as in the
+kitchen (the same traced dashed outline, `kitchen/outline.ts`), and the quantity pill shows only
+when it is selected, at its top right; **Puree is a squeeze bottle** (the user's reference: a
+body in the puree's colour, a cream cone cap; one to three bottles); **Diced and Chopped are sharp
+cubes set down flat, one at a time** (`cubes` in `cuts.ts`: on the table or squarely on the
+highest cube under it, its middle over that cube, inside a mound-shaped height limit; random
+tilts cut into each other and hung in the air, and without the limit they built a tower);
+chopped is a quarter of a dice's size and about nine times as many; **the heat slider snaps** to
+its five stops (step 25).
 Not done yet: sizing in the viewport, per-ingredient
 slice shapes (citrus segments, onion rings, a hollow pepper), parameter categories per kind of
 ingredient (rice, sauces), a reduction in a bottle.
