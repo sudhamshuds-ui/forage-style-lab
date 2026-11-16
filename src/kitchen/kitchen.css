@@ -17,7 +17,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 24px 48px;
+  gap: 24px 32px;
   padding: 32px 16px 24px;
 }
 .kitchen-main {
@@ -193,7 +193,7 @@
 .tray {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin-top: 4px;
 }
 .tray-list {
@@ -282,8 +282,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -310,49 +310,52 @@
 
 /* ---------- The cooking panel ---------- */
 
+/*
+ * A small, quiet surface beside the card (about the size of the user's mockup). Spacing on a
+ * 4 px grid: 16 round the edge, 16 between groups, 8 from a label to its control.
+ */
 .cook-panel {
-  width: 272px;
-  padding: 18px 18px 16px;
-  border-radius: 14px;
-  background: #f6f4f0;
+  width: 224px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #f6f5f2;
+  box-shadow: inset 0 0 0 0.5px rgba(31, 30, 28, 0.06);
   color: var(--ink);
-  font: 400 13px 'Geist', var(--font);
-}
-.cook-title {
-  margin: 0 0 14px;
-  font: 400 21px / 1.1 'Geist Serif', Georgia, serif;
-  letter-spacing: -0.01em;
+  font: 400 13px / 1.35 'Geist', var(--font);
 }
 .cook-group {
-  margin: 0 0 14px;
+  display: block;
+  margin: 0 0 16px;
   padding: 0;
   border: 0;
   min-width: 0;
 }
 .cook-group legend,
-.cook-slider-name {
+.cook-label {
   display: block;
-  margin-bottom: 7px;
+  margin-bottom: 8px;
   padding: 0;
-  color: var(--ink-3);
-  font: 500 12px 'Geist', var(--font);
+  color: var(--ink-2);
+  font: 500 12px / 1 'Geist', var(--font);
+  letter-spacing: 0.01em;
 }
 .cook-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px;
 }
 .chip {
   height: 28px;
-  padding: 0 11px;
+  padding: 0 10px;
   border: 0;
   border-radius: 999px;
   color: var(--ink);
   font: 500 13px 'Geist', var(--font);
   background: #ffffff;
-  box-shadow: 0 0 0 0.5px rgba(31, 30, 28, 0.12);
+  box-shadow: 0 0 0 0.5px rgba(31, 30, 28, 0.1), 0 1px 1px rgba(40, 32, 20, 0.04);
   cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease, transform 120ms var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 120ms var(--ease-out);
 }
 .chip:active {
   transform: scale(0.97);
@@ -360,6 +363,7 @@
 .chip[data-on] {
   color: #ffffff;
   background: rgba(31, 30, 28, 0.92);
+  box-shadow: 0 1px 2px rgba(40, 32, 20, 0.18);
 }
 .chip:focus-visible,
 .cook-reset:focus-visible {
@@ -368,19 +372,15 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .chip:not([data-on]):hover {
-    background: #ebe8e2;
+    background: #efede8;
   }
-}
-.cook-slider {
-  display: block;
-  margin-bottom: 14px;
 }
 .cook-slider input {
   -webkit-appearance: none;
   appearance: none;
   display: block;
   width: 100%;
-  height: 18px;
+  height: 20px;
   margin: 0;
   background: transparent;
   cursor: pointer;
@@ -388,48 +388,67 @@
 .cook-slider input::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 2px;
-  background: linear-gradient(to right, var(--ink) var(--fill, 50%), #dedad3 var(--fill, 50%));
+  background: linear-gradient(to right, var(--ink) var(--fill, 50%), #dfdcd5 var(--fill, 50%));
 }
 .cook-slider input::-moz-range-track {
   height: 4px;
   border-radius: 2px;
-  background: linear-gradient(to right, var(--ink) var(--fill, 50%), #dedad3 var(--fill, 50%));
+  background: linear-gradient(to right, var(--ink) var(--fill, 50%), #dfdcd5 var(--fill, 50%));
 }
 .cook-slider input::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  margin-top: -6px;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 0 0 0.5px rgba(31, 30, 28, 0.2), 0 1px 4px rgba(40, 32, 20, 0.25);
+  box-shadow: 0 0 0 0.5px rgba(31, 30, 28, 0.16), 0 1px 3px rgba(40, 32, 20, 0.24);
+  transition: transform 120ms var(--ease-out);
+}
+.cook-slider input:active::-webkit-slider-thumb {
+  transform: scale(1.12);
 }
 .cook-slider input::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border: 0;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 0 0 0.5px rgba(31, 30, 28, 0.2), 0 1px 4px rgba(40, 32, 20, 0.25);
+  box-shadow: 0 0 0 0.5px rgba(31, 30, 28, 0.16), 0 1px 3px rgba(40, 32, 20, 0.24);
+}
+.cook-slider input:focus-visible {
+  outline: 2px solid rgba(31, 30, 28, 0.45);
+  outline-offset: 4px;
+  border-radius: 4px;
 }
 .cook-slider-ends {
   display: flex;
   justify-content: space-between;
-  margin-top: 3px;
-  color: var(--ink-3);
+  margin-top: 2px;
+  color: var(--ink-2);
   font-size: 12px;
 }
+.cook-note {
+  display: block;
+  margin-top: 8px;
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1.4;
+}
 .cook-reset {
-  height: 30px;
-  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  margin: 0 0 0 -8px;
+  padding: 0 8px;
   border: 0;
   border-radius: 999px;
-  color: var(--ink);
-  font: 500 13px 'Geist', var(--font);
+  color: var(--ink-2);
+  font: 500 12px 'Geist', var(--font);
   background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(31, 30, 28, 0.18);
   cursor: pointer;
-  transition: opacity 150ms ease, background-color 150ms ease, transform 120ms var(--ease-out);
+  transition: opacity 150ms ease, background-color 150ms ease, color 150ms ease, transform 120ms var(--ease-out);
 }
 .cook-reset:disabled {
   opacity: 0.4;
@@ -440,6 +459,7 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .cook-reset:not(:disabled):hover {
+    color: var(--ink);
     background: rgba(31, 30, 28, 0.06);
   }
 }

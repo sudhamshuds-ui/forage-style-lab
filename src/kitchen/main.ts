@@ -21,6 +21,8 @@ import { Painter, type PaintFrame } from '../painting/painter';
 import { OutlineTracer } from './outline';
 import { mountTray } from './tray';
 import { mountCookPanel } from './panel';
+import { mountStyleBar } from '../ui/styleBar';
+import { paintLike } from '../randomize';
 
 /**
  * The kitchen: up to three ingredients on the table at once, ready to cook.
@@ -166,6 +168,60 @@ function makeItem(id: string): Item | null {
   };
 }
 
+/*
+ * Ready-made ingredients. Building an ingredient and compiling its paint (shaders) for the
+ * graphics chip takes a moment, and done at the drop it froze the whole page for seconds (the
+ * user, 2026-11-16). So every ingredient showing in the tray is prepared ahead, in the
+ * background, in idle moments: built, then compiled without blocking the screen. A drop then
+ * only has to put it on the table. Like pre-rendering the next shots.
+ */
+const ready = new Map<string, Item>();
+const queue: string[] = [];
+let preparing = false;
+
+function whenIdle(job: () => void): void {
+  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(job, { timeout: 1200 });
+  else window.setTimeout(job, 120);
+}
+
+function prepareNext(): void {
+  if (preparing) return;
+  const id = queue.shift();
+  if (id === undefined) return;
+  if (ready.has(id) || items.some((item) => item.id === id)) return prepareNext();
+  preparing = true;
+  whenIdle(() => {
+    const item = makeItem(id);
+    const done = () => {
+      preparing = false;
+      prepareNext();
+    };
+    if (!item) return done();
+    stage.renderer
+      .compileAsync(item.subject.group, stage.camera, stage.scene)
+      .catch(() => undefined)
+      .then(() => {
+        // Still wanted? (The tray may have been shuffled meanwhile.)
+        if (wanted.has(id) && !ready.has(id) && !items.some((entry) => entry.id === id)) ready.set(id, item);
+        else item.subject.dispose();
+        done();
+      });
+  });
+}
+
+/** The ingredients showing in the tray: keep exactly these ready. */
+let wanted = new Set<string>();
+function keepReady(ids: string[]): void {
+  wanted = new Set(ids);
+  for (const [id, item] of ready) {
+    if (wanted.has(id)) continue;
+    item.subject.dispose();
+    ready.delete(id);
+  }
+  queue.splice(0, queue.length, ...ids);
+  prepareNext();
+}
+
 /**
  * Where each ingredient sits (in the layer: +x to the right of the starting view, +z toward it).
  * One: the middle. Two: side by side, the second a little further back. Three: the tallest
@@ -232,8 +288,9 @@ function relayout(animate = true): void {
     gsap.killTweensOf(item.position);
     gsap.to(item.position, { x: item.target.x, y: 0, z: item.target.z, duration, ease: EASE.out });
     if (item.pop < 1) {
+      // It settles to full size with no bounce (the bounce was "a lot", the user, 2026-11-16).
       gsap.killTweensOf(item);
-      gsap.to(item, { pop: 1, duration: instant ? 0 : 0.45, ease: 'back.out(1.6)' });
+      gsap.to(item, { pop: 1, duration: instant ? 0 : 0.4, ease: EASE.out });
     }
   }
   stage.invalidate();
@@ -273,21 +330,25 @@ function onStage(id: string): boolean {
 }
 
 /** Add an ingredient to the table. Returns false if it is already there or the table is full. */
-function addIngredient(id: string): boolean {
+function addIngredient(id: string, animate = true): boolean {
   if (onStage(id) || staying().length >= MAX_ITEMS) return false;
-  const item = makeItem(id);
+  // The ready-made one if there is one (the usual case), else build it now.
+  const item = ready.get(id) ?? makeItem(id);
+  ready.delete(id);
   if (!item) return false;
-  const roomBefore = staying()[0]?.id;
-  items.push(item);
-  framed.add(item.subject.group);
-  arrange(staying());
-  // It appears where it will sit and grows in; the others slide over to make room.
-  item.position.copy(item.target);
+  // It fades in over the picture as it was (the crossfade) while it eases up from nine tenths
+  // of its size, and the others slide over to make room. Nothing pops out of nowhere.
   const change = () => {
+    items.push(item);
+    framed.add(item.subject.group);
+    item.leaving = false;
+    item.pop = animate ? 0.9 : 1;
+    arrange(staying());
+    item.position.copy(item.target);
     applyRoom();
-    relayout();
+    relayout(animate);
   };
-  if (staying()[0]?.id !== roomBefore) crossfade(change);
+  if (animate && !prefersReducedMotion()) crossfade(change, 0.28);
   else change();
   select(null);
   changed();
@@ -301,22 +362,20 @@ function removeIngredient(id: string): void {
   item.leaving = true;
   if (selected === item) select(null);
   if (hovered === item) hovered = null;
-  const wasFirst = items.filter((entry) => !entry.leaving || entry === item)[0] === item;
-  const finish = () => {
+  gsap.killTweensOf(item);
+  gsap.killTweensOf(item.position);
+  // It fades away (the crossfade) and the others re-centre. If its tile is still in the tray it
+  // goes back to the ready-made ones, so dropping it again is instant.
+  const change = () => {
     framed.remove(item.subject.group);
     items.splice(items.indexOf(item), 1);
-    item.subject.dispose();
-    stage.invalidate();
-  };
-  gsap.killTweensOf(item);
-  gsap.to(item, { pop: 0, duration: prefersReducedMotion() ? 0 : 0.22, ease: 'power2.in', onUpdate: () => stage.invalidate(), onComplete: finish });
-  const change = () => {
+    if (wanted.has(item.id)) ready.set(item.id, item);
+    else item.subject.dispose();
     applyRoom();
     relayout();
   };
-  // The room belongs to the first ingredient: if that one leaves, the room dissolves to the next.
-  if (wasFirst) crossfade(change);
-  else change();
+  if (prefersReducedMotion()) change();
+  else crossfade(change, 0.24);
   changed();
 }
 
@@ -429,8 +488,6 @@ window.addEventListener('keydown', (event) => {
 
 /* ---------- The controls: tray, Cook, brush, cooking panel ---------- */
 
-const cookButton = document.getElementById('btn-cook') as HTMLButtonElement;
-const brushButton = document.getElementById('btn-brush') as HTMLButtonElement;
 const emptyHint = document.getElementById('empty-hint') as HTMLElement;
 
 const tray = mountTray(document.getElementById('tray') as HTMLElement, {
@@ -444,6 +501,7 @@ const tray = mountTray(document.getElementById('tray') as HTMLElement, {
     stage.invalidate();
   },
   onUsedClick: (id) => select(staying().find((item) => item.id === id) ?? null),
+  onDeal: keepReady,
 });
 
 mountCookPanel(document.getElementById('cook-panel') as HTMLElement);
@@ -452,18 +510,39 @@ mountCookPanel(document.getElementById('cook-panel') as HTMLElement);
 function changed(): void {
   const count = staying().length;
   // No ingredient, nothing to cook (the user, 2026-11-16).
-  cookButton.disabled = count === 0;
+  for (const listener of cookListeners) listener(count > 0);
   emptyHint.dataset.show = String(count === 0);
   card.dataset.full = String(count >= MAX_ITEMS);
   tray.refresh();
 }
 
-brushButton.addEventListener('click', () => {
-  crossfade(() => {
-    settings.brush.classic = !settings.brush.classic;
-    brushButton.parentElement?.toggleAttribute('data-on', settings.brush.classic);
-    brushButton.setAttribute('aria-pressed', String(settings.brush.classic));
-  }, 0.22);
+/*
+ * Cook and the brush on the card: the Style Lab's own controls (ui/styleBar.tsx), with Cook in
+ * place of New ingredient. The brush switches the painterly look; its arrow opens the painters.
+ */
+const cookListeners = new Set<(enabled: boolean) => void>();
+mountStyleBar(document.getElementById('bar-root') as HTMLElement, {
+  shuffle: () => undefined,
+  onBusy: () => () => undefined,
+  painterly: () => settings.brush.classic,
+  painter: () => settings.brush.painter,
+  setPainterly: (on) => crossfade(() => (settings.brush.classic = on), 0.22),
+  setPainter: (id) =>
+    crossfade(() => {
+      Object.assign(settings.brush, paintLike(id));
+      settings.brush.classic = true;
+    }, 0.22),
+  swapSeconds: 0,
+  primary: {
+    label: 'Cook',
+    enabled: () => staying().length > 0,
+    onEnabled: (listener) => {
+      cookListeners.add(listener);
+      return () => cookListeners.delete(listener);
+    },
+    // Cooking itself is the next round.
+    click: () => undefined,
+  },
 });
 
 /* ---------- Each frame ---------- */
@@ -578,6 +657,8 @@ function draw(): void {
 applyRoom();
 changed();
 stage.start(update, draw);
+// The table starts with one ingredient on it, its tile greyed out in the tray (the user, 2026-11-16).
+addIngredient(tray.ids()[0], false);
 // GSAP moves things between frames: keep painting while any tween is running.
 gsap.ticker.add(() => {
   if (items.some((item) => gsap.isTweening(item) || gsap.isTweening(item.position)) || gsap.isTweening(view)) stage.invalidate();

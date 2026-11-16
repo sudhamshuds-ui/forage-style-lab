@@ -34,11 +34,15 @@ export interface TrayOptions {
   onDragState: (dragging: boolean) => void;
   /** A greyed tile was clicked: point at that ingredient on the table. */
   onUsedClick: (id: string) => void;
+  /** The tiles changed (at the start and after each shuffle): the ids now showing. */
+  onDeal: (ids: string[]) => void;
 }
 
 export interface Tray {
   /** Re-read which tiles are in use (call after the table changes). */
   refresh(): void;
+  /** The ingredients showing in the tiles, left to right. */
+  ids(): string[];
 }
 
 const SHUFFLE_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>`;
@@ -97,29 +101,35 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
     }
   }
 
-  /** New ingredients in every tile that is not on the table: out, swap, in, one after another. */
+  const ids = () => tiles.map((tile) => tile.dataset.id ?? '');
+
+  /**
+   * New ingredients in every tile that is not on the table. Each tile's picture dissolves into
+   * the next one (a soft blur and fade, rising a few pixels), one tile after another, like
+   * cards being re-dealt. The button only presses in; its icon does not spin (it "felt weird",
+   * the user, 2026-11-16).
+   */
   shuffle.addEventListener('click', () => {
     const free = tiles.filter((tile) => !options.isUsed(tile.dataset.id ?? ''));
     if (free.length === 0) return;
     // Never deal one that is already showing or on the table.
-    const taken = new Set(tiles.map((tile) => tile.dataset.id ?? ''));
-    const fresh = deal(free.length, taken);
-    gsap.fromTo(shuffle.firstElementChild, { rotate: 0 }, { rotate: 180, duration: 0.45, ease: EASE.out });
+    const fresh = deal(free.length, new Set(ids()));
     free.forEach((tile, index) => {
       const id = fresh[index];
       if (!id) return;
-      if (prefersReducedMotion()) {
-        setTile(tile, id);
-        return;
-      }
-      gsap.killTweensOf(tile);
+      const image = tile.firstElementChild as HTMLElement;
+      if (prefersReducedMotion()) return setTile(tile, id);
+      gsap.killTweensOf(image);
       gsap
-        .timeline({ delay: index * 0.05 })
-        .to(tile, { y: 10, opacity: 0, scale: 0.92, duration: 0.14, ease: 'power2.in' })
+        .timeline({ delay: index * 0.045 })
+        .to(image, { opacity: 0, filter: 'blur(4px)', y: 4, duration: 0.12, ease: 'power1.in' })
         .call(() => setTile(tile, id))
-        .fromTo(tile, { y: -12, opacity: 0, scale: 0.92 }, { y: 0, opacity: 1, scale: 1, duration: 0.32, ease: EASE.out, clearProps: 'transform,opacity' });
+        .fromTo(image, { opacity: 0, filter: 'blur(4px)', y: -6 }, { opacity: 1, filter: 'blur(0px)', y: 0, duration: 0.26, ease: EASE.out, clearProps: 'transform,opacity,filter' });
     });
-    window.setTimeout(refresh, 400);
+    window.setTimeout(() => {
+      refresh();
+      options.onDeal(ids());
+    }, 120 + free.length * 45);
   });
 
   function wireDrag(tile: HTMLButtonElement): void {
@@ -241,5 +251,6 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
   }
 
   refresh();
-  return { refresh };
+  options.onDeal(ids());
+  return { refresh, ids };
 }

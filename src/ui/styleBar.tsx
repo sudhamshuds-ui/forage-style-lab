@@ -30,6 +30,17 @@ export interface StyleBarApi {
   setPainter: (id: string) => void;
   /** How long the Shuffle transition plays (seconds): the loading state lasts as long. */
   swapSeconds: number;
+  /**
+   * Another main button in place of New ingredient (the kitchen's Cook): its label, whether it
+   * can be pressed right now, and what a press does. The Style Lab leaves this out.
+   */
+  primary?: {
+    label: string;
+    enabled: () => boolean;
+    /** Listen for the enabled state changing; returns a stop function. */
+    onEnabled: (listener: (enabled: boolean) => void) => () => void;
+    click: () => void;
+  };
 }
 
 /** The painters in the menu, calmest first; Sargent is today's default. */
@@ -104,6 +115,17 @@ function useLoadingPhase(api: StyleBarApi, busy: boolean) {
   return { phase, start, threshold };
 }
 
+/** The kitchen's main button (Cook): plain glass, greyed out while it cannot be pressed. */
+function PrimaryButton({ primary }: { primary: NonNullable<StyleBarApi['primary']> }) {
+  const [enabled, setEnabled] = useState(primary.enabled);
+  useEffect(() => primary.onEnabled(setEnabled), [primary]);
+  return (
+    <button type="button" className="sb-new" disabled={!enabled} onClick={primary.click}>
+      <span className="sb-new-label">{primary.label}</span>
+    </button>
+  );
+}
+
 function StyleBar({ api }: { api: StyleBarApi }) {
   const [busy, setBusy] = useState(false);
   const [on, setOn] = useState(api.painterly);
@@ -119,6 +141,9 @@ function StyleBar({ api }: { api: StyleBarApi }) {
         picks between them with data-loader on the page. --swap keeps them in step with the
         transition's length.
       */}
+      {api.primary ? (
+        <PrimaryButton primary={api.primary} />
+      ) : (
       <button
         type="button"
         className="sb-new"
@@ -145,6 +170,7 @@ function StyleBar({ api }: { api: StyleBarApi }) {
           <i />
         </span>
       </button>
+      )}
       {/* The ink's dissolve: grainy, streaky noise (wider than tall, like bristle marks)
           used as a mask whose threshold sweeps while the ink leaves. */}
       <svg className="sb-defs" width="0" height="0" aria-hidden="true" focusable="false">

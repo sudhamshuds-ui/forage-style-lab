@@ -650,9 +650,20 @@ page "Forage Kitchen" (built with the scratchpad's `publish-kitchen.sh`, `vite.k
   dropped on the card or flown back; a click adds too; the shuffle button deals new ones into the
   tiles not in use. Cook is disabled on an empty table.
 - `panel.ts`: Course, Taste, Method, Style, Heat, Wild level, Reset (`CookChoices`).
-**Not built yet**: Cook itself (step 6), saving and My recipes (step 7). **Open decision for the
-user: how the dish painting is made** (an image model behind a small server, or dishes built in
-code). The user's Pinterest board (https://pin.it/4p5khThfq) cannot be reached from the cloud
+**Round 2 (2026-11-16, the user's notes applied; waiting for their look)**: the table starts with
+one ingredient on it (the first tile, greyed); the panel is small with no heading: Course, Taste,
+Wild level ("Unhinged gives you more unexpected results."), Reset; the card's controls are the
+Style Lab's own bar (`styleBar.tsx` with a `primary` button, Cook), so the painters are back;
+**no lag at the drop**: every tile's ingredient is prepared in the background (`keepReady`,
+`prepareNext` in `kitchen/main.ts`: built in idle time, compiled with `compileAsync`), and one
+taken off the table goes back to the ready ones; an ingredient fades in (the crossfade) easing up
+from nine tenths, no bounce ("the bounce ... is a lot"); the shuffle icon no longer spins, each
+free tile's picture dissolves into the next with a soft blur, one after another.
+**Decided by the user (2026-11-16): dishes are built in code for now.** They plan forms of an
+ingredient (sliced, chopped, diced, puree, mush) and textures for cooking methods (grilled, frozen,
+caramelized). Figma's image generator (free on their education plan) may make reference paintings
+of dishes, kept on a Figma page; they will add a page of Pinterest dish references.
+**Not built yet**: Cook itself (step 6), saving and My recipes (step 7). The user's Pinterest board (https://pin.it/4p5khThfq) cannot be reached from the cloud
 session: ask for the images in Figma.
 
 ## Earlier (2026-11-14)
