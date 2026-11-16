@@ -1,0 +1,454 @@
+/*
+ * The kitchen page (kitchen.html): the card with the table, the ingredient tray under it and
+ * the cooking panel beside it. It borrows the Style Lab's page tokens (style.css) and the
+ * glass controls (ui/styleBar.css). After the user's Figma mockup (node 206:503, 2026-11-16),
+ * which is a guide for the layout, not for fonts or components.
+ */
+
+.kitchen {
+  /* A little smaller than the Style Lab's card, so the tray fits under it on a laptop. */
+  --card-w: min(calc(100vw - 32px), calc((100svh - 300px) * 5 / 6), 540px);
+  --tile-w: calc((var(--card-w) * 0.86 - 4 * 6px) / 5);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+.kitchen-page {
+  min-height: 100svh;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 24px 48px;
+  padding: 32px 16px 24px;
+}
+.kitchen-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: var(--card-w);
+}
+
+/* ---------- The card ---------- */
+
+.kitchen .card {
+  /* A ring that shows when a dragged ingredient may be dropped here. */
+  outline: 0 solid rgba(31, 30, 28, 0);
+  transition: outline-color 160ms ease, outline-width 160ms var(--ease-out), outline-offset 160ms var(--ease-out);
+  outline-offset: 0;
+}
+.kitchen .card[data-drop] {
+  outline: 2px dashed rgba(31, 30, 28, 0.5);
+  outline-offset: 6px;
+}
+.empty-hint {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  translate: -50% -50%;
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+  color: var(--ink-2);
+  font: 500 14px 'Geist', var(--font);
+  background: rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.empty-hint[data-show='true'] {
+  opacity: 1;
+}
+.sb-new:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.sb-new:disabled:active {
+  transform: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .kitchen .sb-new:not(:disabled):hover,
+  .kitchen .sb-split:not([data-on]):hover {
+    background-color: var(--glass-hover);
+  }
+}
+
+/* ---------- The outline on an ingredient ---------- */
+
+.outline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  opacity: 1;
+  transition: opacity 120ms ease;
+}
+.outline[data-state='off'] {
+  opacity: 0;
+}
+.outline path {
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+/* A light veil over the ingredient. */
+.outline-fill {
+  fill: rgba(255, 255, 255, 0.16);
+  stroke: none;
+}
+/* A faint dark line under the white dashes, so they still read on a pale ingredient. */
+.outline-shade {
+  fill: none;
+  stroke: rgba(31, 30, 28, 0.22);
+  stroke-width: 2.6;
+  stroke-dasharray: 5 5;
+}
+.outline-dash {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1.6;
+  stroke-dasharray: 5 5;
+}
+/* Selected: the veil breathes and the dashes travel along the outline ("marching ants"). */
+.outline[data-state='selected'] .outline-fill {
+  animation: veil 1.6s ease-in-out infinite;
+}
+.outline[data-state='selected'] .outline-shade,
+.outline[data-state='selected'] .outline-dash {
+  animation: march 0.9s linear infinite;
+}
+@keyframes veil {
+  0%,
+  100% {
+    fill: rgba(255, 255, 255, 0.08);
+  }
+  50% {
+    fill: rgba(255, 255, 255, 0.26);
+  }
+}
+@keyframes march {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .outline[data-state='selected'] .outline-fill,
+  .outline[data-state='selected'] .outline-shade,
+  .outline[data-state='selected'] .outline-dash {
+    animation: none;
+  }
+}
+
+/* The remove button beside a selected ingredient. */
+.remove-item {
+  position: absolute;
+  translate: -50% -50%;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--ink);
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 0 0.5px rgba(31, 30, 28, 0.1),
+    0 2px 8px rgba(40, 32, 20, 0.16);
+  transition: transform 120ms var(--ease-out), background-color 150ms ease;
+  animation: pop-in 180ms var(--ease-out);
+}
+.remove-item[hidden] {
+  display: none;
+}
+.remove-item:active {
+  transform: scale(0.94);
+}
+.remove-item:focus-visible {
+  outline: 2px solid rgba(31, 30, 28, 0.45);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .remove-item:hover {
+    background: #ffffff;
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    scale: 0.7;
+  }
+}
+
+/* ---------- The tray ---------- */
+
+.tray {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.tray-list {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tile {
+  display: block;
+  width: var(--tile-w);
+  aspect-ratio: 5 / 6;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #ece9e3;
+  cursor: grab;
+  touch-action: none; /* the drag starts at once on a phone, without scrolling the page */
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 180ms ease, filter 180ms ease, transform 160ms var(--ease-out);
+}
+.tile img,
+.tile-ghost img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+.tile:focus-visible {
+  outline: 2px solid rgba(31, 30, 28, 0.55);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .tile:not([data-used]):not([data-blocked]):hover {
+    transform: translateY(-3px);
+  }
+}
+.tile:active {
+  cursor: grabbing;
+}
+/* Lifted: its ghost is in the air, the slot dims. Out of the row, or on the table: greyed out. */
+.tile[data-lifted] {
+  opacity: 0.45;
+}
+.tile[data-out],
+.tile[data-used] {
+  opacity: 0.32;
+  filter: grayscale(0.85);
+}
+.tile[data-used] {
+  cursor: default;
+}
+/* The table is full: the rest wait. */
+.tile[data-blocked] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+/* The copy that follows the pointer. */
+.tile-ghost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 50;
+  border-radius: 5px;
+  overflow: hidden;
+  pointer-events: none;
+  box-shadow: 0 2px 4px rgba(40, 32, 20, 0.12), 0 14px 32px rgba(40, 32, 20, 0.22);
+  transition: box-shadow 160ms ease, scale 180ms var(--ease-out);
+  will-change: translate;
+}
+/* Over the card: it grows a little, as if the table pulls it in. */
+.tile-ghost[data-ready] {
+  scale: 1.1;
+  box-shadow: 0 2px 4px rgba(40, 32, 20, 0.12), 0 22px 44px rgba(40, 32, 20, 0.28);
+}
+.is-tray-dragging,
+.is-tray-dragging * {
+  cursor: grabbing !important;
+}
+.tray-shuffle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--ink);
+  background: #f1efea;
+  cursor: pointer;
+  transition: background-color 150ms ease, transform 120ms var(--ease-out);
+}
+.tray-shuffle:active {
+  transform: scale(0.94);
+}
+.tray-shuffle:focus-visible {
+  outline: 2px solid rgba(31, 30, 28, 0.45);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .tray-shuffle:hover {
+    background: #e7e4de;
+  }
+}
+.kitchen .hint {
+  text-align: center;
+}
+
+/* ---------- The cooking panel ---------- */
+
+.cook-panel {
+  width: 272px;
+  padding: 18px 18px 16px;
+  border-radius: 14px;
+  background: #f6f4f0;
+  color: var(--ink);
+  font: 400 13px 'Geist', var(--font);
+}
+.cook-title {
+  margin: 0 0 14px;
+  font: 400 21px / 1.1 'Geist Serif', Georgia, serif;
+  letter-spacing: -0.01em;
+}
+.cook-group {
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.cook-group legend,
+.cook-slider-name {
+  display: block;
+  margin-bottom: 7px;
+  padding: 0;
+  color: var(--ink-3);
+  font: 500 12px 'Geist', var(--font);
+}
+.cook-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.chip {
+  height: 28px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--ink);
+  font: 500 13px 'Geist', var(--font);
+  background: #ffffff;
+  box-shadow: 0 0 0 0.5px rgba(31, 30, 28, 0.12);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, transform 120ms var(--ease-out);
+}
+.chip:active {
+  transform: scale(0.97);
+}
+.chip[data-on] {
+  color: #ffffff;
+  background: rgba(31, 30, 28, 0.92);
+}
+.chip:focus-visible,
+.cook-reset:focus-visible {
+  outline: 2px solid rgba(31, 30, 28, 0.45);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .chip:not([data-on]):hover {
+    background: #ebe8e2;
+  }
+}
+.cook-slider {
+  display: block;
+  margin-bottom: 14px;
+}
+.cook-slider input {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.cook-slider input::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--ink) var(--fill, 50%), #dedad3 var(--fill, 50%));
+}
+.cook-slider input::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--ink) var(--fill, 50%), #dedad3 var(--fill, 50%));
+}
+.cook-slider input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 0 0.5px rgba(31, 30, 28, 0.2), 0 1px 4px rgba(40, 32, 20, 0.25);
+}
+.cook-slider input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 0 0.5px rgba(31, 30, 28, 0.2), 0 1px 4px rgba(40, 32, 20, 0.25);
+}
+.cook-slider-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3px;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+.cook-reset {
+  height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--ink);
+  font: 500 13px 'Geist', var(--font);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(31, 30, 28, 0.18);
+  cursor: pointer;
+  transition: opacity 150ms ease, background-color 150ms ease, transform 120ms var(--ease-out);
+}
+.cook-reset:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.cook-reset:not(:disabled):active {
+  transform: scale(0.97);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cook-reset:not(:disabled):hover {
+    background: rgba(31, 30, 28, 0.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile,
+  .tile-ghost,
+  .remove-item {
+    transition: opacity 150ms ease;
+    animation: none;
+  }
+}

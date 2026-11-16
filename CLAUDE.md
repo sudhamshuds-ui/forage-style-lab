@@ -629,6 +629,32 @@ for the user's one OK, then goes in together and the file is emptied.
 Next: batch 2 (long: carrot, cucumber, eggplant, corn, banana, leek, sweet potato, asparagus) on its
 own branch, **after asking the user for its references**.
 
+## The kitchen (branch `kitchen`, started 2026-11-16; not merged)
+The next feature (the user's brief and Figma mockup, node 206:503, a guide for layout only):
+combine up to three ingredients, set cooking choices, Cook, and get a surprising dish painting,
+different every time; then save it as a recipe card. It lives on its own page, `kitchen.html`
+(`src/kitchen/`), so the Style Lab stays as it is for ingredient reviews. Preview: the private
+page "Forage Kitchen" (built with the scratchpad's `publish-kitchen.sh`, `vite.kitchen.config.ts`).
+**Round 1 (built, waiting for the user's look)**: steps 1 to 5 of the brief.
+- `main.ts`: several ingredients ("items") in one framed layer; `arrange` places 1, 2 or 3 (the
+  tallest behind), `relayout` re-centres and re-zooms with a GSAP tween; each item has its own
+  highlight spot and shadow settings (the shader's shared uniforms are overridden per item); the
+  room follows the first ingredient (a crossfade when it changes); the idle spin rests while an
+  ingredient is hovered, selected or dragged.
+- `outline.ts`: the dashed outline. A white-on-black matte of the chosen ingredient is traced
+  (marching squares, sub-pixel) into an SVG path: exact on bumps and leaves, cut where another
+  ingredient covers it. Hover: a veil and still dashes. Selected: the veil breathes, the dashes
+  travel, a remove button sits at its top right (Delete and Escape work too).
+- `tray.ts`: five tiles (thumbnails in `src/kitchen/thumbs/`, made from the approved paintings,
+  with their rooms), drag with a ghost that follows the pointer, greyed once out of the row,
+  dropped on the card or flown back; a click adds too; the shuffle button deals new ones into the
+  tiles not in use. Cook is disabled on an empty table.
+- `panel.ts`: Course, Taste, Method, Style, Heat, Wild level, Reset (`CookChoices`).
+**Not built yet**: Cook itself (step 6), saving and My recipes (step 7). **Open decision for the
+user: how the dish painting is made** (an image model behind a small server, or dishes built in
+code). The user's Pinterest board (https://pin.it/4p5khThfq) cannot be reached from the cloud
+session: ask for the images in Figma.
+
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one
 review** (not approved, not merged; `/forage-brand` after approval, then merge to `main`):

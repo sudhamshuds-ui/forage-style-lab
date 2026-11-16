@@ -1,0 +1,602 @@
+import { EASE, gsap, prefersReducedMotion } from '../motion';
+import '../style.css';
+import '../ui/styleBar.css';
+import './kitchen.css';
+import { Group, Mesh, Raycaster, Vector2, Vector3, type IUniform, type ShaderMaterial } from 'three';
+import { defaultSettings } from '../params';
+import { applyPalette, findPalette } from '../palettes';
+import { Stage } from '../scene/stage';
+import { Background, MAX_CONTACTS, roomHorizonUv } from '../scene/background';
+import { Ground } from '../scene/ground';
+import { cameraAzimuth, contactHeight, frameSubject, outlinePoints } from '../scene/framing';
+import { StylizedLook } from '../shading/stylizedMaterial';
+import { EFFECT_STACK } from '../shading/effects';
+import type { FrameContext } from '../shading/effect';
+import { FAMILIES } from '../ingredients/families';
+import { REGISTRY, findIngredient } from '../ingredients/registry';
+import { createSubject, type Subject } from '../ingredients/subject';
+import { PROPS } from '../ingredients/forms/kit/checks';
+import { cmToUnits } from '../ingredients/scale';
+import { Painter, type PaintFrame } from '../painting/painter';
+import { OutlineTracer } from './outline';
+import { mountTray } from './tray';
+import { mountCookPanel } from './panel';
+
+/**
+ * The kitchen: up to three ingredients on the table at once, ready to cook.
+ *
+ * It reuses the Style Lab's whole painting pipeline (stage, room, shader, painter); what is new
+ * is that the stage holds several ingredients ("items") instead of one subject:
+ *
+ *   tray (tray.ts)      the row of ingredients under the card; drag one onto the card
+ *   items (this file)   what is on the table: arranged, framed, hovered, selected, removed
+ *   outline (outline.ts) the dashed line and overlay on the hovered or selected ingredient
+ *   panel (panel.ts)    the cooking choices beside the card
+ *
+ * All the items sit in one layer (`framed`), like a pre-comp: each item keeps its real size
+ * inside it, and the layer is scaled so the whole group fills the card with room to breathe.
+ */
+
+/** How many ingredients the table takes (the user, 2026-11-16: "max 3 ... to make things simpler"). */
+export const MAX_ITEMS = 3;
+/** The room an empty table sits in. */
+const EMPTY_ROOM = 'linen';
+/** The gap left between two ingredients on the table (cm). */
+const GAP_CM = 0.8;
+
+const settings = defaultSettings();
+const card = document.getElementById('card') as HTMLElement;
+const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const stage = new Stage(canvas, card);
+const look = new StylizedLook(EFFECT_STACK);
+const background = new Background();
+const ground = new Ground();
+const framed = new Group();
+const painter = new Painter();
+const tracer = new OutlineTracer();
+stage.scene.add(background.mesh, ground.mesh, framed);
+stage.onResize = (width, height) => {
+  painter.setSize(width, height);
+  tracer.setSize(stage.size.width, stage.size.height);
+  relayout(false);
+};
+
+/** One ingredient on the table. */
+interface Item {
+  id: string;
+  subject: Subject;
+  /** Half its width and depth on the table once turned to face the camera (scene units). */
+  half: { x: number; z: number };
+  /** Where it sits in the layer now, and where it is heading. */
+  position: Vector3;
+  target: Vector3;
+  /** 0 to 1: how far it has popped in (it grows from nothing; shrinks again when removed). */
+  pop: number;
+  leaving: boolean;
+  /** True until its first update (the apple builds its shape then). */
+  fresh: boolean;
+  /**
+   * Its own copies of the values the shader normally shares between every ingredient: where
+   * its highlight sits, whether it takes rim glints, how much shadow colour, its size.
+   */
+  own: { anchor: IUniform<Vector3>; rimGlints: IUniform<number>; shadowMix: IUniform<number>; size: IUniform<number> };
+  worldCentre: Vector3;
+}
+
+const items: Item[] = [];
+/** The layer's zoom: its scale now (tweened toward the scale that fits the group). */
+const view = { scale: 1 };
+let groundY = contactHeight(stage.framingCamera);
+
+let hovered: Item | null = null;
+let selected: Item | null = null;
+/** True while a tray tile is being dragged (the outline hides, the spin pauses). */
+let trayDragging = false;
+
+const context: FrameContext = {
+  lightDirection: new Vector3(),
+  cameraPosition: new Vector3(),
+  cameraRight: new Vector3(),
+  objectCentre: new Vector3(),
+  objectRadius: 1,
+  groundY: -1,
+  objectColours: FAMILIES['cream-crust'].colours,
+  contacts: [],
+};
+const paintFrame: PaintFrame = {
+  lightScreen: new Vector2(0, 1),
+  objectUv: new Vector2(0.5, 0.5),
+  objectRadius: 0.2,
+  objectBase: context.objectColours.base,
+  pieces: [],
+  horizonUv: null,
+};
+
+/* ---------- Putting ingredients on the table ---------- */
+
+const isProp = (mesh: Mesh) => PROPS.includes(mesh.name);
+const staying = () => items.filter((item) => !item.leaving);
+
+function makeItem(id: string): Item | null {
+  const entry = findIngredient(id);
+  if (!entry) return null;
+  const subject = createSubject(entry, look);
+  subject.update(settings, true);
+  // Each ingredient gets its own highlight spot and shadow settings (the shader shares one set
+  // between all materials, which was fine while only one ingredient was ever on stage).
+  const own: Item['own'] = {
+    anchor: { value: new Vector3() },
+    rimGlints: { value: 1 },
+    shadowMix: { value: 1 },
+    size: { value: 1 },
+  };
+  subject.group.traverse((object) => {
+    if (!(object instanceof Mesh)) return;
+    const material = object.material as ShaderMaterial;
+    material.uniforms = {
+      ...material.uniforms,
+      uHighlightAnchor: own.anchor,
+      uRimGlints: own.rimGlints,
+      uShadowMix: own.shadowMix,
+      uObjectSize: own.size,
+    };
+  });
+  // Its footprint once turned the way it will sit (the registry's turn, measured from the camera).
+  subject.group.rotation.y = (subject.turn * Math.PI) / 180;
+  subject.group.position.set(0, 0, 0);
+  subject.group.updateMatrixWorld(true);
+  const points = outlinePoints(subject.group, 400, (mesh) => !isProp(mesh));
+  let hx = 0.01;
+  let hz = 0.01;
+  for (const p of points) {
+    hx = Math.max(hx, Math.abs(p.x));
+    hz = Math.max(hz, Math.abs(p.z));
+  }
+  return {
+    id,
+    subject,
+    half: { x: hx, z: hz },
+    position: new Vector3(),
+    target: new Vector3(),
+    pop: 0,
+    leaving: false,
+    fresh: false,
+    own,
+    worldCentre: new Vector3(),
+  };
+}
+
+/**
+ * Where each ingredient sits (in the layer: +x to the right of the starting view, +z toward it).
+ * One: the middle. Two: side by side, the second a little further back. Three: the tallest
+ * behind, the other two in front of it, left and right, so nothing hides.
+ */
+function arrange(list: Item[]): void {
+  const gap = cmToUnits(GAP_CM);
+  if (list.length === 1) list[0].target.set(0, 0, 0);
+  if (list.length === 2) {
+    const [a, b] = list;
+    const total = 2 * a.half.x + 2 * b.half.x + gap;
+    a.target.set(-total / 2 + a.half.x, 0, Math.min(a.half.z, b.half.z) * 0.25);
+    b.target.set(total / 2 - b.half.x, 0, -Math.min(a.half.z, b.half.z) * 0.25);
+  }
+  if (list.length === 3) {
+    // The tallest goes behind.
+    const back = [...list].sort((p, q) => q.subject.radius - p.subject.radius)[0];
+    const [a, b] = list.filter((item) => item !== back);
+    const total = 2 * a.half.x + 2 * b.half.x + gap;
+    const frontDepth = Math.max(a.half.z, b.half.z);
+    const frontZ = (back.half.z + gap) / 2;
+    a.target.set(-total / 2 + a.half.x, 0, frontZ);
+    b.target.set(total / 2 - b.half.x, 0, frontZ);
+    back.target.set(0, 0, frontZ - frontDepth * 0.7 - back.half.z - gap);
+    // Centre the triangle front to back.
+    const shift = (frontZ + frontDepth + (back.target.z - back.half.z)) / 2;
+    for (const item of list) item.target.z -= shift;
+  }
+}
+
+/**
+ * Work out where everything should sit and how far to zoom, then move there. Like a camera
+ * operator re-framing after someone joins or leaves the shot: the group is re-centred and the
+ * zoom leaves the same breathing room round it.
+ */
+function relayout(animate = true): void {
+  const list = staying();
+  arrange(list);
+  groundY = contactHeight(stage.framingCamera);
+
+  let scale = view.scale;
+  if (list.length > 0) {
+    // Measure the group as it will be: everything at its target, full size, nothing leaving.
+    framed.position.set(0, 0, 0);
+    framed.rotation.set(0, cameraAzimuth(stage.homeCamera), 0);
+    framed.scale.setScalar(1);
+    for (const item of items) {
+      item.subject.group.visible = !item.leaving;
+      item.subject.group.position.copy(item.target);
+      item.subject.group.scale.setScalar(1);
+    }
+    framed.updateMatrixWorld(true);
+    const subjects = list.flatMap((item) => outlinePoints(item.subject.group, 400, (mesh) => !isProp(mesh)));
+    const props = list.flatMap((item) => outlinePoints(item.subject.group, 200, isProp));
+    scale = frameSubject(subjects, stage.framingCamera, props).scale;
+    for (const item of items) item.subject.group.visible = true;
+  }
+
+  const instant = !animate || prefersReducedMotion();
+  const duration = instant ? 0 : 0.55;
+  gsap.killTweensOf(view);
+  gsap.to(view, { scale, duration, ease: EASE.out, onUpdate: () => stage.invalidate() });
+  for (const item of list) {
+    gsap.killTweensOf(item.position);
+    gsap.to(item.position, { x: item.target.x, y: 0, z: item.target.z, duration, ease: EASE.out });
+    if (item.pop < 1) {
+      gsap.killTweensOf(item);
+      gsap.to(item, { pop: 1, duration: instant ? 0 : 0.45, ease: 'back.out(1.6)' });
+    }
+  }
+  stage.invalidate();
+}
+
+/** The room follows the first ingredient on the table; an empty table sits in a calm linen room. */
+function applyRoom(): void {
+  const first = staying()[0];
+  const room = findPalette(first ? FAMILIES[first.subject.entry.spec.family].rooms[0] : EMPTY_ROOM);
+  if (room) applyPalette(settings, room);
+}
+
+/**
+ * A short dissolve when the picture changes all at once (another room): the painting as it was
+ * is copied onto a layer over the card and fades away over the new one (the Style Lab's
+ * look-change crossfade).
+ */
+const crossfadeLayer = document.createElement('canvas');
+crossfadeLayer.className = 'card-crossfade';
+crossfadeLayer.setAttribute('aria-hidden', 'true');
+canvas.after(crossfadeLayer);
+function crossfade(change: () => void, seconds = 0.3): void {
+  update();
+  painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame);
+  const source = stage.renderer.domElement;
+  crossfadeLayer.width = source.width;
+  crossfadeLayer.height = source.height;
+  crossfadeLayer.getContext('2d')?.drawImage(source, 0, 0);
+  gsap.killTweensOf(crossfadeLayer);
+  gsap.fromTo(crossfadeLayer, { opacity: 1 }, { opacity: 0, duration: seconds, ease: EASE.fade });
+  change();
+  stage.invalidate();
+}
+
+function onStage(id: string): boolean {
+  return staying().some((item) => item.id === id);
+}
+
+/** Add an ingredient to the table. Returns false if it is already there or the table is full. */
+function addIngredient(id: string): boolean {
+  if (onStage(id) || staying().length >= MAX_ITEMS) return false;
+  const item = makeItem(id);
+  if (!item) return false;
+  const roomBefore = staying()[0]?.id;
+  items.push(item);
+  framed.add(item.subject.group);
+  arrange(staying());
+  // It appears where it will sit and grows in; the others slide over to make room.
+  item.position.copy(item.target);
+  const change = () => {
+    applyRoom();
+    relayout();
+  };
+  if (staying()[0]?.id !== roomBefore) crossfade(change);
+  else change();
+  select(null);
+  changed();
+  return true;
+}
+
+/** Take an ingredient off the table: it shrinks away, then the others re-centre. */
+function removeIngredient(id: string): void {
+  const item = staying().find((entry) => entry.id === id);
+  if (!item) return;
+  item.leaving = true;
+  if (selected === item) select(null);
+  if (hovered === item) hovered = null;
+  const wasFirst = items.filter((entry) => !entry.leaving || entry === item)[0] === item;
+  const finish = () => {
+    framed.remove(item.subject.group);
+    items.splice(items.indexOf(item), 1);
+    item.subject.dispose();
+    stage.invalidate();
+  };
+  gsap.killTweensOf(item);
+  gsap.to(item, { pop: 0, duration: prefersReducedMotion() ? 0 : 0.22, ease: 'power2.in', onUpdate: () => stage.invalidate(), onComplete: finish });
+  const change = () => {
+    applyRoom();
+    relayout();
+  };
+  // The room belongs to the first ingredient: if that one leaves, the room dissolves to the next.
+  if (wasFirst) crossfade(change);
+  else change();
+  changed();
+}
+
+/* ---------- Hover and selection ---------- */
+
+const overlay = document.getElementById('outline') as unknown as SVGSVGElement;
+const outlineFill = overlay.querySelector('.outline-fill') as SVGPathElement;
+const outlineShade = overlay.querySelector('.outline-shade') as SVGPathElement;
+const outlineDash = overlay.querySelector('.outline-dash') as SVGPathElement;
+const removeButton = document.getElementById('remove-item') as HTMLButtonElement;
+
+function select(item: Item | null): void {
+  selected = item;
+  removeButton.hidden = !item;
+  if (item) removeButton.setAttribute('aria-label', `Remove ${item.subject.entry.spec.name.toLowerCase()}`);
+  stage.invalidate();
+}
+
+/** Redraw the dashed outline for whichever ingredient is selected (or just hovered). */
+function drawOutline(): void {
+  const item = trayDragging ? null : (selected ?? hovered);
+  if (!item || item.leaving) {
+    overlay.dataset.state = 'off';
+    removeButton.hidden = true;
+    return;
+  }
+  const others = staying()
+    .filter((other) => other !== item)
+    .map((other) => other.subject.group);
+  // Props (the butter's paper) are not part of the ingredient's outline.
+  const props: Mesh[] = [];
+  framed.traverse((object) => {
+    if (object instanceof Mesh && isProp(object)) props.push(object);
+  });
+  const traced = tracer.trace(stage.renderer, stage.scene, stage.camera, item.subject.group, others, [background.mesh, ground.mesh, ...props]);
+  overlay.setAttribute('viewBox', `0 0 ${traced.width} ${traced.height}`);
+  outlineFill.setAttribute('d', traced.path);
+  outlineShade.setAttribute('d', traced.path);
+  outlineDash.setAttribute('d', traced.path);
+  overlay.dataset.state = item === selected ? 'selected' : 'hover';
+  // The remove button sits by the top right of the selected ingredient, inside the card.
+  if (item === selected && traced.box) {
+    const x = Math.min(0.94, Math.max(0.06, (traced.box.maxX + 10) / traced.width));
+    const y = Math.min(0.9, Math.max(0.06, (traced.box.minY + 6) / traced.height));
+    removeButton.style.left = `${x * 100}%`;
+    removeButton.style.top = `${y * 100}%`;
+    removeButton.hidden = false;
+  }
+}
+
+const raycaster = new Raycaster();
+const pointer = new Vector2();
+/** Which ingredient is under a point on the page (client coordinates), if any. */
+function itemAt(clientX: number, clientY: number): Item | null {
+  const rect = canvas.getBoundingClientRect();
+  pointer.set(((clientX - rect.left) / rect.width) * 2 - 1, -(((clientY - rect.top) / rect.height) * 2 - 1));
+  raycaster.setFromCamera(pointer, stage.camera);
+  const list = staying();
+  const hits = raycaster.intersectObjects(
+    list.map((item) => item.subject.group),
+    true,
+  );
+  for (const hit of hits) {
+    if (hit.object instanceof Mesh && isProp(hit.object)) continue;
+    const found = list.find((item) => {
+      let node: typeof hit.object | null = hit.object;
+      while (node) {
+        if (node === item.subject.group) return true;
+        node = node.parent;
+      }
+      return false;
+    });
+    if (found) return found;
+  }
+  return null;
+}
+
+let pressedAt: { x: number; y: number } | null = null;
+canvas.addEventListener('pointermove', (event) => {
+  // While a button is held the view is being turned: no hover changes mid-drag.
+  if (event.buttons !== 0) return;
+  const item = itemAt(event.clientX, event.clientY);
+  if (item !== hovered) {
+    hovered = item;
+    canvas.style.cursor = item ? 'pointer' : '';
+    stage.invalidate();
+  }
+});
+canvas.addEventListener('pointerleave', () => {
+  if (hovered) {
+    hovered = null;
+    canvas.style.cursor = '';
+    stage.invalidate();
+  }
+});
+canvas.addEventListener('pointerdown', (event) => (pressedAt = { x: event.clientX, y: event.clientY }));
+canvas.addEventListener('pointerup', (event) => {
+  // A click, not a drag of the view: select what is under it, or clear the selection.
+  if (!pressedAt || Math.hypot(event.clientX - pressedAt.x, event.clientY - pressedAt.y) > 5) return;
+  select(itemAt(event.clientX, event.clientY));
+});
+removeButton.addEventListener('click', () => {
+  if (selected) removeIngredient(selected.id);
+});
+window.addEventListener('keydown', (event) => {
+  if (!selected) return;
+  if (event.key === 'Escape') select(null);
+  if (event.key === 'Delete' || event.key === 'Backspace') removeIngredient(selected.id);
+});
+
+/* ---------- The controls: tray, Cook, brush, cooking panel ---------- */
+
+const cookButton = document.getElementById('btn-cook') as HTMLButtonElement;
+const brushButton = document.getElementById('btn-brush') as HTMLButtonElement;
+const emptyHint = document.getElementById('empty-hint') as HTMLElement;
+
+const tray = mountTray(document.getElementById('tray') as HTMLElement, {
+  pantry: REGISTRY.filter((entry) => !entry.shelved).map((entry) => ({ id: entry.spec.id, name: entry.spec.name })),
+  card,
+  canAdd: (id) => !onStage(id) && staying().length < MAX_ITEMS,
+  add: addIngredient,
+  isUsed: onStage,
+  onDragState: (dragging) => {
+    trayDragging = dragging;
+    stage.invalidate();
+  },
+  onUsedClick: (id) => select(staying().find((item) => item.id === id) ?? null),
+});
+
+mountCookPanel(document.getElementById('cook-panel') as HTMLElement);
+
+/** Something on the table changed: update everything that depends on it. */
+function changed(): void {
+  const count = staying().length;
+  // No ingredient, nothing to cook (the user, 2026-11-16).
+  cookButton.disabled = count === 0;
+  emptyHint.dataset.show = String(count === 0);
+  card.dataset.full = String(count >= MAX_ITEMS);
+  tray.refresh();
+}
+
+brushButton.addEventListener('click', () => {
+  crossfade(() => {
+    settings.brush.classic = !settings.brush.classic;
+    brushButton.parentElement?.toggleAttribute('data-on', settings.brush.classic);
+    brushButton.setAttribute('aria-pressed', String(settings.brush.classic));
+  }, 0.22);
+});
+
+/* ---------- Each frame ---------- */
+
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const projected = new Vector3();
+const projectedTop = new Vector3();
+const projectedLight = new Vector3();
+const view3 = new Vector3();
+const half3 = new Vector3();
+
+function update(): void {
+  // Place the layer and everything in it.
+  framed.rotation.set(0, cameraAzimuth(stage.homeCamera), 0);
+  framed.scale.setScalar(view.scale);
+  framed.position.set(0, groundY, 0);
+  for (const item of items) {
+    item.subject.update(settings, item.fresh);
+    item.fresh = false;
+    item.subject.group.position.copy(item.position);
+    item.subject.group.scale.setScalar(Math.max(item.pop, 0.001));
+  }
+  framed.updateMatrixWorld(true);
+  ground.setHeight(groundY);
+
+  // The group as a whole: its middle and size (for the room's light pool and the paint pass).
+  const list = staying();
+  context.groundY = groundY;
+  if (list.length === 0) {
+    context.objectCentre.set(0, groundY + 0.8, 0);
+    context.objectRadius = 1;
+    context.contacts = [];
+    context.objectColours = FAMILIES['cream-crust'].colours;
+  } else {
+    context.objectCentre.set(0, 0, 0);
+    for (const item of list) {
+      item.worldCentre.copy(item.subject.centre).applyMatrix4(item.subject.group.matrixWorld);
+      context.objectCentre.add(item.worldCentre);
+    }
+    context.objectCentre.divideScalar(list.length);
+    context.objectRadius = 0;
+    for (const item of list) {
+      const reach = item.worldCentre.distanceTo(context.objectCentre) + item.subject.radius * view.scale * item.pop;
+      context.objectRadius = Math.max(context.objectRadius, reach);
+    }
+    context.objectRadius = Math.max(context.objectRadius, 0.2);
+    // Contact shadows: the floor takes four spots in all, shared out between the ingredients.
+    const each = Math.max(1, Math.floor(MAX_CONTACTS / list.length));
+    context.contacts = list.flatMap((item) =>
+      [...item.subject.contacts]
+        .sort((a, b) => b.radius - a.radius)
+        .slice(0, each)
+        .map(({ centre, radius }) => {
+          const spot = centre.clone().applyMatrix4(item.subject.group.matrixWorld);
+          return new Vector3(spot.x, spot.z, radius * view.scale * item.pop);
+        }),
+    );
+    context.objectColours = list[0].subject.colours(settings);
+  }
+
+  context.lightDirection.copy(stage.updateLight(settings.light.direction));
+  context.cameraPosition.copy(stage.camera.position);
+  context.cameraRight.setFromMatrixColumn(stage.camera.matrixWorld, 0);
+  context.rimGlints = true;
+  context.shadowTint = 1;
+  look.update(settings, context);
+
+  // Each ingredient's own highlight spot and shadow settings (see makeItem).
+  for (const item of items) {
+    const radius = item.subject.radius * view.scale * Math.max(item.pop, 0.001);
+    item.worldCentre.copy(item.subject.centre).applyMatrix4(item.subject.group.matrixWorld);
+    view3.copy(context.cameraPosition).sub(item.worldCentre).normalize();
+    half3.copy(context.lightDirection).add(view3).normalize();
+    item.own.anchor.value.copy(item.worldCentre).addScaledVector(half3, radius);
+    item.own.rimGlints.value = settings.highlight.rimGlints && item.subject.entry.rimGlints !== false ? 1 : 0;
+    item.own.shadowMix.value = (settings.lighting.shadowColour / 100) * (item.subject.entry.shadowTint ?? 1);
+    item.own.size.value = radius;
+  }
+
+  background.update(settings, context);
+  ground.update(settings.scene, context.lightDirection, true);
+  stage.keyLight.castShadow = settings.scene.castShadow;
+  // The slow turn rests while you point at, pick or drag an ingredient, so the outline holds still.
+  const busy = !!hovered || !!selected || trayDragging;
+  stage.setIdleSpin(settings.scene.idleSpin && !reducedMotion.matches && !busy && list.length > 0, settings.scene.spinSpeed);
+
+  // Where the group sits on the card and which way the light comes from, for the paint pass.
+  const centre = context.objectCentre;
+  const radius = context.objectRadius;
+  projected.copy(centre).project(stage.camera);
+  projectedLight.copy(centre).addScaledVector(context.lightDirection, radius).project(stage.camera);
+  paintFrame.lightScreen.set((projectedLight.x - projected.x) * stage.camera.aspect, projectedLight.y - projected.y);
+  if (paintFrame.lightScreen.lengthSq() < 1e-6) paintFrame.lightScreen.set(0, 1);
+  paintFrame.lightScreen.normalize();
+  projectedTop.copy(centre).addScaledVector(stage.camera.up, radius).project(stage.camera);
+  paintFrame.objectUv.set(projected.x * 0.5 + 0.5, projected.y * 0.5 + 0.5);
+  paintFrame.objectRadius = Math.abs(projectedTop.y - projected.y) * 0.5;
+  paintFrame.objectBase = context.objectColours.base;
+  paintFrame.horizonUv = roomHorizonUv(stage.camera, centre, radius, context.groundY);
+  paintFrame.pieces = context.contacts.map((spot) => {
+    const floor = new Vector3(spot.x, context.groundY, spot.y).project(stage.camera);
+    const above = new Vector3(spot.x, context.groundY, spot.y).addScaledVector(stage.camera.up, spot.z).project(stage.camera);
+    return new Vector3(floor.x * 0.5 + 0.5, floor.y * 0.5 + 0.5, Math.abs(above.y - floor.y) * 0.5);
+  });
+}
+
+function draw(): void {
+  painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame);
+  drawOutline();
+}
+
+applyRoom();
+changed();
+stage.start(update, draw);
+// GSAP moves things between frames: keep painting while any tween is running.
+gsap.ticker.add(() => {
+  if (items.some((item) => gsap.isTweening(item) || gsap.isTweening(item.position)) || gsap.isTweening(view)) stage.invalidate();
+});
+reducedMotion.addEventListener('change', () => stage.invalidate());
+
+// Handy while developing and for the render checks.
+Object.assign(window, {
+  kitchen: {
+    settings,
+    stage,
+    add: addIngredient,
+    remove: removeIngredient,
+    select: (id: string | null) => select(staying().find((item) => item.id === id) ?? null),
+    items: () => staying().map((item) => item.id),
+    snapshot: () => {
+      update();
+      draw();
+      return stage.renderer.domElement.toDataURL('image/png');
+    },
+  },
+});
