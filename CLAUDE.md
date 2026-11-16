@@ -666,6 +666,9 @@ screen, but the scene is painted into a hidden image, so they were built again a
 compiled with the renderer pointed at `painter.underpainting` (the program count no longer grows
 at a drop). A tile flown back lands as the tile itself, with no fade. **Cook will use the Shuffle
 transition** (the user); it needs a dish to reveal first.
+**Dish references**: Figma page "Dish refs (generated)" (node 214:8, board 214:9), batch 1: six
+dishes made with Figma AI (`generate_image`, the user's go-ahead) from our ingredients, for plating
+and composition only. New images land on the "Feedback sessions" page: move them to this page.
 **Decided by the user (2026-11-16): dishes are built in code for now.** They plan forms of an
 ingredient (sliced, chopped, diced, puree, mush) and textures for cooking methods (grilled, frozen,
 caramelized). Figma's image generator (free on their education plan) may make reference paintings
