@@ -723,6 +723,29 @@ of dishes, kept on a Figma page; they will add a page of Pinterest dish referenc
 **Not built yet**: Cook itself (step 6), saving and My recipes (step 7). The user's Pinterest board (https://pin.it/4p5khThfq) cannot be reached from the cloud
 session: ask for the images in Figma.
 
+## The Forage kit (branch `kitchen`, started 2026-11-16; not merged)
+The parts dishes will be built from, tried one ingredient at a time (the user's brief: "we create
+a kit ... call it forage kit"). Its own page, `kit.html` (`src/kit/`), preview "Forage Kit" (the
+scratchpad's `publish-kit.sh`, `vite.kit.config.ts`). The kitchen's layout without the tray; the
+card carries the Style Lab's New ingredient (the painted transition) and brush; the side panel
+("Kit parameters") has four rows of chips and Reset.
+- `vessels.ts`: Plate (white china, `milk`), Bowl (the rice bowl's shape, the `glaze` skin), Board
+  (`wood`, a new part-only family), each Small, Medium, Large; a vessel says where food rests
+  (`surface`, `radius`) and how much it holds (`holds`: bigger means more pieces).
+- `cuts.ts`: Whole (the pantry ingredient itself; one, two or three by size, one in a bowl),
+  Sliced (discs in a leaning row, peel on the rim), Diced (crisp cubes, about four in ten with
+  peel on one face), Chopped (small jumbled cubes), Puree (a mound with a spoon's swirl). Each
+  cut is two layers: `flesh` and `skin`.
+- `heat.ts`: Frozen, Raw, Roasted, Caramelized, Burnt: each pulls the palette toward a target
+  (OKLab), with the bread's `crust` texture on cooked cuts and a gloss on frozen and caramelized.
+- `main.ts`: two subjects on stage (vessel and food, each with its own highlight and shadow
+  values); the heated colours are written into the working families `kit-skin`, `kit-flesh` and
+  `kit-mix` just before building; nine round fruit and vegetables to start (`KIT_INGREDIENTS`,
+  each with a flesh family).
+First round, waiting for the user's look. Not done yet: sizing in the viewport, per-ingredient
+slice shapes (citrus segments, onion rings, a hollow pepper), parameter categories per kind of
+ingredient (rice, sauces), a reduction in a bottle.
+
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one
 review** (not approved, not merged; `/forage-brand` after approval, then merge to `main`):

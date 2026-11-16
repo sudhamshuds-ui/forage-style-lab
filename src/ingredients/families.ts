@@ -37,6 +37,10 @@ export type FamilyId =
   | 'albumen'
   | 'yolk'
   | 'iron'
+  | 'wood'
+  | 'kit-skin'
+  | 'kit-flesh'
+  | 'kit-mix'
   | 'rice'
   | 'glaze'
   | 'milk'
@@ -447,6 +451,31 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   iron: {
     name: 'Iron',
     colours: { lit: '#747aa6', base: '#494d77', shadow: '#2c2a50', glow: '#7d6fa4', highlight: '#d6dbf0' },
+    rooms: [],
+  },
+  // Not a board 04 family: only for props and vessels (a wooden board). A warm honey wood, pale
+  // gold where lit, a plum-brown in shadow.
+  wood: {
+    name: 'Wood',
+    colours: { lit: '#f0d2a0', base: '#cf9f66', shadow: '#7c4f4c', glow: '#e3a45c', highlight: '#fff1d6' },
+    rooms: [],
+  },
+  // The Forage kit's working colours (src/kit): the ingredient's skin and flesh after its heat
+  // treatment, worked out when a kit ingredient is built and written here just before it is.
+  // Placeholders until then; never used by a pantry ingredient.
+  'kit-skin': {
+    name: 'Kit skin',
+    colours: { lit: '#f78e64', base: '#ce5249', shadow: '#843d56', glow: '#ed6531', highlight: '#f5e5d3' },
+    rooms: [],
+  },
+  'kit-flesh': {
+    name: 'Kit flesh',
+    colours: { lit: '#fcf3df', base: '#f1ddb6', shadow: '#c3a184', glow: '#f7dca4', highlight: '#fffaf0' },
+    rooms: [],
+  },
+  'kit-mix': {
+    name: 'Kit mix',
+    colours: { lit: '#fcf3df', base: '#f1ddb6', shadow: '#c3a184', glow: '#f7dca4', highlight: '#fffaf0' },
     rooms: [],
   },
   // Not a board 04 family: only for parts (a grape bunch's woody stem; later vines and tomato

@@ -1,0 +1,45 @@
+/*
+ * The Forage kit page (kit.html). It borrows the kitchen's layout and panel (kitchen.css) and
+ * the Style Lab's controls on the card (ui/styleBar.css): New ingredient and the brush sit at
+ * the foot of the card, as in the Style Lab.
+ */
+.kit {
+  /* No tray under the card, so the card can be a little taller than the kitchen's. */
+  --card-w: min(calc(100vw - 32px), calc((100svh - 190px) * 5 / 6), 560px);
+}
+.kit .sb {
+  left: 50%;
+  right: auto;
+  top: auto;
+  bottom: 32px;
+  translate: -50% 0;
+}
+.kit-reset {
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--ink-2);
+  font: 500 13px 'Geist', var(--font);
+  background: #ffffff;
+  box-shadow: 0 0 0 0.5px rgba(31, 30, 28, 0.1), 0 1px 1px rgba(40, 32, 20, 0.04);
+  cursor: pointer;
+  transition: opacity 200ms ease, background-color 150ms ease, transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.kit-reset:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.kit-reset:not(:disabled):active {
+  transform: scale(0.97);
+}
+.kit-reset:focus-visible {
+  outline: 2px solid rgba(31, 30, 28, 0.45);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .kit-reset:not(:disabled):hover {
+    color: var(--ink);
+    background: #efede8;
+  }
+}

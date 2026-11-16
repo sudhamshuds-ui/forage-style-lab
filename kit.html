@@ -1,0 +1,34 @@
+<!doctype html>
+<!-- The Forage kit: one ingredient on a vessel, with the parameters a dish is built from
+     (the vessel and its size, the cut, the heat). A workbench for the kitchen's dishes. -->
+<html lang="en" data-loader="fill">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forage Kit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="lab kitchen kit">
+    <main class="kitchen-page">
+      <div class="kitchen-main">
+        <h1 class="lab-title">Forage</h1>
+        <div class="card" id="card">
+          <canvas id="canvas" aria-label="3D view of the ingredient on its vessel"></canvas>
+          <!-- New ingredient and the brush with its painters (ui/styleBar.tsx). -->
+          <div class="bar-root" id="bar-root"></div>
+        </div>
+        <p class="hint">Drag to rotate. Scroll or pinch to zoom</p>
+      </div>
+      <div class="cook-side">
+        <p class="cook-caption">Kit parameters</p>
+        <aside class="cook-panel" id="kit-panel" aria-label="Kit parameters"></aside>
+      </div>
+    </main>
+    <script type="module" src="/src/kit/main.ts"></script>
+  </body>
+</html>
