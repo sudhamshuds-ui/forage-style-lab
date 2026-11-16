@@ -15,6 +15,7 @@ import { seededRandom } from '../ingredients/forms/kit/random';
  *
  * Shapes only, in centimetres, resting on y = 0 (the vessel's surface), centred on the middle.
  */
+/** The preparations (the panel calls this row "Prep": the user, 2026-11-16). */
 export const CUTS = ['Whole', 'Sliced', 'Diced', 'Chopped', 'Puree'] as const;
 export type Cut = (typeof CUTS)[number];
 

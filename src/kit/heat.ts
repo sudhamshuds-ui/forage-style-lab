@@ -61,8 +61,8 @@ const LOOKS: Record<Heat, HeatLook> = {
   },
 };
 
-/** An ingredient's colours after the heat. */
-export function heated(palette: Palette, heat: Heat): Palette {
+/** An ingredient's colours at one of the named heats. */
+function at(palette: Palette, heat: Heat): Palette {
   const { toward, amount } = LOOKS[heat];
   return {
     lit: mixHex(palette.lit, toward.lit, amount.lit),
@@ -73,6 +73,45 @@ export function heated(palette: Palette, heat: Heat): Palette {
   };
 }
 
-export function heatLook(heat: Heat): { crust: number; glossy: boolean } {
-  return { crust: LOOKS[heat].crust, glossy: LOOKS[heat].glossy };
+/*
+ * Heat as a slider, 0 to 100: the five named heats are stops along it, a quarter apart
+ * (Frozen 0, Raw 25, Roasted 50, Caramelized 75, Burnt 100), and everything in between is a
+ * blend of its two neighbours. Like a gradient with five colour stops.
+ */
+export const RAW = 25;
+const STEP = 100 / (HEATS.length - 1);
+
+/** The two stops a value sits between, and how far it is from the first to the second (0 to 1). */
+function between(value: number): { a: Heat; b: Heat; t: number } {
+  const v = Math.min(100, Math.max(0, value)) / STEP;
+  const i = Math.min(HEATS.length - 2, Math.floor(v));
+  return { a: HEATS[i], b: HEATS[i + 1], t: v - i };
+}
+
+/** An ingredient's colours at a heat (0 to 100). */
+export function heated(palette: Palette, value: number): Palette {
+  const { a, b, t } = between(value);
+  const from = at(palette, a);
+  const to = at(palette, b);
+  return {
+    lit: mixHex(from.lit, to.lit, t),
+    base: mixHex(from.base, to.base, t),
+    shadow: mixHex(from.shadow, to.shadow, t),
+    glow: mixHex(from.glow, to.glow, t),
+    highlight: mixHex(from.highlight, to.highlight, t),
+  };
+}
+
+/** The surface at a heat: how much baked texture, and whether it shines. */
+export function heatLook(value: number): { crust: number; glossy: boolean } {
+  const { a, b, t } = between(value);
+  return {
+    crust: LOOKS[a].crust + (LOOKS[b].crust - LOOKS[a].crust) * t,
+    glossy: t < 0.5 ? LOOKS[a].glossy : LOOKS[b].glossy,
+  };
+}
+
+/** The name of the nearest stop, for the slider's label. */
+export function heatName(value: number): Heat {
+  return HEATS[Math.round(Math.min(100, Math.max(0, value)) / STEP)];
 }

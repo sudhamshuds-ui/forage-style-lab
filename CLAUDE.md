@@ -742,7 +742,15 @@ card carries the Style Lab's New ingredient (the painted transition) and brush; 
   values); the heated colours are written into the working families `kit-skin`, `kit-flesh` and
   `kit-mix` just before building; nine round fruit and vegetables to start (`KIT_INGREDIENTS`,
   each with a flesh family).
-First round, waiting for the user's look. Not done yet: sizing in the viewport, per-ingredient
+**Round 2 (2026-11-16, the user's notes)**: the row is called **Prep** (not Cut); **no vessel
+and no size** in the panel ("lets just have it on the floor"; `vessels.ts` stays, unused);
+**quantity** is a stepper on the card (less, count, more), floating above the ingredient while
+the card is hovered: one to three whole ones (the procedural apple is copied, turned and sized
+a little differently), one to five helpings of a cut (`HELPINGS`); **heat is a slider** (0 to
+100, the five heats as stops a quarter apart, blended between: `heated`, `heatLook`, `heatName`);
+**New ingredient puts the parameters back** to Whole, Raw, one. Next (the user): go into the
+detail of each form and texture.
+Not done yet: sizing in the viewport, per-ingredient
 slice shapes (citrus segments, onion rings, a hollow pepper), parameter categories per kind of
 ingredient (rice, sauces), a reduction in a bottle.
 

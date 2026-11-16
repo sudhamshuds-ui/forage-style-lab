@@ -1,6 +1,6 @@
 <!doctype html>
-<!-- The Forage kit: one ingredient on a vessel, with the parameters a dish is built from
-     (the vessel and its size, the cut, the heat). A workbench for the kitchen's dishes. -->
+<!-- The Forage kit: one ingredient on the table, with the parameters a dish is built from
+     (how it is prepared, how hot it is cooked, how much of it). A workbench for the kitchen's dishes. -->
 <html lang="en" data-loader="fill">
   <head>
     <meta charset="UTF-8" />
@@ -18,7 +18,17 @@
       <div class="kitchen-main">
         <h1 class="lab-title">Forage</h1>
         <div class="card" id="card">
-          <canvas id="canvas" aria-label="3D view of the ingredient on its vessel"></canvas>
+          <canvas id="canvas" aria-label="3D view of the ingredient"></canvas>
+          <!-- How many: less and more, floating above the ingredient while the card is hovered. -->
+          <div class="qty" id="qty" role="group" aria-label="Quantity">
+            <button type="button" id="qty-less" aria-label="Less">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12" /></svg>
+            </button>
+            <span class="qty-count" id="qty-count" aria-live="polite">1</span>
+            <button type="button" id="qty-more" aria-label="More">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12M12 6v12" /></svg>
+            </button>
+          </div>
           <!-- New ingredient and the brush with its painters (ui/styleBar.tsx). -->
           <div class="bar-root" id="bar-root"></div>
         </div>

@@ -3,7 +3,7 @@ import '../style.css';
 import '../ui/styleBar.css';
 import '../kitchen/kitchen.css';
 import './kit.css';
-import { Color, Group, Mesh, Vector2, Vector3, type IUniform, type ShaderMaterial } from 'three';
+import { Group, Mesh, Vector2, Vector3, type IUniform, type ShaderMaterial } from 'three';
 import { DEFAULTS, defaultSettings } from '../params';
 import { applyPalette, findPalette } from '../palettes';
 import { Stage } from '../scene/stage';
@@ -13,36 +13,38 @@ import { cameraAzimuth, contactHeight, frameSubject, outlinePoints } from '../sc
 import { StylizedLook } from '../shading/stylizedMaterial';
 import { EFFECT_STACK } from '../shading/effects';
 import type { FrameContext } from '../shading/effect';
-import { GLAZE_SKIN, NO_SKIN } from '../shading/effects/skinTexture';
+import { NO_SKIN } from '../shading/effects/skinTexture';
 import { FAMILIES, type FamilyId } from '../ingredients/families';
 import { findIngredient, type IngredientEntry } from '../ingredients/registry';
 import { createSubject, type Subject } from '../ingredients/subject';
 import { finishPieces, type FormPiece } from '../ingredients/forms/kit/piece';
 import { seedFromId } from '../ingredients/forms/kit/random';
 import { cmToUnits } from '../ingredients/scale';
+import { MAX_CONTACTS } from '../scene/background';
 import { Painter, type PaintFrame } from '../painting/painter';
 import { REVEAL_STARTS, ShuffleTransition, TRANSITION_SECONDS } from '../painting/transition';
 import { mountStyleBar } from '../ui/styleBar';
 import { paintLike } from '../randomize';
 import { mixHex } from '../utils/colour';
 import { CUTS, buildCut, type Cut } from './cuts';
-import { HEATS, heatLook, heated, type Heat } from './heat';
-import { SIZES, VESSELS, buildVessel, type Vessel, type VesselKind, type VesselSize } from './vessels';
+import { RAW, heatLook, heatName, heated } from './heat';
 import { mountKitPanel } from './panel';
 
 /**
  * The Forage kit: the parts a dish is built from, tried out one ingredient at a time.
  *
- * One ingredient sits on a vessel. The side panel changes four things:
- *   vessel  a plate, a bowl or a board (vessels.ts)
- *   size    small, medium or large: a bigger vessel holds more
- *   cut     whole, sliced, diced, chopped or puree: the ingredient's form (cuts.ts)
- *   heat    frozen, raw, roasted, caramelized or burnt: its colour and surface (heat.ts)
+ * One ingredient sits on the table. Three things change it:
+ *   prep      whole, sliced, diced, chopped or puree: its form (cuts.ts), in the side panel
+ *   heat      a slider from frozen to burnt: its colour and surface (heat.ts), in the side panel
+ *   quantity  less and more, on the card: a small stepper that shows above the ingredient
+ *             while the pointer is over the card
  *
  * The page itself is the Style Lab's (the same room, painter and transition), and the card
- * carries the Style Lab's controls: New ingredient and the brush with its painters.
+ * carries the Style Lab's controls: New ingredient (which also puts the parameters back to
+ * their starting values) and the brush with its painters.
  *
- * Two things are on stage, like two layers in a pre-comp: the vessel, and the food resting on it.
+ * (Vessels, plates, bowls and boards, are built in vessels.ts and wait there: the user took
+ * them off the page for now, "lets just have it on the floor", 2026-11-16.)
  */
 
 /** The ingredients the kit starts with (round fruit and vegetables), and each one's flesh colour. */
@@ -60,13 +62,18 @@ const KIT_INGREDIENTS: { id: string; flesh: FamilyId }[] = [
 
 interface KitState {
   ingredient: number;
-  vessel: VesselKind;
-  size: VesselSize;
-  cut: Cut;
-  heat: Heat;
+  prep: Cut;
+  /** 0 to 100, frozen to burnt (25 is raw). */
+  heat: number;
+  /** How much: 1 to 3 whole ones, 1 to 5 helpings of a cut. */
+  quantity: number;
 }
-const DEFAULT_STATE = { vessel: 'Plate', size: 'Medium', cut: 'Whole', heat: 'Raw' } as const;
+const DEFAULT_STATE = { prep: 'Whole' as Cut, heat: RAW, quantity: 1 };
 const state: KitState = { ingredient: 0, ...DEFAULT_STATE };
+/** The most there can be, for the current prep. */
+const mostOf = (prep: Cut) => (prep === 'Whole' ? 3 : 5);
+/** How much a helping of a cut is, as a share of the middle one. */
+const HELPINGS = [0.55, 1, 1.6, 2.3, 3.1];
 
 const settings = defaultSettings();
 const card = document.getElementById('card') as HTMLElement;
@@ -87,17 +94,16 @@ stage.onResize = (width, height) => {
   needsFraming = true;
 };
 
-/** One thing on stage (the vessel, or the food), with its own highlight spot and shadow settings. */
+/** One thing on stage, with its own highlight spot and shadow settings. */
 interface Part {
   subject: Subject;
   own: { anchor: IUniform<Vector3>; rimGlints: IUniform<number>; shadowMix: IUniform<number>; size: IUniform<number> };
   worldCentre: Vector3;
+  /** Its own scale on the table (whole apples come in slightly different sizes). */
+  scale: number;
 }
-interface Scene {
-  vessel: Part;
-  food: Part;
-}
-let scene: Scene;
+/** Everything on the table now: usually one subject; two or three for whole apples. */
+let scene: Part[] = [];
 
 /** Give a subject its own copies of the values the shader shares between everything on stage. */
 function asPart(subject: Subject): Part {
@@ -107,7 +113,7 @@ function asPart(subject: Subject): Part {
     const material = object.material as ShaderMaterial;
     material.uniforms = { ...material.uniforms, uHighlightAnchor: own.anchor, uRimGlints: own.rimGlints, uShadowMix: own.shadowMix, uObjectSize: own.size };
   });
-  return { subject, own, worldCentre: new Vector3() };
+  return { subject, own, worldCentre: new Vector3(), scale: 1 };
 }
 
 /** A made-up entry for something that is not a pantry ingredient (a vessel, a cut form). */
@@ -122,28 +128,10 @@ function entryFor(id: string, family: FamilyId, parts: string[], form: () => For
   };
 }
 
-/** Build the vessel and the food for the current choices. */
-function build(): Scene {
+/** Build the ingredient for the current choices. */
+function build(): Part[] {
   const kit = KIT_INGREDIENTS[state.ingredient];
   const entry = findIngredient(kit.id)!;
-  const def: Vessel = buildVessel(state.vessel, state.size);
-
-  // The vessel: a bowl is painted by the glaze skin (pooled colour, a warm rim); a plate is plain
-  // white china with a shine; a board is plain wood.
-  const vesselSubject = createSubject(
-    entryFor(`kit-${state.vessel}`, def.family, ['bowl'], () => finishPieces([{ role: 'bowl', geometry: def.geometry }]), {
-      skin: def.glaze ? GLAZE_SKIN : NO_SKIN,
-      matte: !def.glazed,
-      shadowTint: 0.3,
-    }),
-    look,
-  );
-  if (def.glaze) {
-    // The glaze's warm, unglazed rim.
-    vesselSubject.group.traverse((object) => {
-      if (object instanceof Mesh) ((object.material as ShaderMaterial).uniforms.uMelonPale.value as Color).set('#d98a3c');
-    });
-  }
 
   // The ingredient's colours after the heat: its skin, its flesh, and the two stirred together
   // (a puree). They are written into the kit's own working families just before building.
@@ -164,67 +152,80 @@ function build(): Scene {
   };
   const { crust, glossy } = heatLook(state.heat);
   const radius = Math.min(entry.spec.size_cm[0], entry.spec.size_cm[2]) / 2;
+  const parts: Part[] = [];
 
-  let foodSubject: Subject;
-  let lift = def.surface;
-  if (state.cut === 'Whole') {
-    // Whole: the pantry's own ingredient, one on a small vessel, two or three on bigger ones.
-    // (A bowl takes one: two or three side by side pushed out through its wall.)
-    const count = def.inner || state.size === 'Small' ? 1 : state.size === 'Medium' ? 2 : 3;
+  if (state.prep === 'Whole') {
+    // Whole: the pantry's own ingredient, one, two or three of it.
+    const count = Math.min(3, state.quantity);
     if (entry.form === 'procedural-apple') {
-      // The apple reads its colours from the settings (it is the hand-tuned one).
+      // The apple reads its colours from the settings (it is the hand-tuned one), and there is
+      // only one of it: more are copies, each turned and sized a little differently, set in a
+      // loose triangle so they just touch.
       Object.assign(settings.colour, heated(DEFAULTS.colour, state.heat));
-      foodSubject = createSubject(entry, look);
-    } else {
-      const layout = count === 1 ? 'solo' : count === 2 ? 'cluster-2' : 'cluster-3';
-      foodSubject = createSubject({ ...entry, spec: { ...entry.spec, family: 'kit-skin', layout }, matte: glossy ? false : entry.matte }, look);
+      const r = cmToUnits(radius * 1.04);
+      const spots: [number, number, number, number][][] = [
+        [[0, 0, 0, 1]],
+        [[-r, r * 0.25, 0.5, 1], [r, -r * 0.25, -1.9, 0.94]],
+        [[-r, r * 0.9, 0.5, 1], [r, r * 0.7, -1.9, 0.94], [r * 0.1, -r * 0.95, 2.6, 1.04]],
+      ];
+      for (const [x, z, turn, scale] of spots[count - 1]) {
+        const part = asPart(createSubject(entry, look));
+        part.subject.update(settings, true);
+        part.subject.group.position.set(x, 0, z);
+        part.subject.group.rotation.y = (part.subject.turn * Math.PI) / 180 + turn;
+        part.subject.group.scale.setScalar(scale);
+        part.scale = scale;
+        parts.push(part);
+      }
+      return parts;
     }
-    // In a bowl a round thing settles down against the wall, not on the food line.
-    if (def.inner) {
-      let y = 1.2;
-      while (y < def.surface && def.inner(y) < radius * 0.8) y += 0.2;
-      lift = Math.max(1.15, y - radius * 0.28);
-    }
+    const layout = count === 1 ? 'solo' : count === 2 ? 'cluster-2' : 'cluster-3';
+    parts.push(asPart(createSubject({ ...entry, spec: { ...entry.spec, family: 'kit-skin', layout }, matte: glossy ? false : entry.matte }, look)));
   } else {
-    const cut = state.cut;
-    const seed = seedFromId(`${kit.id}-${cut}-${state.size}`);
+    const cut = state.prep;
+    const holds = HELPINGS[Math.min(HELPINGS.length, state.quantity) - 1];
+    const seed = seedFromId(`${kit.id}-${cut}-${state.quantity}`);
     const family: FamilyId = cut === 'Puree' ? 'kit-mix' : 'kit-flesh';
-    foodSubject = createSubject(
-      entryFor(
-        `kit-${kit.id}-${cut}`,
-        family,
-        ['flesh', 'skin@kit-skin'],
-        () => {
-          const shape = buildCut(cut, { radius, room: def.radius, holds: def.holds, seed });
-          const pieces: FormPiece[] = [{ role: 'flesh', geometry: shape.flesh }];
-          if (shape.skin) pieces.push({ role: 'skin', geometry: shape.skin });
-          return finishPieces(pieces);
-        },
-        {
-          // Cooked surfaces take the baked, blotchy texture; raw and frozen ones stay clean.
-          skin: crust > 0 ? { kind: 'crust', size_mm: 3, amount: crust } : NO_SKIN,
-          matte: !glossy && cut !== 'Puree',
-          shadowTint: 0.45,
-        },
+    parts.push(
+      asPart(
+        createSubject(
+          entryFor(
+            `kit-${kit.id}-${cut}`,
+            family,
+            ['flesh', 'skin@kit-skin'],
+            () => {
+              // On the open table there is as much room as the helping needs.
+              const shape = buildCut(cut, { radius, room: 5 + 5 * Math.sqrt(holds), holds, seed });
+              const pieces: FormPiece[] = [{ role: 'flesh', geometry: shape.flesh }];
+              if (shape.skin) pieces.push({ role: 'skin', geometry: shape.skin });
+              return finishPieces(pieces);
+            },
+            {
+              // Cooked surfaces take the baked, blotchy texture; raw and frozen ones stay clean.
+              skin: crust > 0.04 ? { kind: 'crust', size_mm: 3, amount: crust } : NO_SKIN,
+              matte: !glossy && cut !== 'Puree',
+              shadowTint: 0.45,
+            },
+          ),
+          look,
+        ),
       ),
-      look,
     );
   }
-  vesselSubject.update(settings, true);
-  foodSubject.update(settings, true);
-  foodSubject.group.position.set(0, cmToUnits(lift), 0);
-  foodSubject.group.rotation.y = (foodSubject.turn * Math.PI) / 180;
-  return { vessel: asPart(vesselSubject), food: asPart(foodSubject) };
+  for (const part of parts) {
+    part.subject.update(settings, true);
+    part.subject.group.rotation.y = (part.subject.turn * Math.PI) / 180;
+  }
+  return parts;
 }
 
-function put(next: Scene): void {
-  if (scene) {
-    framed.remove(scene.vessel.subject.group, scene.food.subject.group);
-    scene.vessel.subject.dispose();
-    scene.food.subject.dispose();
+function put(next: Part[]): void {
+  for (const part of scene) {
+    framed.remove(part.subject.group);
+    part.subject.dispose();
   }
   scene = next;
-  framed.add(scene.vessel.subject.group, scene.food.subject.group);
+  for (const part of scene) framed.add(part.subject.group);
   // The room is the ingredient's own, whatever is done to it.
   const room = findPalette(FAMILIES[findIngredient(KIT_INGREDIENTS[state.ingredient].id)!.spec.family].rooms[0]);
   if (room) applyPalette(settings, room);
@@ -254,22 +255,20 @@ const half3 = new Vector3();
 let viewScale = 1;
 let groundY = 0;
 
-/** Scale the layer so the vessel and its food fill the card's subject zone. */
+/** Scale the layer so the ingredient fills the card's subject zone. */
 function reframe(): void {
   framed.position.set(0, 0, 0);
   framed.rotation.set(0, cameraAzimuth(stage.homeCamera), 0);
   framed.scale.setScalar(1);
   framed.updateMatrixWorld(true);
-  // Measured one at a time, each with plenty of points: sampled together, a detailed food left
-  // the plate only a handful of points, its rim was missed and the view zoomed in too far.
-  const points = [...outlinePoints(scene.vessel.subject.group, 1200), ...outlinePoints(scene.food.subject.group, 600)];
+  const points = scene.flatMap((part) => outlinePoints(part.subject.group, 900));
   const framing = frameSubject(points, stage.framingCamera);
   viewScale = framing.scale;
   groundY = contactHeight(stage.framingCamera);
 }
 
 function update(): void {
-  const parts = [scene.vessel, scene.food];
+  const parts = scene;
   for (const part of parts) part.subject.update(settings, false);
   if (needsFraming) {
     reframe();
@@ -280,20 +279,30 @@ function update(): void {
   framed.updateMatrixWorld(true);
   ground.setHeight(groundY);
 
-  // The two together: their middle and size, for the room's light and the paint pass.
+  // Everything together: its middle and size, for the room's light and the paint pass.
   context.groundY = groundY;
-  for (const part of parts) part.worldCentre.copy(part.subject.centre).applyMatrix4(part.subject.group.matrixWorld);
-  context.objectCentre.copy(scene.vessel.worldCentre).add(scene.food.worldCentre).multiplyScalar(0.5);
+  context.objectCentre.set(0, 0, 0);
+  for (const part of parts) {
+    part.worldCentre.copy(part.subject.centre).applyMatrix4(part.subject.group.matrixWorld);
+    context.objectCentre.add(part.worldCentre);
+  }
+  context.objectCentre.divideScalar(parts.length);
   context.objectRadius = Math.max(
-    ...parts.map((part) => part.worldCentre.distanceTo(context.objectCentre) + part.subject.radius * viewScale),
+    ...parts.map((part) => part.worldCentre.distanceTo(context.objectCentre) + part.subject.radius * viewScale * part.scale),
     0.2,
   );
-  // Only the vessel touches the table.
-  context.contacts = scene.vessel.subject.contacts.map(({ centre, radius }) => {
-    const spot = centre.clone().applyMatrix4(scene.vessel.subject.group.matrixWorld);
-    return new Vector3(spot.x, spot.z, radius * viewScale);
-  });
-  context.objectColours = scene.food.subject.colours(settings);
+  // Contact shadows: the floor takes four spots in all, shared out.
+  const each = Math.max(1, Math.floor(MAX_CONTACTS / parts.length));
+  context.contacts = parts.flatMap((part) =>
+    [...part.subject.contacts]
+      .sort((a, b) => b.radius - a.radius)
+      .slice(0, each)
+      .map(({ centre, radius }) => {
+        const spot = centre.clone().applyMatrix4(part.subject.group.matrixWorld);
+        return new Vector3(spot.x, spot.z, radius * viewScale * part.scale);
+      }),
+  );
+  context.objectColours = parts[0].subject.colours(settings);
   context.lightDirection.copy(stage.updateLight(settings.light.direction));
   context.cameraPosition.copy(stage.camera.position);
   context.cameraRight.setFromMatrixColumn(stage.camera.matrixWorld, 0);
@@ -301,7 +310,7 @@ function update(): void {
   context.shadowTint = 1;
   look.update(settings, context);
   for (const part of parts) {
-    const radius = part.subject.radius * viewScale;
+    const radius = part.subject.radius * viewScale * part.scale;
     view3.copy(context.cameraPosition).sub(part.worldCentre).normalize();
     half3.copy(context.lightDirection).add(view3).normalize();
     part.own.anchor.value.copy(part.worldCentre).addScaledVector(half3, radius);
@@ -331,6 +340,10 @@ function update(): void {
     const above = new Vector3(spot.x, context.groundY, spot.y).addScaledVector(stage.camera.up, spot.z).project(stage.camera);
     return new Vector3(floor.x * 0.5 + 0.5, floor.y * 0.5 + 0.5, Math.abs(above.y - floor.y) * 0.5);
   });
+
+  // The quantity stepper floats just above the ingredient.
+  qty.style.left = `${Math.min(0.86, Math.max(0.14, paintFrame.objectUv.x)) * 100}%`;
+  qty.style.top = `${Math.min(0.8, Math.max(0.16, 1 - paintFrame.objectUv.y - paintFrame.objectRadius * 1.25)) * 100}%`;
 }
 
 const draw = () => painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame);
@@ -357,13 +370,46 @@ function crossfade(change: () => void, seconds = 0.26): void {
   stage.invalidate();
 }
 
-/** New ingredient: the Style Lab's painted transition to the next one, keeping the choices. */
+/* The quantity stepper on the card. */
+const qty = document.getElementById('qty') as HTMLElement;
+const qtyLess = document.getElementById('qty-less') as HTMLButtonElement;
+const qtyMore = document.getElementById('qty-more') as HTMLButtonElement;
+const qtyCount = document.getElementById('qty-count') as HTMLElement;
+function showQuantity(): void {
+  qtyCount.textContent = String(state.quantity);
+  qtyLess.disabled = state.quantity <= 1;
+  qtyMore.disabled = state.quantity >= mostOf(state.prep);
+}
+function changeQuantity(by: number): void {
+  if (swapping) return;
+  const next = Math.min(mostOf(state.prep), Math.max(1, state.quantity + by));
+  if (next === state.quantity) return;
+  state.quantity = next;
+  showQuantity();
+  crossfade(() => put(build()), 0.2);
+}
+qtyLess.addEventListener('click', () => changeQuantity(-1));
+qtyMore.addEventListener('click', () => changeQuantity(1));
+
+/**
+ * New ingredient: the Style Lab's painted transition to the next one. The parameters go back
+ * to their starting values with it (the user, 2026-11-16), as the next one is painted in.
+ */
 const busyListeners = new Set<(busy: boolean) => void>();
+function resetChoices(): void {
+  Object.assign(state, DEFAULT_STATE);
+  panel.set({ prep: state.prep, heat: state.heat });
+  showQuantity();
+}
 function newIngredient(): void {
   if (swapping) return;
   state.ingredient = (state.ingredient + 1) % KIT_INGREDIENTS.length;
-  if (prefersReducedMotion()) return crossfade(() => put(build()));
+  if (prefersReducedMotion()) {
+    resetChoices();
+    return crossfade(() => put(build()));
+  }
   swapping = true;
+  card.toggleAttribute('data-busy', true);
   for (const listener of busyListeners) listener(true);
   update();
   transition.begin(stage.renderer, painter.strokeCell(settings), settings.brush.type === 'round' ? 1 : 0, paintFrame.objectUv);
@@ -371,6 +417,7 @@ function newIngredient(): void {
   stage.takeOver((delta) => {
     if (!swapped && transition.progress >= REVEAL_STARTS) {
       swapped = true;
+      resetChoices();
       put(build());
     }
     update();
@@ -378,6 +425,7 @@ function newIngredient(): void {
     transition.setCentre(swapped ? 'to' : 'from', paintFrame.objectUv);
     if (transition.step(stage.renderer, delta)) {
       swapping = false;
+      card.toggleAttribute('data-busy', false);
       for (const listener of busyListeners) listener(false);
       stage.release();
     }
@@ -401,22 +449,31 @@ mountStyleBar(document.getElementById('bar-root') as HTMLElement, {
   swapSeconds: TRANSITION_SECONDS,
 });
 
-mountKitPanel(
-  document.getElementById('kit-panel') as HTMLElement,
-  [
-    { key: 'vessel', label: 'Vessel', options: VESSELS },
-    { key: 'size', label: 'Size', options: SIZES },
-    { key: 'cut', label: 'Cut', options: CUTS },
-    { key: 'heat', label: 'Heat', options: HEATS },
-  ],
-  DEFAULT_STATE,
-  (values) => {
+/** Heat is dragged, so it repaints at most once a frame and without a dissolve. */
+let heatQueued = false;
+const panel = mountKitPanel(document.getElementById('kit-panel') as HTMLElement, {
+  preps: CUTS,
+  defaults: { prep: DEFAULT_STATE.prep, heat: DEFAULT_STATE.heat },
+  heatName,
+  onChange: (values, what) => {
     if (swapping) return;
-    Object.assign(state, values);
-    crossfade(() => put(build()));
+    state.prep = values.prep as Cut;
+    state.heat = values.heat;
+    if (what === 'reset') state.quantity = DEFAULT_STATE.quantity;
+    // A prep with a lower limit (whole: three) brings the quantity down with it.
+    state.quantity = Math.min(state.quantity, mostOf(state.prep));
+    showQuantity();
+    if (what !== 'heat') return crossfade(() => put(build()));
+    if (heatQueued) return;
+    heatQueued = true;
+    requestAnimationFrame(() => {
+      heatQueued = false;
+      put(build());
+    });
   },
-);
+});
 
+showQuantity();
 put(build());
 stage.start(update, draw);
 window.setTimeout(() => transition.warmUp(stage.renderer), 800);
@@ -429,6 +486,7 @@ Object.assign(window, {
     stage,
     set: (values: Partial<KitState>) => {
       Object.assign(state, values);
+      showQuantity();
       put(build());
     },
     snapshot: () => {
