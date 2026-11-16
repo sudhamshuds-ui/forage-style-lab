@@ -60,7 +60,7 @@ const painter = new Painter();
 const tracer = new OutlineTracer();
 // Cook and Back paint for longer than New ingredient does (the user, 2026-11-16: "the painting
 // transition can be longer").
-const COOK_SECONDS = 3.4;
+const COOK_SECONDS = 2.4;
 const transition = new ShuffleTransition(COOK_SECONDS);
 stage.scene.add(background.mesh, ground.mesh, framed);
 stage.onResize = (width, height) => {

@@ -697,6 +697,8 @@ last, once the card is home (an 820 ms delay), so they never overlap.
 the card line up with the grown card by moving (`translate`; GSAP fades the inner `.title-words`),
 not by margins; the morph uses one ease-in-out both ways (`--ease-move`); the remove button eases in
 from 95% (`@starting-style`); a press outside the card clears the selection.
+Then (the user): the way back at 820 ms like the way there (1.2 s was "very slow"), Cook's painting
+back to 2.4 s (3.4 s was slow), the brush hidden while the transition plays (cooking, returning).
 **Dish references**: Figma page "Dish refs (generated)" (node 214:8, board 214:9), batch 1: six
 dishes made with Figma AI (`generate_image`, the user's go-ahead) from our ingredients, for plating
 and composition only. New images land on the "Feedback sessions" page: move them to this page.

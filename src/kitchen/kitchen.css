@@ -681,17 +681,17 @@ body[data-mode='table'] .tray-wrap {
    overlap (the user, 2026-11-16). */
 body[data-mode='settling'] .cook-side,
 body[data-mode='table'] .cook-side {
-  transition: opacity 360ms ease 1200ms;
+  transition: opacity 360ms ease 820ms;
 }
-/* The way back is slower and softer than the way there (the user, 2026-11-16: "very snappy"): an
-   ease-in-out over 1.2 s, so the card leaves gently and settles gently. */
+/* The way back: the same ease-in-out as the way there, 820 ms (1.2 s was "very slow", the user,
+   2026-11-16; the ease-out before it was "very snappy"). */
 body[data-mode='settling'] .kitchen-main,
 body[data-mode='settling'] .kitchen-main .below-card,
 body[data-mode='settling'] .kitchen-main .lab-title {
-  transition: translate 1200ms var(--ease-move);
+  transition: translate 820ms var(--ease-move);
 }
 body[data-mode='settling'] .kitchen-main .card {
-  transition: scale 1200ms var(--ease-move);
+  transition: scale 820ms var(--ease-move);
 }
 body:not([data-mode='table']) .empty-hint {
   opacity: 0;
@@ -781,4 +781,16 @@ body[data-mode='dish'] .result-bar {
   .dish-text {
     translate: 0 0;
   }
+}
+
+/* The brush leaves while the painting transition plays, both ways (the user, 2026-11-16), and
+   comes back once the dish or the table is in place. */
+.kitchen .bar-root {
+  transition: opacity 240ms var(--ease-out) 120ms;
+}
+body[data-mode='cooking'] .bar-root,
+body[data-mode='returning'] .bar-root {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms var(--ease-out);
 }
