@@ -588,7 +588,19 @@
   transition: scale 820ms var(--ease-out), outline-color 160ms ease, outline-width 160ms var(--ease-out), outline-offset 160ms var(--ease-out);
 }
 .kitchen-main .below-card {
-  transition: translate 820ms var(--ease-out);
+  transition: translate 820ms var(--ease-out), margin 820ms var(--ease-out);
+}
+/* The title and the words under the card keep lining up with the card's edges as it grows (the
+   user, 2026-11-16: "the texts are not aligned anymore"): each side moves out by half of what the
+   card grew. */
+.kitchen-main .lab-title {
+  /* (A margin, not translate: GSAP sets the title's translate to none while it fades it.) */
+  transition: margin 820ms var(--ease-out);
+}
+body[data-mode='cooking'] .kitchen-main .lab-title,
+body[data-mode='dish'] .kitchen-main .lab-title,
+body[data-mode='returning'] .kitchen-main .lab-title {
+  margin-inline: calc(var(--card-w) * (1 - var(--grow)) / 2);
 }
 body[data-mode='cooking'] .kitchen-main,
 body[data-mode='dish'] .kitchen-main,
@@ -605,6 +617,7 @@ body[data-mode='dish'] .kitchen-main .below-card,
 body[data-mode='returning'] .kitchen-main .below-card {
   /* The card's foot moves down by the extra height it grew (its height is 6/5 of its width). */
   translate: 0 calc(var(--card-w) * 6 / 5 * (var(--grow) - 1));
+  margin-inline: calc(var(--card-w) * (1 - var(--grow)) / 2);
 }
 .below-card {
   position: relative;
