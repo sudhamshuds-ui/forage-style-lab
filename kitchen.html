@@ -16,7 +16,8 @@
   <body class="lab kitchen">
     <main class="kitchen-page">
       <div class="kitchen-main">
-        <h1 class="lab-title" id="page-title" aria-live="polite">Forage</h1>
+        <!-- The words sit in an inner span: GSAP fades the words, CSS moves the heading with the card. -->
+        <h1 class="lab-title"><span class="title-words" id="page-title" aria-live="polite">Forage</span></h1>
         <div class="card" id="card">
           <canvas id="canvas" aria-label="The table: the ingredients you are cooking with"></canvas>
           <!-- The outline on the hovered or selected ingredient (outline.ts fills in the path). -->

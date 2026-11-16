@@ -511,6 +511,11 @@ canvas.addEventListener('pointerup', (event) => {
 removeButton.addEventListener('click', () => {
   if (selected) removeIngredient(selected.id);
 });
+// A press anywhere outside the card lets go of the selection too (the user, 2026-11-16). A tile
+// already on the table still selects its ingredient: its click comes after this.
+document.addEventListener('pointerdown', (event) => {
+  if (selected && !card.contains(event.target as Node)) select(null);
+});
 window.addEventListener('keydown', (event) => {
   if (!selected) return;
   if (event.key === 'Escape') select(null);
@@ -615,7 +620,7 @@ function setWords(dish: (typeof DISHES)[number] | null): void {
   const hidden = Number(gsap.getProperty(pageTitle, 'opacity')) < 0.05;
   gsap
     .timeline()
-    .to(pageTitle, { opacity: 0, y: -4, filter: 'blur(4px)', duration: hidden ? 0 : 0.26, ease: 'power1.in' })
+    .to(pageTitle, { opacity: 0, y: -4, filter: 'blur(4px)', duration: hidden ? 0 : 0.2, ease: EASE.out })
     .call(() => (pageTitle.textContent = text))
     .fromTo(pageTitle, { opacity: 0, y: 6, filter: 'blur(4px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.5, ease: EASE.out, clearProps: 'transform,filter,opacity' });
 }
@@ -624,7 +629,7 @@ function setWords(dish: (typeof DISHES)[number] | null): void {
 function hideTitle(): void {
   if (prefersReducedMotion()) return void (pageTitle.style.opacity = '0');
   gsap.killTweensOf(pageTitle);
-  gsap.to(pageTitle, { opacity: 0, y: -4, filter: 'blur(4px)', duration: 0.18, ease: 'power1.in' });
+  gsap.to(pageTitle, { opacity: 0, y: -4, filter: 'blur(4px)', duration: 0.18, ease: EASE.out });
 }
 
 /** Put a different set of things on the card at once (no animation of its own). */

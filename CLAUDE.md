@@ -693,6 +693,10 @@ while the card grows by 8% from its top edge (`--grow`) and the words under it m
 foot, one ease-out motion (820 ms); "Forage" leaves the moment Cook is pressed (`hideTitle`), the
 dish's name comes in at the swap; on the way back the tray returns with the table and the panel
 last, once the card is home (an 820 ms delay), so they never overlap.
+**Round 7 (2026-11-16, the motion audit)**: exits ease out, never in; the title and the words under
+the card line up with the grown card by moving (`translate`; GSAP fades the inner `.title-words`),
+not by margins; the morph uses one ease-in-out both ways (`--ease-move`); the remove button eases in
+from 95% (`@starting-style`); a press outside the card clears the selection.
 **Dish references**: Figma page "Dish refs (generated)" (node 214:8, board 214:9), batch 1: six
 dishes made with Figma AI (`generate_image`, the user's go-ahead) from our ingredients, for plating
 and composition only. New images land on the "Feedback sessions" page: move them to this page.

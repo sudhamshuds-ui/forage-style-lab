@@ -122,7 +122,7 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
       gsap.killTweensOf(image);
       gsap
         .timeline({ delay: index * 0.045 })
-        .to(image, { opacity: 0, filter: 'blur(4px)', y: 4, duration: 0.12, ease: 'power1.in' })
+        .to(image, { opacity: 0, filter: 'blur(4px)', y: 4, duration: 0.12, ease: EASE.out })
         .call(() => setTile(tile, id))
         .fromTo(image, { opacity: 0, filter: 'blur(4px)', y: -6 }, { opacity: 1, filter: 'blur(0px)', y: 0, duration: 0.26, ease: EASE.out, clearProps: 'transform,opacity,filter' });
     });

@@ -10,6 +10,8 @@
   --card-w: min(calc(100vw - 32px), calc((100svh - 300px) * 5 / 6), 540px);
   --tile-w: calc((var(--card-w) * 0.86 - 4 * 6px) / 5);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Moving across the page (the card's morph, both ways): eases in and out. */
+  --ease-move: cubic-bezier(0.45, 0, 0.25, 1);
 }
 .kitchen-page {
   min-height: 100svh;
@@ -163,8 +165,16 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 0 0 0.5px rgba(31, 30, 28, 0.1),
     0 2px 8px rgba(40, 32, 20, 0.16);
-  transition: transform 120ms var(--ease-out), background-color 150ms ease;
-  animation: pop-in 180ms var(--ease-out);
+  /* A transition from @starting-style, not a keyframe: it picks up from where it is when the
+     selection changes quickly, and starts from 95%, not a big pop from 70%. */
+  transition: opacity 160ms var(--ease-out), scale 160ms var(--ease-out), transform 120ms var(--ease-out),
+    background-color 150ms ease;
+}
+@starting-style {
+  .remove-item {
+    opacity: 0;
+    scale: 0.95;
+  }
 }
 .remove-item[hidden] {
   display: none;
@@ -179,12 +189,6 @@
 @media (hover: hover) and (pointer: fine) {
   .remove-item:hover {
     background: #ffffff;
-  }
-}
-@keyframes pop-in {
-  from {
-    opacity: 0;
-    scale: 0.7;
   }
 }
 
@@ -579,28 +583,32 @@
   /* The card morphs into the middle (the user, 2026-11-16: "instead of moving the viewport to
      centre, just expand it a bit, sort of morph it into center"): its column eases over while the
      card grows a little from its top edge, and the words under it move down with its foot, all as
-     one soft motion that settles gently (ease-out), never a slide that stops hard. */
+     one soft motion that starts and settles gently, the same curve both ways. */
   --grow: 1.08;
-  transition: translate 820ms var(--ease-out);
+  transition: translate 820ms var(--ease-move);
 }
 .kitchen-main .card {
   transform-origin: 50% 0;
-  transition: scale 820ms var(--ease-out), outline-color 160ms ease, outline-width 160ms var(--ease-out), outline-offset 160ms var(--ease-out);
+  transition: scale 820ms var(--ease-move), outline-color 160ms ease, outline-width 160ms var(--ease-out), outline-offset 160ms var(--ease-out);
 }
 .kitchen-main .below-card {
-  transition: translate 820ms var(--ease-out), margin 820ms var(--ease-out);
+  transition: translate 820ms var(--ease-move);
 }
 /* The title and the words under the card keep lining up with the card's edges as it grows (the
    user, 2026-11-16: "the texts are not aligned anymore"): each side moves out by half of what the
    card grew. */
 .kitchen-main .lab-title {
-  /* (A margin, not translate: GSAP sets the title's translate to none while it fades it.) */
-  transition: margin 820ms var(--ease-out);
+  /* Moved, not re-spaced: a move is drawn by the graphics card, a margin re-lays the page every
+     frame while the painting is busy. (GSAP fades the inner .title-words, so it never touches this.) */
+  transition: translate 820ms var(--ease-move);
+}
+.title-words {
+  display: block;
 }
 body[data-mode='cooking'] .kitchen-main .lab-title,
 body[data-mode='dish'] .kitchen-main .lab-title,
 body[data-mode='returning'] .kitchen-main .lab-title {
-  margin-inline: calc(var(--card-w) * (1 - var(--grow)) / 2);
+  translate: calc(var(--card-w) * (1 - var(--grow)) / 2) 0;
 }
 body[data-mode='cooking'] .kitchen-main,
 body[data-mode='dish'] .kitchen-main,
@@ -616,8 +624,7 @@ body[data-mode='cooking'] .kitchen-main .below-card,
 body[data-mode='dish'] .kitchen-main .below-card,
 body[data-mode='returning'] .kitchen-main .below-card {
   /* The card's foot moves down by the extra height it grew (its height is 6/5 of its width). */
-  translate: 0 calc(var(--card-w) * 6 / 5 * (var(--grow) - 1));
-  margin-inline: calc(var(--card-w) * (1 - var(--grow)) / 2);
+  translate: calc(var(--card-w) * (1 - var(--grow)) / 2) calc(var(--card-w) * 6 / 5 * (var(--grow) - 1));
 }
 .below-card {
   position: relative;
@@ -681,10 +688,10 @@ body[data-mode='table'] .cook-side {
 body[data-mode='settling'] .kitchen-main,
 body[data-mode='settling'] .kitchen-main .below-card,
 body[data-mode='settling'] .kitchen-main .lab-title {
-  transition: translate 1200ms cubic-bezier(0.45, 0, 0.25, 1), margin 1200ms cubic-bezier(0.45, 0, 0.25, 1);
+  transition: translate 1200ms var(--ease-move);
 }
 body[data-mode='settling'] .kitchen-main .card {
-  transition: scale 1200ms cubic-bezier(0.45, 0, 0.25, 1);
+  transition: scale 1200ms var(--ease-move);
 }
 body:not([data-mode='table']) .empty-hint {
   opacity: 0;
