@@ -659,6 +659,13 @@ Style Lab's own bar (`styleBar.tsx` with a `primary` button, Cook), so the paint
 taken off the table goes back to the ready ones; an ingredient fades in (the crossfade) easing up
 from nine tenths, no bounce ("the bounce ... is a lot"); the shuffle icon no longer spins, each
 free tile's picture dissolves into the next with a soft blur, one after another.
+**Round 3 (2026-11-16)**: the brush alone at the card's top right (`brushOnly`, `menuSide` in
+`styleBar.tsx`), Cook (dark, the page's one solid button) and a round Reset at the foot of the
+panel, 24 px padding. The pause at the drop was still there: materials were compiled for the
+screen, but the scene is painted into a hidden image, so they were built again at the drop; now
+compiled with the renderer pointed at `painter.underpainting` (the program count no longer grows
+at a drop). A tile flown back lands as the tile itself, with no fade. **Cook will use the Shuffle
+transition** (the user); it needs a dish to reveal first.
 **Decided by the user (2026-11-16): dishes are built in code for now.** They plan forms of an
 ingredient (sliced, chopped, diced, puree, mush) and textures for cooking methods (grilled, frozen,
 caramelized). Figma's image generator (free on their education plan) may make reference paintings

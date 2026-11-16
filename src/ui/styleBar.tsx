@@ -41,6 +41,10 @@ export interface StyleBarApi {
     onEnabled: (listener: (enabled: boolean) => void) => () => void;
     click: () => void;
   };
+  /** True for the brush alone, with no main button (the kitchen: Cook lives in its side panel). */
+  brushOnly?: boolean;
+  /** Which way the painters open from the arrow: up (the default) or down (the brush at the card's top). */
+  menuSide?: 'top' | 'bottom';
 }
 
 /** The painters in the menu, calmest first; Sargent is today's default. */
@@ -141,7 +145,7 @@ function StyleBar({ api }: { api: StyleBarApi }) {
         picks between them with data-loader on the page. --swap keeps them in step with the
         transition's length.
       */}
-      {api.primary ? (
+      {api.brushOnly ? null : api.primary ? (
         <PrimaryButton primary={api.primary} />
       ) : (
       <button
@@ -205,7 +209,7 @@ function StyleBar({ api }: { api: StyleBarApi }) {
                 <Chevron />
               </Menu.Trigger>
               <Menu.Portal>
-                <Menu.Positioner side="top" align="end" sideOffset={10}>
+                <Menu.Positioner side={api.menuSide ?? 'top'} align="end" sideOffset={10}>
                   <Menu.Popup className="sb-menu">
                     <Menu.RadioGroup
                       value={on ? painter : null}

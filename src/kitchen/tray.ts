@@ -203,15 +203,23 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
         gsap.to(flying, { scale: 0.5, opacity: 0, duration: prefersReducedMotion() ? 0 : 0.2, ease: 'power2.in', onComplete: cleanUp });
         return;
       }
-      // Anywhere else (or a full table): back to its tile.
+      // Anywhere else (or a full table): it eases straight back onto its tile and lands as the
+      // tile itself. The tile comes back at once underneath, with no fade of its own (that fade
+      // read as a strange highlight, the user, 2026-11-16).
       const home = tile.getBoundingClientRect();
+      flying.setAttribute('data-landing', '');
       gsap.to(flying, {
         translate: `${home.left}px ${home.top}px`,
         rotate: 0,
         scale: 1,
-        duration: prefersReducedMotion() ? 0 : 0.32,
+        duration: prefersReducedMotion() ? 0 : 0.3,
         ease: EASE.out,
-        onComplete: cleanUp,
+        onComplete: () => {
+          tile.style.transition = 'none';
+          cleanUp();
+          // Let the tile's own transitions (hover, greying) work again from the next frame.
+          requestAnimationFrame(() => requestAnimationFrame(() => (tile.style.transition = '')));
+        },
       });
     };
 

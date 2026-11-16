@@ -61,15 +61,15 @@
 .empty-hint[data-show='true'] {
   opacity: 1;
 }
-.sb-new:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-.sb-new:disabled:active {
-  transform: none;
+/* The brush sits at the card's top right (the user's sketch, 2026-11-16). */
+.kitchen .sb {
+  left: auto;
+  right: 14px;
+  top: 14px;
+  bottom: auto;
+  translate: none;
 }
 @media (hover: hover) and (pointer: fine) {
-  .kitchen .sb-new:not(:disabled):hover,
   .kitchen .sb-split:not([data-on]):hover {
     background-color: var(--glass-hover);
   }
@@ -274,6 +274,12 @@
   scale: 1.1;
   box-shadow: 0 2px 4px rgba(40, 32, 20, 0.12), 0 22px 44px rgba(40, 32, 20, 0.28);
 }
+/* Flying home: its shadow settles as it lands, so nothing jumps when the tile takes over. */
+.tile-ghost[data-landing] {
+  box-shadow: 0 0 0 rgba(40, 32, 20, 0);
+  border-radius: 4px;
+  transition: box-shadow 300ms var(--ease-out), border-radius 300ms var(--ease-out);
+}
 .is-tray-dragging,
 .is-tray-dragging * {
   cursor: grabbing !important;
@@ -312,11 +318,11 @@
 
 /*
  * A small, quiet surface beside the card (about the size of the user's mockup). Spacing on a
- * 4 px grid: 16 round the edge, 16 between groups, 8 from a label to its control.
+ * 4 px grid: 24 round the edge, 24 between groups, 10 from a label to its control.
  */
 .cook-panel {
-  width: 224px;
-  padding: 16px;
+  width: 264px;
+  padding: 24px;
   border-radius: 16px;
   background: #f6f5f2;
   box-shadow: inset 0 0 0 0.5px rgba(31, 30, 28, 0.06);
@@ -325,7 +331,7 @@
 }
 .cook-group {
   display: block;
-  margin: 0 0 16px;
+  margin: 0 0 24px;
   padding: 0;
   border: 0;
   min-width: 0;
@@ -333,7 +339,7 @@
 .cook-group legend,
 .cook-label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   padding: 0;
   color: var(--ink-2);
   font: 500 12px / 1 'Geist', var(--font);
@@ -342,11 +348,11 @@
 .cook-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
 }
 .chip {
-  height: 28px;
-  padding: 0 10px;
+  height: 30px;
+  padding: 0 12px;
   border: 0;
   border-radius: 999px;
   color: var(--ink);
@@ -435,32 +441,69 @@
   font-size: 12px;
   line-height: 1.4;
 }
-.cook-reset {
-  display: inline-flex;
+/* The foot: Cook (the one dark, solid button on the page) and a quiet Reset beside it. */
+.cook-foot {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  height: 28px;
-  margin: 0 0 0 -8px;
-  padding: 0 8px;
+  gap: 8px;
+  margin-top: 4px;
+}
+.cook-go {
+  flex: 1;
+  height: 40px;
   border: 0;
   border-radius: 999px;
-  color: var(--ink-2);
-  font: 500 12px 'Geist', var(--font);
-  background: transparent;
+  color: #ffffff;
+  font: 500 14px 'Geist', var(--font);
+  letter-spacing: 0.005em;
+  background: rgba(31, 30, 28, 0.94);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 1px 2px rgba(40, 32, 20, 0.16), 0 6px 16px rgba(40, 32, 20, 0.14);
   cursor: pointer;
-  transition: opacity 150ms ease, background-color 150ms ease, color 150ms ease, transform 120ms var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 150ms ease, opacity 200ms ease, box-shadow 200ms ease, transform 140ms var(--ease-out);
+}
+.cook-go:not(:disabled):active {
+  transform: scale(0.97);
+}
+/* Nothing on the table, nothing to cook. */
+.cook-go:disabled {
+  opacity: 0.32;
+  box-shadow: none;
+  cursor: default;
+}
+.cook-reset {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--ink);
+  background: #ffffff;
+  box-shadow: 0 0 0 0.5px rgba(31, 30, 28, 0.1), 0 1px 1px rgba(40, 32, 20, 0.04);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 200ms ease, background-color 150ms ease, transform 140ms var(--ease-out);
 }
 .cook-reset:disabled {
   opacity: 0.4;
   cursor: default;
 }
 .cook-reset:not(:disabled):active {
-  transform: scale(0.97);
+  transform: scale(0.94);
+}
+.cook-go:focus-visible {
+  outline: 2px solid rgba(31, 30, 28, 0.45);
+  outline-offset: 2px;
 }
 @media (hover: hover) and (pointer: fine) {
+  .cook-go:not(:disabled):hover {
+    background: #000000;
+  }
   .cook-reset:not(:disabled):hover {
-    color: var(--ink);
-    background: rgba(31, 30, 28, 0.06);
+    background: #efede8;
   }
 }
 

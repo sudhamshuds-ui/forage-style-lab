@@ -197,8 +197,14 @@ function prepareNext(): void {
       prepareNext();
     };
     if (!item) return done();
-    stage.renderer
-      .compileAsync(item.subject.group, stage.camera, stage.scene)
+    // Compile for the hidden image the scene is really painted into (painter.underpainting).
+    // Compiled for the screen instead, the paint was built a second time at the drop, which
+    // was the pause that was still there (the user, 2026-11-16).
+    const before = stage.renderer.getRenderTarget();
+    stage.renderer.setRenderTarget(painter.underpainting);
+    const compiling = stage.renderer.compileAsync(item.subject.group, stage.camera, stage.scene);
+    stage.renderer.setRenderTarget(before);
+    compiling
       .catch(() => undefined)
       .then(() => {
         // Still wanted? (The tray may have been shuffled meanwhile.)
@@ -504,23 +510,25 @@ const tray = mountTray(document.getElementById('tray') as HTMLElement, {
   onDeal: keepReady,
 });
 
-mountCookPanel(document.getElementById('cook-panel') as HTMLElement);
+const cookPanel = mountCookPanel(document.getElementById('cook-panel') as HTMLElement, {
+  // Cooking itself is the next round.
+  onCook: () => undefined,
+});
 
 /** Something on the table changed: update everything that depends on it. */
 function changed(): void {
   const count = staying().length;
   // No ingredient, nothing to cook (the user, 2026-11-16).
-  for (const listener of cookListeners) listener(count > 0);
+  cookPanel.setCanCook(count > 0);
   emptyHint.dataset.show = String(count === 0);
   card.dataset.full = String(count >= MAX_ITEMS);
   tray.refresh();
 }
 
 /*
- * Cook and the brush on the card: the Style Lab's own controls (ui/styleBar.tsx), with Cook in
- * place of New ingredient. The brush switches the painterly look; its arrow opens the painters.
+ * The brush on the card (the Style Lab's own control, ui/styleBar.tsx): it switches the painterly
+ * look, and its arrow opens the painters. Cook lives in the side panel.
  */
-const cookListeners = new Set<(enabled: boolean) => void>();
 mountStyleBar(document.getElementById('bar-root') as HTMLElement, {
   shuffle: () => undefined,
   onBusy: () => () => undefined,
@@ -533,16 +541,9 @@ mountStyleBar(document.getElementById('bar-root') as HTMLElement, {
       settings.brush.classic = true;
     }, 0.22),
   swapSeconds: 0,
-  primary: {
-    label: 'Cook',
-    enabled: () => staying().length > 0,
-    onEnabled: (listener) => {
-      cookListeners.add(listener);
-      return () => cookListeners.delete(listener);
-    },
-    // Cooking itself is the next round.
-    click: () => undefined,
-  },
+  // The brush alone, at the card's top right; its painters open downward.
+  brushOnly: true,
+  menuSide: 'bottom',
 });
 
 /* ---------- Each frame ---------- */
@@ -674,6 +675,9 @@ Object.assign(window, {
     remove: removeIngredient,
     select: (id: string | null) => select(staying().find((item) => item.id === id) ?? null),
     items: () => staying().map((item) => item.id),
+    /** How many ready-made ingredients are waiting, and how many paint programs exist (for checks). */
+    ready: () => [...ready.keys()],
+    programs: () => stage.renderer.info.programs?.length ?? 0,
     snapshot: () => {
       update();
       draw();

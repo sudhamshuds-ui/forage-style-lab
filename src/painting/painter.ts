@@ -69,6 +69,15 @@ export class Painter {
   private readonly paintMesh: Mesh;
   private readonly size = new Vector2(1, 1);
 
+  /**
+   * The hidden image the 3D scene is drawn into. Materials are compiled for where they are
+   * drawn, so anything compiling ahead of time (the kitchen's ready-made ingredients) points
+   * the renderer here first, or the work is done a second time at the first real frame.
+   */
+  get underpainting(): WebGLRenderTarget {
+    return this.sceneTarget;
+  }
+
   constructor() {
     // Half-float colours keep smooth dark tones without banding. 4x anti-aliasing keeps edges clean.
     this.sceneTarget = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
