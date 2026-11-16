@@ -22,8 +22,30 @@ import { seededRandom } from './kit/random';
 
 const BOWL: BowlShape = { rim: 6.6, height: 6.4, foot: 2.9, footHeight: 0.7, wall: 0.42, fullness: 1.75, ridges: { count: 4, depth: 0.04 } };
 
+/**
+ * The bowl of rice before it is finished, in centimetres: its two shapes, plus where the top of
+ * the rice is, so a dish can lay toppings on it (src/dishes). The rice bowl itself is built from
+ * exactly this, so the ingredient does not change.
+ */
+export interface RiceBowlParts {
+  rice: BufferGeometry;
+  bowl: BufferGeometry;
+  /** The height of the rice's surface at a point (cm from the table). */
+  surfaceAt: (x: number, z: number) => number;
+  /** The rice's radius at its edge (cm). */
+  radius: number;
+}
+
 export const buildRice: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Rice: the "${state}" form is not built yet (the bowl only for now).`);
+  const { rice, bowl } = riceBowlParts(seed);
+  return finishPieces([
+    { role: 'rice', geometry: rice },
+    { role: 'bowl', geometry: bowl },
+  ]);
+};
+
+export function riceBowlParts(seed: number): RiceBowlParts {
   const random = seededRandom(seed ^ 0x51ce);
   const ph = Array.from({ length: 12 }, () => random() * Math.PI * 2);
 
@@ -93,8 +115,5 @@ export const buildRice: FormBuilder = ({ state, seed }) => {
   }
   rice.setAttribute('uv', new BufferAttribute(uv, 2));
 
-  return finishPieces([
-    { role: 'rice', geometry: rice },
-    { role: 'bowl', geometry: bowl },
-  ]);
-};
+  return { rice, bowl, surfaceAt: (x, z) => edge + moundAt(x, z), radius };
+}

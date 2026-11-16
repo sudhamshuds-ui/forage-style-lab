@@ -166,7 +166,11 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
       tile.setAttribute('data-lifted', '');
       document.documentElement.classList.add('is-tray-dragging');
       options.onDragState(true);
-      gsap.fromTo(ghost, { scale: 1 }, { scale: 1.06, duration: 0.18, ease: EASE.out });
+      // It starts at the tile's own place and size, then eases up a little (CSS, kitchen.css).
+      ghost.setAttribute('data-fresh', '');
+      ghost.style.translate = `${rect.left}px ${rect.top}px`;
+      const lifted = ghost;
+      requestAnimationFrame(() => lifted.removeAttribute('data-fresh'));
     };
 
     const follow = (event: PointerEvent) => {
@@ -197,30 +201,32 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
         tile.removeAttribute('data-out');
         refresh();
       };
+      flying.removeAttribute('data-ready');
       if (overCard(event.clientX, event.clientY) && options.add(id)) {
-        // Dropped on the table: the ghost melts into it while the ingredient grows in.
+        // Dropped on the table: the ghost melts into it while the ingredient fades in.
         refresh();
-        gsap.to(flying, { scale: 0.5, opacity: 0, duration: prefersReducedMotion() ? 0 : 0.2, ease: 'power2.in', onComplete: cleanUp });
+        flying.setAttribute('data-dropped', '');
+        window.setTimeout(cleanUp, prefersReducedMotion() ? 0 : 200);
         return;
       }
-      // Anywhere else (or a full table): it eases straight back onto its tile and lands as the
-      // tile itself. The tile comes back at once underneath, with no fade of its own (that fade
-      // read as a strange highlight, the user, 2026-11-16).
+      // Anywhere else (or a full table): one smooth move home. Its place, lean, size and shadow
+      // all ease back together (CSS transitions on the ghost, kitchen.css) and it lands exactly
+      // as the tile, which then takes over with no fade or jump of its own. (Before, two
+      // animations fought over its size and lean, and it landed with a jolt; the user, 2026-11-16.)
       const home = tile.getBoundingClientRect();
       flying.setAttribute('data-landing', '');
-      gsap.to(flying, {
-        translate: `${home.left}px ${home.top}px`,
-        rotate: 0,
-        scale: 1,
-        duration: prefersReducedMotion() ? 0 : 0.3,
-        ease: EASE.out,
-        onComplete: () => {
+      // Read a layout value so the browser starts the move from where the ghost is now.
+      void flying.offsetWidth;
+      flying.style.translate = `${home.left}px ${home.top}px`;
+      window.setTimeout(
+        () => {
           tile.style.transition = 'none';
           cleanUp();
           // Let the tile's own transitions (hover, greying) work again from the next frame.
           requestAnimationFrame(() => requestAnimationFrame(() => (tile.style.transition = '')));
         },
-      });
+        prefersReducedMotion() ? 0 : 330,
+      );
     };
 
     tile.addEventListener('pointerdown', (event) => {

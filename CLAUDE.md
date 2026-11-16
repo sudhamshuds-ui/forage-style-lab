@@ -666,6 +666,20 @@ screen, but the scene is painted into a hidden image, so they were built again a
 compiled with the renderer pointed at `painter.underpainting` (the program count no longer grows
 at a drop). A tile flown back lands as the tile itself, with no fade. **Cook will use the Shuffle
 transition** (the user); it needs a dish to reveal first.
+**Round 4 (2026-11-16): Cook works, with one stand-in dish.** `src/dishes/` holds dishes: built
+like ingredients (a form in code, the same families and shader) and described by an ingredient
+entry, but kept out of the registry. The first: the watermelon tuna rice bowl
+(`dishes/forms/watermelonBowl.ts`: `riceBowlParts` from `forms/rice.ts` plus stand-in toppings).
+Every combination cooks into it for now. `cook` and `backToTable` in `kitchen/main.ts` play the
+Shuffle transition (`playSwap`: the stage's items are swapped as the reveal begins); the page has
+three modes (`data-mode` on the body: table, cooking, dish). On the result screen the title
+becomes the dish's name, its description sits under the card where the tray was, and the card
+shows Save recipe (not wired yet) and a back button. The card keeps its size (the mockup's wide
+picture would need the canvas to change shape mid-transition: not done, the user has not asked).
+Spacing: neighbours never overlap and keep a small gap (`arrange`); the user: close "feels
+together", only overlapping was wrong. The tile's flight home is CSS transitions on translate,
+rotate and scale (two animations fighting over its size made it land with a jolt). Cook hugs its
+label.
 **Dish references**: Figma page "Dish refs (generated)" (node 214:8, board 214:9), batch 1: six
 dishes made with Figma AI (`generate_image`, the user's go-ahead) from our ingredients, for plating
 and composition only. New images land on the "Feedback sessions" page: move them to this page.

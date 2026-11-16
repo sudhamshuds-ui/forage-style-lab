@@ -13,7 +13,9 @@ import { StylizedLook } from '../shading/stylizedMaterial';
 import { EFFECT_STACK } from '../shading/effects';
 import type { FrameContext } from '../shading/effect';
 import { FAMILIES } from '../ingredients/families';
-import { REGISTRY, findIngredient } from '../ingredients/registry';
+import { REGISTRY, findIngredient, type IngredientEntry } from '../ingredients/registry';
+import { DISHES } from '../dishes/dishes';
+import { REVEAL_STARTS, ShuffleTransition } from '../painting/transition';
 import { createSubject, type Subject } from '../ingredients/subject';
 import { PROPS } from '../ingredients/forms/kit/checks';
 import { cmToUnits } from '../ingredients/scale';
@@ -44,7 +46,7 @@ export const MAX_ITEMS = 3;
 /** The room an empty table sits in. */
 const EMPTY_ROOM = 'linen';
 /** The gap left between two ingredients on the table (cm). */
-const GAP_CM = 0.8;
+const GAP_CM = 1.4;
 
 const settings = defaultSettings();
 const card = document.getElementById('card') as HTMLElement;
@@ -56,10 +58,12 @@ const ground = new Ground();
 const framed = new Group();
 const painter = new Painter();
 const tracer = new OutlineTracer();
+const transition = new ShuffleTransition();
 stage.scene.add(background.mesh, ground.mesh, framed);
 stage.onResize = (width, height) => {
   painter.setSize(width, height);
   tracer.setSize(stage.size.width, stage.size.height);
+  transition.setSize(width, height);
   relayout(false);
 };
 
@@ -69,6 +73,8 @@ interface Item {
   subject: Subject;
   /** Half its width and depth on the table once turned to face the camera (scene units). */
   half: { x: number; z: number };
+  /** How tall it stands (scene units): the tallest of three goes at the back. */
+  height: number;
   /** Where it sits in the layer now, and where it is heading. */
   position: Vector3;
   target: Vector3;
@@ -121,7 +127,12 @@ const staying = () => items.filter((item) => !item.leaving);
 
 function makeItem(id: string): Item | null {
   const entry = findIngredient(id);
-  if (!entry) return null;
+  return entry ? makeItemFrom(entry) : null;
+}
+
+/** Build anything described by an entry: a pantry ingredient, or a finished dish. */
+function makeItemFrom(entry: IngredientEntry): Item {
+  const id = entry.spec.id;
   const subject = createSubject(entry, look);
   subject.update(settings, true);
   // Each ingredient gets its own highlight spot and shadow settings (the shader shares one set
@@ -150,14 +161,17 @@ function makeItem(id: string): Item | null {
   const points = outlinePoints(subject.group, 400, (mesh) => !isProp(mesh));
   let hx = 0.01;
   let hz = 0.01;
+  let height = 0.01;
   for (const p of points) {
     hx = Math.max(hx, Math.abs(p.x));
     hz = Math.max(hz, Math.abs(p.z));
+    height = Math.max(height, p.y);
   }
   return {
     id,
     subject,
     half: { x: hx, z: hz },
+    height,
     position: new Vector3(),
     target: new Vector3(),
     pop: 0,
@@ -234,26 +248,30 @@ function keepReady(ids: string[]): void {
  * behind, the other two in front of it, left and right, so nothing hides.
  */
 function arrange(list: Item[]): void {
-  const gap = cmToUnits(GAP_CM);
+  // Room between neighbours: a couple of centimetres, more beside big things, so nothing looks
+  // squeezed together and no shadow falls right across its neighbour (the user, 2026-11-16:
+  // "some ingredient combinations feel really close").
+  const gapFor = (a: Item, b: Item) => cmToUnits(GAP_CM) + 0.05 * Math.min(a.half.x + a.half.z, b.half.x + b.half.z);
   if (list.length === 1) list[0].target.set(0, 0, 0);
   if (list.length === 2) {
     const [a, b] = list;
-    const total = 2 * a.half.x + 2 * b.half.x + gap;
-    a.target.set(-total / 2 + a.half.x, 0, Math.min(a.half.z, b.half.z) * 0.25);
-    b.target.set(total / 2 - b.half.x, 0, -Math.min(a.half.z, b.half.z) * 0.25);
+    const total = 2 * a.half.x + 2 * b.half.x + gapFor(a, b);
+    a.target.set(-total / 2 + a.half.x, 0, Math.min(a.half.z, b.half.z) * 0.2);
+    b.target.set(total / 2 - b.half.x, 0, -Math.min(a.half.z, b.half.z) * 0.2);
   }
   if (list.length === 3) {
-    // The tallest goes behind.
-    const back = [...list].sort((p, q) => q.subject.radius - p.subject.radius)[0];
+    // The tallest goes behind, the other two in front of it, side by side. Each one keeps its
+    // whole footprint to itself: the back one starts where the front ones end.
+    const back = [...list].sort((p, q) => q.height - p.height)[0];
     const [a, b] = list.filter((item) => item !== back);
-    const total = 2 * a.half.x + 2 * b.half.x + gap;
+    const total = 2 * a.half.x + 2 * b.half.x + gapFor(a, b);
     const frontDepth = Math.max(a.half.z, b.half.z);
-    const frontZ = (back.half.z + gap) / 2;
-    a.target.set(-total / 2 + a.half.x, 0, frontZ);
-    b.target.set(total / 2 - b.half.x, 0, frontZ);
-    back.target.set(0, 0, frontZ - frontDepth * 0.7 - back.half.z - gap);
-    // Centre the triangle front to back.
-    const shift = (frontZ + frontDepth + (back.target.z - back.half.z)) / 2;
+    const gap = Math.max(gapFor(a, back), gapFor(b, back));
+    a.target.set(-total / 2 + a.half.x, 0, 0);
+    b.target.set(total / 2 - b.half.x, 0, 0);
+    back.target.set(0, 0, -frontDepth - gap - back.half.z);
+    // Centre the group front to back.
+    const shift = (frontDepth + (back.target.z - back.half.z)) / 2;
     for (const item of list) item.target.z -= shift;
   }
 }
@@ -337,6 +355,7 @@ function onStage(id: string): boolean {
 
 /** Add an ingredient to the table. Returns false if it is already there or the table is full. */
 function addIngredient(id: string, animate = true): boolean {
+  if (mode !== 'table') return false;
   if (onStage(id) || staying().length >= MAX_ITEMS) return false;
   // The ready-made one if there is one (the usual case), else build it now.
   const item = ready.get(id) ?? makeItem(id);
@@ -363,6 +382,7 @@ function addIngredient(id: string, animate = true): boolean {
 
 /** Take an ingredient off the table: it shrinks away, then the others re-centre. */
 function removeIngredient(id: string): void {
+  if (mode !== 'table') return;
   const item = staying().find((entry) => entry.id === id);
   if (!item) return;
   item.leaving = true;
@@ -402,7 +422,7 @@ function select(item: Item | null): void {
 
 /** Redraw the dashed outline for whichever ingredient is selected (or just hovered). */
 function drawOutline(): void {
-  const item = trayDragging ? null : (selected ?? hovered);
+  const item = trayDragging || mode !== 'table' ? null : (selected ?? hovered);
   if (!item || item.leaving) {
     overlay.dataset.state = 'off';
     removeButton.hidden = true;
@@ -436,6 +456,8 @@ const raycaster = new Raycaster();
 const pointer = new Vector2();
 /** Which ingredient is under a point on the page (client coordinates), if any. */
 function itemAt(clientX: number, clientY: number): Item | null {
+  // A finished dish is one picture: nothing in it is picked.
+  if (mode !== 'table') return null;
   const rect = canvas.getBoundingClientRect();
   pointer.set(((clientX - rect.left) / rect.width) * 2 - 1, -(((clientY - rect.top) / rect.height) * 2 - 1));
   raycaster.setFromCamera(pointer, stage.camera);
@@ -511,15 +533,14 @@ const tray = mountTray(document.getElementById('tray') as HTMLElement, {
 });
 
 const cookPanel = mountCookPanel(document.getElementById('cook-panel') as HTMLElement, {
-  // Cooking itself is the next round.
-  onCook: () => undefined,
+  onCook: () => cook(),
 });
 
 /** Something on the table changed: update everything that depends on it. */
 function changed(): void {
   const count = staying().length;
   // No ingredient, nothing to cook (the user, 2026-11-16).
-  cookPanel.setCanCook(count > 0);
+  cookPanel.setCanCook(count > 0 && mode === 'table');
   emptyHint.dataset.show = String(count === 0);
   card.dataset.full = String(count >= MAX_ITEMS);
   tray.refresh();
@@ -545,6 +566,141 @@ mountStyleBar(document.getElementById('bar-root') as HTMLElement, {
   brushOnly: true,
   menuSide: 'bottom',
 });
+
+/* ---------- Cooking: from the table to the dish, and back ---------- */
+
+/**
+ * Where we are: the table (ingredients, tray, panel), cooking (the transition is playing), or
+ * the dish (the result screen). The page shows and hides its parts from this (`data-mode` on
+ * the body, kitchen.css).
+ */
+type Mode = 'table' | 'cooking' | 'dish';
+let mode: Mode = 'table';
+/** The table's ingredients, set aside while the dish is on the card. */
+let parked: Item[] = [];
+/** The dish, built ahead in the background like the tray's ingredients. */
+let dishItem: Item | null = null;
+
+const pageTitle = document.getElementById('page-title') as HTMLElement;
+const dishText = document.getElementById('dish-text') as HTMLElement;
+const saveButton = document.getElementById('btn-save') as HTMLButtonElement;
+const backButton = document.getElementById('btn-back') as HTMLButtonElement;
+
+function setMode(next: Mode): void {
+  mode = next;
+  document.body.dataset.mode = next;
+  changed();
+}
+
+/** The words that go with the picture: the page's title becomes the dish's name. */
+function setWords(dish: (typeof DISHES)[number] | null): void {
+  pageTitle.classList.add('is-changing');
+  window.setTimeout(() => {
+    pageTitle.textContent = dish ? dish.title : 'Forage';
+    dishText.textContent = dish ? dish.description : '';
+    pageTitle.classList.remove('is-changing');
+  }, 140);
+}
+
+/** Put a different set of things on the card at once (no animation of its own). */
+function swapStage(next: Item[]): void {
+  for (const item of items) framed.remove(item.subject.group);
+  items.splice(0, items.length, ...next);
+  for (const item of next) {
+    framed.add(item.subject.group);
+    item.pop = 1;
+    item.leaving = false;
+  }
+  applyRoom();
+  relayout(false);
+  for (const item of next) item.position.copy(item.target);
+}
+
+/**
+ * The painted transition, the same one New ingredient plays in the Style Lab (the user,
+ * 2026-11-16): the picture is smudged away by brush strokes, then the next one is painted in.
+ * Halfway (as the reveal begins) what is on the card is swapped; the slow turn never stops.
+ */
+function playSwap(next: Item[], atSwap: () => void, done: () => void): void {
+  select(null);
+  hovered = null;
+  if (prefersReducedMotion()) {
+    crossfade(() => swapStage(next), 0.3);
+    atSwap();
+    done();
+    return;
+  }
+  update();
+  transition.begin(stage.renderer, painter.strokeCell(settings), settings.brush.type === 'round' ? 1 : 0, paintFrame.objectUv);
+  let swapped = false;
+  const swap = () => {
+    swapped = true;
+    swapStage(next);
+    atSwap();
+  };
+  stage.takeOver((delta) => {
+    if (!swapped && transition.progress >= REVEAL_STARTS) swap();
+    update();
+    painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, swapped ? transition.stillTo : transition.stillFrom);
+    transition.setCentre(swapped ? 'to' : 'from', paintFrame.objectUv);
+    if (transition.step(stage.renderer, delta)) {
+      if (!swapped) swap();
+      stage.release();
+      done();
+    }
+  });
+}
+
+/** Cook: the ingredients are painted away and the dish is painted in. */
+function cook(): void {
+  if (mode !== 'table' || staying().length === 0) return;
+  // For now every combination makes the one dish that exists (see src/dishes/dishes.ts).
+  const dish = DISHES[0];
+  const item = dishItem ?? makeItemFrom(dish.entry);
+  dishItem = item;
+  parked = staying();
+  setMode('cooking');
+  playSwap(
+    [item],
+    () => setWords(dish),
+    () => setMode('dish'),
+  );
+}
+
+/** Back to the table, with the same ingredients as before. */
+function backToTable(): void {
+  if (mode !== 'dish') return;
+  setMode('cooking');
+  playSwap(
+    parked,
+    () => setWords(null),
+    () => {
+      parked = [];
+      setMode('table');
+    },
+  );
+}
+backButton.addEventListener('click', backToTable);
+// Saving a recipe card is the next step: the button is here to try the layout.
+saveButton.addEventListener('click', () => undefined);
+
+// Build the dish ahead, once the page has settled, and get the transition's own paint ready.
+window.setTimeout(() => {
+  transition.warmUp(stage.renderer);
+  stage.invalidate();
+  whenIdle(() => {
+    if (dishItem) return;
+    const item = makeItemFrom(DISHES[0].entry);
+    const before = stage.renderer.getRenderTarget();
+    stage.renderer.setRenderTarget(painter.underpainting);
+    const compiling = stage.renderer.compileAsync(item.subject.group, stage.camera, stage.scene);
+    stage.renderer.setRenderTarget(before);
+    compiling.catch(() => undefined).then(() => {
+      if (dishItem) item.subject.dispose();
+      else dishItem = item;
+    });
+  });
+}, 2500);
 
 /* ---------- Each frame ---------- */
 
@@ -675,6 +831,9 @@ Object.assign(window, {
     remove: removeIngredient,
     select: (id: string | null) => select(staying().find((item) => item.id === id) ?? null),
     items: () => staying().map((item) => item.id),
+    cook,
+    back: backToTable,
+    mode: () => mode,
     /** How many ready-made ingredients are waiting, and how many paint programs exist (for checks). */
     ready: () => [...ready.keys()],
     programs: () => stage.renderer.info.programs?.length ?? 0,

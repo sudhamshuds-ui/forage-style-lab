@@ -256,7 +256,8 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
-/* The copy that follows the pointer. */
+/* The copy that follows the pointer. Its place, lean and size are three separate properties
+   (translate, rotate, scale), each easing on its own, so letting go is one smooth move home. */
 .tile-ghost {
   position: fixed;
   left: 0;
@@ -265,20 +266,39 @@
   border-radius: 5px;
   overflow: hidden;
   pointer-events: none;
+  scale: 1.06;
   box-shadow: 0 2px 4px rgba(40, 32, 20, 0.12), 0 14px 32px rgba(40, 32, 20, 0.22);
-  transition: box-shadow 160ms ease, scale 180ms var(--ease-out);
+  transition: box-shadow 180ms ease, scale 180ms var(--ease-out), opacity 180ms ease;
   will-change: translate;
+}
+/* Just picked up: it starts at the tile's own size and eases up. */
+.tile-ghost[data-fresh] {
+  scale: 1;
+  box-shadow: 0 0 0 rgba(40, 32, 20, 0);
 }
 /* Over the card: it grows a little, as if the table pulls it in. */
 .tile-ghost[data-ready] {
-  scale: 1.1;
+  scale: 1.12;
   box-shadow: 0 2px 4px rgba(40, 32, 20, 0.12), 0 22px 44px rgba(40, 32, 20, 0.28);
 }
-/* Flying home: its shadow settles as it lands, so nothing jumps when the tile takes over. */
+/* Flying home: place, lean, size and shadow all ease back together, and it lands exactly as
+   the tile (same size, no shadow), so nothing jumps when the tile takes over. */
 .tile-ghost[data-landing] {
-  box-shadow: 0 0 0 rgba(40, 32, 20, 0);
+  scale: 1;
+  rotate: 0deg !important;
   border-radius: 4px;
-  transition: box-shadow 300ms var(--ease-out), border-radius 300ms var(--ease-out);
+  box-shadow: 0 0 0 rgba(40, 32, 20, 0);
+  transition:
+    translate 320ms var(--ease-out),
+    rotate 320ms var(--ease-out),
+    scale 320ms var(--ease-out),
+    box-shadow 320ms var(--ease-out),
+    border-radius 320ms var(--ease-out);
+}
+/* Dropped on the table: it melts into it. */
+.tile-ghost[data-dropped] {
+  scale: 0.6;
+  opacity: 0;
 }
 .is-tray-dragging,
 .is-tray-dragging * {
@@ -448,9 +468,10 @@
   gap: 8px;
   margin-top: 4px;
 }
+/* As wide as its word needs, not the whole panel (the user, 2026-11-16: "cook button too wide"). */
 .cook-go {
-  flex: 1;
   height: 40px;
+  padding: 0 22px;
   border: 0;
   border-radius: 999px;
   color: #ffffff;
@@ -513,5 +534,148 @@
   .remove-item {
     transition: opacity 150ms ease;
     animation: none;
+  }
+}
+
+/* ---------- From the table to the dish ---------- */
+
+/*
+ * The page keeps its layout in every mode, so the card never jumps: parts only fade. While
+ * cooking the tray and the panel step back; with the dish on the card they are gone, the title
+ * becomes the dish's name, its description sits under the card and the card gets its buttons.
+ */
+.below-card {
+  position: relative;
+  align-self: stretch;
+  display: grid;
+}
+.below-card > * {
+  grid-area: 1 / 1;
+}
+.tray-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: opacity 260ms ease;
+}
+.cook-panel {
+  transition: opacity 260ms ease;
+}
+.dish-text {
+  margin: 4px 0 0;
+  color: var(--ink-2);
+  font: 400 14px / 1.5 'Geist', var(--font);
+  text-wrap: pretty;
+  opacity: 0;
+  translate: 0 6px;
+  pointer-events: none;
+  transition: opacity 320ms ease, translate 420ms var(--ease-out);
+}
+.lab-title {
+  transition: opacity 140ms ease, filter 140ms ease;
+}
+.lab-title.is-changing {
+  opacity: 0;
+  filter: blur(3px);
+}
+body[data-mode='cooking'] .tray-wrap,
+body[data-mode='cooking'] .cook-panel,
+body[data-mode='dish'] .tray-wrap,
+body[data-mode='dish'] .cook-panel {
+  opacity: 0;
+  pointer-events: none;
+}
+body[data-mode='dish'] .dish-text {
+  opacity: 1;
+  translate: 0 0;
+}
+body:not([data-mode='table']) .empty-hint {
+  opacity: 0;
+}
+
+/* The dish's buttons, at the foot of the card: glass, like the brush. */
+.result-bar {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  translate: -50% 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease, translate 200ms var(--ease-out);
+}
+body[data-mode='dish'] .result-bar {
+  opacity: 1;
+  translate: -50% 0;
+  pointer-events: auto;
+  transition: opacity 320ms ease 120ms, translate 420ms var(--ease-out) 120ms;
+}
+.result-save,
+.result-back {
+  height: 38px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--ink);
+  font: 500 14px 'Geist', var(--font);
+  letter-spacing: 0.005em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.06) 60%);
+  background-color: rgba(255, 255, 255, 0.56);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.55),
+    0 0 0 0.5px rgba(31, 30, 28, 0.08),
+    0 1px 2px rgba(40, 32, 20, 0.06),
+    0 6px 18px rgba(40, 32, 20, 0.1);
+  transition: background-color 150ms ease, transform 140ms var(--ease-out);
+}
+.result-save {
+  padding: 0 18px;
+  white-space: nowrap;
+}
+.result-back {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  padding: 0;
+}
+.result-save:active,
+.result-back:active {
+  transform: scale(0.97);
+}
+.result-save:focus-visible,
+.result-back:focus-visible {
+  outline: 2px solid rgba(31, 30, 28, 0.45);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .result-save:hover,
+  .result-back:hover {
+    background-color: rgba(255, 255, 255, 0.78);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .result-save,
+  .result-back {
+    background: #ffffff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dish-text,
+  .result-bar,
+  body[data-mode='dish'] .result-bar {
+    translate: -50% 0;
+    transition: opacity 200ms ease;
+  }
+  .dish-text {
+    translate: 0 0;
   }
 }

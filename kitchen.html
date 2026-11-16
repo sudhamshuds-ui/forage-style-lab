@@ -16,7 +16,7 @@
   <body class="lab kitchen">
     <main class="kitchen-page">
       <div class="kitchen-main">
-        <h1 class="lab-title">Forage</h1>
+        <h1 class="lab-title" id="page-title" aria-live="polite">Forage</h1>
         <div class="card" id="card">
           <canvas id="canvas" aria-label="The table: the ingredients you are cooking with"></canvas>
           <!-- The outline on the hovered or selected ingredient (outline.ts fills in the path). -->
@@ -29,12 +29,24 @@
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12" /></svg>
           </button>
           <p class="empty-hint" id="empty-hint" data-show="true">Drag an ingredient onto the table</p>
+          <!-- The result screen's buttons (shown once a dish is on the card). -->
+          <div class="result-bar" id="result-bar">
+            <button type="button" class="result-save" id="btn-save">Save recipe</button>
+            <button type="button" class="result-back" id="btn-back" aria-label="Back to the table" title="Back to the table">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
+            </button>
+          </div>
           <!-- Cook and the brush with its painters (ui/styleBar.tsx). -->
           <div class="bar-root" id="bar-root"></div>
         </div>
-        <!-- The ingredient tray (tray.ts). -->
-        <div class="tray" id="tray"></div>
-        <p class="hint">Drag ingredients onto the table, up to three</p>
+        <!-- Under the card: the tray while choosing, the dish's description once cooked. -->
+        <div class="below-card">
+          <div class="tray-wrap">
+            <div class="tray" id="tray"></div>
+            <p class="hint">Drag ingredients onto the table, up to three</p>
+          </div>
+          <p class="dish-text" id="dish-text"></p>
+        </div>
       </div>
       <!-- The cooking choices (panel.ts). -->
       <aside class="cook-panel" id="cook-panel" aria-label="How to cook it"></aside>
