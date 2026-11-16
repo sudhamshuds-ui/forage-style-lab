@@ -606,23 +606,19 @@
   display: block;
 }
 body[data-mode='cooking'] .kitchen-main .lab-title,
-body[data-mode='dish'] .kitchen-main .lab-title,
-body[data-mode='returning'] .kitchen-main .lab-title {
+body[data-mode='dish'] .kitchen-main .lab-title {
   translate: calc(var(--card-w) * (1 - var(--grow)) / 2) 0;
 }
 body[data-mode='cooking'] .kitchen-main,
-body[data-mode='dish'] .kitchen-main,
-body[data-mode='returning'] .kitchen-main {
+body[data-mode='dish'] .kitchen-main {
   translate: var(--to-middle) 0;
 }
 body[data-mode='cooking'] .kitchen-main .card,
-body[data-mode='dish'] .kitchen-main .card,
-body[data-mode='returning'] .kitchen-main .card {
+body[data-mode='dish'] .kitchen-main .card {
   scale: var(--grow);
 }
 body[data-mode='cooking'] .kitchen-main .below-card,
-body[data-mode='dish'] .kitchen-main .below-card,
-body[data-mode='returning'] .kitchen-main .below-card {
+body[data-mode='dish'] .kitchen-main .below-card {
   /* The card's foot moves down by the extra height it grew (its height is 6/5 of its width). */
   translate: calc(var(--card-w) * (1 - var(--grow)) / 2) calc(var(--card-w) * 6 / 5 * (var(--grow) - 1));
 }
@@ -673,25 +669,27 @@ body[data-mode='settling'] .tray-wrap,
 body[data-mode='settling'] .cook-side {
   pointer-events: none;
 }
-/* On the way back, "Forage", the tray and the brush come in with the panel, at its timing (the
-   user, 2026-11-16). */
+/* On the way back, "Forage", the tray, the brush and the panel come in together, once the table
+   is nearly painted in (settling); the card is home by then, so nothing overlaps (the user,
+   2026-11-16). */
 body[data-mode='settling'] .tray-wrap,
-body[data-mode='table'] .tray-wrap {
-  transition: opacity 360ms ease 820ms;
-}
-/* The panel comes back last, only once the card has moved home (820 ms), so the two never
-   overlap (the user, 2026-11-16). */
+body[data-mode='table'] .tray-wrap,
 body[data-mode='settling'] .cook-side,
 body[data-mode='table'] .cook-side {
-  transition: opacity 360ms ease 820ms;
+  transition: opacity 360ms ease;
 }
 /* The way back: the same ease-in-out as the way there, 820 ms (1.2 s was "very slow", the user,
-   2026-11-16; the ease-out before it was "very snappy"). */
+   2026-11-16; the ease-out before it was "very snappy"). It starts at the click, like Cook, while
+   the painting plays (starting halfway through made a stop, then a move). */
+body[data-mode='returning'] .kitchen-main,
+body[data-mode='returning'] .kitchen-main .below-card,
+body[data-mode='returning'] .kitchen-main .lab-title,
 body[data-mode='settling'] .kitchen-main,
 body[data-mode='settling'] .kitchen-main .below-card,
 body[data-mode='settling'] .kitchen-main .lab-title {
   transition: translate 820ms var(--ease-move);
 }
+body[data-mode='returning'] .kitchen-main .card,
 body[data-mode='settling'] .kitchen-main .card {
   transition: scale 820ms var(--ease-move);
 }
@@ -797,7 +795,7 @@ body[data-mode='dish'] .result-bar {
 }
 body[data-mode='settling'] .bar-root,
 body[data-mode='table'] .bar-root {
-  transition: opacity 360ms ease 820ms;
+  transition: opacity 360ms ease;
 }
 body[data-mode='cooking']:not([data-words='dish']) .bar-root,
 body[data-mode='returning'] .bar-root {

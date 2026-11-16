@@ -680,10 +680,8 @@ function setWords(dish: (typeof DISHES)[number] | null): void {
   gsap.killTweensOf(pageTitle);
   // Already faded away (Cook hides "Forage" at once): the new words only come in.
   const hidden = Number(gsap.getProperty(pageTitle, 'opacity')) < 0.05;
-  // Back to "Forage": it comes in with the panel, once the card is home (0.82 s, the user,
-  // 2026-11-16: the title and the tray "should come with side panel").
   gsap
-    .timeline({ delay: dish ? 0 : 0.82 })
+    .timeline()
     .to(pageTitle, { opacity: 0, y: -4, filter: 'blur(4px)', duration: hidden ? 0 : 0.2, ease: EASE.out })
     .call(() => (pageTitle.textContent = text))
     .fromTo(pageTitle, { opacity: 0, y: 6, filter: 'blur(4px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.5, ease: EASE.out, clearProps: 'transform,filter,opacity' });
@@ -783,15 +781,18 @@ function backToTable(): void {
   // The dish's name leaves at once, with its description (the user, 2026-11-16).
   hideTitle();
   setMode('returning');
+  // The card moves home at once (CSS, returning); "Forage", the tray, the brush and the panel come
+  // in together once the table is nearly painted in, like the dish's words.
   playSwap(
     parked,
-    () => {
-      setWords(null);
-      setMode('settling');
-    },
+    () => undefined,
     () => {
       parked = [];
       setMode('table');
+    },
+    () => {
+      setWords(null);
+      setMode('settling');
     },
   );
 }

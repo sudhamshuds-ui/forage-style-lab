@@ -706,6 +706,9 @@ buttons and the brush come in with its title and description; on the way back "F
 and the brush come in with the panel (820 ms).
 Then: the dish's name, description and buttons come in only once the dish is nearly painted in
 (`NEARLY_PAINTED`, 85% of the painting), not as the reveal starts.
+Then: on the way back the card moves home at the click, like Cook (starting at the swap made a
+stop, then a move), and "Forage", the tray, the brush and the panel come in together once the table
+is nearly painted in (`NEARLY_PAINTED`).
 **Its own Vercel link** (the user, 2026-11-16): a second Vercel project on the same repo builds the
 kitchen with `npm run build:kitchen` (output `dist-kitchen`, the page renamed to `index.html`),
 production branch `kitchen` until it is merged. The first project keeps building `main` (the Style
