@@ -673,9 +673,11 @@ body[data-mode='settling'] .tray-wrap,
 body[data-mode='settling'] .cook-side {
   pointer-events: none;
 }
+/* On the way back, "Forage", the tray and the brush come in with the panel, at its timing (the
+   user, 2026-11-16). */
 body[data-mode='settling'] .tray-wrap,
 body[data-mode='table'] .tray-wrap {
-  transition: opacity 420ms ease 200ms;
+  transition: opacity 360ms ease 820ms;
 }
 /* The panel comes back last, only once the card has moved home (820 ms), so the two never
    overlap (the user, 2026-11-16). */
@@ -710,11 +712,16 @@ body:not([data-mode='table']) .empty-hint {
   pointer-events: none;
   transition: opacity 200ms ease, translate 200ms var(--ease-out);
 }
+/* The buttons come in with the title and the description, at the swap (the user, 2026-11-16: "the
+   delay looks wrong"), the same timing as the description. */
+body[data-mode='cooking'][data-words='dish'] .result-bar,
 body[data-mode='dish'] .result-bar {
   opacity: 1;
   translate: -50% 0;
+  transition: opacity 480ms ease 120ms, translate 560ms var(--ease-out) 120ms;
+}
+body[data-mode='dish'] .result-bar {
   pointer-events: auto;
-  transition: opacity 320ms ease 120ms, translate 420ms var(--ease-out) 120ms;
 }
 .result-save,
 .result-back {
@@ -783,12 +790,16 @@ body[data-mode='dish'] .result-bar {
   }
 }
 
-/* The brush leaves while the painting transition plays, both ways (the user, 2026-11-16), and
-   comes back once the dish or the table is in place. */
+/* The brush leaves while the painting transition plays, both ways (the user, 2026-11-16). It comes
+   back with the dish's title and description, and on the way back with the panel. */
 .kitchen .bar-root {
-  transition: opacity 240ms var(--ease-out) 120ms;
+  transition: opacity 480ms ease 120ms;
 }
-body[data-mode='cooking'] .bar-root,
+body[data-mode='settling'] .bar-root,
+body[data-mode='table'] .bar-root {
+  transition: opacity 360ms ease 820ms;
+}
+body[data-mode='cooking']:not([data-words='dish']) .bar-root,
 body[data-mode='returning'] .bar-root {
   opacity: 0;
   pointer-events: none;

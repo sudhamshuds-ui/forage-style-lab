@@ -76,6 +76,8 @@ interface Item {
   subject: Subject;
   /** Half its width and depth on the table once turned to face the camera (scene units). */
   half: { x: number; z: number };
+  /** Its footprint on the table: outline points (x, z) around its own centre, scene units. */
+  foot: Array<[number, number]>;
   /** How tall it stands (scene units): the tallest of three goes at the back. */
   height: number;
   /** Where it sits in the layer now, and where it is heading. */
@@ -174,6 +176,7 @@ function makeItemFrom(entry: IngredientEntry): Item {
     id,
     subject,
     half: { x: hx, z: hz },
+    foot: points.filter((_, i) => i % 3 === 0).map((p) => [p.x, p.z] as [number, number]),
     height,
     position: new Vector3(),
     target: new Vector3(),
@@ -276,6 +279,62 @@ function arrange(list: Item[]): void {
     // Centre the group front to back.
     const shift = (frontDepth + (back.target.z - back.half.z)) / 2;
     for (const item of list) item.target.z -= shift;
+  }
+  if (list.length > 1) tighten(list, gapFor, list.length === 3 ? [...list].sort((p, q) => q.height - p.height)[0] : null);
+}
+
+/** The closest two footprints come at their targets (scene units). */
+function footGap(a: Item, b: Item): number {
+  let best = Infinity;
+  for (const [ax, az] of a.foot) {
+    const x = ax + a.target.x - b.target.x;
+    const z = az + a.target.z - b.target.z;
+    for (const [bx, bz] of b.foot) best = Math.min(best, (x - bx) ** 2 + (z - bz) ** 2);
+  }
+  return Math.sqrt(best);
+}
+
+/**
+ * Close up the spaces the boxes leave. Each one is placed by its box, but a long ingredient on a
+ * diagonal (the romaine) fills only part of its box, so its neighbours sat far off (the user,
+ * 2026-11-16: "spacing sometimes when bigger ingredient arrives is a lot"). Each slides toward
+ * the others by at most what keeps the gap to its nearest neighbour, so nothing ever overlaps.
+ */
+function tighten(list: Item[], gapFor: (a: Item, b: Item) => number, back: Item | null): void {
+  for (let round = 0; round < 10; round++) {
+    let moved = 0;
+    for (const item of list) {
+      const others = list.filter((other) => other !== item);
+      const cx = others.reduce((sum, o) => sum + o.target.x, 0) / others.length;
+      const cz = others.reduce((sum, o) => sum + o.target.z, 0) / others.length;
+      // Side by side ones slide only sideways and the one behind only forward, so the layout
+      // keeps its shape and nothing slides in front of another.
+      const dx = item === back ? 0 : cx - item.target.x;
+      const dz = item === back ? cz - item.target.z : 0;
+      const length = Math.hypot(dx, dz);
+      if (length < 1e-4) continue;
+      const room = Math.min(...others.map((o) => footGap(item, o) - gapFor(item, o)));
+      const step = Math.min(room * 0.9, length);
+      if (step <= 1e-4) continue;
+      item.target.x += (dx / length) * step;
+      item.target.z += (dz / length) * step;
+      moved += step;
+    }
+    if (moved < 1e-3) break;
+  }
+  // Centre the group on its footprints again.
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  for (const item of list) {
+    for (const [x, z] of item.foot) {
+      minX = Math.min(minX, x + item.target.x);
+      maxX = Math.max(maxX, x + item.target.x);
+      minZ = Math.min(minZ, z + item.target.z);
+      maxZ = Math.max(maxZ, z + item.target.z);
+    }
+  }
+  for (const item of list) {
+    item.target.x -= (minX + maxX) / 2;
+    item.target.z -= (minZ + maxZ) / 2;
   }
 }
 
@@ -548,7 +607,10 @@ const cookPanel = mountCookPanel(document.getElementById('cook-panel') as HTMLEl
 function changed(): void {
   const count = staying().length;
   // No ingredient, nothing to cook (the user, 2026-11-16).
-  cookPanel.setCanCook(count > 0 && mode === 'table');
+  // Only the table decides it, never the mode: the panel is hidden and untouchable away from the
+  // table, and a Cook that greyed out while hidden came back in two steps, a grey pill fading in,
+  // then turning dark (the user, 2026-11-16). cook() itself only runs at the table.
+  cookPanel.setCanCook(count > 0);
   emptyHint.dataset.show = String(count === 0);
   card.dataset.full = String(count >= MAX_ITEMS);
   tray.refresh();
@@ -618,8 +680,10 @@ function setWords(dish: (typeof DISHES)[number] | null): void {
   gsap.killTweensOf(pageTitle);
   // Already faded away (Cook hides "Forage" at once): the new words only come in.
   const hidden = Number(gsap.getProperty(pageTitle, 'opacity')) < 0.05;
+  // Back to "Forage": it comes in with the panel, once the card is home (0.82 s, the user,
+  // 2026-11-16: the title and the tray "should come with side panel").
   gsap
-    .timeline()
+    .timeline({ delay: dish ? 0 : 0.82 })
     .to(pageTitle, { opacity: 0, y: -4, filter: 'blur(4px)', duration: hidden ? 0 : 0.2, ease: EASE.out })
     .call(() => (pageTitle.textContent = text))
     .fromTo(pageTitle, { opacity: 0, y: 6, filter: 'blur(4px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.5, ease: EASE.out, clearProps: 'transform,filter,opacity' });
