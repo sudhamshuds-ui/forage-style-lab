@@ -715,18 +715,25 @@ function swapStage(next: Item[]): void {
  * 2026-11-16): the picture is smudged away by brush strokes, then the next one is painted in.
  * Halfway (as the reveal begins) what is on the card is swapped; the slow turn never stops.
  */
-function playSwap(next: Item[], atSwap: () => void, done: () => void): void {
+function playSwap(next: Item[], atSwap: () => void, done: () => void, nearlyDone?: () => void): void {
   select(null);
   hovered = null;
   if (prefersReducedMotion()) {
     crossfade(() => swapStage(next), 0.3);
     atSwap();
+    nearlyDone?.();
     done();
     return;
   }
   update();
   transition.begin(stage.renderer, painter.strokeCell(settings), settings.brush.type === 'round' ? 1 : 0, paintFrame.objectUv);
   let swapped = false;
+  let told = false;
+  const tell = () => {
+    if (told) return;
+    told = true;
+    nearlyDone?.();
+  };
   const swap = () => {
     swapped = true;
     swapStage(next);
@@ -734,16 +741,21 @@ function playSwap(next: Item[], atSwap: () => void, done: () => void): void {
   };
   stage.takeOver((delta) => {
     if (!swapped && transition.progress >= REVEAL_STARTS) swap();
+    if (transition.progress >= NEARLY_PAINTED) tell();
     update();
     painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, swapped ? transition.stillTo : transition.stillFrom);
     transition.setCentre(swapped ? 'to' : 'from', paintFrame.objectUv);
     if (transition.step(stage.renderer, delta)) {
       if (!swapped) swap();
+      tell();
       stage.release();
       done();
     }
   });
 }
+
+/** How far through the painting the dish counts as nearly painted in (0 to 1). */
+const NEARLY_PAINTED = 0.85;
 
 /** Cook: the ingredients are painted away and the dish is painted in. */
 function cook(): void {
@@ -755,10 +767,13 @@ function cook(): void {
   parked = staying();
   hideTitle();
   setMode('cooking');
+  // The name, the description and the buttons wait until the dish is almost painted in and
+  // clearly visible (the user, 2026-11-16), not the moment the reveal starts.
   playSwap(
     [item],
-    () => setWords(dish),
+    () => undefined,
     () => setMode('dish'),
+    () => setWords(dish),
   );
 }
 

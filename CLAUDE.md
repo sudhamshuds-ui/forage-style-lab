@@ -704,6 +704,8 @@ sideways or forward only, until its footprint is one gap from its nearest neighb
 romaine left big gaps); Cook stays dark while the panel is hidden (no two-step fade); the dish's
 buttons and the brush come in with its title and description; on the way back "Forage", the tray
 and the brush come in with the panel (820 ms).
+Then: the dish's name, description and buttons come in only once the dish is nearly painted in
+(`NEARLY_PAINTED`, 85% of the painting), not as the reveal starts.
 **Dish references**: Figma page "Dish refs (generated)" (node 214:8, board 214:9), batch 1: six
 dishes made with Figma AI (`generate_image`, the user's go-ahead) from our ingredients, for plating
 and composition only. New images land on the "Feedback sessions" page: move them to this page.
