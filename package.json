@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:kitchen": "tsc && vite build --config vite.kitchen.config.ts && mv dist-kitchen/kitchen.html dist-kitchen/index.html",
     "preview": "vite preview",
     "test": "vitest run"
   },

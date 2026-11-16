@@ -706,6 +706,10 @@ buttons and the brush come in with its title and description; on the way back "F
 and the brush come in with the panel (820 ms).
 Then: the dish's name, description and buttons come in only once the dish is nearly painted in
 (`NEARLY_PAINTED`, 85% of the painting), not as the reveal starts.
+**Its own Vercel link** (the user, 2026-11-16): a second Vercel project on the same repo builds the
+kitchen with `npm run build:kitchen` (output `dist-kitchen`, the page renamed to `index.html`),
+production branch `kitchen` until it is merged. The first project keeps building `main` (the Style
+Lab with Shuffle only).
 **Dish references**: Figma page "Dish refs (generated)" (node 214:8, board 214:9), batch 1: six
 dishes made with Figma AI (`generate_image`, the user's go-ahead) from our ingredients, for plating
 and composition only. New images land on the "Feedback sessions" page: move them to this page.
