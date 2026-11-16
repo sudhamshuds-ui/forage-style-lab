@@ -22,7 +22,8 @@ export interface CutShape {
   flesh: BufferGeometry;
   /** Missing when no peel shows (a puree). */
   skin?: BufferGeometry;
-  /** A puree's bottle cap. */
+  /** A puree's bottle: the clear, empty part above the sauce, and its cap. */
+  bottle?: BufferGeometry;
   cap?: BufferGeometry;
 }
 
@@ -146,8 +147,8 @@ function inside(d: Die, x: number, z: number): boolean {
 function cubes(o: CutOptions, side: number, perMedium: number): CutShape {
   const random = seededRandom(o.seed ^ 0xd1ced);
   const count = Math.max(4, Math.round(perMedium * o.holds));
-  // About a quarter of them lean; the rest lie flat.
-  const leaners = Math.round(count * 0.26);
+  // About one in six leans; the rest lie flat.
+  const leaners = Math.round(count * 0.16);
   const flats = count - leaners;
   // How far the heap spreads: tight enough that cubes land on each other and it mounds.
   const spread = side * Math.sqrt(flats) * 0.5;
@@ -197,8 +198,12 @@ function cubes(o: CutOptions, side: number, perMedium: number): CutShape {
       const nz = Math.sin(face);
       const along = (random() - 0.5) * prop.s * 0.5;
       // How far it tips: enough that its top edge meets the prop's side below the prop's top.
+      // Only a gentle tip, as if nudged against its neighbour: a steep one stood balanced on
+      // its edge and looked ready to fall (the user, 2026-11-16: "the cubes dont balance right").
+      // A cube too tall for its prop would need a steep tip, so it is left out.
       const least = Math.acos(Math.min(1, (prop.s * 0.96) / s));
-      const tip = Math.max(least + 0.04, 0.2 + random() * 0.38);
+      if (least > 0.2) continue;
+      const tip = Math.max(least + 0.03, 0.1 + random() * 0.16);
       // Seen from the side, measuring out from the prop's face: its near bottom edge stands
       // `gap` away, and the cube tips back by `tip` until its top edge touches the face.
       const gap = s * Math.sin(tip);
@@ -244,29 +249,34 @@ function cubes(o: CutOptions, side: number, perMedium: number): CutShape {
 
 /**
  * A puree comes in a squeeze bottle (the user's reference, 2026-11-16: a clear sauce bottle
- * with a cone cap). The sauce shows through the bottle, so the body takes the puree's colour;
- * the cap is a second piece. More of it means more bottles, one to three, standing together.
+ * with a cone cap). The bottle is half full: its lower part is the puree's colour, the part
+ * above it clear plastic, and the cap a third piece. More of it means more bottles, one to three, standing together.
  */
-function bottles(o: CutOptions): CutShape & { cap: BufferGeometry } {
+function bottles(o: CutOptions): CutShape {
   const random = seededRandom(o.seed ^ 0x9a7ee);
   const count = Math.max(1, Math.min(3, Math.round(o.holds * 1.4)));
   const spots: [number, number][][] = [[[0, 0]], [[-3.4, 0.4], [3.4, -0.4]], [[-3.6, 1.6], [3.6, 1.2], [0.2, -3.4]]];
   const bodies: BufferGeometry[] = [];
   const caps: BufferGeometry[] = [];
+  const clears: BufferGeometry[] = [];
   const point = (r: number, y: number, v: number): ProfilePoint => ({ r, y, u: 0, v });
   for (const [x, z] of spots[count - 1]) {
     const k = 0.92 + random() * 0.16;
     const R = 3.1 * k;
     const H = 13.5 * k;
-    // The body: a straight-sided bottle with a rounded foot and a shoulder curving in to the neck.
-    const body: ProfilePoint[] = [point(0, 0.12, 0), point(R - 0.5, 0.12, 0), point(R - 0.12, 0.3, 0), point(R, 0.8, 0)];
-    body.push(point(R, H * 0.78, 0.7));
+    // Half full (the user, 2026-11-16), each bottle a little differently.
+    const fill = H * (0.42 + random() * 0.1);
+    // The sauce: the lower part of the bottle, with a rounded foot and a flat top.
+    const sauce: ProfilePoint[] = [point(0, 0.12, 0), point(R - 0.5, 0.12, 0), point(R - 0.12, 0.3, 0), point(R, 0.8, 0), point(R, fill, 0.5), point(0, fill, 0.5)];
+    bodies.push(plain(spinProfile(sauce, 44)).translate(x, 0, z));
+    // The empty part above it: clear plastic, straight sides, then a shoulder curving in to the neck.
+    const empty: ProfilePoint[] = [point(0, fill, 0.5), point(R, fill, 0.5), point(R, H * 0.78, 0.7)];
     for (let i = 1; i <= 6; i++) {
       const a = (i / 6) * (Math.PI / 2);
-      body.push(point(R * 0.52 + R * 0.48 * Math.cos(a), H * 0.78 + H * 0.12 * Math.sin(a), 0.8));
+      empty.push(point(R * 0.52 + R * 0.48 * Math.cos(a), H * 0.78 + H * 0.12 * Math.sin(a), 0.8));
     }
-    body.push(point(R * 0.52, H * 0.93, 0.9), point(0, H * 0.93, 1));
-    bodies.push(plain(spinProfile(body, 44)).translate(x, 0, z));
+    empty.push(point(R * 0.52, H * 0.93, 0.9), point(0, H * 0.93, 1));
+    clears.push(plain(spinProfile(empty, 44)).translate(x, 0, z));
     // The cap: a screw collar, then a cone nozzle with a small flat tip.
     const c0 = H * 0.9;
     const cap: ProfilePoint[] = [
@@ -275,12 +285,12 @@ function bottles(o: CutOptions): CutShape & { cap: BufferGeometry } {
     ];
     caps.push(plain(spinProfile(cap, 36)).translate(x, 0, z));
   }
-  return { flesh: mergeGeometries(bodies)!, cap: mergeGeometries(caps)! };
+  return { flesh: mergeGeometries(bodies)!, bottle: mergeGeometries(clears)!, cap: mergeGeometries(caps)! };
 }
 
 export function buildCut(cut: Exclude<Cut, 'Whole'>, options: CutOptions): CutShape {
   if (cut === 'Sliced') return sliced(options);
-  if (cut === 'Diced') return cubes(options, 1.3, 22);
+  if (cut === 'Diced') return cubes(options, 1.3, 44);
   if (cut === 'Chopped') return cubes(options, 0.34, 190);
   return bottles(options);
 }

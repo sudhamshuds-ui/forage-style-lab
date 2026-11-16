@@ -765,6 +765,12 @@ back to prev interaction setup"); the slider's stop dots are gone (it still snap
 quarter of the cubes lean** (`cubes`, pass 2: each stands on one bottom edge on the table and
 tips until its top edge rests against the side of a flat cube beside it, the angle worked out
 exactly so it touches and never cuts in; nothing is set down on a leaning cube).
+**Round 5 (2026-11-16, the user's notes)**: twice as many dice per helping; the puree's bottle is
+**half full** (sauce below, clear `glass` above) and **heat does nothing to a puree**; leaning
+cubes are fewer and only gently tipped (a steep lean stood on its edge: "the cubes dont balance
+right ... make them look realistic"). **Open**: a truly realistic heap needs a physics settle
+(drop the cubes and let them come to rest). Adding a small physics library (`cannon-es`) was
+blocked as an unapproved new dependency: ask the user before installing it.
 Not done yet: sizing in the viewport, per-ingredient
 slice shapes (citrus segments, onion rings, a hollow pepper), parameter categories per kind of
 ingredient (rice, sauces), a reduction in a bottle.

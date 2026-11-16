@@ -135,8 +135,10 @@ function build(): Part[] {
 
   // The ingredient's colours after the heat: its skin, its flesh, and the two stirred together
   // (a puree). They are written into the kit's own working families just before building.
-  const skinColours = heated(FAMILIES[entry.spec.family].colours, state.heat);
-  const fleshColours = heated(FAMILIES[kit.flesh].colours, state.heat);
+  // (A puree in its bottle is left as it is: heat does nothing to it, the user, 2026-11-16.)
+  const heat = state.prep === 'Puree' ? RAW : state.heat;
+  const skinColours = heated(FAMILIES[entry.spec.family].colours, heat);
+  const fleshColours = heated(FAMILIES[kit.flesh].colours, heat);
   FAMILIES['kit-skin'] = { name: 'Kit skin', colours: skinColours, rooms: [] };
   FAMILIES['kit-flesh'] = { name: 'Kit flesh', colours: fleshColours, rooms: [] };
   FAMILIES['kit-mix'] = {
@@ -150,7 +152,7 @@ function build(): Part[] {
     },
     rooms: [],
   };
-  const { crust, glossy } = heatLook(state.heat);
+  const { crust, glossy } = heatLook(heat);
   const radius = Math.min(entry.spec.size_cm[0], entry.spec.size_cm[2]) / 2;
   const parts: Part[] = [];
 
@@ -192,12 +194,13 @@ function build(): Part[] {
           entryFor(
             `kit-${kit.id}-${cut}`,
             family,
-            ['flesh', 'skin@kit-skin', 'cap@crumb'],
+            ['flesh', 'skin@kit-skin', 'bottle@glass', 'cap@crumb'],
             () => {
               // On the open table there is as much room as the helping needs.
               const shape = buildCut(cut, { radius, room: 5 + 5 * Math.sqrt(holds), holds, seed });
               const pieces: FormPiece[] = [{ role: 'flesh', geometry: shape.flesh }];
               if (shape.skin) pieces.push({ role: 'skin', geometry: shape.skin });
+              if (shape.bottle) pieces.push({ role: 'bottle', geometry: shape.bottle });
               if (shape.cap) pieces.push({ role: 'cap', geometry: shape.cap });
               return finishPieces(pieces);
             },
@@ -206,6 +209,7 @@ function build(): Part[] {
               // (A puree is seen through its bottle: smooth and shiny whatever the heat.)
               skin: crust > 0.04 && cut !== 'Puree' ? { kind: 'crust', size_mm: 3, amount: crust } : NO_SKIN,
               matte: !glossy && cut !== 'Puree',
+              glossy: ['bottle'],
               shadowTint: 0.45,
             },
           ),
