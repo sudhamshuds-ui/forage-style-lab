@@ -60,7 +60,8 @@ export class ShuffleTransition {
   private flip = 0;
   private firstFrame = true;
 
-  constructor() {
+  /** `seconds`: the whole transition's length (the kitchen's Cook runs longer, the user 2026-11-16). */
+  constructor(private readonly seconds = TRANSITION_SECONDS) {
     const make = () => new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false });
     this.stillFrom = make();
     this.stillTo = make();
@@ -72,7 +73,7 @@ export class ShuffleTransition {
         tStill: { value: this.stillFrom.texture },
         uResolution: { value: new Vector2(1, 1) },
         uT: { value: 0 },
-        uSeconds: { value: TRANSITION_SECONDS },
+        uSeconds: { value: seconds },
         uCentre: { value: new Vector2(0.5, 0.5) },
         uSeed: { value: new Vector2(0, 0) },
         uStep: { value: 1 },
@@ -93,7 +94,7 @@ export class ShuffleTransition {
         tNext: { value: this.stillTo.texture },
         uResolution: { value: new Vector2(1, 1) },
         uT: { value: 0 },
-        uSeconds: { value: TRANSITION_SECONDS },
+        uSeconds: { value: seconds },
         uCentre: { value: new Vector2(0.5, 0.5) },
         uSeed: { value: new Vector2(0, 0) },
         uStyle: { value: 0 },
@@ -189,7 +190,7 @@ export class ShuffleTransition {
 
   /** How far through the transition we are, 0..1. */
   get progress(): number {
-    return Math.min(this.time / TRANSITION_SECONDS, 1);
+    return Math.min(this.time / this.seconds, 1);
   }
 
   /** Paint the next frame to the screen. Returns true once the transition has finished. */
@@ -217,6 +218,6 @@ export class ShuffleTransition {
     renderer.setRenderTarget(null);
     renderer.render(this.scene, this.camera);
 
-    return this.time >= TRANSITION_SECONDS;
+    return this.time >= this.seconds;
   }
 }

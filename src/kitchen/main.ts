@@ -58,7 +58,10 @@ const ground = new Ground();
 const framed = new Group();
 const painter = new Painter();
 const tracer = new OutlineTracer();
-const transition = new ShuffleTransition();
+// Cook and Back paint for longer than New ingredient does (the user, 2026-11-16: "the painting
+// transition can be longer").
+const COOK_SECONDS = 3.4;
+const transition = new ShuffleTransition(COOK_SECONDS);
 stage.scene.add(background.mesh, ground.mesh, framed);
 stage.onResize = (width, height) => {
   painter.setSize(width, height);
@@ -693,6 +696,8 @@ function cook(): void {
 /** Back to the table, with the same ingredients as before. */
 function backToTable(): void {
   if (mode !== 'dish') return;
+  // The dish's name leaves at once, with its description (the user, 2026-11-16).
+  hideTitle();
   setMode('returning');
   playSwap(
     parked,

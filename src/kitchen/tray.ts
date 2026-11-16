@@ -216,13 +216,22 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
       // One animation takes it from exactly where and how it is now (its place, its lean, its
       // size, read from the screen) to the tile, slowing gently as it arrives: 460 ms on the
       // drawer curve, which starts quickly and takes its time to settle.
-      const home = tile.getBoundingClientRect();
+      // The tile's resting place, without its hover lift: measured while the pointer is over it, the
+      // ghost landed 3 px high and the tile then snapped down (the user, 2026-11-16: "they sort of
+      // snap/bounce back"). The tile also keeps still under the pointer until it is left.
+      tile.setAttribute('data-homing', '');
+      const lifted = new DOMMatrixReadOnly(getComputedStyle(tile).transform === 'none' ? undefined : getComputedStyle(tile).transform);
+      const rect = tile.getBoundingClientRect();
+      const home = { left: rect.left - lifted.m41, top: rect.top - lifted.m42 };
       const now = getComputedStyle(flying);
       const from = { translate: now.translate, rotate: now.rotate === 'none' ? '0deg' : now.rotate, scale: now.scale === 'none' ? '1' : now.scale };
       flying.setAttribute('data-landing', '');
       const land = () => {
         tile.style.transition = 'none';
         cleanUp();
+        // Still under the pointer: stay put until it leaves (no lift right after landing).
+        if (tile.matches(':hover')) tile.addEventListener('pointerleave', () => tile.removeAttribute('data-homing'), { once: true });
+        else tile.removeAttribute('data-homing');
         // Let the tile's own transitions (hover, greying) work again from the next frame.
         requestAnimationFrame(() => requestAnimationFrame(() => (tile.style.transition = '')));
       };

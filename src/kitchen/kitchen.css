@@ -232,7 +232,7 @@
   outline-offset: 2px;
 }
 @media (hover: hover) and (pointer: fine) {
-  .tile:not([data-used]):not([data-blocked]):hover {
+  .tile:not([data-used]):not([data-blocked]):not([data-homing]):hover {
     transform: translateY(-3px);
   }
 }
@@ -674,7 +674,17 @@ body[data-mode='table'] .tray-wrap {
    overlap (the user, 2026-11-16). */
 body[data-mode='settling'] .cook-side,
 body[data-mode='table'] .cook-side {
-  transition: opacity 360ms ease 820ms;
+  transition: opacity 360ms ease 1200ms;
+}
+/* The way back is slower and softer than the way there (the user, 2026-11-16: "very snappy"): an
+   ease-in-out over 1.2 s, so the card leaves gently and settles gently. */
+body[data-mode='settling'] .kitchen-main,
+body[data-mode='settling'] .kitchen-main .below-card,
+body[data-mode='settling'] .kitchen-main .lab-title {
+  transition: translate 1200ms cubic-bezier(0.45, 0, 0.25, 1), margin 1200ms cubic-bezier(0.45, 0, 0.25, 1);
+}
+body[data-mode='settling'] .kitchen-main .card {
+  transition: scale 1200ms cubic-bezier(0.45, 0, 0.25, 1);
 }
 body:not([data-mode='table']) .empty-hint {
   opacity: 0;
