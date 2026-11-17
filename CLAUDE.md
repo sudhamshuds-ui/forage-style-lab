@@ -793,6 +793,20 @@ pieces are taken away and what leaned on them settles. Heat keeps the same heap;
 ingredient starts a fresh one. With reduced motion the settle is worked out at once.
 **Puree: quantity is the number of cups**, one to five, every cup the same size, set out on a
 ring so neighbours never touch; the puree has a spiral swirl and a small peak.
+**Round 8 (2026-11-17, the user's notes: better transitions, a slower fall, no delayed settle,
+less lag)**: **whole fruit, slices and cups are separate pieces now** (`makeUnit`, kept per prep in
+`pools` until the ingredient changes; `posesFor` gives each its place; `sliceUnit`/`sliceLayout`
+and `cupUnit`/`cupSpots` in `cuts.ts`). A quantity change is one movement (`changeUnits`, after the
+choreograph skill): staying pieces glide to their new places (520 ms, ease-in-out), new ones drop in
+from above the card one after another (fruit and slices fall with gravity's ease-in, a cup is set
+down, slowing), leaving ones lift out quicker, and the zoom eases with them; contact shadows fade
+while a piece is in the air. **Heat recolours in place** (`applyHeat` from each layer's raw colours;
+nothing is rebuilt) and eases through the stops over 340 ms (`heatShown`), with no dissolve copy.
+The next piece up is made in idle time (`prepareNext`); the paint programs for cut flesh are built
+ahead (`warmShaders`). **The heap drops at 1.4 times real time** (time-based, `DROP_PACE`; four
+physics steps a frame was "very fast"), and **the ring round falling pieces is taken away without
+waking the heap** (waking it made the pieces settle a second time after a pause). Switching to a
+heap starts from the first helping (worked out ahead) and drops the rest in.
 Not done yet: sizing in the viewport, per-ingredient
 slice shapes (citrus segments, onion rings, a hollow pepper), parameter categories per kind of
 ingredient (rice, sauces), a reduction in a bottle.

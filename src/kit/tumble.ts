@@ -122,7 +122,7 @@ export class Heap {
       if (step > 60 && this.atRest) break;
     }
     // The hands open: the heap relaxes a little on its own.
-    this.open();
+    this.open(true);
     for (let step = 0; step < 140; step++) {
       this.world.step(1 / 60);
       if (step > 20 && this.atRest) break;
@@ -144,11 +144,11 @@ export class Heap {
     }
   }
 
-  /** Take the walls away and wake everything, so the heap can relax. */
-  private open(): void {
+  /** Take the walls away. `wake` also stirs every piece, so the heap relaxes without them. */
+  private open(wake: boolean): void {
     for (const wall of this.walls) this.world.removeBody(wall);
     this.walls = [];
-    for (const piece of this.pieces) piece.body.wakeUp();
+    if (wake) for (const piece of this.pieces) piece.body.wakeUp();
   }
 
   /** `n` more pieces, held in loose layers just above the heap, ready to fall onto it. */
@@ -172,11 +172,12 @@ export class Heap {
   /** Let time pass (`times` sixtieths of a second). Returns true once every piece is at rest. */
   step(times: number): boolean {
     for (let i = 0; i < times; i++) this.world.step(1 / 60);
-    if (!this.atRest) return false;
-    // Landed inside the ring: take it away and let the heap relax before calling it done.
-    if (this.walls.length === 0) return true;
-    this.open();
-    return false;
+    if (times === 0 || !this.atRest) return false;
+    // Landed: the ring is taken away quietly. (Waking the heap here made it settle a second
+    // time after a pause, "a delayed settle", the user, 2026-11-17. The ring is wide, so
+    // hardly anything leans on it.)
+    this.open(false);
+    return true;
   }
 
   get atRest(): boolean {
