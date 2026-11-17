@@ -26,7 +26,10 @@ import { REVEAL_STARTS, ShuffleTransition, TRANSITION_SECONDS } from '../paintin
 import { mountStyleBar } from '../ui/styleBar';
 import { paintLike } from '../randomize';
 import { mixHex } from '../utils/colour';
-import { CUTS, buildCut, type Cut } from './cuts';
+import { CUTS, HEAPS, buildCut, heapCount, heapMesh, isHeap, type Cut, type HeapMesh } from './cuts';
+import { Heap } from './tumble';
+import { footprintSpots } from '../ingredients/layout';
+import { UNITS_PER_CM } from '../ingredients/scale';
 import { RAW, heatLook, heatName, heated } from './heat';
 import { mountKitPanel } from './panel';
 
@@ -133,6 +136,19 @@ function entryFor(id: string, family: FamilyId, parts: string[], form: () => For
 // apple's streaks, it gave the most colour without changing what the flesh is.)
 let fleshSkin: Skin = { kind: 'peach', size_mm: 2, amount: 0.8 };
 
+/*
+ * The heap (diced or chopped): a small physics world that lives as long as its ingredient and
+ * prep stay on the page, so adding to it drops new pieces onto the ones already lying there.
+ * `heapShape` is the same heap as shapes to draw; while pieces are falling it is rewritten
+ * every frame (`dropping`).
+ */
+let heap: Heap | null = null;
+let heapShape: HeapMesh | null = null;
+let dropping = false;
+let dropFrames = 0;
+/** True for the next re-framing only: ease to the new zoom instead of jumping. */
+let easeFraming = false;
+
 /** Build the ingredient for the current choices. */
 function build(): Part[] {
   const kit = KIT_INGREDIENTS[state.ingredient];
@@ -188,6 +204,31 @@ function build(): Part[] {
     }
     const layout = count === 1 ? 'solo' : count === 2 ? 'cluster-2' : 'cluster-3';
     parts.push(asPart(createSubject({ ...entry, spec: { ...entry.spec, family: 'kit-skin', layout }, matte: glossy ? false : entry.matte }, look)));
+  } else if (isHeap(state.prep)) {
+    // Diced or chopped: the heap's pieces come from the physics, merged into two shapes.
+    const kind = HEAPS[state.prep];
+    if (!heap) heap = Heap.settled(heapCount(state.prep, HELPINGS[Math.min(HELPINGS.length, state.quantity) - 1]), kind.wedges);
+    const shape = (heapShape = heapMesh(heap, kind.side));
+    const part = asPart(
+      createSubject(
+        entryFor(
+          `kit-${kit.id}-${state.prep}`,
+          'kit-flesh',
+          ['flesh', 'skin@kit-skin'],
+          () => {
+            const pieces: FormPiece[] = [{ role: 'flesh', geometry: shape.flesh }];
+            if (shape.skin) pieces.push({ role: 'skin', geometry: shape.skin });
+            return pieces;
+          },
+          // Cooked surfaces take the baked, blotchy texture; raw and frozen ones the flesh's own.
+          { skin: crust > 0.04 ? { kind: 'crust', size_mm: 3, amount: crust } : fleshSkin, matte: !glossy, shadowTint: 0.45 },
+        ),
+        look,
+      ),
+    );
+    // Its outline changes while pieces fall: never let the renderer skip it as "off screen".
+    part.subject.group.traverse((object) => (object.frustumCulled = false));
+    parts.push(part);
   } else {
     const cut = state.prep;
     const holds = HELPINGS[Math.min(HELPINGS.length, state.quantity) - 1];
@@ -202,7 +243,7 @@ function build(): Part[] {
             ['flesh', 'skin@kit-skin', 'cup@milk'],
             () => {
               // On the open table there is as much room as the helping needs.
-              const shape = buildCut(cut, { radius, room: 5 + 5 * Math.sqrt(holds), holds, seed });
+              const shape = buildCut(cut, { radius, room: 5 + 5 * Math.sqrt(holds), holds, count: state.quantity, seed });
               const pieces: FormPiece[] = [{ role: 'flesh', geometry: shape.flesh }];
               if (shape.skin) pieces.push({ role: 'skin', geometry: shape.skin });
               if (shape.bottle) pieces.push({ role: 'cup', geometry: shape.bottle });
@@ -229,7 +270,46 @@ function build(): Part[] {
   return parts;
 }
 
-function put(next: Part[]): void {
+/**
+ * After the heap has moved (pieces fell, or were taken away): measure it again, so its
+ * highlight, its contact shadows and the framing fit where it now lies.
+ */
+function refitHeap(): void {
+  const part = scene[0];
+  if (!part || !heapShape) return;
+  const geometry = heapShape.flesh;
+  const sphere = geometry.boundingSphere!;
+  part.subject.centre.copy(sphere.center);
+  part.subject.radius = sphere.radius * 0.88;
+  // Contact shadows under what touches the table: the points of the heap lying lowest.
+  const position = geometry.getAttribute('position');
+  const low: Vector3[] = [];
+  const reach = (HEAPS[state.prep as 'Diced' | 'Chopped']?.side ?? 1) * UNITS_PER_CM * 0.2;
+  for (let i = 0; i < position.count; i += 3) if (position.getY(i) < reach) low.push(new Vector3().fromBufferAttribute(position, i));
+  if (low.length >= 6) part.subject.contacts.splice(0, part.subject.contacts.length, ...footprintSpots(low, MAX_CONTACTS));
+}
+
+/** One frame of a drop: let the physics run a little, redraw, and stop once everything is at rest. */
+function dropTick(): void {
+  if (!dropping || !heap || !heapShape) return;
+  // A few steps a frame: fast enough to feel like falling, slow enough to follow.
+  const rested = heap.step(state.prep === 'Chopped' ? 3 : 4);
+  heapShape.write();
+  stage.invalidate();
+  if (rested || ++dropFrames > 360) {
+    dropping = false;
+    refitHeap();
+    // The view eases to fit the heap as it now is.
+    easeFraming = true;
+    needsFraming = true;
+  }
+}
+function startDrop(): void {
+  dropping = true;
+  dropFrames = 0;
+}
+
+function put(next: Part[], keepFraming = false): void {
   for (const part of scene) {
     framed.remove(part.subject.group);
     part.subject.dispose();
@@ -239,7 +319,8 @@ function put(next: Part[]): void {
   // The room is the ingredient's own, whatever is done to it.
   const room = findPalette(FAMILIES[findIngredient(KIT_INGREDIENTS[state.ingredient].id)!.spec.family].rooms[0]);
   if (room) applyPalette(settings, room);
-  needsFraming = true;
+  // (While pieces are still in the air the view stays as it is; it re-frames once they land.)
+  if (!keepFraming) needsFraming = true;
   stage.invalidate();
 }
 
@@ -280,9 +361,17 @@ function reframe(): void {
   framed.updateMatrixWorld(true);
   const points = scene.flatMap((part) => outlinePoints(part.subject.group, 900));
   const framing = frameSubject(points, stage.framingCamera);
-  viewScale = framing.scale;
   groundY = contactHeight(stage.framingCamera);
   placePill = true;
+  if (easeFraming && !prefersReducedMotion()) {
+    // After a drop: glide to the new zoom (a jump would undo the calm of the landing).
+    easeFraming = false;
+    const zoom = { k: viewScale };
+    gsap.to(zoom, { k: framing.scale, duration: 0.6, ease: EASE.out, onUpdate: () => ((viewScale = zoom.k), stage.invalidate()) });
+  } else {
+    easeFraming = false;
+    viewScale = framing.scale;
+  }
 }
 
 function update(): void {
@@ -393,6 +482,13 @@ function crossfade(change: () => void, seconds = 0.26): void {
   stage.invalidate();
 }
 
+/** Forget the heap (another ingredient or prep is coming): the next one starts fresh. */
+function dropHeap(): void {
+  dropping = false;
+  heap = null;
+  heapShape = null;
+}
+
 /* The quantity stepper on the card. */
 const qty = document.getElementById('qty') as HTMLElement;
 const qtyLess = document.getElementById('qty-less') as HTMLButtonElement;
@@ -410,6 +506,30 @@ function changeQuantity(by: number): void {
   const more = next > state.quantity;
   state.quantity = next;
   showQuantity();
+  // A heap (diced, chopped): the new pieces are let go above it and you watch them drop in and
+  // tumble onto the ones already there (the user, 2026-11-17). Fewer: the last ones are taken
+  // away and whatever leaned on them settles.
+  if (isHeap(state.prep) && heap) {
+    const change = heapCount(state.prep, HELPINGS[next - 1]) - heap.pieces.length;
+    if (change === 0) return;
+    if (prefersReducedMotion()) {
+      // No falling: work the settle out at once and dissolve to it.
+      if (change > 0) heap.add(change);
+      else heap.remove(-change);
+      for (let i = 0; i < 500 && !heap.step(1); i++);
+      return crossfade(() => put(build()));
+    }
+    if (change > 0) {
+      heap.add(change);
+      put(build(), true);
+    } else {
+      crossfade(() => {
+        heap!.remove(-change);
+        put(build(), true);
+      }, 0.24);
+    }
+    return startDrop();
+  }
   // More or less: the old picture dissolves into the new one over a third of a second, while
   // the group swells up to its size (more) or settles down to it (less). One motion, ease-out,
   // so it answers the click at once and lands softly. (A plain quick dissolve read as an
@@ -428,6 +548,7 @@ qtyMore.addEventListener('click', () => changeQuantity(1));
  */
 const busyListeners = new Set<(busy: boolean) => void>();
 function resetChoices(): void {
+  dropHeap();
   Object.assign(state, DEFAULT_STATE);
   panel.set({ prep: state.prep, heat: state.heat });
   showQuantity();
@@ -489,6 +610,13 @@ const panel = mountKitPanel(document.getElementById('kit-panel') as HTMLElement,
   heatName,
   onChange: (values, what) => {
     if (swapping) return;
+    // Another prep, or back to the start: any heap is forgotten. (Heat keeps it: the same
+    // pieces, only their colour changes.) If pieces are still falling, they are set at rest.
+    if (what !== 'heat') dropHeap();
+    else if (dropping && heap) {
+      for (let i = 0; i < 500 && !heap.step(1); i++);
+      dropping = false;
+    }
     state.prep = values.prep as Cut;
     state.heat = values.heat;
     if (what === 'reset') state.quantity = DEFAULT_STATE.quantity;
@@ -508,6 +636,8 @@ const panel = mountKitPanel(document.getElementById('kit-panel') as HTMLElement,
 showQuantity();
 put(build());
 stage.start(update, draw);
+// While pieces are falling, the physics moves on every frame.
+gsap.ticker.add(dropTick);
 window.setTimeout(() => transition.warmUp(stage.renderer), 800);
 reducedMotion.addEventListener('change', () => stage.invalidate());
 

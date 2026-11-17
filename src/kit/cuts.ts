@@ -1,7 +1,8 @@
 import { BoxGeometry, BufferGeometry, CylinderGeometry, Euler, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { bowlInner, bowlProfile, moundGeometry, spinProfile, type BowlShape } from '../ingredients/forms/kit/bowl';
-import { WEDGE_FACES, tumble, wedgeCorners } from './tumble';
+import { UNITS_PER_CM } from '../ingredients/scale';
+import { WEDGE_FACES, wedgeCorners, type Heap } from './tumble';
 import { seededRandom } from '../ingredients/forms/kit/random';
 
 /**
@@ -33,6 +34,8 @@ export interface CutOptions {
   /** The radius of the surface it goes on (cm), and how much that holds (1 is a medium vessel). */
   room: number;
   holds: number;
+  /** The quantity itself (1 to 5): how many cups of puree. */
+  count: number;
   seed: number;
 }
 
@@ -91,85 +94,154 @@ function wedgeGeometry(half: [number, number, number]): BufferGeometry {
   return geometry;
 }
 
+/** The two kinds of heap: how big a piece is (cm), how many in a middle helping, the share of wedges, and the most there can be. */
+export const HEAPS = {
+  // Dice: about a third of them wedges.
+  Diced: { side: 1.3, perMedium: 44, wedges: 0.3, most: 140 },
+  // Chopped: tiny blocks only (a wedge that small reads as a block anyway, and blocks settle
+  // faster), and never more than the physics can keep up with.
+  Chopped: { side: 0.4, perMedium: 70, wedges: 0, most: 200 },
+} as const;
+export type HeapCut = keyof typeof HEAPS;
+export const isHeap = (cut: Cut): cut is HeapCut => cut === 'Diced' || cut === 'Chopped';
+/** How many pieces a helping is. */
+export const heapCount = (cut: HeapCut, holds: number) => Math.min(HEAPS[cut].most, Math.max(4, Math.round(HEAPS[cut].perMedium * holds)));
+
 /**
- * A heap of small pieces, dropped and settled with real physics (tumble.ts): each rests on the
- * table or on its neighbours at whatever tilt it landed, so nothing cuts into anything and
- * nothing balances where it could not.
+ * A heap as shapes to draw: every piece's flesh merged into one shape, the peel sheets into
+ * another. The pieces live in the physics (tumble.ts); `write` copies where they are now into
+ * the shapes, so it can be called every frame while they fall.
  *
- * `side` is a piece's size in cm: dice are about 1.3 cm, finely chopped pieces a quarter of
- * that and many more of them. The pieces are not perfect cubes: each block's three sides
- * differ a little, and some are wedges (half a block, cut corner to corner). Edges are sharp.
- * Some blocks keep the peel on one face.
+ * The pieces are not perfect cubes: each block's three sides differ a little, and some are
+ * wedges (half a block, cut corner to corner). Edges are sharp. About four in ten blocks keep
+ * the peel on one face (an apple cube with one red side).
  */
-function heap(o: CutOptions, side: number, perMedium: number, wedges: number, most: number): CutShape {
-  const random = seededRandom(o.seed ^ 0xd1ced);
-  const count = Math.min(most, Math.max(4, Math.round(perMedium * o.holds)));
-  const scale = new Matrix4().makeScale(side, side, side);
-  const flesh: BufferGeometry[] = [];
-  const skin: BufferGeometry[] = [];
-  for (const piece of tumble(count, wedges)) {
-    const [a, b, c] = piece.half;
-    // The settle is worked out with pieces about one unit big: place each, then scale to size.
-    const set = (geometry: BufferGeometry) => geometry.applyMatrix4(piece.matrix).applyMatrix4(scale);
-    if (piece.kind === 'wedge') {
-      flesh.push(set(wedgeGeometry(piece.half)));
-      continue;
-    }
-    flesh.push(set(plain(new BoxGeometry(2 * a, 2 * b, 2 * c)).toNonIndexed()));
-    // About four in ten blocks keep the peel on one face (an apple cube with one red side):
-    // a thin sheet set into that face, a hair proud of it.
-    if (random() < 0.42) {
-      const thin = 0.07;
-      const faces: [BufferGeometry, Vector3][] = [
-        [new BoxGeometry(2 * a * 1.004, 2 * b * thin, 2 * c * 1.004), new Vector3(0, b * (1 - thin) + 0.004, 0)],
-        [new BoxGeometry(2 * a * thin, 2 * b * 1.004, 2 * c * 1.004), new Vector3(a * (1 - thin) + 0.004, 0, 0)],
-        [new BoxGeometry(2 * a * 1.004, 2 * b * 1.004, 2 * c * thin), new Vector3(0, 0, c * (1 - thin) + 0.004)],
-      ];
-      const [sheet, offset] = faces[Math.floor(random() * faces.length)];
-      if (random() < 0.5) offset.negate();
-      skin.push(set(plain(sheet).toNonIndexed().translate(offset.x, offset.y, offset.z)));
-    }
+export interface HeapMesh {
+  flesh: BufferGeometry;
+  skin?: BufferGeometry;
+  write(): void;
+}
+
+export function heapMesh(heap: Heap, side: number): HeapMesh {
+  // Scene units per unit of the physics (a piece is about one unit big there).
+  const k = side * UNITS_PER_CM;
+  interface Layer {
+    /** For each piece that has something in this layer: its body and its own corners and directions. */
+    parts: { body: Heap['pieces'][number]['body']; positions: Float32Array; normals: Float32Array; at: number }[];
+    positions: number[];
   }
-  return { flesh: mergeGeometries(flesh)!, skin: skin.length ? mergeGeometries(skin)! : undefined };
+  const layers: { flesh: Layer; skin: Layer } = { flesh: { parts: [], positions: [] }, skin: { parts: [], positions: [] } };
+  const take = (layer: Layer, body: Layer['parts'][number]['body'], geometry: BufferGeometry) => {
+    const positions = geometry.getAttribute('position').array as Float32Array;
+    const normals = geometry.getAttribute('normal').array as Float32Array;
+    layer.parts.push({ body, positions: new Float32Array(positions), normals: new Float32Array(normals), at: layer.positions.length });
+    for (const value of positions) layer.positions.push(value);
+  };
+  heap.pieces.forEach((piece, index) => {
+    const [a, b, c] = piece.half;
+    if (piece.kind === 'wedge') return take(layers.flesh, piece.body, wedgeGeometry(piece.half));
+    take(layers.flesh, piece.body, new BoxGeometry(2 * a, 2 * b, 2 * c).toNonIndexed());
+    // The peel: a thin sheet set into one face, a hair proud of it. Which blocks, and which
+    // face, depend only on the piece's number, so the heap keeps its peel as it is rebuilt.
+    const random = seededRandom(index * 4441 + 7);
+    if (random() >= 0.42) return;
+    const thin = 0.07;
+    const faces: [BufferGeometry, [number, number, number]][] = [
+      [new BoxGeometry(2 * a * 1.004, 2 * b * thin, 2 * c * 1.004), [0, b * (1 - thin) + 0.004, 0]],
+      [new BoxGeometry(2 * a * thin, 2 * b * 1.004, 2 * c * 1.004), [a * (1 - thin) + 0.004, 0, 0]],
+      [new BoxGeometry(2 * a * 1.004, 2 * b * 1.004, 2 * c * thin), [0, 0, c * (1 - thin) + 0.004]],
+    ];
+    const [sheet, offset] = faces[Math.floor(random() * faces.length)];
+    const way = random() < 0.5 ? -1 : 1;
+    take(layers.skin, piece.body, sheet.toNonIndexed().translate(offset[0] * way, offset[1] * way, offset[2] * way));
+  });
+
+  const build = (layer: Layer) => {
+    const geometry = new BufferGeometry();
+    geometry.setAttribute('position', new Float32BufferAttribute(new Float32Array(layer.positions.length), 3));
+    geometry.setAttribute('normal', new Float32BufferAttribute(new Float32Array(layer.positions.length), 3));
+    return geometry;
+  };
+  const flesh = build(layers.flesh);
+  const skin = layers.skin.parts.length ? build(layers.skin) : undefined;
+
+  const write = () => {
+    for (const [layer, geometry] of [[layers.flesh, flesh], [layers.skin, skin]] as const) {
+      if (!geometry) continue;
+      const positions = geometry.getAttribute('position').array as Float32Array;
+      const normals = geometry.getAttribute('normal').array as Float32Array;
+      for (const part of layer.parts) {
+        const { x, y, z } = part.body.position;
+        const q = part.body.quaternion;
+        // The body's turn as nine numbers (a rotation matrix), worked out once per piece.
+        const xx = q.x * q.x, yy = q.y * q.y, zz = q.z * q.z, xy = q.x * q.y, xz = q.x * q.z, yz = q.y * q.z, wx = q.w * q.x, wy = q.w * q.y, wz = q.w * q.z;
+        const m = [1 - 2 * (yy + zz), 2 * (xy - wz), 2 * (xz + wy), 2 * (xy + wz), 1 - 2 * (xx + zz), 2 * (yz - wx), 2 * (xz - wy), 2 * (yz + wx), 1 - 2 * (xx + yy)];
+        for (let i = 0; i < part.positions.length; i += 3) {
+          const px = part.positions[i], py = part.positions[i + 1], pz = part.positions[i + 2];
+          const nx = part.normals[i], ny = part.normals[i + 1], nz = part.normals[i + 2];
+          const o = part.at + i;
+          positions[o] = (m[0] * px + m[1] * py + m[2] * pz + x) * k;
+          positions[o + 1] = (m[3] * px + m[4] * py + m[5] * pz + y) * k;
+          positions[o + 2] = (m[6] * px + m[7] * py + m[8] * pz + z) * k;
+          normals[o] = m[0] * nx + m[1] * ny + m[2] * nz;
+          normals[o + 1] = m[3] * nx + m[4] * ny + m[5] * nz;
+          normals[o + 2] = m[6] * nx + m[7] * ny + m[8] * nz;
+        }
+      }
+      geometry.getAttribute('position').needsUpdate = true;
+      geometry.getAttribute('normal').needsUpdate = true;
+      geometry.computeBoundingBox();
+      geometry.computeBoundingSphere();
+    }
+  };
+  write();
+  return { flesh, skin, write };
 }
 
 /**
  * A puree is served in a small cup, like a little bowl (the user, 2026-11-17: "lets keep
- * sauce in a small cup similar to bowl, lets get rid of bottle"). The cup is white china with
- * straight-ish sides; the puree fills it almost to the rim, its top gently swirled. More of it
- * means more cups, one to three, standing together.
+ * sauce in a small cup similar to bowl, lets get rid of bottle"). The cup is white china; the
+ * puree fills it almost to the rim, its top stirred into a swirl. More of it means more cups,
+ * one to five, every cup the same size, set out so they never touch.
  */
 function cups(o: CutOptions): CutShape {
   const random = seededRandom(o.seed ^ 0x9a7ee);
-  const count = Math.max(1, Math.min(3, Math.round(o.holds * 1.4)));
-  const spots: [number, number][][] = [[[0, 0]], [[-3.7, 0.5], [3.7, -0.5]], [[-3.9, 1.8], [3.9, 1.4], [0.2, -3.9]]];
+  const count = Math.max(1, Math.min(5, o.count));
+  const shape: BowlShape = { rim: 3.5, height: 3.3, foot: 2.5, footHeight: 0.3, wall: 0.3, fullness: 3.2 };
+  // Where the cups stand: neighbours a rim's width plus a finger apart (7.6 cm, middle to middle).
+  const gap = shape.rim * 2 + 0.6;
+  const ring = (n: number, turn: number): [number, number][] => {
+    // n cups evenly round a circle, sized so neighbours are `gap` apart.
+    const r = gap / (2 * Math.sin(Math.PI / n));
+    return Array.from({ length: n }, (_, i) => [Math.cos(turn + (i / n) * Math.PI * 2) * r, Math.sin(turn + (i / n) * Math.PI * 2) * r]);
+  };
+  const spots: [number, number][] = count === 1 ? [[0, 0]] : count === 2 ? [[-gap / 2, 0.4], [gap / 2, -0.4]] : ring(count, count === 3 ? Math.PI / 2 : count === 4 ? Math.PI / 4 : -Math.PI / 2);
   const sauces: BufferGeometry[] = [];
   const shells: BufferGeometry[] = [];
-  for (const [x, z] of spots[count - 1]) {
-    const k = 0.9 + random() * 0.2;
-    const shape: BowlShape = { rim: 3.5 * k, height: 3.3 * k, foot: 2.5 * k, footHeight: 0.3, wall: 0.3, fullness: 3.2 };
+  for (const [x, z] of spots) {
     shells.push(plain(spinProfile(bowlProfile(shape, 16), 48)).translate(x, 0, z));
-    // The puree: filled to just under the rim, a soft swirl on top as if stirred with a spoon.
+    // The puree: filled to just under the rim, domed a little, with a spiral ridge winding in
+    // to the middle as if a spoon had been drawn through it, and a small peak where it lifted.
     const edge = shape.height * 0.8;
     const twist = random() * Math.PI * 2;
+    const way = random() < 0.5 ? -1 : 1;
     sauces.push(
       moundGeometry({
         radius: bowlInner(shape, edge) + 0.06,
         edge,
-        rings: 20,
-        segments: 48,
-        height: (px, pz, rn) => (0.22 * (1 - rn * rn) + 0.07 * Math.sin(Math.atan2(pz, px) * 2 + rn * 8 + twist) * Math.sin(Math.PI * rn)) * k,
+        rings: 30,
+        segments: 64,
+        height: (px, pz, rn) => {
+          const spiral = Math.sin(way * Math.atan2(pz, px) + rn * 13 + twist);
+          return 0.2 * (1 - rn * rn) + 0.15 * spiral * Math.sin(Math.PI * Math.min(1, rn * 1.15)) + 0.22 * Math.exp(-((rn / 0.16) ** 2));
+        },
       }).translate(x, 0, z),
     );
   }
   return { flesh: mergeGeometries(sauces)!, bottle: mergeGeometries(shells)! };
 }
 
-export function buildCut(cut: Exclude<Cut, 'Whole'>, options: CutOptions): CutShape {
-  if (cut === 'Sliced') return sliced(options);
-  // Dice: about a third of them wedges. Chopped: tiny blocks only (a wedge that small reads as
-  // a block anyway, and blocks settle faster), and never more than the settle can do quickly.
-  if (cut === 'Diced') return heap(options, 1.3, 44, 0.3, 140);
-  if (cut === 'Chopped') return heap(options, 0.4, 70, 0, 200);
-  return cups(options);
+/** The cuts that are built in one go (the heaps, diced and chopped, are built by `heapMesh`). */
+export function buildCut(cut: 'Sliced' | 'Puree', options: CutOptions): CutShape {
+  return cut === 'Sliced' ? sliced(options) : cups(options);
 }

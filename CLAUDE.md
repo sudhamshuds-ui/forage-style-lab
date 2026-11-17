@@ -782,6 +782,17 @@ and streaks). **Puree is a small white cup** filled with the puree (one to three
 bottle is gone. **The quantity pill is placed once per framing** (following the ingredient every
 frame made it tremble while the view turned) and only fades; **a quantity change dissolves over
 340 ms while the group swells up to size or settles down** (`swell`).
+**Round 7 (2026-11-17, the user's notes)**: **new cubes drop in and tumble onto the heap.** The
+heap is now a live physics world (`Heap` in `tumble.ts`: `settled`, `add`, `remove`, `step`) kept
+while its ingredient and prep stay on the page; `heapMesh` (`cuts.ts`) merges the pieces into two
+shapes and rewrites them from the physics every frame while pieces fall (`dropTick` on GSAP's
+ticker, 4 steps a frame). More: the new pieces are held above the heap inside a wide ring of
+unseen walls (without it they rolled far across the table), fall, the ring opens, the heap
+relaxes; then the heap is measured again (`refitHeap`) and the view eases to fit. Fewer: the last
+pieces are taken away and what leaned on them settles. Heat keeps the same heap; another prep or
+ingredient starts a fresh one. With reduced motion the settle is worked out at once.
+**Puree: quantity is the number of cups**, one to five, every cup the same size, set out on a
+ring so neighbours never touch; the puree has a spiral swirl and a small peak.
 Not done yet: sizing in the viewport, per-ingredient
 slice shapes (citrus segments, onion rings, a hollow pepper), parameter categories per kind of
 ingredient (rice, sauces), a reduction in a bottle.
