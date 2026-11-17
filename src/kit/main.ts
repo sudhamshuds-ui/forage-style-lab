@@ -3,17 +3,17 @@ import '../style.css';
 import '../ui/styleBar.css';
 import '../kitchen/kitchen.css';
 import './kit.css';
-import { BoxGeometry, Group, Mesh, Vector2, Vector3, type IUniform, type ShaderMaterial } from 'three';
+import { Group, Mesh, Vector2, Vector3, type IUniform, type ShaderMaterial } from 'three';
 import { DEFAULTS, defaultSettings } from '../params';
 import { applyPalette, findPalette } from '../palettes';
 import { Stage } from '../scene/stage';
 import { Background, roomHorizonUv } from '../scene/background';
 import { Ground } from '../scene/ground';
 import { cameraAzimuth, contactHeight, frameSubject, outlinePoints } from '../scene/framing';
-import { StylizedLook, type Palette } from '../shading/stylizedMaterial';
+import { StylizedLook } from '../shading/stylizedMaterial';
 import { EFFECT_STACK } from '../shading/effects';
 import type { FrameContext } from '../shading/effect';
-import { NO_SKIN, setSkin, type Skin } from '../shading/effects/skinTexture';
+import { NO_SKIN, type Skin } from '../shading/effects/skinTexture';
 import { FAMILIES, type FamilyId } from '../ingredients/families';
 import { findIngredient, type IngredientEntry } from '../ingredients/registry';
 import { createSubject, type Subject } from '../ingredients/subject';
@@ -26,7 +26,7 @@ import { REVEAL_STARTS, ShuffleTransition, TRANSITION_SECONDS } from '../paintin
 import { mountStyleBar } from '../ui/styleBar';
 import { paintLike } from '../randomize';
 import { mixHex } from '../utils/colour';
-import { CUTS, HEAPS, cupSpots, cupUnit, heapCount, heapMesh, isHeap, sliceCount, sliceLayout, sliceUnit, type Cut, type HeapMesh } from './cuts';
+import { CUTS, HEAPS, buildCut, heapCount, heapMesh, isHeap, type Cut, type HeapMesh } from './cuts';
 import { Heap } from './tumble';
 import { footprintSpots } from '../ingredients/layout';
 import { UNITS_PER_CM } from '../ingredients/scale';
@@ -104,31 +104,6 @@ interface Part {
   worldCentre: Vector3;
   /** Its own scale on the table (whole apples come in slightly different sizes). */
   scale: number;
-  /**
-   * For the heat: each of its painted layers as it is raw (its colours and its name), so heat
-   * can recolour it in place without building anything again. `cut` marks a cut form (its
-   * flesh also changes texture and shine with heat); `fixed` one that heat leaves alone.
-   */
-  layers: { name: string; raw: Palette; paint: { palette: Palette }; material: ShaderMaterial }[];
-  cut: boolean;
-  fixed: boolean;
-  /**
-   * Where it stands on the table, for a piece the page moves on its own (a whole fruit, a
-   * slice, a cup). `lift` is how far above that spot it is right now: a piece dropping in or
-   * lifting out. A heap has no pose (its pieces are moved by the physics).
-   */
-  pose?: Pose;
-}
-
-/** A piece's place on the table (scene units, real size): where, how far up, its turn, lean and size. */
-interface Pose {
-  x: number;
-  y: number;
-  z: number;
-  yaw: number;
-  lean: number;
-  scale: number;
-  lift: number;
 }
 /** Everything on the table now: usually one subject; two or three for whole apples. */
 let scene: Part[] = [];
@@ -141,14 +116,7 @@ function asPart(subject: Subject): Part {
     const material = object.material as ShaderMaterial;
     material.uniforms = { ...material.uniforms, uHighlightAnchor: own.anchor, uRimGlints: own.rimGlints, uShadowMix: own.shadowMix, uObjectSize: own.size };
   });
-  // The subject's own list of painted layers (one per mesh, in the same order).
-  const painted = (subject as unknown as { painted?: { material: ShaderMaterial; palette: Palette }[] }).painted ?? [];
-  const names: string[] = [];
-  subject.group.traverse((object) => {
-    if (object instanceof Mesh) names.push(object.name);
-  });
-  const layers = painted.map((paint, i) => ({ name: names[i] ?? '', raw: { ...paint.palette }, paint, material: paint.material }));
-  return { subject, own, worldCentre: new Vector3(), scale: 1, layers, cut: false, fixed: false };
+  return { subject, own, worldCentre: new Vector3(), scale: 1 };
 }
 
 /** A made-up entry for something that is not a pantry ingredient (a vessel, a cut form). */
@@ -181,41 +149,17 @@ let dropFrames = 0;
 /** True for the next re-framing only: ease to the new zoom instead of jumping. */
 let easeFraming = false;
 
-/** The heat the picture shows: it eases toward the slider's value (see the panel's onChange). */
-const heatShown = { v: RAW };
-
-/**
- * Heat, applied in place: every painted layer is recoloured from its raw colours, and cut
- * flesh also takes the baked texture and loses or gains its shine. Nothing is built again, so
- * moving the heat slider is instant (rebuilding three apples for every stop took half a second).
- */
-function applyHeat(parts: Part[], heat: number = heatShown.v): void {
-  const { crust, glossy } = heatLook(heat);
-  // The apple reads its colours from the settings (it is the hand-tuned one).
-  Object.assign(settings.colour, heated(DEFAULTS.colour, heat));
-  for (const part of parts) {
-    if (part.fixed) continue;
-    for (const layer of part.layers) {
-      // A cup or a board is not cooked.
-      if (layer.name === 'cup') continue;
-      const palette = heated(layer.raw, heat);
-      if (part.cut && layer.name === 'flesh') {
-        // Cut flesh: matte unless the heat makes it shine; baked and blotchy once it is cooked.
-        if (!glossy) palette.highlight = mixHex(palette.highlight, palette.base, 0.65);
-        // (Only a change of texture kind rebuilds the shader; the amount is just a value.)
-        setSkin(layer.material, crust > 0.04 ? { kind: 'crust', size_mm: 3, amount: crust } : fleshSkin);
-      }
-      layer.paint.palette = palette;
-    }
-    part.subject.update(settings, false);
-  }
-}
-
-/** Write the kit's working families (the ingredient's raw skin, flesh, and the two stirred together). */
-function setKitFamilies(): { skin: Palette; flesh: Palette } {
+/** Build the ingredient for the current choices. */
+function build(): Part[] {
   const kit = KIT_INGREDIENTS[state.ingredient];
-  const skinColours = FAMILIES[findIngredient(kit.id)!.spec.family].colours;
-  const fleshColours = FAMILIES[kit.flesh].colours;
+  const entry = findIngredient(kit.id)!;
+
+  // The ingredient's colours after the heat: its skin, its flesh, and the two stirred together
+  // (a puree). They are written into the kit's own working families just before building.
+  // (A puree in its bottle is left as it is: heat does nothing to it, the user, 2026-11-16.)
+  const heat = state.prep === 'Puree' ? RAW : state.heat;
+  const skinColours = heated(FAMILIES[entry.spec.family].colours, heat);
+  const fleshColours = heated(FAMILIES[kit.flesh].colours, heat);
   FAMILIES['kit-skin'] = { name: 'Kit skin', colours: skinColours, rooms: [] };
   FAMILIES['kit-flesh'] = { name: 'Kit flesh', colours: fleshColours, rooms: [] };
   FAMILIES['kit-mix'] = {
@@ -229,209 +173,101 @@ function setKitFamilies(): { skin: Palette; flesh: Palette } {
     },
     rooms: [],
   };
-  return { skin: skinColours, flesh: fleshColours };
-}
+  const { crust, glossy } = heatLook(heat);
+  const radius = Math.min(entry.spec.size_cm[0], entry.spec.size_cm[2]) / 2;
+  const parts: Part[] = [];
 
-/** The ingredient now on the kit, its pantry entry, and half its width (cm). */
-function ingredientNow() {
-  const kit = KIT_INGREDIENTS[state.ingredient];
-  const entry = findIngredient(kit.id)!;
-  return { kit, entry, radius: Math.min(entry.spec.size_cm[0], entry.spec.size_cm[2]) / 2, seed: seedFromId(kit.id) };
-}
-
-/** Scale finished shapes from cm to scene units, keeping their middle where it is. */
-function centred(pieces: FormPiece[]): FormPiece[] {
-  for (const piece of pieces) {
-    piece.geometry.scale(UNITS_PER_CM, UNITS_PER_CM, UNITS_PER_CM);
-    piece.geometry.computeVertexNormals();
-    piece.geometry.computeBoundingBox();
-    piece.geometry.computeBoundingSphere();
-  }
-  return pieces;
-}
-
-/* ---------- Pieces that move on their own: whole fruit, slices, cups ---------- */
-
-/** The preps whose pieces are moved one by one (the heaps move with the physics instead). */
-type UnitPrep = 'Whole' | 'Sliced' | 'Puree';
-const isUnits = (prep: Cut): prep is UnitPrep => prep === 'Whole' || prep === 'Sliced' || prep === 'Puree';
-
-/** How many pieces a prep and quantity is: whole fruit, slices or cups. */
-function unitCount(prep: UnitPrep, quantity: number): number {
-  if (prep === 'Whole') return Math.min(3, quantity);
-  if (prep === 'Sliced') return sliceCount(HELPINGS[Math.min(HELPINGS.length, quantity) - 1]);
-  return quantity;
-}
-
-/**
- * Every piece made so far for this ingredient, by prep, in order: one, two or three apples are
- * the same first apples, just moved. Building a piece is the slow part (an apple takes about a
- * seventh of a second to carve), so each is made once and kept until the ingredient changes.
- */
-const pools = new Map<UnitPrep, Part[]>();
-const isPooled = (part: Part) => [...pools.values()].some((pool) => pool.includes(part));
-
-/** Make piece number `index` of a prep, raw (heat is applied when it goes on the table). */
-function makeUnit(prep: UnitPrep, index: number): Part {
-  const { kit, entry, radius, seed } = ingredientNow();
-  setKitFamilies();
-  let part: Part;
-  if (prep === 'Whole') {
-    // The first is the pantry's own; the others are its variants (another seed, so another shape).
-    const solo = { ...entry, spec: { ...entry.spec, id: index === 0 ? entry.spec.id : `${entry.spec.id}~${index}`, layout: 'solo' as const } };
-    part = asPart(createSubject(solo, look));
-  } else if (prep === 'Sliced') {
-    const shape = sliceUnit(radius, index, seed);
-    part = asPart(
+  if (state.prep === 'Whole') {
+    // Whole: the pantry's own ingredient, one, two or three of it.
+    const count = Math.min(3, state.quantity);
+    if (entry.form === 'procedural-apple') {
+      // The apple reads its colours from the settings (it is the hand-tuned one), and there is
+      // only one of it: more are copies, each turned and sized a little differently, set in a
+      // loose triangle so they just touch.
+      Object.assign(settings.colour, heated(DEFAULTS.colour, state.heat));
+      const r = cmToUnits(radius * 1.04);
+      const spots: [number, number, number, number][][] = [
+        [[0, 0, 0, 1]],
+        [[-r, r * 0.25, 0.5, 1], [r, -r * 0.25, -1.9, 0.94]],
+        [[-r, r * 0.9, 0.5, 1], [r, r * 0.7, -1.9, 0.94], [r * 0.1, -r * 0.95, 2.6, 1.04]],
+      ];
+      for (const [x, z, turn, scale] of spots[count - 1]) {
+        const part = asPart(createSubject(entry, look));
+        part.subject.update(settings, true);
+        part.subject.group.position.set(x, 0, z);
+        part.subject.group.rotation.y = (part.subject.turn * Math.PI) / 180 + turn;
+        part.subject.group.scale.setScalar(scale);
+        part.scale = scale;
+        parts.push(part);
+      }
+      return parts;
+    }
+    const layout = count === 1 ? 'solo' : count === 2 ? 'cluster-2' : 'cluster-3';
+    parts.push(asPart(createSubject({ ...entry, spec: { ...entry.spec, family: 'kit-skin', layout }, matte: glossy ? false : entry.matte }, look)));
+  } else if (isHeap(state.prep)) {
+    // Diced or chopped: the heap's pieces come from the physics, merged into two shapes.
+    const kind = HEAPS[state.prep];
+    if (!heap) heap = Heap.settled(heapCount(state.prep, HELPINGS[Math.min(HELPINGS.length, state.quantity) - 1]), kind.wedges);
+    const shape = (heapShape = heapMesh(heap, kind.side));
+    const part = asPart(
       createSubject(
-        entryFor(`kit-${kit.id}-slice-${index}`, 'kit-flesh', ['flesh', 'skin@kit-skin'], () => centred([{ role: 'flesh', geometry: shape.flesh }, { role: 'skin', geometry: shape.skin }]), {
-          // Built raw and shiny: heat sets its texture and shine afterwards (applyHeat).
-          skin: fleshSkin,
-          matte: false,
-          shadowTint: 0.45,
-        }),
+        entryFor(
+          `kit-${kit.id}-${state.prep}`,
+          'kit-flesh',
+          ['flesh', 'skin@kit-skin'],
+          () => {
+            const pieces: FormPiece[] = [{ role: 'flesh', geometry: shape.flesh }];
+            if (shape.skin) pieces.push({ role: 'skin', geometry: shape.skin });
+            return pieces;
+          },
+          // Cooked surfaces take the baked, blotchy texture; raw and frozen ones the flesh's own.
+          { skin: crust > 0.04 ? { kind: 'crust', size_mm: 3, amount: crust } : fleshSkin, matte: !glossy, shadowTint: 0.45 },
+        ),
         look,
       ),
     );
-    part.cut = true;
+    // Its outline changes while pieces fall: never let the renderer skip it as "off screen".
+    part.subject.group.traverse((object) => (object.frustumCulled = false));
+    parts.push(part);
   } else {
-    const shape = cupUnit(index, seed);
-    part = asPart(
-      createSubject(
-        entryFor(`kit-${kit.id}-cup-${index}`, 'kit-mix', ['flesh', 'cup@milk'], () => finishPieces([{ role: 'flesh', geometry: shape.sauce }, { role: 'cup', geometry: shape.cup }]), {
-          skin: NO_SKIN,
-          matte: false,
-          glossy: ['cup'],
-          shadowTint: 0.45,
-        }),
-        look,
+    const cut = state.prep;
+    const holds = HELPINGS[Math.min(HELPINGS.length, state.quantity) - 1];
+    const seed = seedFromId(`${kit.id}-${cut}-${state.quantity}`);
+    const family: FamilyId = cut === 'Puree' ? 'kit-mix' : 'kit-flesh';
+    parts.push(
+      asPart(
+        createSubject(
+          entryFor(
+            `kit-${kit.id}-${cut}`,
+            family,
+            ['flesh', 'skin@kit-skin', 'cup@milk'],
+            () => {
+              // On the open table there is as much room as the helping needs.
+              const shape = buildCut(cut, { radius, room: 5 + 5 * Math.sqrt(holds), holds, count: state.quantity, seed });
+              const pieces: FormPiece[] = [{ role: 'flesh', geometry: shape.flesh }];
+              if (shape.skin) pieces.push({ role: 'skin', geometry: shape.skin });
+              if (shape.bottle) pieces.push({ role: 'cup', geometry: shape.bottle });
+              return finishPieces(pieces);
+            },
+            {
+              // Cooked surfaces take the baked, blotchy texture; raw and frozen ones stay clean.
+              // (A puree is seen through its bottle: smooth and shiny whatever the heat.)
+              skin: cut === 'Puree' ? NO_SKIN : crust > 0.04 ? { kind: 'crust', size_mm: 3, amount: crust } : fleshSkin,
+              matte: !glossy && cut !== 'Puree',
+              glossy: ['cup'],
+              shadowTint: 0.45,
+            },
+          ),
+          look,
+        ),
       ),
     );
-    // A puree in its cup is left as it is by the heat (the user, 2026-11-16).
-    part.fixed = true;
   }
-  part.subject.update(settings, true);
-  part.pose = { x: 0, y: 0, z: 0, yaw: 0, lean: 0, scale: 1, lift: 0 };
-  return part;
-}
-
-/** The first `count` pieces of a prep, making any that are missing. */
-function unitsFor(prep: UnitPrep, count: number): Part[] {
-  let pool = pools.get(prep);
-  if (!pool) pools.set(prep, (pool = []));
-  while (pool.length < count) pool.push(makeUnit(prep, pool.length));
-  return pool.slice(0, count);
-}
-
-/** Where each of `count` pieces of a prep stands (scene units). */
-function posesFor(prep: UnitPrep, count: number): Omit<Pose, 'lift'>[] {
-  const { entry, radius, seed } = ingredientNow();
-  if (prep === 'Sliced') {
-    return sliceLayout(radius, count, HELPINGS[Math.min(HELPINGS.length, state.quantity) - 1], seed).map((p) => ({
-      x: cmToUnits(p.x),
-      y: cmToUnits(p.y),
-      z: cmToUnits(p.z),
-      yaw: p.yaw,
-      lean: p.lean,
-      scale: 1,
-    }));
+  for (const part of parts) {
+    part.subject.update(settings, true);
+    part.subject.group.rotation.y = (part.subject.turn * Math.PI) / 180;
   }
-  if (prep === 'Puree') return cupSpots(count).map(([x, z]) => ({ x: cmToUnits(x), y: 0, z: cmToUnits(z), yaw: 0, lean: 0, scale: 1 }));
-  // Whole: a loose triangle, far enough apart that they just touch, each turned and sized a
-  // little differently.
-  const r = cmToUnits((Math.max(entry.spec.size_cm[0], entry.spec.size_cm[2]) / 2) * 1.04);
-  const spots: [number, number, number, number][][] = [
-    [[0, 0, 0, 1]],
-    [[-r, r * 0.25, 0.5, 1], [r, -r * 0.25, -1.9, 0.94]],
-    [[-r, r * 0.9, 0.5, 1], [r, r * 0.7, -1.9, 0.94], [r * 0.1, -r * 0.95, 2.6, 1.04]],
-  ];
-  return spots[count - 1].map(([x, z, yaw, scale]) => ({ x, y: 0, z, yaw, lean: 0, scale }));
-}
-
-/** Put a piece where its pose says (called every frame). */
-function setPose(part: Part): void {
-  const pose = part.pose;
-  if (!pose) return;
-  const group = part.subject.group;
-  group.position.set(pose.x, pose.y + pose.lift, pose.z);
-  // A slice lies on its side: its turn round the table, then its lean toward its neighbour.
-  group.rotation.order = 'YZX';
-  group.rotation.set(0, (part.subject.turn * Math.PI) / 180 + pose.yaw, -pose.lean);
-  group.scale.setScalar(pose.scale);
-  part.scale = pose.scale;
-}
-
-/**
- * The heap (diced or chopped) as one piece; its pieces come from the physics, merged into two
- * shapes. Switching to a heap starts from the first helping (worked out ahead and remembered),
- * and any more of it is dropped in live, so the choice never waits for a settle.
- */
-let heapExtra = 0;
-function heapPart(prep: 'Diced' | 'Chopped', quantity: number): Part {
-  const { kit } = ingredientNow();
-  setKitFamilies();
-  const kind = HEAPS[prep];
-  if (!heap) {
-    heap = Heap.settled(heapCount(prep, HELPINGS[0]), kind.wedges);
-    heapExtra = heapCount(prep, HELPINGS[Math.min(HELPINGS.length, quantity) - 1]) - heap.pieces.length;
-    if (heapExtra > 0) heap.add(heapExtra);
-  }
-  const shape = (heapShape = heapMesh(heap, kind.side));
-  const part = asPart(
-    createSubject(
-      entryFor(
-        `kit-${kit.id}-${prep}`,
-        'kit-flesh',
-        ['flesh', 'skin@kit-skin'],
-        () => {
-          const pieces: FormPiece[] = [{ role: 'flesh', geometry: shape.flesh }];
-          if (shape.skin) pieces.push({ role: 'skin', geometry: shape.skin });
-          return pieces;
-        },
-        // Built raw and shiny: heat sets its texture and shine afterwards (applyHeat).
-        { skin: fleshSkin, matte: false, shadowTint: 0.45 },
-      ),
-      look,
-    ),
-  );
-  // Its outline changes while pieces fall: never let the renderer skip it as "off screen".
-  part.subject.group.traverse((object) => (object.frustumCulled = false));
-  part.cut = true;
-  part.subject.update(settings, true);
-  return part;
-}
-
-/** Everything for a prep and quantity, at rest in its place. */
-function partsFor(prep: Cut = state.prep, quantity: number = state.quantity): Part[] {
-  if (!isUnits(prep)) return [heapPart(prep, quantity)];
-  const units = unitsFor(prep, unitCount(prep, quantity));
-  posesFor(prep, units.length).forEach((pose, i) => Object.assign(units[i].pose!, pose, { lift: 0 }));
-  units.forEach(setPose);
-  return units;
-}
-
-/** Make the next piece up in an idle moment, so pressing "more" does not have to wait. */
-function prepareNext(): void {
-  const prep = state.prep;
-  const ingredient = state.ingredient;
-  if (!isUnits(prep) || state.quantity >= mostOf(prep)) return;
-  const want = unitCount(prep, state.quantity + 1);
-  const job = () => {
-    if (swapping || state.ingredient !== ingredient || state.prep !== prep) return;
-    const pool = pools.get(prep) ?? [];
-    if (pool.length >= want) return;
-    unitsFor(prep, Math.min(want, pool.length + 2));
-    // More still to make: carry on in the next idle moment.
-    prepareNext();
-  };
-  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(job, { timeout: 2000 });
-  else window.setTimeout(job, 400);
-}
-
-/** Another ingredient: every piece kept for the last one is thrown away (once off the table). */
-function forgetReady(): void {
-  for (const pool of pools.values()) for (const part of pool) if (!scene.includes(part)) part.subject.dispose();
-  pools.clear();
+  return parts;
 }
 
 /**
@@ -453,25 +289,14 @@ function refitHeap(): void {
   if (low.length >= 6) part.subject.contacts.splice(0, part.subject.contacts.length, ...footprintSpots(low, MAX_CONTACTS));
 }
 
-/**
- * One frame of a drop: let the physics run for as long as the frame took (a touch faster than
- * real time, 1.4 times), redraw, and stop once everything is at rest. (Four physics steps a
- * frame was "very fast", the user, 2026-11-17; time-based, it is the same pace on any screen.)
- */
-const DROP_PACE = 1.4;
-let dropClock = 0;
-function dropTick(_time: number, deltaMs: number): void {
+/** One frame of a drop: let the physics run a little, redraw, and stop once everything is at rest. */
+function dropTick(): void {
   if (!dropping || !heap || !heapShape) return;
-  dropClock += Math.min(deltaMs, 50) / 1000 * DROP_PACE;
-  let steps = 0;
-  while (dropClock >= 1 / 60 && steps < 4) {
-    dropClock -= 1 / 60;
-    steps++;
-  }
-  const rested = heap.step(steps);
+  // A few steps a frame: fast enough to feel like falling, slow enough to follow.
+  const rested = heap.step(state.prep === 'Chopped' ? 3 : 4);
   heapShape.write();
   stage.invalidate();
-  if (rested || ++dropFrames > 900) {
+  if (rested || ++dropFrames > 360) {
     dropping = false;
     refitHeap();
     // The view eases to fit the heap as it now is.
@@ -482,21 +307,14 @@ function dropTick(_time: number, deltaMs: number): void {
 function startDrop(): void {
   dropping = true;
   dropFrames = 0;
-  dropClock = 0;
 }
 
 function put(next: Part[], keepFraming = false): void {
-  // Anything still moving stops: the new arrangement is set at rest.
-  for (const part of scene) if (part.pose) gsap.killTweensOf(part.pose);
-  gsap.killTweensOf(viewTween);
-  moving = 0;
   for (const part of scene) {
     framed.remove(part.subject.group);
-    // (Pieces kept for this ingredient are only taken off the table, not thrown away.)
-    if (!next.includes(part) && !isPooled(part)) part.subject.dispose();
+    part.subject.dispose();
   }
   scene = next;
-  applyHeat(scene);
   for (const part of scene) framed.add(part.subject.group);
   // The room is the ingredient's own, whatever is done to it.
   const room = findPalette(FAMILIES[findIngredient(KIT_INGREDIENTS[state.ingredient].id)!.spec.family].rooms[0]);
@@ -504,120 +322,7 @@ function put(next: Part[], keepFraming = false): void {
   // (While pieces are still in the air the view stays as it is; it re-frames once they land.)
   if (!keepFraming) needsFraming = true;
   stage.invalidate();
-  prepareNext();
-  // A heap just chosen with more than one helping: the rest drops in now.
-  if (heapExtra > 0) {
-    heapExtra = 0;
-    startDrop();
-  }
 }
-
-/*
- * How many pieces are moving right now (gliding, dropping in, lifting out): while any are,
- * the card is painted every frame.
- */
-let moving = 0;
-const moved = () => (moving = Math.max(0, moving - 1));
-
-/** The zoom that fits these pieces at these poses (measured with them put there for a moment). */
-function scaleFor(parts: Part[], poses: Omit<Pose, 'lift'>[]): number {
-  const saved = parts.map((part) => ({ ...part.pose! }));
-  parts.forEach((part, i) => {
-    Object.assign(part.pose!, poses[i], { lift: 0 });
-    setPose(part);
-  });
-  framed.position.set(0, 0, 0);
-  framed.rotation.set(0, cameraAzimuth(stage.homeCamera), 0);
-  framed.scale.setScalar(1);
-  framed.updateMatrixWorld(true);
-  const scale = frameSubject(
-    parts.flatMap((part) => outlinePoints(part.subject.group, 900)),
-    stage.framingCamera,
-  ).scale;
-  parts.forEach((part, i) => {
-    Object.assign(part.pose!, saved[i]);
-    setPose(part);
-  });
-  return scale;
-}
-
-/**
- * More or fewer whole fruit, slices or cups, as one movement (the choreograph skill: the
- * pieces are the lead, the zoom follows them):
- *   staying  glide to their new places (ease-in-out, 520 ms: they move across the table)
- *   new      drop in from above the card, one after another when there are several (a fruit or
- *            a slice falls, gravity's ease-in; a cup is set down, slowing as it lands)
- *   leaving  lift up and out, all together and quicker than the rest (exits are short)
- *   zoom     eases to fit what will be there, at the same time
- */
-function changeUnits(prep: UnitPrep, prevQuantity: number, nextQuantity: number): void {
-  const before = unitCount(prep, prevQuantity);
-  const after = unitCount(prep, nextQuantity);
-  const all = unitsFor(prep, Math.max(before, after));
-  const staying = all.slice(0, Math.min(before, after));
-  const entering = all.slice(before, after);
-  const leaving = all.slice(after, before);
-  const targets = posesFor(prep, after);
-  const zoom = scaleFor(all.slice(0, after), targets);
-
-  // Anything still moving from the last change stops where it is and carries on from there.
-  for (const part of all) gsap.killTweensOf(part.pose!);
-  moving = 0;
-
-  // The new pieces start above the card: about two and a half of their own sizes up.
-  const lift = (part: Part) => (part.subject.radius * 2.6 + 1.2) / (viewScale || 1);
-  for (const part of entering) {
-    Object.assign(part.pose!, targets[all.indexOf(part)], { lift: lift(part) });
-    setPose(part);
-    framed.add(part.subject.group);
-  }
-  applyHeat(entering);
-  scene = [...staying, ...entering, ...leaving];
-  placePill = false;
-
-  const fall = prep === 'Puree' ? { ease: 'power2.out', duration: 0.6 } : { ease: 'power2.in', duration: 0.5 };
-  staying.forEach((part, i) => {
-    moving++;
-    gsap.to(part.pose!, { ...targets[i], lift: 0, duration: 0.52, ease: 'power2.inOut', onComplete: moved });
-  });
-  entering.forEach((part, i) => {
-    moving++;
-    // Several (slices): one after another, 70 ms apart, the gaps shortening as they go.
-    gsap.to(part.pose!, { lift: 0, duration: fall.duration, ease: fall.ease, delay: 0.08 + 0.07 * i * (1 - i * 0.03), onComplete: moved });
-  });
-  leaving.forEach((part) => {
-    moving++;
-    gsap.to(part.pose!, {
-      lift: lift(part),
-      duration: 0.36,
-      ease: 'power2.in',
-      onComplete: () => {
-        moved();
-        framed.remove(part.subject.group);
-        scene = scene.filter((other) => other !== part);
-      },
-    });
-  });
-  // The zoom follows, the same length as the glide.
-  gsap.killTweensOf(viewTween);
-  viewTween.k = viewScale;
-  moving++;
-  gsap.to(viewTween, {
-    k: zoom,
-    duration: 0.6,
-    ease: 'power2.inOut',
-    onUpdate: () => (viewScale = viewTween.k),
-    onComplete: () => {
-      moved();
-      // Settled: put the quantity pill where the new arrangement needs it.
-      placePill = true;
-    },
-  });
-  stage.invalidate();
-  prepareNext();
-}
-/** The zoom while it eases (see `changeUnits`). */
-const viewTween = { k: 1 };
 
 /* ---------- Each frame ---------- */
 
@@ -642,6 +347,11 @@ let viewScale = 1;
 let groundY = 0;
 /** True after a re-framing: the quantity pill is placed once, then stays put. */
 let placePill = true;
+/**
+ * A small swell when the quantity changes: the group eases up to its size from a little
+ * smaller (more) or settles down from a little bigger (less).
+ */
+const swell = { k: 1 };
 
 /** Scale the layer so the ingredient fills the card's subject zone. */
 function reframe(): void {
@@ -653,7 +363,6 @@ function reframe(): void {
   const framing = frameSubject(points, stage.framingCamera);
   groundY = contactHeight(stage.framingCamera);
   placePill = true;
-  gsap.killTweensOf(viewTween);
   if (easeFraming && !prefersReducedMotion()) {
     // After a drop: glide to the new zoom (a jump would undo the calm of the landing).
     easeFraming = false;
@@ -667,15 +376,12 @@ function reframe(): void {
 
 function update(): void {
   const parts = scene;
-  for (const part of parts) {
-    setPose(part);
-    part.subject.update(settings, false);
-  }
+  for (const part of parts) part.subject.update(settings, false);
   if (needsFraming) {
     reframe();
     needsFraming = false;
   }
-  framed.scale.setScalar(viewScale);
+  framed.scale.setScalar(viewScale * swell.k);
   framed.position.set(0, groundY, 0);
   framed.updateMatrixWorld(true);
   ground.setHeight(groundY);
@@ -700,9 +406,7 @@ function update(): void {
       .slice(0, each)
       .map(({ centre, radius }) => {
         const spot = centre.clone().applyMatrix4(part.subject.group.matrixWorld);
-        // A piece in the air has no contact shadow; it grows back as the piece comes down.
-        const grounded = part.pose ? Math.max(0, 1 - part.pose.lift / Math.max(0.05, part.subject.radius * 0.6)) : 1;
-        return new Vector3(spot.x, spot.z, radius * viewScale * part.scale * grounded);
+        return new Vector3(spot.x, spot.z, radius * viewScale * part.scale);
       }),
   );
   context.objectColours = parts[0].subject.colours(settings);
@@ -747,7 +451,7 @@ function update(): void {
   // The quantity stepper sits just above the ingredient. It is placed once, when the ingredient
   // is framed, and then stays where it is: following the ingredient every frame made it
   // tremble as the view turned (the user, 2026-11-17: "it vibrates on rotation").
-  if (placePill && moving === 0) {
+  if (placePill && swell.k === 1) {
     placePill = false;
     qty.style.left = '50%';
     qty.style.top = `${Math.min(0.8, Math.max(0.14, 1 - paintFrame.objectUv.y - paintFrame.objectRadius * 1.3)) * 100}%`;
@@ -813,22 +517,27 @@ function changeQuantity(by: number): void {
       if (change > 0) heap.add(change);
       else heap.remove(-change);
       for (let i = 0; i < 500 && !heap.step(1); i++);
-      return crossfade(() => put(partsFor()));
+      return crossfade(() => put(build()));
     }
     if (change > 0) {
       heap.add(change);
-      put(partsFor(), true);
+      put(build(), true);
     } else {
       crossfade(() => {
         heap!.remove(-change);
-        put(partsFor(), true);
+        put(build(), true);
       }, 0.24);
     }
     return startDrop();
   }
-  // Whole fruit, slices, cups: they move (changeUnits). With reduced motion, a short dissolve.
-  if (prefersReducedMotion() || !isUnits(state.prep)) return crossfade(() => put(partsFor()), 0.24);
-  changeUnits(state.prep, more ? next - 1 : next + 1, next);
+  // More or less: the old picture dissolves into the new one over a third of a second, while
+  // the group swells up to its size (more) or settles down to it (less). One motion, ease-out,
+  // so it answers the click at once and lands softly. (A plain quick dissolve read as an
+  // instant swap, the user, 2026-11-17.)
+  crossfade(() => put(build()), 0.34);
+  if (prefersReducedMotion()) return;
+  gsap.killTweensOf(swell);
+  gsap.fromTo(swell, { k: more ? 0.93 : 1.06 }, { k: 1, duration: 0.5, ease: EASE.out, onUpdate: () => stage.invalidate(), onComplete: () => stage.invalidate() });
 }
 qtyLess.addEventListener('click', () => changeQuantity(-1));
 qtyMore.addEventListener('click', () => changeQuantity(1));
@@ -840,10 +549,7 @@ qtyMore.addEventListener('click', () => changeQuantity(1));
 const busyListeners = new Set<(busy: boolean) => void>();
 function resetChoices(): void {
   dropHeap();
-  forgetReady();
   Object.assign(state, DEFAULT_STATE);
-  gsap.killTweensOf(heatShown);
-  heatShown.v = state.heat;
   panel.set({ prep: state.prep, heat: state.heat });
   showQuantity();
 }
@@ -852,7 +558,7 @@ function newIngredient(): void {
   state.ingredient = (state.ingredient + 1) % KIT_INGREDIENTS.length;
   if (prefersReducedMotion()) {
     resetChoices();
-    return crossfade(() => put(partsFor()));
+    return crossfade(() => put(build()));
   }
   swapping = true;
   card.toggleAttribute('data-busy', true);
@@ -864,7 +570,7 @@ function newIngredient(): void {
     if (!swapped && transition.progress >= REVEAL_STARTS) {
       swapped = true;
       resetChoices();
-      put(partsFor());
+      put(build());
     }
     update();
     painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, swapped ? transition.stillTo : transition.stillFrom);
@@ -895,6 +601,8 @@ mountStyleBar(document.getElementById('bar-root') as HTMLElement, {
   swapSeconds: TRANSITION_SECONDS,
 });
 
+/** Heat is dragged, so it repaints at most once a frame and without a dissolve. */
+let heatQueued = false;
 const panel = mountKitPanel(document.getElementById('kit-panel') as HTMLElement, {
   preps: CUTS,
   defaults: { prep: DEFAULT_STATE.prep, heat: DEFAULT_STATE.heat },
@@ -902,90 +610,34 @@ const panel = mountKitPanel(document.getElementById('kit-panel') as HTMLElement,
   heatName,
   onChange: (values, what) => {
     if (swapping) return;
-    // Another prep, or back to the start: any heap is forgotten. (Heat keeps it, still falling
-    // if it was: the same pieces, only their colour changes.)
+    // Another prep, or back to the start: any heap is forgotten. (Heat keeps it: the same
+    // pieces, only their colour changes.) If pieces are still falling, they are set at rest.
     if (what !== 'heat') dropHeap();
+    else if (dropping && heap) {
+      for (let i = 0; i < 500 && !heap.step(1); i++);
+      dropping = false;
+    }
     state.prep = values.prep as Cut;
     state.heat = values.heat;
     if (what === 'reset') state.quantity = DEFAULT_STATE.quantity;
     // A prep with a lower limit (whole: three) brings the quantity down with it.
     state.quantity = Math.min(state.quantity, mostOf(state.prep));
     showQuantity();
-    if (what !== 'heat') {
-      gsap.killTweensOf(heatShown);
-      heatShown.v = state.heat;
-      return crossfade(() => put(partsFor()));
-    }
-    // Heat only recolours what is there: the colours ease from the old heat to the new over
-    // a third of a second, through the stops between (raw, roasted, caramelized...), so you
-    // see it cook. No copy of the painting is needed, so it costs nothing extra to show.
-    if (prefersReducedMotion()) {
-      heatShown.v = state.heat;
-      applyHeat(scene);
-      return stage.invalidate();
-    }
-    gsap.killTweensOf(heatShown);
-    gsap.to(heatShown, {
-      v: state.heat,
-      duration: 0.34,
-      ease: EASE.out,
-      onUpdate: () => {
-        applyHeat(scene);
-        stage.invalidate();
-      },
+    if (what !== 'heat') return crossfade(() => put(build()));
+    if (heatQueued) return;
+    heatQueued = true;
+    requestAnimationFrame(() => {
+      heatQueued = false;
+      put(build());
     });
   },
 });
 
 showQuantity();
-put(partsFor());
+put(build());
 stage.start(update, draw);
 // While pieces are falling, the physics moves on every frame.
 gsap.ticker.add(dropTick);
-// While pieces glide, drop in or lift out, the card is painted every frame.
-gsap.ticker.add(() => {
-  if (moving > 0) stage.invalidate();
-});
-/*
- * The paint programs the kit switches between (cut flesh raw, baked, and plain), built ahead
- * in an idle moment. Each is built by the graphics chip the first time it is drawn, and that
- * took over half a second: it was the pause on the first slice and on moving the heat slider.
- * The small hidden meshes are kept (never disposed), so their programs stay ready for reuse.
- */
-const warmed: Mesh[] = [];
-function warmShaders(): void {
-  const skins: Skin[] = [fleshSkin, { kind: 'crust', size_mm: 3, amount: 1 }, NO_SKIN];
-  const group = new Group();
-  for (const skin of skins) {
-    const material = look.createMaterial();
-    setSkin(material, skin);
-    const mesh = new Mesh(new BoxGeometry(0.01, 0.01, 0.01), material);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    group.add(mesh);
-    warmed.push(mesh);
-  }
-  framed.add(group);
-  const before = stage.renderer.getRenderTarget();
-  stage.renderer.setRenderTarget(painter.underpainting);
-  const compiling = stage.renderer.compileAsync(group, stage.camera, stage.scene);
-  stage.renderer.setRenderTarget(before);
-  compiling.catch(() => undefined).then(() => framed.remove(group));
-}
-window.setTimeout(() => {
-  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(warmShaders, { timeout: 2000 });
-  else warmShaders();
-}, 900);
-
-// The first heaps are worked out ahead, in idle moments after the page has settled, so
-// choosing Diced or Chopped does not have to wait for the pieces to fall.
-window.setTimeout(() => {
-  const warm = (cut: 'Diced' | 'Chopped') => () => Heap.settled(heapCount(cut, HELPINGS[0]), HEAPS[cut].wedges);
-  if (typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(warm('Diced'), { timeout: 3000 });
-    window.requestIdleCallback(warm('Chopped'), { timeout: 5000 });
-  }
-}, 1500);
 window.setTimeout(() => transition.warmUp(stage.renderer), 800);
 reducedMotion.addEventListener('change', () => stage.invalidate());
 
@@ -995,17 +647,10 @@ Object.assign(window, {
     state,
     stage,
     setFleshSkin: (skin: Skin) => (fleshSkin = skin),
-    heat: (value: number) => {
-      state.heat = heatShown.v = value;
-      applyHeat(scene);
-    },
     set: (values: Partial<KitState>) => {
-      if (values.ingredient !== undefined && values.ingredient !== state.ingredient) forgetReady();
-      if (values.prep !== undefined || values.ingredient !== undefined) dropHeap();
       Object.assign(state, values);
-      heatShown.v = state.heat;
       showQuantity();
-      put(partsFor());
+      put(build());
     },
     snapshot: () => {
       update();

@@ -1,4 +1,5 @@
-import { BoxGeometry, BufferGeometry, CylinderGeometry, Float32BufferAttribute } from 'three';
+import { BoxGeometry, BufferGeometry, CylinderGeometry, Euler, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { bowlInner, bowlProfile, moundGeometry, spinProfile, type BowlShape } from '../ingredients/forms/kit/bowl';
 import { UNITS_PER_CM } from '../ingredients/scale';
 import { WEDGE_FACES, wedgeCorners, type Heap } from './tumble';
@@ -7,71 +8,75 @@ import { seededRandom } from '../ingredients/forms/kit/random';
 /**
  * Cuts: the forms an ingredient can take once a knife (or a blender) has been at it.
  *
- * Every cut is built from the same few facts about the ingredient (how wide it is), so any
- * round fruit or vegetable can take any cut. A cut comes in two layers, like a two-colour print:
+ * Every cut is built from the same few facts about the ingredient (how wide it is) and about
+ * where it is going (how wide the vessel's surface is, how much it holds), so any round fruit
+ * or vegetable can take any cut. A cut comes back as two layers, like a two-colour print:
  *   flesh  the inside of the ingredient (its flesh colour)
  *   skin   the bits of peel still showing: a slice's rim, one face of some cubes
  *
- * Shapes only, in centimetres.
+ * Shapes only, in centimetres, resting on y = 0 (the vessel's surface), centred on the middle.
  */
 /** The preparations (the panel calls this row "Prep": the user, 2026-11-16). */
 export const CUTS = ['Whole', 'Sliced', 'Diced', 'Chopped', 'Puree'] as const;
 export type Cut = (typeof CUTS)[number];
 
+export interface CutShape {
+  flesh: BufferGeometry;
+  /** Missing when no peel shows (a puree). */
+  skin?: BufferGeometry;
+  /** A puree's cup. */
+  bottle?: BufferGeometry;
+}
+
+export interface CutOptions {
+  /** Half the ingredient's width (cm). */
+  radius: number;
+  /** The radius of the surface it goes on (cm), and how much that holds (1 is a medium vessel). */
+  room: number;
+  holds: number;
+  /** The quantity itself (1 to 5): how many cups of puree. */
+  count: number;
+  seed: number;
+}
+
+const place = (geometry: BufferGeometry, at: Vector3, turn: Euler) =>
+  geometry.applyMatrix4(new Matrix4().compose(at, new Quaternion().setFromEuler(turn), new Vector3(1, 1, 1)));
 /** A shape with no texture map (a map on a piece would be read as a leaf's). */
 const plain = <T extends BufferGeometry>(geometry: T): T => {
   geometry.deleteAttribute('uv');
   return geometry;
 };
 
-/*
+/**
  * Slices: round discs across the ingredient, laid in a curving row, each tipped up on the one
  * before it like fallen dominoes. The disc's rim is peel; its faces are flesh.
- *
- * Each slice is its own piece (the page moves them one by one: a new slice drops onto the end
- * of the row, the others shuffle along to make room), so a slice is described in two parts:
- *   sliceUnit    its shape, centred on its own middle (each slice a little different in size)
- *   sliceLayout  where every slice of a row of `count` lies, and how it leans
  */
-const SLICE_THICK = 0.55;
-
-/** How many slices a helping is. */
-export const sliceCount = (holds: number) => Math.max(3, Math.round(6 * holds));
-
-/** A slice's own small differences, from its number: always the same for the same slice. */
-function sliceTraits(index: number, seed: number) {
-  const random = seededRandom(seed ^ (index * 0x9e37 + 0x51ce5));
-  return { size: 0.9 + random() * 0.14, lean: index === 0 ? 0.12 : 0.5 + random() * 0.12, yaw: (random() - 0.5) * 0.12 };
-}
-
-/** One slice, centred on its middle, lying flat (cm): the peel disc and the flesh inside it. */
-export function sliceUnit(radius: number, index: number, seed: number): { flesh: BufferGeometry; skin: BufferGeometry } {
-  const size = radius * 0.94 * sliceTraits(index, seed).size;
-  return {
-    skin: plain(new CylinderGeometry(size, size, SLICE_THICK, 40, 1)),
-    flesh: plain(new CylinderGeometry(size - 0.14, size - 0.14, SLICE_THICK + 0.03, 40, 1)),
-  };
-}
-
-/** Where each slice of a row lies (cm), its turn round the table and its lean, for `count` slices. */
-export function sliceLayout(radius: number, count: number, holds: number, seed: number): { x: number; y: number; z: number; yaw: number; lean: number }[] {
-  const r = radius * 0.94;
-  const room = 5 + 5 * Math.sqrt(holds);
-  // The row runs on a gentle arc, as long as the room allows.
-  const span = Math.min(room * 1.5, count * r * 0.7);
-  return Array.from({ length: count }, (_, i) => {
-    const traits = sliceTraits(i, seed);
+function sliced(o: CutOptions): CutShape {
+  const random = seededRandom(o.seed ^ 0x51ce5);
+  const count = Math.max(3, Math.round(6 * o.holds));
+  const r = Math.min(o.radius * 0.94, o.room * 0.62);
+  const thick = 0.55;
+  const flesh: BufferGeometry[] = [];
+  const skin: BufferGeometry[] = [];
+  // The row runs across the surface on a gentle arc, as long as the surface allows.
+  const span = Math.min(o.room * 1.5, count * r * 0.7);
+  for (let i = 0; i < count; i++) {
     const t = count === 1 ? 0.5 : i / (count - 1);
-    const size = r * traits.size;
-    return {
-      x: (t - 0.5) * span,
-      // The middle of a tipped disc sits above the table by the part of it that hangs below.
-      y: SLICE_THICK / 2 + Math.sin(traits.lean) * size * 0.92,
-      z: -0.22 * span * Math.sin(t * Math.PI) + 0.11 * span,
-      yaw: 0.35 - t * 0.7 + traits.yaw,
-      lean: traits.lean,
-    };
-  });
+    const x = (t - 0.5) * span;
+    const z = -0.22 * span * Math.sin(t * Math.PI) + 0.11 * span;
+    // Each leans back on its neighbour; the first lies almost flat.
+    const lean = i === 0 ? 0.12 : 0.5 + random() * 0.12;
+    const turn = new Euler(0, 0.35 - t * 0.7 + (random() - 0.5) * 0.12, -lean, 'YZX');
+    const size = r * (0.9 + random() * 0.14);
+    // The middle of a tipped disc sits above the surface by the part of it that hangs below.
+    const y = thick / 2 + Math.sin(lean) * size * 0.92;
+    const at = new Vector3(x, y, z);
+    // Peel: the full disc. Flesh: a slightly smaller, slightly thicker disc inside it, so the
+    // faces are flesh and only the rim shows peel.
+    skin.push(place(plain(new CylinderGeometry(size, size, thick, 40, 1)), at, turn));
+    flesh.push(place(plain(new CylinderGeometry(size - 0.14, size - 0.14, thick + 0.03, 40, 1)), at, turn));
+  }
+  return { flesh: mergeGeometries(flesh)!, skin: mergeGeometries(skin)! };
 }
 
 /** A wedge as a shape to draw: flat faces, sharp edges (the same corners the physics used). */
@@ -198,42 +203,45 @@ export function heapMesh(heap: Heap, side: number): HeapMesh {
  * sauce in a small cup similar to bowl, lets get rid of bottle"). The cup is white china; the
  * puree fills it almost to the rim, its top stirred into a swirl. More of it means more cups,
  * one to five, every cup the same size, set out so they never touch.
- *
- * Like the slices, each cup is its own piece: `cupUnit` is one cup standing at the middle,
- * `cupSpots` where each of `count` cups stands.
  */
-const CUP: BowlShape = { rim: 3.5, height: 3.3, foot: 2.5, footHeight: 0.3, wall: 0.3, fullness: 3.2 };
-
-/** One cup of puree standing at the middle (cm): the puree and the cup round it. */
-export function cupUnit(index: number, seed: number): { sauce: BufferGeometry; cup: BufferGeometry } {
-  const random = seededRandom(seed ^ (index * 0x7f4a + 0x9a7ee));
-  // The puree: filled to just under the rim, domed a little, with a spiral ridge winding in to
-  // the middle as if a spoon had been drawn through it, and a small peak where it lifted.
-  const edge = CUP.height * 0.8;
-  const twist = random() * Math.PI * 2;
-  const way = random() < 0.5 ? -1 : 1;
-  const sauce = moundGeometry({
-    radius: bowlInner(CUP, edge) + 0.06,
-    edge,
-    rings: 30,
-    segments: 64,
-    height: (px, pz, rn) => {
-      const spiral = Math.sin(way * Math.atan2(pz, px) + rn * 13 + twist);
-      return 0.2 * (1 - rn * rn) + 0.15 * spiral * Math.sin(Math.PI * Math.min(1, rn * 1.15)) + 0.22 * Math.exp(-((rn / 0.16) ** 2));
-    },
-  });
-  return { sauce, cup: plain(spinProfile(bowlProfile(CUP, 16), 48)) };
-}
-
-/** Where each of `count` cups stands (cm): neighbours a rim's width plus a finger apart. */
-export function cupSpots(count: number): [number, number][] {
-  const gap = CUP.rim * 2 + 0.6;
+function cups(o: CutOptions): CutShape {
+  const random = seededRandom(o.seed ^ 0x9a7ee);
+  const count = Math.max(1, Math.min(5, o.count));
+  const shape: BowlShape = { rim: 3.5, height: 3.3, foot: 2.5, footHeight: 0.3, wall: 0.3, fullness: 3.2 };
+  // Where the cups stand: neighbours a rim's width plus a finger apart (7.6 cm, middle to middle).
+  const gap = shape.rim * 2 + 0.6;
   const ring = (n: number, turn: number): [number, number][] => {
     // n cups evenly round a circle, sized so neighbours are `gap` apart.
     const r = gap / (2 * Math.sin(Math.PI / n));
     return Array.from({ length: n }, (_, i) => [Math.cos(turn + (i / n) * Math.PI * 2) * r, Math.sin(turn + (i / n) * Math.PI * 2) * r]);
   };
-  if (count <= 1) return [[0, 0]];
-  if (count === 2) return [[-gap / 2, 0.4], [gap / 2, -0.4]];
-  return ring(count, count === 3 ? Math.PI / 2 : count === 4 ? Math.PI / 4 : -Math.PI / 2);
+  const spots: [number, number][] = count === 1 ? [[0, 0]] : count === 2 ? [[-gap / 2, 0.4], [gap / 2, -0.4]] : ring(count, count === 3 ? Math.PI / 2 : count === 4 ? Math.PI / 4 : -Math.PI / 2);
+  const sauces: BufferGeometry[] = [];
+  const shells: BufferGeometry[] = [];
+  for (const [x, z] of spots) {
+    shells.push(plain(spinProfile(bowlProfile(shape, 16), 48)).translate(x, 0, z));
+    // The puree: filled to just under the rim, domed a little, with a spiral ridge winding in
+    // to the middle as if a spoon had been drawn through it, and a small peak where it lifted.
+    const edge = shape.height * 0.8;
+    const twist = random() * Math.PI * 2;
+    const way = random() < 0.5 ? -1 : 1;
+    sauces.push(
+      moundGeometry({
+        radius: bowlInner(shape, edge) + 0.06,
+        edge,
+        rings: 30,
+        segments: 64,
+        height: (px, pz, rn) => {
+          const spiral = Math.sin(way * Math.atan2(pz, px) + rn * 13 + twist);
+          return 0.2 * (1 - rn * rn) + 0.15 * spiral * Math.sin(Math.PI * Math.min(1, rn * 1.15)) + 0.22 * Math.exp(-((rn / 0.16) ** 2));
+        },
+      }).translate(x, 0, z),
+    );
+  }
+  return { flesh: mergeGeometries(sauces)!, bottle: mergeGeometries(shells)! };
+}
+
+/** The cuts that are built in one go (the heaps, diced and chopped, are built by `heapMesh`). */
+export function buildCut(cut: 'Sliced' | 'Puree', options: CutOptions): CutShape {
+  return cut === 'Sliced' ? sliced(options) : cups(options);
 }
