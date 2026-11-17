@@ -3,17 +3,17 @@ import '../style.css';
 import '../ui/styleBar.css';
 import '../kitchen/kitchen.css';
 import './kit.css';
-import { Group, Mesh, Vector2, Vector3, type IUniform, type ShaderMaterial } from 'three';
+import { BoxGeometry, Group, Mesh, Vector2, Vector3, type IUniform, type ShaderMaterial } from 'three';
 import { DEFAULTS, defaultSettings } from '../params';
 import { applyPalette, findPalette } from '../palettes';
 import { Stage } from '../scene/stage';
 import { Background, roomHorizonUv } from '../scene/background';
 import { Ground } from '../scene/ground';
 import { cameraAzimuth, contactHeight, frameSubject, outlinePoints } from '../scene/framing';
-import { StylizedLook } from '../shading/stylizedMaterial';
+import { StylizedLook, type Palette } from '../shading/stylizedMaterial';
 import { EFFECT_STACK } from '../shading/effects';
 import type { FrameContext } from '../shading/effect';
-import { NO_SKIN, type Skin } from '../shading/effects/skinTexture';
+import { NO_SKIN, setSkin, type Skin } from '../shading/effects/skinTexture';
 import { FAMILIES, type FamilyId } from '../ingredients/families';
 import { findIngredient, type IngredientEntry } from '../ingredients/registry';
 import { createSubject, type Subject } from '../ingredients/subject';
@@ -104,6 +104,14 @@ interface Part {
   worldCentre: Vector3;
   /** Its own scale on the table (whole apples come in slightly different sizes). */
   scale: number;
+  /**
+   * For the heat: each of its painted layers as it is raw (its colours and its name), so heat
+   * can recolour it in place without building anything again. `cut` marks a cut form (its
+   * flesh also changes texture and shine with heat); `fixed` one that heat leaves alone.
+   */
+  layers: { name: string; raw: Palette; paint: { palette: Palette }; material: ShaderMaterial }[];
+  cut: boolean;
+  fixed: boolean;
 }
 /** Everything on the table now: usually one subject; two or three for whole apples. */
 let scene: Part[] = [];
@@ -116,7 +124,14 @@ function asPart(subject: Subject): Part {
     const material = object.material as ShaderMaterial;
     material.uniforms = { ...material.uniforms, uHighlightAnchor: own.anchor, uRimGlints: own.rimGlints, uShadowMix: own.shadowMix, uObjectSize: own.size };
   });
-  return { subject, own, worldCentre: new Vector3(), scale: 1 };
+  // The subject's own list of painted layers (one per mesh, in the same order).
+  const painted = (subject as unknown as { painted?: { material: ShaderMaterial; palette: Palette }[] }).painted ?? [];
+  const names: string[] = [];
+  subject.group.traverse((object) => {
+    if (object instanceof Mesh) names.push(object.name);
+  });
+  const layers = painted.map((paint, i) => ({ name: names[i] ?? '', raw: { ...paint.palette }, paint, material: paint.material }));
+  return { subject, own, worldCentre: new Vector3(), scale: 1, layers, cut: false, fixed: false };
 }
 
 /** A made-up entry for something that is not a pantry ingredient (a vessel, a cut form). */
@@ -154,12 +169,11 @@ function build(): Part[] {
   const kit = KIT_INGREDIENTS[state.ingredient];
   const entry = findIngredient(kit.id)!;
 
-  // The ingredient's colours after the heat: its skin, its flesh, and the two stirred together
-  // (a puree). They are written into the kit's own working families just before building.
-  // (A puree in its bottle is left as it is: heat does nothing to it, the user, 2026-11-16.)
-  const heat = state.prep === 'Puree' ? RAW : state.heat;
-  const skinColours = heated(FAMILIES[entry.spec.family].colours, heat);
-  const fleshColours = heated(FAMILIES[kit.flesh].colours, heat);
+  // The ingredient's raw colours: its skin, its flesh, and the two stirred together (a puree).
+  // They are written into the kit's own working families just before building. Heat is put on
+  // afterwards, in place (applyHeat), so moving the heat slider never builds anything again.
+  const skinColours = FAMILIES[entry.spec.family].colours;
+  const fleshColours = FAMILIES[kit.flesh].colours;
   FAMILIES['kit-skin'] = { name: 'Kit skin', colours: skinColours, rooms: [] };
   FAMILIES['kit-flesh'] = { name: 'Kit flesh', colours: fleshColours, rooms: [] };
   FAMILIES['kit-mix'] = {
@@ -173,7 +187,6 @@ function build(): Part[] {
     },
     rooms: [],
   };
-  const { crust, glossy } = heatLook(heat);
   const radius = Math.min(entry.spec.size_cm[0], entry.spec.size_cm[2]) / 2;
   const parts: Part[] = [];
 
@@ -184,7 +197,6 @@ function build(): Part[] {
       // The apple reads its colours from the settings (it is the hand-tuned one), and there is
       // only one of it: more are copies, each turned and sized a little differently, set in a
       // loose triangle so they just touch.
-      Object.assign(settings.colour, heated(DEFAULTS.colour, state.heat));
       const r = cmToUnits(radius * 1.04);
       const spots: [number, number, number, number][][] = [
         [[0, 0, 0, 1]],
@@ -203,7 +215,7 @@ function build(): Part[] {
       return parts;
     }
     const layout = count === 1 ? 'solo' : count === 2 ? 'cluster-2' : 'cluster-3';
-    parts.push(asPart(createSubject({ ...entry, spec: { ...entry.spec, family: 'kit-skin', layout }, matte: glossy ? false : entry.matte }, look)));
+    parts.push(asPart(createSubject({ ...entry, spec: { ...entry.spec, family: 'kit-skin', layout }, }, look)));
   } else if (isHeap(state.prep)) {
     // Diced or chopped: the heap's pieces come from the physics, merged into two shapes.
     const kind = HEAPS[state.prep];
@@ -220,22 +232,22 @@ function build(): Part[] {
             if (shape.skin) pieces.push({ role: 'skin', geometry: shape.skin });
             return pieces;
           },
-          // Cooked surfaces take the baked, blotchy texture; raw and frozen ones the flesh's own.
-          { skin: crust > 0.04 ? { kind: 'crust', size_mm: 3, amount: crust } : fleshSkin, matte: !glossy, shadowTint: 0.45 },
+          // Built raw and shiny: heat sets its texture and shine afterwards (applyHeat).
+          { skin: fleshSkin, matte: false, shadowTint: 0.45 },
         ),
         look,
       ),
     );
     // Its outline changes while pieces fall: never let the renderer skip it as "off screen".
     part.subject.group.traverse((object) => (object.frustumCulled = false));
+    part.cut = true;
     parts.push(part);
   } else {
     const cut = state.prep;
     const holds = HELPINGS[Math.min(HELPINGS.length, state.quantity) - 1];
     const seed = seedFromId(`${kit.id}-${cut}-${state.quantity}`);
     const family: FamilyId = cut === 'Puree' ? 'kit-mix' : 'kit-flesh';
-    parts.push(
-      asPart(
+    const part = asPart(
         createSubject(
           entryFor(
             `kit-${kit.id}-${cut}`,
@@ -250,24 +262,57 @@ function build(): Part[] {
               return finishPieces(pieces);
             },
             {
-              // Cooked surfaces take the baked, blotchy texture; raw and frozen ones stay clean.
-              // (A puree is seen through its bottle: smooth and shiny whatever the heat.)
-              skin: cut === 'Puree' ? NO_SKIN : crust > 0.04 ? { kind: 'crust', size_mm: 3, amount: crust } : fleshSkin,
-              matte: !glossy && cut !== 'Puree',
+              // Built raw and shiny: heat sets its texture and shine afterwards (applyHeat).
+              // (A puree in its cup is smooth and shiny, and heat leaves it alone.)
+              skin: cut === 'Puree' ? NO_SKIN : fleshSkin,
+              matte: false,
               glossy: ['cup'],
               shadowTint: 0.45,
             },
           ),
           look,
         ),
-      ),
-    );
+      );
+    // A puree in its cup is left as it is by the heat (the user, 2026-11-16).
+    if (cut === 'Puree') part.fixed = true;
+    else part.cut = true;
+    parts.push(part);
   }
   for (const part of parts) {
     part.subject.update(settings, true);
     part.subject.group.rotation.y = (part.subject.turn * Math.PI) / 180;
   }
   return parts;
+}
+
+/** The heat the picture shows: it eases toward the slider's value (see the panel's onChange). */
+const heatShown = { v: RAW };
+
+/**
+ * Heat, applied in place: every painted layer is recoloured from its raw colours, and cut
+ * flesh also takes the baked texture and loses or gains its shine. Nothing is built again, so
+ * moving the heat slider is instant (rebuilding everything for every stop was the lag).
+ */
+function applyHeat(parts: Part[], heat: number = heatShown.v): void {
+  const { crust, glossy } = heatLook(heat);
+  // The apple reads its colours from the settings (it is the hand-tuned one).
+  Object.assign(settings.colour, heated(DEFAULTS.colour, heat));
+  for (const part of parts) {
+    if (part.fixed) continue;
+    for (const layer of part.layers) {
+      // A cup is not cooked.
+      if (layer.name === 'cup') continue;
+      const palette = heated(layer.raw, heat);
+      if (part.cut && layer.name === 'flesh') {
+        // Cut flesh: matte unless the heat makes it shine; baked and blotchy once it is cooked.
+        if (!glossy) palette.highlight = mixHex(palette.highlight, palette.base, 0.65);
+        // (Only a change of texture kind rebuilds the shader; the amount is just a value.)
+        setSkin(layer.material, crust > 0.04 ? { kind: 'crust', size_mm: 3, amount: crust } : fleshSkin);
+      }
+      layer.paint.palette = palette;
+    }
+    part.subject.update(settings, false);
+  }
 }
 
 /**
@@ -289,14 +334,27 @@ function refitHeap(): void {
   if (low.length >= 6) part.subject.contacts.splice(0, part.subject.contacts.length, ...footprintSpots(low, MAX_CONTACTS));
 }
 
-/** One frame of a drop: let the physics run a little, redraw, and stop once everything is at rest. */
-function dropTick(): void {
+/**
+ * How fast the drop plays against real time. Four physics steps a frame (four times real
+ * time) read as "very fast" (the user, 2026-11-17); a touch quicker than real stays lively,
+ * since real dice this small fall in a blink.
+ */
+const DROP_PACE = 1.4;
+let dropClock = 0;
+/** One frame of a drop: let the physics catch up with the clock, redraw, and stop once everything is at rest. */
+function dropTick(_time: number, deltaMs: number): void {
   if (!dropping || !heap || !heapShape) return;
-  // A few steps a frame: fast enough to feel like falling, slow enough to follow.
-  const rested = heap.step(state.prep === 'Chopped' ? 3 : 4);
-  heapShape.write();
+  // (A long frame counts as at most 50 ms, so a hiccup never makes the pieces jump.)
+  dropClock += (Math.min(deltaMs, 50) / 1000) * DROP_PACE;
+  let steps = 0;
+  while (dropClock >= 1 / 60 && steps < 4) {
+    dropClock -= 1 / 60;
+    steps++;
+  }
+  const rested = heap.step(steps);
+  if (steps > 0) heapShape.write();
   stage.invalidate();
-  if (rested || ++dropFrames > 360) {
+  if (rested || ++dropFrames > 900) {
     dropping = false;
     refitHeap();
     // The view eases to fit the heap as it now is.
@@ -307,6 +365,7 @@ function dropTick(): void {
 function startDrop(): void {
   dropping = true;
   dropFrames = 0;
+  dropClock = 0;
 }
 
 function put(next: Part[], keepFraming = false): void {
@@ -315,6 +374,7 @@ function put(next: Part[], keepFraming = false): void {
     part.subject.dispose();
   }
   scene = next;
+  applyHeat(scene);
   for (const part of scene) framed.add(part.subject.group);
   // The room is the ingredient's own, whatever is done to it.
   const room = findPalette(FAMILIES[findIngredient(KIT_INGREDIENTS[state.ingredient].id)!.spec.family].rooms[0]);
@@ -550,6 +610,8 @@ const busyListeners = new Set<(busy: boolean) => void>();
 function resetChoices(): void {
   dropHeap();
   Object.assign(state, DEFAULT_STATE);
+  gsap.killTweensOf(heatShown);
+  heatShown.v = state.heat;
   panel.set({ prep: state.prep, heat: state.heat });
   showQuantity();
 }
@@ -601,8 +663,6 @@ mountStyleBar(document.getElementById('bar-root') as HTMLElement, {
   swapSeconds: TRANSITION_SECONDS,
 });
 
-/** Heat is dragged, so it repaints at most once a frame and without a dissolve. */
-let heatQueued = false;
 const panel = mountKitPanel(document.getElementById('kit-panel') as HTMLElement, {
   preps: CUTS,
   defaults: { prep: DEFAULT_STATE.prep, heat: DEFAULT_STATE.heat },
@@ -610,25 +670,36 @@ const panel = mountKitPanel(document.getElementById('kit-panel') as HTMLElement,
   heatName,
   onChange: (values, what) => {
     if (swapping) return;
-    // Another prep, or back to the start: any heap is forgotten. (Heat keeps it: the same
-    // pieces, only their colour changes.) If pieces are still falling, they are set at rest.
+    // Another prep, or back to the start: any heap is forgotten. (Heat keeps it, still falling
+    // if it was: the same pieces, only their colour changes.)
     if (what !== 'heat') dropHeap();
-    else if (dropping && heap) {
-      for (let i = 0; i < 500 && !heap.step(1); i++);
-      dropping = false;
-    }
     state.prep = values.prep as Cut;
     state.heat = values.heat;
     if (what === 'reset') state.quantity = DEFAULT_STATE.quantity;
     // A prep with a lower limit (whole: three) brings the quantity down with it.
     state.quantity = Math.min(state.quantity, mostOf(state.prep));
     showQuantity();
-    if (what !== 'heat') return crossfade(() => put(build()));
-    if (heatQueued) return;
-    heatQueued = true;
-    requestAnimationFrame(() => {
-      heatQueued = false;
-      put(build());
+    if (what !== 'heat') {
+      gsap.killTweensOf(heatShown);
+      heatShown.v = state.heat;
+      return crossfade(() => put(build()));
+    }
+    // Heat only recolours what is there: the colours ease from the old heat to the new over
+    // a third of a second, through the stops between, so you see it cook. Nothing is built.
+    gsap.killTweensOf(heatShown);
+    if (prefersReducedMotion()) {
+      heatShown.v = state.heat;
+      applyHeat(scene);
+      return stage.invalidate();
+    }
+    gsap.to(heatShown, {
+      v: state.heat,
+      duration: 0.34,
+      ease: EASE.out,
+      onUpdate: () => {
+        applyHeat(scene);
+        stage.invalidate();
+      },
     });
   },
 });
@@ -638,6 +709,38 @@ put(build());
 stage.start(update, draw);
 // While pieces are falling, the physics moves on every frame.
 gsap.ticker.add(dropTick);
+/*
+ * The paint programs the kit switches between (cut flesh raw, baked, and plain), built ahead
+ * in an idle moment. Each is built by the graphics chip the first time it is drawn, which took
+ * over half a second: the pause on the first slice or dice and on the first move of the heat
+ * slider. The tiny hidden meshes are kept, so their programs stay ready for reuse.
+ */
+function warmShaders(): void {
+  const group = new Group();
+  for (const skin of [fleshSkin, { kind: 'crust', size_mm: 3, amount: 1 }, NO_SKIN] as Skin[]) {
+    const material = look.createMaterial();
+    setSkin(material, skin);
+    const mesh = new Mesh(new BoxGeometry(0.01, 0.01, 0.01), material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    group.add(mesh);
+  }
+  framed.add(group);
+  // Compiled for the hidden image the scene is painted into (not the screen), as it is drawn.
+  const before = stage.renderer.getRenderTarget();
+  stage.renderer.setRenderTarget(painter.underpainting);
+  const compiling = stage.renderer.compileAsync(group, stage.camera, stage.scene);
+  stage.renderer.setRenderTarget(before);
+  compiling.catch(() => undefined).then(() => framed.remove(group));
+}
+const whenIdle = (work: () => void, timeout: number) =>
+  typeof window.requestIdleCallback === 'function' ? window.requestIdleCallback(work, { timeout }) : window.setTimeout(work, 0);
+window.setTimeout(() => whenIdle(warmShaders, 2000), 900);
+// The first heaps are worked out ahead, in idle moments, so choosing Diced or Chopped does not
+// wait for the pieces to fall (Heap.settled remembers them).
+window.setTimeout(() => {
+  for (const cut of ['Diced', 'Chopped'] as const) whenIdle(() => Heap.settled(heapCount(cut, HELPINGS[0]), HEAPS[cut].wedges), 4000);
+}, 1500);
 window.setTimeout(() => transition.warmUp(stage.renderer), 800);
 reducedMotion.addEventListener('change', () => stage.invalidate());
 
@@ -647,8 +750,14 @@ Object.assign(window, {
     state,
     stage,
     setFleshSkin: (skin: Skin) => (fleshSkin = skin),
+    heat: (value: number) => {
+      state.heat = heatShown.v = value;
+      applyHeat(scene);
+    },
     set: (values: Partial<KitState>) => {
+      if (values.prep !== undefined || values.ingredient !== undefined) dropHeap();
       Object.assign(state, values);
+      heatShown.v = state.heat;
       showQuantity();
       put(build());
     },

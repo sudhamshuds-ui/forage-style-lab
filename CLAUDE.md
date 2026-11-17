@@ -799,6 +799,15 @@ and lift out on a quantity change; heat recoloured in place with an eased colour
 falling at 1.4 times real time instead of 4 physics steps a frame; the ring round falling pieces
 taken away without waking the heap (the cause of the "delayed settle"). The kit is at round 7.
 Ask before bringing any of it back.
+**Round 7 fixes (2026-11-17, the user: "fix all 3, dont do the other transitions")**: three parts
+of round 8 brought back on their own, the quantity transitions untouched: **the fall plays at 1.4
+times real time** (`DROP_PACE`, `dropTick` counts the frame's real time; 4 steps a frame was "very
+fast"); **no second settle** (`open(wake)` in `tumble.ts`: when a drop has landed the ring is
+taken away without waking the heap, which had made it "fall down again ... a delayed settle");
+**heat recolours in place** (`applyHeat`: every part is built raw, each painted layer keeps its raw
+colours, heat eases through its stops over 0.34 s; about 0.1 ms against half a second for
+rebuilding three apples), plus the flesh, crust and plain paint programs compiled ahead
+(`warmShaders`) and the first diced and chopped heaps worked out in idle moments.
 Not done yet: sizing in the viewport, per-ingredient
 slice shapes (citrus segments, onion rings, a hollow pepper), parameter categories per kind of
 ingredient (rice, sauces), a reduction in a bottle.
