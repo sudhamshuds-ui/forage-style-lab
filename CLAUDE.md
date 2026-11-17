@@ -793,6 +793,12 @@ pieces are taken away and what leaned on them settles. Heat keeps the same heap;
 ingredient starts a fresh one. With reduced motion the settle is worked out at once.
 **Puree: quantity is the number of cups**, one to five, every cup the same size, set out on a
 ring so neighbours never touch; the puree has a spiral swirl and a small peak.
+**Round 8 was tried and reverted** (2026-11-17, the user: "revert to before this"; kept in
+history as commit 8779a4b): whole fruit, slices and cups as separate pieces that glide, drop in
+and lift out on a quantity change; heat recoloured in place with an eased colour change; the heap
+falling at 1.4 times real time instead of 4 physics steps a frame; the ring round falling pieces
+taken away without waking the heap (the cause of the "delayed settle"). The kit is at round 7.
+Ask before bringing any of it back.
 Not done yet: sizing in the viewport, per-ingredient
 slice shapes (citrus segments, onion rings, a hollow pepper), parameter categories per kind of
 ingredient (rice, sauces), a reduction in a bottle.
