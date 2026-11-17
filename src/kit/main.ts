@@ -13,7 +13,7 @@ import { cameraAzimuth, contactHeight, frameSubject, outlinePoints } from '../sc
 import { StylizedLook } from '../shading/stylizedMaterial';
 import { EFFECT_STACK } from '../shading/effects';
 import type { FrameContext } from '../shading/effect';
-import { NO_SKIN } from '../shading/effects/skinTexture';
+import { NO_SKIN, type Skin } from '../shading/effects/skinTexture';
 import { FAMILIES, type FamilyId } from '../ingredients/families';
 import { findIngredient, type IngredientEntry } from '../ingredients/registry';
 import { createSubject, type Subject } from '../ingredients/subject';
@@ -128,6 +128,11 @@ function entryFor(id: string, family: FamilyId, parts: string[], form: () => For
   };
 }
 
+/** The painted texture of raw cut flesh (dice, chopped, slices): never one flat colour. */
+// (The peach's soft washes and blush: tried beside the potato's, the pear's, the crumb's and the
+// apple's streaks, it gave the most colour without changing what the flesh is.)
+let fleshSkin: Skin = { kind: 'peach', size_mm: 2, amount: 0.8 };
+
 /** Build the ingredient for the current choices. */
 function build(): Part[] {
   const kit = KIT_INGREDIENTS[state.ingredient];
@@ -194,22 +199,21 @@ function build(): Part[] {
           entryFor(
             `kit-${kit.id}-${cut}`,
             family,
-            ['flesh', 'skin@kit-skin', 'bottle@glass', 'cap@crumb'],
+            ['flesh', 'skin@kit-skin', 'cup@milk'],
             () => {
               // On the open table there is as much room as the helping needs.
               const shape = buildCut(cut, { radius, room: 5 + 5 * Math.sqrt(holds), holds, seed });
               const pieces: FormPiece[] = [{ role: 'flesh', geometry: shape.flesh }];
               if (shape.skin) pieces.push({ role: 'skin', geometry: shape.skin });
-              if (shape.bottle) pieces.push({ role: 'bottle', geometry: shape.bottle });
-              if (shape.cap) pieces.push({ role: 'cap', geometry: shape.cap });
+              if (shape.bottle) pieces.push({ role: 'cup', geometry: shape.bottle });
               return finishPieces(pieces);
             },
             {
               // Cooked surfaces take the baked, blotchy texture; raw and frozen ones stay clean.
               // (A puree is seen through its bottle: smooth and shiny whatever the heat.)
-              skin: crust > 0.04 && cut !== 'Puree' ? { kind: 'crust', size_mm: 3, amount: crust } : NO_SKIN,
+              skin: cut === 'Puree' ? NO_SKIN : crust > 0.04 ? { kind: 'crust', size_mm: 3, amount: crust } : fleshSkin,
               matte: !glossy && cut !== 'Puree',
-              glossy: ['bottle'],
+              glossy: ['cup'],
               shadowTint: 0.45,
             },
           ),
@@ -260,6 +264,13 @@ const view3 = new Vector3();
 const half3 = new Vector3();
 let viewScale = 1;
 let groundY = 0;
+/** True after a re-framing: the quantity pill is placed once, then stays put. */
+let placePill = true;
+/**
+ * A small swell when the quantity changes: the group eases up to its size from a little
+ * smaller (more) or settles down from a little bigger (less).
+ */
+const swell = { k: 1 };
 
 /** Scale the layer so the ingredient fills the card's subject zone. */
 function reframe(): void {
@@ -271,6 +282,7 @@ function reframe(): void {
   const framing = frameSubject(points, stage.framingCamera);
   viewScale = framing.scale;
   groundY = contactHeight(stage.framingCamera);
+  placePill = true;
 }
 
 function update(): void {
@@ -280,7 +292,7 @@ function update(): void {
     reframe();
     needsFraming = false;
   }
-  framed.scale.setScalar(viewScale);
+  framed.scale.setScalar(viewScale * swell.k);
   framed.position.set(0, groundY, 0);
   framed.updateMatrixWorld(true);
   ground.setHeight(groundY);
@@ -347,9 +359,14 @@ function update(): void {
     return new Vector3(floor.x * 0.5 + 0.5, floor.y * 0.5 + 0.5, Math.abs(above.y - floor.y) * 0.5);
   });
 
-  // The quantity stepper floats just above the ingredient.
-  qty.style.left = `${Math.min(0.86, Math.max(0.14, paintFrame.objectUv.x)) * 100}%`;
-  qty.style.top = `${Math.min(0.8, Math.max(0.16, 1 - paintFrame.objectUv.y - paintFrame.objectRadius * 1.25)) * 100}%`;
+  // The quantity stepper sits just above the ingredient. It is placed once, when the ingredient
+  // is framed, and then stays where it is: following the ingredient every frame made it
+  // tremble as the view turned (the user, 2026-11-17: "it vibrates on rotation").
+  if (placePill && swell.k === 1) {
+    placePill = false;
+    qty.style.left = '50%';
+    qty.style.top = `${Math.min(0.8, Math.max(0.14, 1 - paintFrame.objectUv.y - paintFrame.objectRadius * 1.3)) * 100}%`;
+  }
 }
 
 const draw = () => painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame);
@@ -390,9 +407,17 @@ function changeQuantity(by: number): void {
   if (swapping) return;
   const next = Math.min(mostOf(state.prep), Math.max(1, state.quantity + by));
   if (next === state.quantity) return;
+  const more = next > state.quantity;
   state.quantity = next;
   showQuantity();
-  crossfade(() => put(build()), 0.2);
+  // More or less: the old picture dissolves into the new one over a third of a second, while
+  // the group swells up to its size (more) or settles down to it (less). One motion, ease-out,
+  // so it answers the click at once and lands softly. (A plain quick dissolve read as an
+  // instant swap, the user, 2026-11-17.)
+  crossfade(() => put(build()), 0.34);
+  if (prefersReducedMotion()) return;
+  gsap.killTweensOf(swell);
+  gsap.fromTo(swell, { k: more ? 0.93 : 1.06 }, { k: 1, duration: 0.5, ease: EASE.out, onUpdate: () => stage.invalidate(), onComplete: () => stage.invalidate() });
 }
 qtyLess.addEventListener('click', () => changeQuantity(-1));
 qtyMore.addEventListener('click', () => changeQuantity(1));
@@ -491,6 +516,7 @@ Object.assign(window, {
   kit: {
     state,
     stage,
+    setFleshSkin: (skin: Skin) => (fleshSkin = skin),
     set: (values: Partial<KitState>) => {
       Object.assign(state, values);
       showQuantity();

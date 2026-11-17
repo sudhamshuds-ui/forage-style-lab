@@ -81,20 +81,20 @@
     0 1px 2px rgba(40, 32, 20, 0.06),
     0 6px 18px rgba(40, 32, 20, 0.1);
   opacity: 0;
-  scale: 0.96;
   pointer-events: none;
-  transition: opacity 160ms ease, scale 160ms cubic-bezier(0.23, 1, 0.32, 1);
+  /* It only fades (no growing or moving): it appears on every pass of the pointer over the
+     card, so it should be quiet. Out a little quicker than in. */
+  transition: opacity 120ms ease;
 }
 .card:hover .qty,
 .qty:focus-within {
   opacity: 1;
-  scale: 1;
   pointer-events: auto;
+  transition: opacity 180ms ease;
 }
 @media (hover: none) {
   .qty {
     opacity: 1;
-    scale: 1;
     pointer-events: auto;
   }
 }

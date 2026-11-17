@@ -768,9 +768,20 @@ exactly so it touches and never cuts in; nothing is set down on a leaning cube).
 **Round 5 (2026-11-16, the user's notes)**: twice as many dice per helping; the puree's bottle is
 **half full** (sauce below, clear `glass` above) and **heat does nothing to a puree**; leaning
 cubes are fewer and only gently tipped (a steep lean stood on its edge: "the cubes dont balance
-right ... make them look realistic"). **Open**: a truly realistic heap needs a physics settle
-(drop the cubes and let them come to rest). Adding a small physics library (`cannon-es`) was
-blocked as an unapproved new dependency: ask the user before installing it.
+right ... make them look realistic"). (Round 6 replaced the rule-built heaps with a physics settle.)
+**Round 6 (2026-11-17, the user's notes; "add the library")**: **`cannon-es`** (a small physics
+library) is installed. **Diced and Chopped are dropped and settled with real physics**
+(`src/kit/tumble.ts`: the pieces are held in loose layers inside a ring of unseen walls, fall,
+settle, the walls are taken away and the heap relaxes; run once per count and remembered, never
+animated). Pieces are **not perfect cubes**: each block's three sides differ, and about a third
+of the dice are **wedges** (half a block cut corner to corner, a convex shape in the physics
+and the same corners drawn: `wedgeCorners`, `WEDGE_FACES`). Chopped is small blocks only, capped
+at 200 pieces (a settle of 260 took over a second). **Cut flesh has a painted texture** (the
+`peach` skin's washes and blush, `fleshSkin` in `kit/main.ts`; compared with potato, pear, crumb
+and streaks). **Puree is a small white cup** filled with the puree (one to three cups); the
+bottle is gone. **The quantity pill is placed once per framing** (following the ingredient every
+frame made it tremble while the view turned) and only fades; **a quantity change dissolves over
+340 ms while the group swells up to size or settles down** (`swell`).
 Not done yet: sizing in the viewport, per-ingredient
 slice shapes (citrus segments, onion rings, a hollow pepper), parameter categories per kind of
 ingredient (rice, sauces), a reduction in a bottle.

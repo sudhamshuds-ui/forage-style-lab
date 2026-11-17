@@ -1,6 +1,7 @@
-import { BoxGeometry, CylinderGeometry, Euler, Matrix4, Quaternion, Vector3, type BufferGeometry } from 'three';
+import { BoxGeometry, BufferGeometry, CylinderGeometry, Euler, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { spinProfile, type ProfilePoint } from '../ingredients/forms/kit/bowl';
+import { bowlInner, bowlProfile, moundGeometry, spinProfile, type BowlShape } from '../ingredients/forms/kit/bowl';
+import { WEDGE_FACES, tumble, wedgeCorners } from './tumble';
 import { seededRandom } from '../ingredients/forms/kit/random';
 
 /**
@@ -22,9 +23,8 @@ export interface CutShape {
   flesh: BufferGeometry;
   /** Missing when no peel shows (a puree). */
   skin?: BufferGeometry;
-  /** A puree's bottle: the clear, empty part above the sauce, and its cap. */
+  /** A puree's cup. */
   bottle?: BufferGeometry;
-  cap?: BufferGeometry;
 }
 
 export interface CutOptions {
@@ -76,221 +76,100 @@ function sliced(o: CutOptions): CutShape {
   return { flesh: mergeGeometries(flesh)!, skin: mergeGeometries(skin)! };
 }
 
-/**
- * A cube in the heap, seen from above as a rectangle: its middle, half its size each way, and
- * its turn. A cube lying flat is a square; one leaning on a neighbour covers a longer patch.
- */
-interface Die {
-  x: number;
-  z: number;
-  hx: number;
-  hz: number;
-  yaw: number;
-  /** The height of its underside and its size (for a flat cube). */
-  y: number;
-  s: number;
-  /** A leaning cube: nothing may be set down on it. */
-  leaning?: boolean;
-  /** Where the cube itself goes (its middle and its turn), ready for the mesh. */
-  matrix: Matrix4;
-}
-
-/** The four corners of a die's footprint, seen from above. */
-function corners(d: Die, shrink = 1): [number, number][] {
-  const hx = d.hx * shrink;
-  const hz = d.hz * shrink;
-  const c = Math.cos(d.yaw);
-  const n = Math.sin(d.yaw);
-  return [[-hx, -hz], [hx, -hz], [hx, hz], [-hx, hz]].map(([px, pz]) => [d.x + px * c - pz * n, d.z + px * n + pz * c]);
-}
-
-/** Do two footprints overlap? (They do unless some edge of one has the other wholly beyond it.) */
-function footprintsOverlap(a: Die, b: Die, shrink = 1): boolean {
-  const ca = corners(a, shrink);
-  const cb = corners(b, shrink);
-  for (const [points, others] of [[ca, cb], [cb, ca]] as const) {
-    for (let i = 0; i < 4; i++) {
-      const [x1, z1] = points[i];
-      const [x2, z2] = points[(i + 1) % 4];
-      // The edge's outward direction; if every corner of the other is beyond it, they are apart.
-      const nx = z2 - z1;
-      const nz = -(x2 - x1);
-      if (others.every(([x, z]) => (x - x1) * nx + (z - z1) * nz > 1e-6)) return false;
-    }
+/** A wedge as a shape to draw: flat faces, sharp edges (the same corners the physics used). */
+function wedgeGeometry(half: [number, number, number]): BufferGeometry {
+  const corners = wedgeCorners(...half);
+  const positions: number[] = [];
+  for (const face of WEDGE_FACES) {
+    // Each face as a fan of triangles from its first corner.
+    for (let i = 1; i < face.length - 1; i++) for (const k of [face[0], face[i], face[i + 1]]) positions.push(...corners[k]);
   }
-  return true;
-}
-
-/** Is a point inside a die's footprint (shrunk a little, so "on the edge" does not count)? */
-function inside(d: Die, x: number, z: number): boolean {
-  const c = Math.cos(-d.yaw);
-  const n = Math.sin(-d.yaw);
-  const lx = (x - d.x) * c - (z - d.z) * n;
-  const lz = (x - d.x) * n + (z - d.z) * c;
-  return Math.abs(lx) < d.hx * 0.84 && Math.abs(lz) < d.hz * 0.84;
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  // Flat faces: every triangle's own direction (and the same layers as a block, so they merge).
+  geometry.computeVertexNormals();
+  return geometry;
 }
 
 /**
- * A heap of cubes, built the way you would build one by hand, in two passes.
+ * A heap of small pieces, dropped and settled with real physics (tumble.ts): each rests on the
+ * table or on its neighbours at whatever tilt it landed, so nothing cuts into anything and
+ * nothing balances where it could not.
  *
- * 1. Flat cubes are set down one at a time: on the table, or squarely on top of the highest
- *    cube under them, middle over it, inside a mound-shaped height limit (without the limit
- *    they built a tower).
- * 2. Leaning cubes are added round them (the user, 2026-11-16: "tilt resting on eachother on
- *    some ... right now all are straight"): each stands on one bottom edge on the table and
- *    tips over until its top edge rests against the side of a cube beside it, like a book
- *    leaning on a bookend. The lean is worked out exactly, so it touches and never cuts in.
- *
- * `side` is the cube's size: dice are about 1.3 cm; finely chopped pieces a quarter of that,
- * and many more of them. Edges are sharp, with no bevel. Some cubes keep the peel on one face.
+ * `side` is a piece's size in cm: dice are about 1.3 cm, finely chopped pieces a quarter of
+ * that and many more of them. The pieces are not perfect cubes: each block's three sides
+ * differ a little, and some are wedges (half a block, cut corner to corner). Edges are sharp.
+ * Some blocks keep the peel on one face.
  */
-function cubes(o: CutOptions, side: number, perMedium: number): CutShape {
+function heap(o: CutOptions, side: number, perMedium: number, wedges: number, most: number): CutShape {
   const random = seededRandom(o.seed ^ 0xd1ced);
-  const count = Math.max(4, Math.round(perMedium * o.holds));
-  // About one in six leans; the rest lie flat.
-  const leaners = Math.round(count * 0.16);
-  const flats = count - leaners;
-  // How far the heap spreads: tight enough that cubes land on each other and it mounds.
-  const spread = side * Math.sqrt(flats) * 0.5;
-  /** How high the heap may stand in its middle: about a third as high as it is wide. */
-  const peak = Math.max(side * 1.05, spread * 0.62);
-  const dice: Die[] = [];
-  const up = new Vector3(0, 1, 0);
-
-  // 1. The flat ones.
-  for (let i = 0; i < flats; i++) {
-    const s = side * (0.85 + random() * 0.3);
-    for (let attempt = 0; attempt < 24; attempt++) {
-      // More land near the middle than at the edge; later attempts look further out.
-      const reach = spread * (0.8 + attempt * 0.035);
-      const a = random() * Math.PI * 2;
-      const rn = random() ** 1.2;
-      const die: Die = { x: Math.cos(a) * reach * rn, z: Math.sin(a) * reach * rn, hx: s / 2, hz: s / 2, y: 0, s, yaw: random() * Math.PI, matrix: new Matrix4() };
-      const under = dice.filter((other) => footprintsOverlap(die, other));
-      let fits = under.length === 0;
-      if (!fits) {
-        // It rests on the highest thing under it, only if its middle is over that cube, and
-        // only while the heap stays a mound: tall in the middle, low at the edge.
-        const top = Math.max(...under.map((other) => other.y + other.s));
-        const holders = under.filter((other) => other.y + other.s > top - 1e-4);
-        const limit = peak * Math.max(0, 1 - Math.hypot(die.x, die.z) / (spread * 1.15));
-        if (top <= limit && holders.some((other) => inside(other, die.x, die.z))) {
-          die.y = top;
-          fits = true;
-        }
-      }
-      if (!fits) continue;
-      die.matrix.compose(new Vector3(die.x, die.y + s / 2, die.z), new Quaternion().setFromAxisAngle(up, -die.yaw), new Vector3(1, 1, 1));
-      dice.push(die);
-      break;
-    }
-  }
-
-  // 2. The leaning ones, each against the side of a cube standing on the table.
-  const onTable = dice.filter((d) => d.y === 0);
-  for (let i = 0; i < leaners && onTable.length > 0; i++) {
-    const s = side * (0.85 + random() * 0.3);
-    for (let attempt = 0; attempt < 16; attempt++) {
-      const prop = onTable[Math.floor(random() * onTable.length)];
-      // One of the prop's four sides, and a spot along it.
-      const face = prop.yaw + (Math.floor(random() * 4) * Math.PI) / 2;
-      const nx = Math.cos(face);
-      const nz = Math.sin(face);
-      const along = (random() - 0.5) * prop.s * 0.5;
-      // How far it tips: enough that its top edge meets the prop's side below the prop's top.
-      // Only a gentle tip, as if nudged against its neighbour: a steep one stood balanced on
-      // its edge and looked ready to fall (the user, 2026-11-16: "the cubes dont balance right").
-      // A cube too tall for its prop would need a steep tip, so it is left out.
-      const least = Math.acos(Math.min(1, (prop.s * 0.96) / s));
-      if (least > 0.2) continue;
-      const tip = Math.max(least + 0.03, 0.1 + random() * 0.16);
-      // Seen from the side, measuring out from the prop's face: its near bottom edge stands
-      // `gap` away, and the cube tips back by `tip` until its top edge touches the face.
-      const gap = s * Math.sin(tip);
-      const reach = gap + s * Math.cos(tip);
-      const fx = prop.x + nx * (prop.s / 2) - nz * along;
-      const fz = prop.z + nz * (prop.s / 2) + nx * along;
-      const die: Die = { x: fx + (nx * reach) / 2, z: fz + (nz * reach) / 2, hx: reach / 2, hz: s / 2, y: 0, s, yaw: face, leaning: true, matrix: new Matrix4() };
-      // Free ground only: it may touch its prop, nothing else.
-      if (dice.some((other) => other !== prop && footprintsOverlap(die, other)) || footprintsOverlap(die, prop, 0.97)) continue;
-      // The cube's own three directions: along its tipped base, up its tipped side, and across.
-      const base = new Vector3(nx, 0, nz).multiplyScalar(Math.cos(tip)).addScaledVector(up, Math.sin(tip));
-      const rise = new Vector3(nx, 0, nz).multiplyScalar(-Math.sin(tip)).addScaledVector(up, Math.cos(tip));
-      const across = new Vector3().crossVectors(base, rise);
-      const middle = new Vector3(fx + nx * gap, 0, fz + nz * gap).addScaledVector(base, s / 2).addScaledVector(rise, s / 2);
-      die.matrix.makeBasis(base, rise, across).setPosition(middle);
-      dice.push(die);
-      break;
-    }
-  }
-
+  const count = Math.min(most, Math.max(4, Math.round(perMedium * o.holds)));
+  const scale = new Matrix4().makeScale(side, side, side);
   const flesh: BufferGeometry[] = [];
   const skin: BufferGeometry[] = [];
-  for (const d of dice) {
-    flesh.push(plain(new BoxGeometry(d.s, d.s, d.s)).applyMatrix4(d.matrix));
-    // About four in ten keep the peel on one face (an apple cube with one red side): a thin
-    // sheet set into the top or one of the sides, a hair proud of it.
+  for (const piece of tumble(count, wedges)) {
+    const [a, b, c] = piece.half;
+    // The settle is worked out with pieces about one unit big: place each, then scale to size.
+    const set = (geometry: BufferGeometry) => geometry.applyMatrix4(piece.matrix).applyMatrix4(scale);
+    if (piece.kind === 'wedge') {
+      flesh.push(set(wedgeGeometry(piece.half)));
+      continue;
+    }
+    flesh.push(set(plain(new BoxGeometry(2 * a, 2 * b, 2 * c)).toNonIndexed()));
+    // About four in ten blocks keep the peel on one face (an apple cube with one red side):
+    // a thin sheet set into that face, a hair proud of it.
     if (random() < 0.42) {
-      const sheet = plain(new BoxGeometry(d.s * 1.004, d.s * 0.07, d.s * 1.004));
-      const sides: [Vector3, Euler][] = [
-        [new Vector3(0, d.s * 0.468, 0), new Euler(0, 0, 0)],
-        [new Vector3(d.s * 0.468, 0, 0), new Euler(0, 0, Math.PI / 2)],
-        [new Vector3(-d.s * 0.468, 0, 0), new Euler(0, 0, Math.PI / 2)],
-        [new Vector3(0, 0, d.s * 0.468), new Euler(Math.PI / 2, 0, 0)],
-        [new Vector3(0, 0, -d.s * 0.468), new Euler(Math.PI / 2, 0, 0)],
+      const thin = 0.07;
+      const faces: [BufferGeometry, Vector3][] = [
+        [new BoxGeometry(2 * a * 1.004, 2 * b * thin, 2 * c * 1.004), new Vector3(0, b * (1 - thin) + 0.004, 0)],
+        [new BoxGeometry(2 * a * thin, 2 * b * 1.004, 2 * c * 1.004), new Vector3(a * (1 - thin) + 0.004, 0, 0)],
+        [new BoxGeometry(2 * a * 1.004, 2 * b * 1.004, 2 * c * thin), new Vector3(0, 0, c * (1 - thin) + 0.004)],
       ];
-      const [offset, flat] = sides[Math.floor(random() * sides.length)];
-      place(sheet, offset, flat);
-      skin.push(sheet.applyMatrix4(d.matrix));
+      const [sheet, offset] = faces[Math.floor(random() * faces.length)];
+      if (random() < 0.5) offset.negate();
+      skin.push(set(plain(sheet).toNonIndexed().translate(offset.x, offset.y, offset.z)));
     }
   }
   return { flesh: mergeGeometries(flesh)!, skin: skin.length ? mergeGeometries(skin)! : undefined };
 }
 
 /**
- * A puree comes in a squeeze bottle (the user's reference, 2026-11-16: a clear sauce bottle
- * with a cone cap). The bottle is half full: its lower part is the puree's colour, the part
- * above it clear plastic, and the cap a third piece. More of it means more bottles, one to three, standing together.
+ * A puree is served in a small cup, like a little bowl (the user, 2026-11-17: "lets keep
+ * sauce in a small cup similar to bowl, lets get rid of bottle"). The cup is white china with
+ * straight-ish sides; the puree fills it almost to the rim, its top gently swirled. More of it
+ * means more cups, one to three, standing together.
  */
-function bottles(o: CutOptions): CutShape {
+function cups(o: CutOptions): CutShape {
   const random = seededRandom(o.seed ^ 0x9a7ee);
   const count = Math.max(1, Math.min(3, Math.round(o.holds * 1.4)));
-  const spots: [number, number][][] = [[[0, 0]], [[-3.4, 0.4], [3.4, -0.4]], [[-3.6, 1.6], [3.6, 1.2], [0.2, -3.4]]];
-  const bodies: BufferGeometry[] = [];
-  const caps: BufferGeometry[] = [];
-  const clears: BufferGeometry[] = [];
-  const point = (r: number, y: number, v: number): ProfilePoint => ({ r, y, u: 0, v });
+  const spots: [number, number][][] = [[[0, 0]], [[-3.7, 0.5], [3.7, -0.5]], [[-3.9, 1.8], [3.9, 1.4], [0.2, -3.9]]];
+  const sauces: BufferGeometry[] = [];
+  const shells: BufferGeometry[] = [];
   for (const [x, z] of spots[count - 1]) {
-    const k = 0.92 + random() * 0.16;
-    const R = 3.1 * k;
-    const H = 13.5 * k;
-    // Half full (the user, 2026-11-16), each bottle a little differently.
-    const fill = H * (0.42 + random() * 0.1);
-    // The sauce: the lower part of the bottle, with a rounded foot and a flat top.
-    const sauce: ProfilePoint[] = [point(0, 0.12, 0), point(R - 0.5, 0.12, 0), point(R - 0.12, 0.3, 0), point(R, 0.8, 0), point(R, fill, 0.5), point(0, fill, 0.5)];
-    bodies.push(plain(spinProfile(sauce, 44)).translate(x, 0, z));
-    // The empty part above it: clear plastic, straight sides, then a shoulder curving in to the neck.
-    const empty: ProfilePoint[] = [point(0, fill, 0.5), point(R, fill, 0.5), point(R, H * 0.78, 0.7)];
-    for (let i = 1; i <= 6; i++) {
-      const a = (i / 6) * (Math.PI / 2);
-      empty.push(point(R * 0.52 + R * 0.48 * Math.cos(a), H * 0.78 + H * 0.12 * Math.sin(a), 0.8));
-    }
-    empty.push(point(R * 0.52, H * 0.93, 0.9), point(0, H * 0.93, 1));
-    clears.push(plain(spinProfile(empty, 44)).translate(x, 0, z));
-    // The cap: a screw collar, then a cone nozzle with a small flat tip.
-    const c0 = H * 0.9;
-    const cap: ProfilePoint[] = [
-      point(0, c0, 0), point(R * 0.62, c0, 0), point(R * 0.64, c0 + 0.15, 0), point(R * 0.64, c0 + 1.5 * k, 0), point(R * 0.56, c0 + 1.75 * k, 0),
-      point(R * 0.3, c0 + 2.6 * k, 0), point(R * 0.16, c0 + 4.6 * k, 0), point(R * 0.13, c0 + 4.75 * k, 0), point(0, c0 + 4.75 * k, 0),
-    ];
-    caps.push(plain(spinProfile(cap, 36)).translate(x, 0, z));
+    const k = 0.9 + random() * 0.2;
+    const shape: BowlShape = { rim: 3.5 * k, height: 3.3 * k, foot: 2.5 * k, footHeight: 0.3, wall: 0.3, fullness: 3.2 };
+    shells.push(plain(spinProfile(bowlProfile(shape, 16), 48)).translate(x, 0, z));
+    // The puree: filled to just under the rim, a soft swirl on top as if stirred with a spoon.
+    const edge = shape.height * 0.8;
+    const twist = random() * Math.PI * 2;
+    sauces.push(
+      moundGeometry({
+        radius: bowlInner(shape, edge) + 0.06,
+        edge,
+        rings: 20,
+        segments: 48,
+        height: (px, pz, rn) => (0.22 * (1 - rn * rn) + 0.07 * Math.sin(Math.atan2(pz, px) * 2 + rn * 8 + twist) * Math.sin(Math.PI * rn)) * k,
+      }).translate(x, 0, z),
+    );
   }
-  return { flesh: mergeGeometries(bodies)!, bottle: mergeGeometries(clears)!, cap: mergeGeometries(caps)! };
+  return { flesh: mergeGeometries(sauces)!, bottle: mergeGeometries(shells)! };
 }
 
 export function buildCut(cut: Exclude<Cut, 'Whole'>, options: CutOptions): CutShape {
   if (cut === 'Sliced') return sliced(options);
-  if (cut === 'Diced') return cubes(options, 1.3, 44);
-  if (cut === 'Chopped') return cubes(options, 0.34, 190);
-  return bottles(options);
+  // Dice: about a third of them wedges. Chopped: tiny blocks only (a wedge that small reads as
+  // a block anyway, and blocks settle faster), and never more than the settle can do quickly.
+  if (cut === 'Diced') return heap(options, 1.3, 44, 0.3, 140);
+  if (cut === 'Chopped') return heap(options, 0.4, 70, 0, 200);
+  return cups(options);
 }
