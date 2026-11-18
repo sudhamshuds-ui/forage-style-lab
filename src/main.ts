@@ -12,6 +12,7 @@ import { StylizedLook } from './shading/stylizedMaterial';
 import { EFFECT_STACK } from './shading/effects';
 import type { FrameContext } from './shading/effect';
 import { FAMILIES } from './ingredients/families';
+import { CARD_FRAMING } from './scene/framing';
 import { REGISTRY, ShuffleDeck, findIngredient, type IngredientEntry } from './ingredients/registry';
 import { createSubject, type Subject } from './ingredients/subject';
 import { PROPS } from './ingredients/forms/kit/checks';
@@ -37,7 +38,8 @@ const settings = defaultSettings();
 
 const card = document.getElementById('card') as HTMLElement;
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-const stage = new Stage(canvas, card);
+// The dish review looks down onto the plate (the references are seen from about 30 degrees up).
+const stage = new Stage(canvas, card, import.meta.env.VITE_COLLECTION === 'dishes' ? 60 : 75);
 const look = new StylizedLook(EFFECT_STACK);
 const background = new Background();
 const ground = new Ground();
@@ -98,7 +100,7 @@ const paintFrame: PaintFrame = {
 
 /** Switch the room combo to the one the ingredient's colour family suggests (board 04). */
 function applyRoom(entry: IngredientEntry): void {
-  const room = findPalette(FAMILIES[entry.spec.family].rooms[0]);
+  const room = findPalette(entry.room ?? FAMILIES[entry.spec.family].rooms[0]);
   if (room) applyPalette(settings, room);
 }
 
@@ -173,10 +175,20 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const FADE_MS = 200;
 let swapping = false;
 
+/** True on the dish review page: the collection is the kitchen's dishes, not the pantry. */
+const DISH_REVIEW = import.meta.env.VITE_COLLECTION === 'dishes';
+// A plate seen from above reaches well in front of its middle: frame it a little higher, so its
+// front rim clears the buttons at the card's foot.
+if (DISH_REVIEW) CARD_FRAMING.contactLine = 0.6;
+const pageTitle = document.querySelector<HTMLElement>('.lab-title');
+
 /** The panel's ingredient name. */
 const nameLabel = document.getElementById('ingredient-name');
 function setName(text: string): void {
   if (nameLabel) nameLabel.textContent = text;
+  // The dish review (built with VITE_COLLECTION=dishes) names each dish in the title, so the
+  // reviewer knows which one they are looking at.
+  if (DISH_REVIEW && pageTitle) pageTitle.textContent = text;
 }
 
 /**
@@ -184,6 +196,13 @@ function setName(text: string): void {
  * and a fade back in, so the panel never names a card that is not on screen yet.
  */
 function swapName(text: string): void {
+  if (DISH_REVIEW && pageTitle) {
+    pageTitle.classList.add('is-changing');
+    window.setTimeout(() => {
+      pageTitle.textContent = text;
+      pageTitle.classList.remove('is-changing');
+    }, 100);
+  }
   if (!nameLabel) return;
   nameLabel.classList.add('is-changing');
   window.setTimeout(() => {
@@ -479,6 +498,7 @@ const barRoot = document.getElementById('bar-root');
 if (barRoot) {
   mountStyleBar(barRoot, {
     shuffle: shuffleIngredient,
+    shuffleLabel: DISH_REVIEW ? 'Next dish' : undefined,
     onBusy: (listener) => {
       busyListeners.add(listener);
       return () => busyListeners.delete(listener);

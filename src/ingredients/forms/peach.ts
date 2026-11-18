@@ -20,9 +20,8 @@ import { leafPiece, stemPiece } from './kit/stemLeaf';
 const WIDTH = 7.1;
 const HEIGHT = 6.7;
 
-export const buildPeach: FormBuilder = ({ state, seed }) => {
-  if (state !== 'whole') throw new Error(`Peach: the "${state}" form is not built yet (whole only for now).`);
-  const random = seededRandom(seed ^ 0x9eac4);
+/** The peach's body alone, standing, built round its middle, with its map (dishes cut it). */
+export function peachBody(random: () => number) {
   const radius = WIDTH / 2;
   const half = HEIGHT / 2 + 0.28;
   const skin = roundBody({
@@ -58,6 +57,13 @@ export const buildPeach: FormBuilder = ({ state, seed }) => {
   const position = skin.getAttribute('position') as BufferAttribute;
   const top = new Vector3().fromBufferAttribute(position, position.count - 1);
   bodyMap(skin);
+  return { skin, top, half };
+}
+
+export const buildPeach: FormBuilder = ({ state, seed }) => {
+  if (state !== 'whole') throw new Error(`Peach: the "${state}" form is not built yet (whole only for now).`);
+  const random = seededRandom(seed ^ 0x9eac4);
+  const { skin, top } = peachBody(random);
 
   const stem = stemPiece({ base: top.clone().add(new Vector3(0, -0.05, 0)), height: 0.5, footRadius: 0.22, neckRadius: 0.15, lean: 0.25, leanTurn: random() * Math.PI * 2, segments: 10 });
   // One long, slim leaf from the stem, arching out over the shoulder and down.

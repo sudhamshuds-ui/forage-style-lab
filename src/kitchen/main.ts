@@ -385,7 +385,7 @@ function relayout(animate = true): void {
 /** The room follows the first ingredient on the table; an empty table sits in a calm linen room. */
 function applyRoom(): void {
   const first = staying()[0];
-  const room = findPalette(first ? FAMILIES[first.subject.entry.spec.family].rooms[0] : EMPTY_ROOM);
+  const room = findPalette(first ? (first.subject.entry.room ?? FAMILIES[first.subject.entry.spec.family].rooms[0]) : EMPTY_ROOM);
   if (room) applyPalette(settings, room);
 }
 

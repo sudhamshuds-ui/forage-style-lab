@@ -22,6 +22,8 @@ import './styleBar.css';
 
 export interface StyleBarApi {
   shuffle: () => void;
+  /** The Shuffle button's label ("New ingredient"; the dish review's "Next dish"). */
+  shuffleLabel?: string;
   /** Listen for the busy state (a swap playing); returns a stop function. */
   onBusy: (listener: (busy: boolean) => void) => () => void;
   painterly: () => boolean;
@@ -157,9 +159,9 @@ function StyleBar({ api }: { api: StyleBarApi }) {
         style={{ '--swap': `${api.swapSeconds}s` } as CSSProperties}
         onClick={() => !busy && loading.phase === 'idle' && loading.start()}
       >
-        <span className="sb-new-label">New ingredient</span>
+        <span className="sb-new-label">{api.shuffleLabel ?? 'New ingredient'}</span>
         <span className="sb-new-fill" aria-hidden="true">
-          <span className="sb-new-label">New ingredient</span>
+          <span className="sb-new-label">{api.shuffleLabel ?? 'New ingredient'}</span>
         </span>
         <span className="sb-new-trace" aria-hidden="true" />
         <svg className="sb-new-scribble" viewBox="0 0 120 24" aria-hidden="true">

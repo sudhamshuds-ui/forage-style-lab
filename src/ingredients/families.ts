@@ -71,7 +71,22 @@ export type FamilyId =
   | 'cheese'
   | 'butter'
   | 'parchment'
-  | 'melon';
+  | 'melon'
+  | 'stoneware'
+  | 'slate'
+  | 'foam'
+  | 'jam'
+  | 'lacquer'
+  | 'berry-glaze'
+  | 'brown-butter'
+  | 'peach-flesh'
+  | 'rare'
+  | 'sear'
+  | 'grape-flesh'
+  | 'tomato-flesh'
+  | 'garlic-roast'
+  | 'berry-flesh'
+  | 'lime-flesh';
 
 export interface ColourFamily {
   name: string;
@@ -474,5 +489,97 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     name: 'Pink and raw',
     colours: { lit: '#f6a493', base: '#d4544f', shadow: '#8c3150', glow: '#ff7a66', highlight: '#fbe4dc' },
     rooms: ['seafoam', 'sage-morning'],
+  },
+  // ---- Dishes (the kitchen, 2026-11-18). Part-only families for what a dish adds round its
+  // ingredients: tableware, sauces, cut and cooked faces. Warm light, cool shade, as always.
+  // A cream stoneware plate: warm white where lit, lilac-blue in shadow (never grey).
+  stoneware: {
+    name: 'Stoneware',
+    colours: { lit: '#fdf8ee', base: '#efe5d4', shadow: '#a69fc6', glow: '#f7dcb4', highlight: '#fffdf8' },
+    rooms: [],
+  },
+  // A deep blue glazed plate (the steak's): periwinkle where lit, indigo in shadow.
+  slate: {
+    name: 'Slate',
+    colours: { lit: '#86a0cf', base: '#4e69a2', shadow: '#2a3268', glow: '#8a8fd0', highlight: '#e6ecfa' },
+    rooms: [],
+  },
+  // A pale lime foam: cream-green, a sage-teal shade.
+  foam: {
+    name: 'Foam',
+    colours: { lit: '#f6f8dc', base: '#dfe8ad', shadow: '#8ea592', glow: '#eaf1a0', highlight: '#ffffff' },
+    rooms: [],
+  },
+  // A tomato jam: hot scarlet where lit, a deep wine in shadow, an orange glow.
+  jam: {
+    name: 'Jam',
+    colours: { lit: '#ff8058', base: '#d9362b', shadow: '#76193c', glow: '#ff5a26', highlight: '#ffe6d8' },
+    rooms: [],
+  },
+  // A sticky lacquer on roast meat: amber-red where lit, a deep oxblood-plum in shadow.
+  lacquer: {
+    name: 'Lacquer',
+    colours: { lit: '#e2593e', base: '#9e2228', shadow: '#4e1236', glow: '#ec4a2c', highlight: '#ffe2cc' },
+    rooms: [],
+  },
+  // A blueberry glaze: violet where lit, a deep indigo-plum in shadow, a magenta glow.
+  'berry-glaze': {
+    name: 'Berry glaze',
+    colours: { lit: '#9a62b2', base: '#5e2c72', shadow: '#2c1a4e', glow: '#b03f8e', highlight: '#f2def6' },
+    rooms: [],
+  },
+  // Brown butter: golden where lit, a toasted caramel, a rosy-brown shade.
+  'brown-butter': {
+    name: 'Brown butter',
+    colours: { lit: '#f6cf78', base: '#d0913c', shadow: '#7c4a42', glow: '#f2a43c', highlight: '#fff4d8' },
+    rooms: [],
+  },
+  // A peach's cut flesh: golden apricot, a rose-red shade near the stone.
+  'peach-flesh': {
+    name: 'Peach flesh',
+    colours: { lit: '#ffd879', base: '#f7a53e', shadow: '#ac4c40', glow: '#ff9630', highlight: '#fff5d4' },
+    rooms: [],
+  },
+  // A steak's medium-rare inside: rosy pink, a deep wine shade.
+  rare: {
+    name: 'Rare',
+    colours: { lit: '#f59a92', base: '#cf4f56', shadow: '#6c2142', glow: '#f2605c', highlight: '#ffe4e2' },
+    rooms: [],
+  },
+  // A seared crust (salmon, steak): golden caramel where lit, a russet-plum shade.
+  sear: {
+    name: 'Sear',
+    colours: { lit: '#f0b06a', base: '#b9652f', shadow: '#5c2a3c', glow: '#e88038', highlight: '#fff0d8' },
+    rooms: [],
+  },
+  // A grape's cut flesh: pale green-gold, a lilac shade.
+  'grape-flesh': {
+    name: 'Grape flesh',
+    colours: { lit: '#f2eec4', base: '#d2c98e', shadow: '#86708e', glow: '#ece08a', highlight: '#ffffff' },
+    rooms: [],
+  },
+  // A tomato's cut flesh: coral-red, a deep crimson shade.
+  'tomato-flesh': {
+    name: 'Tomato flesh',
+    colours: { lit: '#ffa07a', base: '#ea5038', shadow: '#88203c', glow: '#ff6e3c', highlight: '#fff0e6' },
+    rooms: [],
+  },
+  // Roast garlic's cut face: golden, toasted at the edges, a rosy-brown shade.
+  'garlic-roast': {
+    name: 'Roast garlic',
+    colours: { lit: '#fbe0a0', base: '#e2ad58', shadow: '#965848', glow: '#f2b448', highlight: '#fff8e6' },
+    rooms: [],
+  },
+  // A strawberry's cut flesh: pale rose at the heart to red at the edge, a crimson shade.
+  // A lime's cut flesh: pale yellow-green, a sage shade.
+  'lime-flesh': {
+    name: 'Lime flesh',
+    colours: { lit: '#f3f5b8', base: '#d6e17e', shadow: '#7d9a6c', glow: '#e4ee6c', highlight: '#ffffff' },
+    rooms: [],
+  },
+  'berry-flesh': {
+    name: 'Berry flesh',
+    colours: { lit: '#ff5e66', base: '#e02e46', shadow: '#7c123c', glow: '#ff4c5c', highlight: '#fff0ee' },
+    rooms: [],
   },
 };

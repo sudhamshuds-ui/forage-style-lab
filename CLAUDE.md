@@ -723,6 +723,22 @@ of dishes, kept on a Figma page; they will add a page of Pinterest dish referenc
 **Not built yet**: Cook itself (step 6), saving and My recipes (step 7). The user's Pinterest board (https://pin.it/4p5khThfq) cannot be reached from the cloud
 session: ask for the images in Figma.
 
+## Dishes (branch `dishes`, from `kitchen`, started 2026-11-18; not merged)
+The user's plan (2026-11-18): dishes designed by Claude from the pantry, the **three chosen
+ingredients always the heroes** (support ingredients allowed, never the hero); a reference for
+each made with the user's Figma AI (GPT 2.5) in our style; each built **in code** from the pantry's
+own forms; **50 dishes**, in batches; reviewed in the **"Forage Dish Review"** preview (the Style
+Lab built with `VITE_COLLECTION=dishes`: the registry deals the dishes, "Next dish", the dish's
+name as the title, the camera at 60 degrees looking down, framed higher). Learn from every note:
+`docs/dishes/lessons.md`, read before each batch. Plan, kit and workflow: `docs/dishes/README.md`.
+Batch 1 (the six references on Figma node 214:8) built: salmon and peach, strawberry baguette,
+tomahawk, egg and mushrooms, grape drumsticks, watermelon rice bowl. Waiting for review.
+The dish kit (`src/dishes/kit/`): the knife (`cut.ts`), plates and bowls (`ware.ts`), sauce pools
+(`pool.ts`), plating (`place.ts`). Shared additions: `partSkins` and `room` on an entry; skins
+`ceramic`, `flesh`, `sauce`, `charred` and `seared` (a crust on any skin); pantry forms export
+their bodies for cutting (`peachBody`, `limeBody`, `strawberryBody`, `mushroomUpright`,
+`avocadoBody`), unchanged for the pantry.
+
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one
 review** (not approved, not merged; `/forage-brand` after approval, then merge to `main`):

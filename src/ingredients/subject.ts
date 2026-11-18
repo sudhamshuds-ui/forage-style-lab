@@ -3,7 +3,7 @@ import type { Settings } from '../params';
 import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
 import { mixHex } from '../utils/colour';
-import { CRUMB_SKIN, GLAZE_SKIN, KNUCKLE_SKIN, PULP_SKIN, YOLK_SKIN, LABEL_SKIN, LEAF_SKIN, MELON_RIND_SKIN, setSkin } from '../shading/effects/skinTexture';
+import { type Skin, CRUMB_SKIN, GLAZE_SKIN, KNUCKLE_SKIN, PULP_SKIN, YOLK_SKIN, LABEL_SKIN, LEAF_SKIN, MELON_RIND_SKIN, setSkin } from '../shading/effects/skinTexture';
 import { hotSauceLabelTexture, milkLabelTexture } from '../shading/labelArt';
 import { FAMILIES } from './families';
 import { seedFromId, seededRandom } from './forms/kit/random';
@@ -173,42 +173,17 @@ class FormSubject implements Subject {
         const loud = (hero && !entry.matte) || !!entry.glossy?.includes(piece.role);
         const quiet = loud ? palette : { ...palette, highlight: mixHex(palette.highlight, palette.base, 0.65) };
         this.painted.push({ material, palette: quiet });
+        const ownSkin = entry.partSkins?.[piece.role];
         if (hero) {
-          setSkin(material, entry.skin);
-          // Melon flesh fades into its rind: the pale band and the green come from the families.
-          if (entry.skin.kind === 'melon') {
-            (material.uniforms.uMelonPale.value as Color).set(FAMILIES['pale-green'].colours.lit);
-            (material.uniforms.uMelonGreen.value as Color).set(FAMILIES.green.colours.base);
-          }
-          // A marbled steak: the marbling is painted in the fat's colour.
-          if (entry.skin.kind === 'marbled') (material.uniforms.uMelonPale.value as Color).set(FAMILIES.fat.colours.lit);
-          // An avocado: the cut face's creamy flesh and its bright green near the skin.
-          if (entry.skin.kind === 'avocado') {
-            (material.uniforms.uMelonPale.value as Color).set(AVOCADO_FLESH.cream);
-            (material.uniforms.uMelonGreen.value as Color).set(AVOCADO_FLESH.green);
-          }
-          // Salmon: the fat lines in a creamy peach, the skin a deep silvery slate-blue.
-          if (entry.skin.kind === 'salmon') {
-            (material.uniforms.uMelonPale.value as Color).set('#ffe9d6');
-            (material.uniforms.uMelonGreen.value as Color).set('#4f6488');
-          }
-          // A fried egg: its crisp rim browns from gold to a warm sienna (never black).
-          if (entry.skin.kind === 'egg') {
-            (material.uniforms.uMelonPale.value as Color).set('#f4b64e');
-            (material.uniforms.uMelonGreen.value as Color).set('#a4522c');
-          }
-          // A printed carton: its artwork, in the print's green.
-          if (entry.skin.kind === 'carton') {
-            material.uniforms.uLabelMap.value = milkLabelTexture();
-            (material.uniforms.uLabelInk.value as Color).set(FAMILIES['print-green'].colours.base);
-          }
-          // A red onion: its papery flakes, root patch and dry neck are painted in the papery tan.
-          if (entry.skin.kind === 'onion') (material.uniforms.uMelonPale.value as Color).set(FAMILIES.papery.colours.base);
-          // Raw chicken: the pink meat (showing through, and bare on the shank) and the yellow fat.
-          if (entry.skin.kind === 'poultry') {
-            (material.uniforms.uMelonPale.value as Color).set(POULTRY_MEAT);
-            (material.uniforms.uMelonGreen.value as Color).set(FAMILIES.butter.colours.base);
-          }
+          dressSkin(material, entry.skin);
+          if (entry.skin.pale) (material.uniforms.uMelonPale.value as Color).set(entry.skin.pale);
+          if (entry.skin.green) (material.uniforms.uMelonGreen.value as Color).set(entry.skin.green);
+        }
+        // A dish: each part painted by its own ingredient's skin.
+        else if (ownSkin) {
+          dressSkin(material, ownSkin);
+          if (ownSkin.pale) (material.uniforms.uMelonPale.value as Color).set(ownSkin.pale);
+          if (ownSkin.green) (material.uniforms.uMelonGreen.value as Color).set(ownSkin.green);
         }
         // A bone's knuckle (before the leaf rule: it has a map too): the cartilage cap and the
         // meat's pink blush where it leaves the meat.
@@ -330,6 +305,45 @@ class FormSubject implements Subject {
         (object.material as ShaderMaterial).dispose();
       }
     });
+  }
+}
+
+/** Paint a material with a skin, and set the extra colours that skin reads (a melon's band...). */
+function dressSkin(material: ShaderMaterial, skin: Skin): void {
+  setSkin(material, skin);
+  // Melon flesh fades into its rind: the pale band and the green come from the families.
+  if (skin.kind === 'melon') {
+    (material.uniforms.uMelonPale.value as Color).set(FAMILIES['pale-green'].colours.lit);
+    (material.uniforms.uMelonGreen.value as Color).set(FAMILIES.green.colours.base);
+  }
+  // A marbled steak: the marbling is painted in the fat's colour.
+  if (skin.kind === 'marbled') (material.uniforms.uMelonPale.value as Color).set(FAMILIES.fat.colours.lit);
+  // An avocado: the cut face's creamy flesh and its bright green near the skin.
+  if (skin.kind === 'avocado') {
+    (material.uniforms.uMelonPale.value as Color).set(AVOCADO_FLESH.cream);
+    (material.uniforms.uMelonGreen.value as Color).set(AVOCADO_FLESH.green);
+  }
+  // Salmon: the fat lines in a creamy peach, the skin a deep silvery slate-blue.
+  if (skin.kind === 'salmon') {
+    (material.uniforms.uMelonPale.value as Color).set('#ffe9d6');
+    (material.uniforms.uMelonGreen.value as Color).set('#4f6488');
+  }
+  // A fried egg: its crisp rim browns from gold to a warm sienna (never black).
+  if (skin.kind === 'egg') {
+    (material.uniforms.uMelonPale.value as Color).set('#f4b64e');
+    (material.uniforms.uMelonGreen.value as Color).set('#a4522c');
+  }
+  // A printed carton: its artwork, in the print's green.
+  if (skin.kind === 'carton') {
+    material.uniforms.uLabelMap.value = milkLabelTexture();
+    (material.uniforms.uLabelInk.value as Color).set(FAMILIES['print-green'].colours.base);
+  }
+  // A red onion: its papery flakes, root patch and dry neck are painted in the papery tan.
+  if (skin.kind === 'onion') (material.uniforms.uMelonPale.value as Color).set(FAMILIES.papery.colours.base);
+  // Raw chicken: the pink meat (showing through, and bare on the shank) and the yellow fat.
+  if (skin.kind === 'poultry') {
+    (material.uniforms.uMelonPale.value as Color).set(POULTRY_MEAT);
+    (material.uniforms.uMelonGreen.value as Color).set(FAMILIES.butter.colours.base);
   }
 }
 

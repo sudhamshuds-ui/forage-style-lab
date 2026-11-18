@@ -2,7 +2,10 @@ import { Euler, Matrix4, Quaternion, SphereGeometry, Vector3, type BufferGeometr
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { riceBowlParts } from '../../ingredients/forms/rice';
-import { finishPieces, type FormBuilder } from '../../ingredients/forms/kit/piece';
+import type { FormBuilder, FormPiece } from '../../ingredients/forms/kit/piece';
+import { avocadoBody, avocadoProfile } from '../../ingredients/forms/avocado';
+import { cutPieces, knife } from '../kit/cut';
+import { plate, posed, setDown, surfaceOf } from '../kit/place';
 import { seededRandom } from '../../ingredients/forms/kit/random';
 
 /**
@@ -23,6 +26,22 @@ import { seededRandom } from '../../ingredients/forms/kit/random';
 function plain(geometry: BufferGeometry): BufferGeometry {
   geometry.deleteAttribute('uv');
   return geometry;
+}
+
+/**
+ * An avocado slice: a thin lengthwise slice from near the fruit's side (two parallel cuts), lying
+ * flat with a cut face up: creamy yellow in the middle, bright green toward the dark skin round it.
+ */
+function avocadoSlice(random: () => number, thickness: number): FormPiece[] {
+  const body = avocadoBody(random);
+  const flesh = (p: Vector3) => ({ uv: [0.5, Math.max(0.05, avocadoProfile(p.y) - Math.hypot(p.x, p.z))] });
+  const at = 2.3;
+  let pieces: FormPiece[] = [{ role: 'avocado_glow', geometry: body }];
+  pieces = cutPieces(pieces, knife(new Vector3(at + thickness, 0, 0), new Vector3(1, 0, 0)), 'avocado_glow', flesh);
+  pieces = cutPieces(pieces, knife(new Vector3(at, 0, 0), new Vector3(-1, 0, 0)), 'avocado_glow', flesh);
+  // Flat (the cut faces up and down), centred, its length along x.
+  const flat = posed(pieces, { roll: Math.PI / 2, at: [0, -(at + thickness / 2), 0] });
+  return posed(flat, { roll: 0, turn: Math.PI / 2, scale: 0.62 });
 }
 
 export const buildWatermelonBowl: FormBuilder = ({ seed }) => {
@@ -46,29 +65,18 @@ export const buildWatermelonBowl: FormBuilder = ({ seed }) => {
     cubes.push(cube);
   }
 
-  // The avocado: five slices fanned on the right like fallen dominoes, each leaning back on the
-  // one behind. Every slice is a pale green lens with a slightly bigger dark green one right
-  // behind it (its skin), so each reads as its own slice with a dark rim, never one green disc.
-  const slices: BufferGeometry[] = [];
-  const peels: BufferGeometry[] = [];
+  // The avocado: five real slices (the pantry's avocado cut into thin wedges, each with its dark
+  // skin along the back), fanned on the right, leaning on each other.
+  const slices: FormPiece[] = [];
   for (let i = 0; i < 5; i++) {
     const t = i / 4;
-    // Shingled: each slice lies along the rice, tipped up on its long edge so it rests on the
-    // next one, and the row curves a little. Lying like this they read as slices from every
-    // side (standing in a row they hid behind each other and looked like one disc).
-    const x = 2.5 - 0.5 * Math.sin(t * Math.PI);
-    const z = -2.3 + t * 3.9;
-    const lean = new Euler(0.65, 1.25 - t * 0.5, 0, 'YXZ');
-    const y = surfaceAt(x, z) + 0.55;
-    // A long, flat lens: 5 cm long, 2.2 cm wide, under half a centimetre thick.
-    const slice = plain(new SphereGeometry(1, 28, 14));
-    slice.scale(2.5, 0.2, 1.1);
-    place(slice, new Vector3(x, y, z), lean);
-    slices.push(slice);
-    const peel = plain(new SphereGeometry(1, 28, 14));
-    peel.scale(2.62, 0.18, 1.2);
-    place(peel, new Vector3(x, y - 0.12, z), lean);
-    peels.push(peel);
+    const slice = posed(avocadoSlice(random, 0.5), { tip: 0.35 });
+    const x = 2.3 - 0.4 * Math.sin(t * Math.PI);
+    const z = -2.2 + t * 3.8;
+    const laid = posed(slice, { turn: 1.4 - t * 0.5, at: [x, 0, z] });
+    const below = surfaceOf(slices, () => -10);
+    setDown(laid, (px, pz) => Math.max(surfaceAt(px, pz), below(px, pz) - 0.35), 0.1);
+    slices.push(...laid);
   }
 
   // Sesame: small dark seeds over the cubes and the rice between.
@@ -89,12 +97,11 @@ export const buildWatermelonBowl: FormBuilder = ({ seed }) => {
     seeds.push(seed3);
   }
 
-  return finishPieces([
+  return plate([
     { role: 'rice', geometry: rice },
     { role: 'bowl', geometry: bowl },
     { role: 'cubes', geometry: mergeGeometries(cubes)! },
-    { role: 'slices', geometry: mergeGeometries(slices)! },
-    { role: 'peel', geometry: mergeGeometries(peels)! },
+    ...slices,
     { role: 'seeds', geometry: mergeGeometries(seeds)! },
   ]);
 };

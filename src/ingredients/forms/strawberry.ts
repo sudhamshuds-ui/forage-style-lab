@@ -35,10 +35,8 @@ const TAPER = 0.55;
 /** How far the calyx end lifts off the table as it lies (radians from flat). */
 const TILT = 0.32;
 
-export const buildStrawberry: FormBuilder = ({ state, seed }) => {
-  if (state !== 'whole') throw new Error(`Strawberry: the "${state}" form is not built yet (whole only for now).`);
-
-  const random = seededRandom(seed);
+/** The berry's body alone, standing tip down, built round its middle (dishes slice it). */
+export function strawberryBody(random: () => number) {
   // A little extra length, because the calyx dimple takes some away.
   const half = LENGTH / 2 + 0.06;
   // The widest point of the profile below is about 0.93 of this radius.
@@ -77,6 +75,14 @@ export const buildStrawberry: FormBuilder = ({ state, seed }) => {
     segments: 36,
     crossSection,
   });
+  return { berry, half, profileAt };
+}
+
+export const buildStrawberry: FormBuilder = ({ state, seed }) => {
+  if (state !== 'whole') throw new Error(`Strawberry: the "${state}" form is not built yet (whole only for now).`);
+
+  const random = seededRandom(seed);
+  const { berry, half, profileAt } = strawberryBody(random);
 
   // The calyx centre: the lathe's end pole, now at the top of the dimple.
   const position = berry.getAttribute('position') as BufferAttribute;
