@@ -180,7 +180,10 @@ const DISH_REVIEW = import.meta.env.VITE_COLLECTION === 'dishes';
 // A plate seen from above reaches well in front of its middle: frame it a little higher, so its
 // front rim clears the buttons at the card's foot.
 if (DISH_REVIEW) CARD_FRAMING.contactLine = 0.6;
+
 const pageTitle = document.querySelector<HTMLElement>('.lab-title');
+// The first dish is named from the start (later ones as each swap reveals them).
+if (DISH_REVIEW && pageTitle) pageTitle.textContent = subject.entry.spec.name;
 
 /** The panel's ingredient name. */
 const nameLabel = document.getElementById('ingredient-name');
