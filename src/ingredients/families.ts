@@ -89,7 +89,9 @@ export type FamilyId =
   | 'lime-flesh'
   | 'berry-jam'
   | 'bone-roast'
-  | 'cooked-rice';
+  | 'cooked-rice'
+  | 'cooked-salmon'
+  | 'porcelain';
 
 export interface ColourFamily {
   name: string;
@@ -574,6 +576,19 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     rooms: [],
   },
   // A strawberry's cut flesh: pale rose at the heart to red at the edge, a crimson shade.
+  // Cooked salmon: no longer raw orange but a pale coral pink, nearly white where lit, a rose-violet
+  // shade (the user, 2026-11-18: "when cooked the body cannot be orange...its more pinkish white").
+  'cooked-salmon': {
+    name: 'Cooked salmon',
+    colours: { lit: '#ffd9cb', base: '#ec9f8a', shadow: '#a0546e', glow: '#ff967c', highlight: '#fff8f2' },
+    rooms: [],
+  },
+  // A clean white porcelain plate: white where lit, a cool lilac shade, never grey or cream.
+  porcelain: {
+    name: 'Porcelain',
+    colours: { lit: '#ffffff', base: '#f5f4f2', shadow: '#b8b6d4', glow: '#fff6ea', highlight: '#ffffff' },
+    rooms: [],
+  },
   // Cooked rice in a dish: warmer than the pantry's raw white, ivory with a golden glow, a lilac
   // shade (the user, 2026-11-18: "add some colour to the rice...like its cooked").
   'cooked-rice': {

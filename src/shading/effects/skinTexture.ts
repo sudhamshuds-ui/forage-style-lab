@@ -245,6 +245,8 @@ const int kind = SKIN_KIND;
 int kind = int(uSkin.x + 0.5);
 #endif
 float amount = uSkin.z;
+// Lines a skin marks for a seared crust to pick out in a deeper brown (a salmon's fat lines).
+float searMark = 0.0;
 if (kind > 0 && amount > 0.0) {
   vec3 p = objectPos * uSkin.y;
   vec3 lab = linearToOklab(colour);
@@ -1300,6 +1302,9 @@ if (kind > 0 && amount > 0.0) {
     fatLab = mix(fatLab, vec3(fatLab.x - 0.03, fatLab.y + 0.01, fatLab.z - 0.03), 1.0 - lit);
     lab = mix(lab, fatLab, line * 0.8 * amount);
     highlightOwn = max(highlightOwn, line);
+    // Seared, the fat lines on top cook darker than the flesh round them (the user, 2026-11-18:
+    // "the white lines become brown").
+    searMark = line;
     // The flakes between the lines: each a touch its own tone, lighter toward its lit edge.
     lab.x += (hash13(vec3(cellId, 9.0, 2.0)) - 0.5) * 0.035 * (1.0 - line);
     lab.x += (fract(phase) - 0.5) * 0.03 * (1.0 - line) * lit;
@@ -1852,6 +1857,12 @@ if (kind > 0 && amount > 0.0) {
     vec3 golden = mix(vec3(0.7, 0.05, 0.12), vec3(0.46, 0.06, 0.07), darkBase);
     vec3 deep = mix(vec3(0.5, 0.07, 0.08), vec3(0.32, 0.05, 0.04), darkBase);
     vec3 searLab = mix(golden + vec3(toneS * 0.6, 0.0, 0.0), deep + vec3(toneS * 0.5, 0.0, 0.0), smoothstep(0.5, 0.78, fbm3(cmS * 1.8 + 3.0)));
+    // Marked lines (a salmon's fat lines) cook to a deeper brown; the top's edge, where it turns
+    // down, caramelises darker too.
+    vec3 marked = mix(golden, deep, 0.85) + vec3(toneS * 0.5 - 0.05, 0.01, -0.01);
+    searLab = mix(searLab, marked, searMark * 0.8);
+    float turnDown = 1.0 - smoothstep(0.55, 0.92, N.y);
+    searLab = mix(searLab, deep + vec3(toneS * 0.5, 0.0, 0.0), turnDown * 0.45);
     float broken = mix(0.8, 1.0, smoothstep(0.3, 0.6, fbm3(cmS * 3.0 + 1.0)));
     // A full sear (0.97 or more) covers what faces up completely: nothing of the raw surface shows
     // through (the salmon's white fat lines read as raw on a seared top, the user, 2026-11-18).

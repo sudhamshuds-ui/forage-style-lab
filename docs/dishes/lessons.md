@@ -31,6 +31,12 @@ sketches and reference photos.
   brownish edge texture", "needs to feel its seared not charred lines"). A seared cut face browns
   at its edges; a seared top is a golden crust with no raw marks showing through (the salmon's
   white fat lines read as raw). Grill bars only when asked.
+- **Cooked colour is not raw colour** (salmon, 2026-11-19: "when cooked the body cannot be
+  orange...thats raw...its more pinkish white"): a cooked ingredient gets a cooked family (pale
+  coral pink for salmon), never the raw one. On a seared top the fat lines turn brown, deeper than
+  the crust round them ("the white lines become brown"; a skin marks them with `searMark`).
+- **A white plate is pristine** (salmon: "keep the plate white pristine clean"): porcelain white,
+  the faintest glaze, no specks, unless the reference shows stoneware.
 - **Crust follows the food**: golden on pale food (salmon, bread), deep brown on dark (beef); the
   sear picks its tone from the food's own colour.
 - **Bones and white parts browned when cooked** (drumsticks: "white parts need browning and
@@ -59,8 +65,10 @@ sketches and reference photos.
 - **Bread is a slice, not a turned tube** (baguette: "looks like a cylinder cut in half"): pressed
   and puffed out of round, toasted, the top resting right on the filling (no gap), the filling's
   layers showing at a cut end (build it whole, then cut through everything).
-- **Thick fillets** (salmon: "needs to be shaped proper"): a seared portion is short and tall, not
-  the long thin raw fillet.
+- **Thick fillets** (salmon: "needs to be shaped proper"; then "it should be a fillet like this",
+  with a watercolour of a cooked portion): a squarish block cut from the loin, its top nearly level
+  with a soft groove, the belly only a little lower, well-rounded top edges, the fat's arcs on the
+  cut end (`salmonFillet` with its own measurements, `COOKED_PORTION`).
 - **Rounder knuckles** (drumsticks: "the bone ends need more rounded deform").
 - **A cut face needs points inside it** (built into the knife, 2026-11-18). A face with points only
   round its edge left a lime wheel's flesh one flat green: the shading from the core to the peel

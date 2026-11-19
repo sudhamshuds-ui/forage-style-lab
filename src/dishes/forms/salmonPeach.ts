@@ -1,12 +1,12 @@
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import { buildSalmon } from '../../ingredients/forms/salmon';
+import { salmonFillet, type FilletShape } from '../../ingredients/forms/salmon';
 import { peachBody } from '../../ingredients/forms/peach';
 import { limeBody, LIME_SIZE } from '../../ingredients/forms/lime';
 import { leafPiece } from '../../ingredients/forms/kit/stemLeaf';
 import { seededRandom, signed } from '../../ingredients/forms/kit/random';
 import type { FormBuilder, FormPiece } from '../../ingredients/forms/kit/piece';
 import { cutPieces, knife } from '../kit/cut';
-import { Table, clearOf, inCm, plate, posed, roles } from '../kit/place';
+import { Table, clearOf, plate, posed } from '../kit/place';
 import { pool, wobble } from '../kit/pool';
 import { DINNER_PLATE, ware } from '../kit/ware';
 
@@ -21,6 +21,13 @@ import { DINNER_PLATE, ware } from '../kit/ware';
  * clusters, overlapping each other; flecks of herb. Nothing ever on top of the salmon but the
  * foam, every piece resting on the plate or on its neighbours (the table's `rest`).
  */
+
+/**
+ * The cooked portion (the user's watercolour, 2026-11-18): a thick, squarish block cut from the
+ * loin, its top nearly level with a soft groove down the middle and the belly side only a little
+ * lower, its top edges well rounded; the cut ends show the fat's arcs.
+ */
+const COOKED_PORTION: FilletShape = { length: 11, width: 6.6, height: 3.1, midline: -0.2, rounding: 0.6, backDrop: 0.12, bellyDrop: 0.26, groove: 0.22 };
 
 /** A rotation that turns a direction to point straight down. */
 function alignDown(direction: Vector3): Matrix4 {
@@ -102,8 +109,8 @@ export const buildSalmonPeach: FormBuilder = ({ seed }) => {
 
   // The salmon: a thick portion (the pantry's fillet, shorter belly to back, taller), lying across
   // the middle on a gentle diagonal, settled into the foam.
-  const fillet = roles(inCm(buildSalmon({ state: 'whole', seed })), { flesh_glow: 'salmon_glow' });
-  const salmon = table.rest(posed(fillet, { scale: [1.12, 1.25, 0.95], turn: Math.PI / 2 - 0.32, at: [-0.9, 3, 0.2] }), { tilt: 0.08, sink: 0.22 });
+  const fillet: FormPiece[] = [{ role: 'salmon_glow', geometry: salmonFillet(seed, COOKED_PORTION) }];
+  const salmon = table.rest(posed(fillet, { turn: Math.PI / 2 - 0.32, at: [-0.9, 3, 0.2] }), { tilt: 0.08, sink: 0.22 });
   parts.push(...salmon);
   // What garnish must stay clear of: the salmon alone.
   const keep = new Table(dish.floor);
