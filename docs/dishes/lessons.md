@@ -29,9 +29,9 @@ sketches and reference photos.
   about 3.5 cm, peach wedges about 4 cm), cut faces turned toward the hero.
 - **No ugly details** (salmon: the dark skin underneath "looks very ugly"): leave out real-world
   details that read badly in the painting.
-- **Pour sauces, never dollop them** (salmon foam, 2026-11-19: "pour the foam on top of the fillet
-  ... rather than this awkward dollop"): a sauce on food is poured with `pour`, after the food is
-  set down, so it follows its real top, sets in ribbons and runs toward the edges.
+- **No sauce on the salmon's top** (2026-11-19, a decision): a dollop of foam read as awkward, and a
+  poured ribbon (`kit/pour.ts`) was worse ("no its worse, just remove the foam on top"). The seared
+  top stays clear; the foam is the pool under it. The pour tool is kept for later.
 - **Garnish never on the hero** (salmon: "never on top of salmon"): pieces lie next to or over
   each other and the hero, never on top of it (`clearOf`). Herbs go on last, over everything.
 - **Toppings lie on their base gently** (rice bowl): the base level, not a peak with things perched

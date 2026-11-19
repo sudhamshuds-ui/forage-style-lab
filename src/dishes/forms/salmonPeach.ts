@@ -9,7 +9,6 @@ import type { FormBuilder, FormPiece } from '../../ingredients/forms/kit/piece';
 import { cutPieces, knife } from '../kit/cut';
 import { Table, clearOf, plate, posed } from '../kit/place';
 import { pool, wobble } from '../kit/pool';
-import { pour } from '../kit/pour';
 import { DINNER_PLATE, ware } from '../kit/ware';
 import type { Plan } from '../kit/plan';
 
@@ -209,19 +208,10 @@ export const buildSalmonPeach: FormBuilder = ({ seed }) => {
   keep.add(salmon);
   const middle: [number, number] = [centre.x, centre.z];
 
-  // Foam poured over the salmon (the user, 2026-11-19: "pour the foam on top of the fillet ...
-  // rather than this awkward dollop"): poured in a line along its top, it spreads, sets in soft
-  // tongues and runs over the edges down into the pool below (`pour`, a flow on the table's height
-  // map). Poured after the salmon is set down, so it follows the salmon's real top.
-  const poured = pour(table, {
-    sources: [at(-3.0, 0.5), at(-0.8, -0.1), at(1.6, 0.4)].map((p) => ({ x: p.x, z: p.z, amount: 0.9 })),
-    centre: [centre.x, centre.z],
-    half: 8.5,
-    cell: 0.12,
-    yieldHeight: 0.06,
-  });
+  // (No foam on the salmon: a dollop and then a poured ribbon were both taken off, the user,
+  // 2026-11-19: "just remove the foam on top". The pour tool stays in kit/pour.ts.)
   parts.push({ role: 'plate', geometry: dish.geometry });
-  parts.push({ role: 'foam', geometry: foam }, { role: 'foam', geometry: poured });
+  parts.push({ role: 'foam', geometry: foam });
 
   // Seared peach wedges (medium, about 4 cm across), their cut faces toward the salmon, resting
   // against its sides, never on it.
