@@ -6,6 +6,8 @@ import { buildTomahawkBerry } from './forms/tomahawkBerry';
 import { buildEggMushroom } from './forms/eggMushroom';
 import { buildGrapeDrumsticks } from './forms/grapeDrumsticks';
 import { CERAMIC_SKIN, FLESH_SKIN, SAUCE_SKIN } from '../shading/effects/skinTexture';
+import { CATALOG } from './catalog';
+import { composedDish } from './compose/build';
 
 /**
  * Dishes: what the kitchen's Cook button reveals.
@@ -25,7 +27,7 @@ export interface Dish {
   description: string;
 }
 
-export const DISHES: Dish[] = [
+const HAND_BUILT: Dish[] = [
   {
     title: 'Seared salmon, caramelised peach, lime foam',
     description:
@@ -253,3 +255,9 @@ export const DISHES: Dish[] = [
     },
   },
 ];
+
+/**
+ * Batch 2 (2026-11-19): the hundred catalogue dishes, each planned in 2D and built by the composer
+ * (`compose/`), after the hand-built batch 1.
+ */
+export const DISHES: Dish[] = [...HAND_BUILT, ...CATALOG.map(composedDish)];

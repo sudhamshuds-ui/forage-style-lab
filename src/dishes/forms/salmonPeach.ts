@@ -29,7 +29,7 @@ import type { Plan } from '../kit/plan';
  * loin, its top nearly level with a soft groove down the middle and the belly side only a little
  * lower, its top edges well rounded; the cut ends show the fat's arcs.
  */
-const COOKED_PORTION: FilletShape = {
+export const COOKED_PORTION: FilletShape = {
   length: 13,
   width: 6.2,
   height: 3.4,

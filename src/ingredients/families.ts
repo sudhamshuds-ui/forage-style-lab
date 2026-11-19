@@ -86,6 +86,35 @@ export type FamilyId =
   | 'tomato-flesh'
   | 'garlic-roast'
   | 'berry-flesh'
+  | 'citrus-oil'
+  | 'honey'
+  | 'chili-oil'
+  | 'tomato-sauce'
+  | 'cream'
+  | 'herb-oil'
+  | 'berry-sauce'
+  | 'cheese-sauce'
+  | 'jus'
+  | 'soup-potato'
+  | 'soup-tomato'
+  | 'mash'
+  | 'wood'
+  | 'apple-flesh'
+  | 'pear-flesh'
+  | 'potato-flesh'
+  | 'avocado-flesh'
+  | 'orange-flesh'
+  | 'lemon-flesh'
+  | 'onion-flesh'
+  | 'pepper-flesh'
+  | 'cabbage-flesh'
+  | 'egg-white'
+  | 'drink-pink'
+  | 'drink-orange'
+  | 'drink-purple'
+  | 'drink-red'
+  | 'drink-green'
+  | 'drink-pale'
   | 'lime-flesh'
   | 'berry-jam'
   | 'bone-roast'
@@ -618,6 +647,181 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   'berry-flesh': {
     name: 'Berry flesh',
     colours: { lit: '#ff5e66', base: '#e02e46', shadow: '#7c123c', glow: '#ff4c5c', highlight: '#fff0ee' },
+    rooms: [],
+  },
+  // ---- Composed dishes (batch 2, 2026-11-19): sauces, cut faces, boards and drinks.
+  // A citrus oil: pale gold where lit, a sage-olive shade.
+  'citrus-oil': {
+    name: 'Citrus oil',
+    colours: { lit: '#fbeaa0', base: '#e8c656', shadow: '#8e8a6a', glow: '#f4c84a', highlight: '#fffbe6' },
+    rooms: [],
+  },
+  // Honey: amber gold, a rosy-brown shade.
+  'honey': {
+    name: 'Honey',
+    colours: { lit: '#ffd889', base: '#e8a136', shadow: '#8a4c46', glow: '#ffae34', highlight: '#fff6dc' },
+    rooms: [],
+  },
+  // A chili oil or hot sauce: scarlet-orange, a wine shade.
+  'chili-oil': {
+    name: 'Chili oil',
+    colours: { lit: '#ff9a5c', base: '#e0502a', shadow: '#7e2440', glow: '#ff6a2e', highlight: '#ffe8d8' },
+    rooms: [],
+  },
+  // A cooked tomato sauce: brick scarlet, a wine-plum shade.
+  'tomato-sauce': {
+    name: 'Tomato sauce',
+    colours: { lit: '#ff8a62', base: '#d8402e', shadow: '#7a1e3e', glow: '#ff5c34', highlight: '#ffe6dc' },
+    rooms: [],
+  },
+  // Cream or milk: warm white, a lilac shade.
+  'cream': {
+    name: 'Cream',
+    colours: { lit: '#fffcf2', base: '#f4ecd8', shadow: '#b2a8c8', glow: '#fbe6c4', highlight: '#ffffff' },
+    rooms: [],
+  },
+  // A herb oil: bright leaf green, a blue-green shade.
+  'herb-oil': {
+    name: 'Herb oil',
+    colours: { lit: '#e4f0a0', base: '#a8c450', shadow: '#56705e', glow: '#cfe05a', highlight: '#fbffe8' },
+    rooms: [],
+  },
+  // A berry sauce: raspberry red, a plum shade.
+  'berry-sauce': {
+    name: 'Berry sauce',
+    colours: { lit: '#e8506e', base: '#b02246', shadow: '#4e1036', glow: '#f04a64', highlight: '#ffe2ea' },
+    rooms: [],
+  },
+  // A cheese sauce: butter yellow, a rosy-tan shade.
+  'cheese-sauce': {
+    name: 'Cheese sauce',
+    colours: { lit: '#fff0b4', base: '#f2cc62', shadow: '#a4826c', glow: '#ffc848', highlight: '#fffbe8' },
+    rooms: [],
+  },
+  // A meat jus: glossy chestnut, a deep plum shade.
+  'jus': {
+    name: 'Jus',
+    colours: { lit: '#d48a5c', base: '#8e4630', shadow: '#3e1e34', glow: '#c86438', highlight: '#ffe8d8' },
+    rooms: [],
+  },
+  // A potato soup: buttery cream, a lilac shade.
+  'soup-potato': {
+    name: 'Potato soup',
+    colours: { lit: '#fff6d6', base: '#f0dca6', shadow: '#a69ab8', glow: '#f6d48c', highlight: '#ffffff' },
+    rooms: [],
+  },
+  // A tomato soup: warm coral-red, a wine shade.
+  'soup-tomato': {
+    name: 'Tomato soup',
+    colours: { lit: '#ff9a6e', base: '#e05638', shadow: '#862440', glow: '#ff6a3c', highlight: '#ffece2' },
+    rooms: [],
+  },
+  // A potato mash: warm cream-gold, a lilac shade.
+  'mash': {
+    name: 'Mash',
+    colours: { lit: '#fff4d2', base: '#f2dba0', shadow: '#ab9cba', glow: '#f8d68a', highlight: '#ffffff' },
+    rooms: [],
+  },
+  // A light wooden board: honey tan, a mauve shade.
+  'wood': {
+    name: 'Wood',
+    colours: { lit: '#f2d4a6', base: '#d4a874', shadow: '#7e6070', glow: '#eab27a', highlight: '#fff4e2' },
+    rooms: [],
+  },
+  // An apple's cut flesh: cream, a lilac-taupe shade.
+  'apple-flesh': {
+    name: 'Apple flesh',
+    colours: { lit: '#fffae0', base: '#f6e6b0', shadow: '#a69a8e', glow: '#fde8a0', highlight: '#ffffff' },
+    rooms: [],
+  },
+  // A pear's cut flesh: pale cream, a soft sage shade.
+  'pear-flesh': {
+    name: 'Pear flesh',
+    colours: { lit: '#fffbe4', base: '#f2e8b8', shadow: '#a2a08e', glow: '#f8e8a4', highlight: '#ffffff' },
+    rooms: [],
+  },
+  // A roast potato's inside: golden butter, a rosy-taupe shade.
+  'potato-flesh': {
+    name: 'Potato flesh',
+    colours: { lit: '#fff2c4', base: '#f2d184', shadow: '#9c7a76', glow: '#ffcc66', highlight: '#fffbe8' },
+    rooms: [],
+  },
+  // An avocado's flesh: butter yellow to green, a sage-teal shade.
+  'avocado-flesh': {
+    name: 'Avocado flesh',
+    colours: { lit: '#f2f4a6', base: '#cfdc6c', shadow: '#6a8a62', glow: '#e8e86a', highlight: '#fdffe6' },
+    rooms: [],
+  },
+  // An orange's flesh: bright tangerine, a rose-brown shade.
+  'orange-flesh': {
+    name: 'Orange flesh',
+    colours: { lit: '#ffcb6a', base: '#fb9628', shadow: '#a84a3c', glow: '#ff9a26', highlight: '#fff4dc' },
+    rooms: [],
+  },
+  // A lemon's flesh: pale lemon, an olive-lilac shade.
+  'lemon-flesh': {
+    name: 'Lemon flesh',
+    colours: { lit: '#fff6a6', base: '#f6dd52', shadow: '#9a8c62', glow: '#ffe24a', highlight: '#fffde6' },
+    rooms: [],
+  },
+  // A red onion's rings: pale lilac-white, magenta edges, a violet shade.
+  'onion-flesh': {
+    name: 'Onion flesh',
+    colours: { lit: '#fbeaf2', base: '#e8bcd6', shadow: '#8e6c9a', glow: '#f2b8d0', highlight: '#ffffff' },
+    rooms: [],
+  },
+  // A sweet pepper's inside wall: paler orange, a rose shade.
+  'pepper-flesh': {
+    name: 'Pepper flesh',
+    colours: { lit: '#ffc070', base: '#f6872a', shadow: '#a24a3e', glow: '#ff9030', highlight: '#fff2dc' },
+    rooms: [],
+  },
+  // A cabbage's cut face: cream to pale green, a sage shade.
+  'cabbage-flesh': {
+    name: 'Cabbage flesh',
+    colours: { lit: '#f8fade', base: '#e2ecb4', shadow: '#8ea08e', glow: '#eef0a4', highlight: '#ffffff' },
+    rooms: [],
+  },
+  // A cooked egg white: warm white, a lilac shade (the yolk is its core colour).
+  'egg-white': {
+    name: 'Egg white',
+    colours: { lit: '#ffffff', base: '#f6f2ea', shadow: '#b4aecb', glow: '#fff2d6', highlight: '#ffffff' },
+    rooms: [],
+  },
+  // A pink drink (strawberry milk, watermelon): rose, a plum shade.
+  'drink-pink': {
+    name: 'Pink drink',
+    colours: { lit: '#ffc2c6', base: '#f2828e', shadow: '#9a4a6e', glow: '#ff8c96', highlight: '#fff2f2' },
+    rooms: [],
+  },
+  // An orange drink: amber, a rose-brown shade.
+  'drink-orange': {
+    name: 'Orange drink',
+    colours: { lit: '#ffd27a', base: '#f8a032', shadow: '#a85440', glow: '#ffa030', highlight: '#fff4dc' },
+    rooms: [],
+  },
+  // A berry smoothie: violet, an indigo shade.
+  'drink-purple': {
+    name: 'Purple drink',
+    colours: { lit: '#b88ad0', base: '#7e4ea0', shadow: '#3c2a5e', glow: '#b45ab4', highlight: '#f2e6fa' },
+    rooms: [],
+  },
+  // A tomato juice: scarlet, a wine shade.
+  'drink-red': {
+    name: 'Red drink',
+    colours: { lit: '#ff8a6a', base: '#d8442e', shadow: '#7a1e3e', glow: '#ff5a34', highlight: '#ffe8e0' },
+    rooms: [],
+  },
+  // A green juice: leaf green, a blue-green shade.
+  'drink-green': {
+    name: 'Green drink',
+    colours: { lit: '#d6ec7a', base: '#8cbc3c', shadow: '#4a6a56', glow: '#c4e04a', highlight: '#f8ffe6' },
+    rooms: [],
+  },
+  // A pale sparkling drink: straw gold, a lilac shade.
+  'drink-pale': {
+    name: 'Pale drink',
+    colours: { lit: '#fbf6d2', base: '#eae0a2', shadow: '#9c9aae', glow: '#f4e48c', highlight: '#ffffff' },
     rooms: [],
   },
 };

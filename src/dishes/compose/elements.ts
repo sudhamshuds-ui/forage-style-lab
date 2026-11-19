@@ -1,0 +1,597 @@
+import { BufferAttribute, IcosahedronGeometry, Matrix4, Quaternion, SphereGeometry, Vector3, type BufferGeometry } from 'three';
+import { relaxOnSurface, surfaceNets } from '../../ingredients/forms/kit/surfaceNets';
+import { roundedIntersection } from '../../ingredients/forms/kit/wedge';
+import { leafPiece } from '../../ingredients/forms/kit/stemLeaf';
+import { signed } from '../../ingredients/forms/kit/random';
+import type { FormPiece } from '../../ingredients/forms/kit/piece';
+import type { FamilyId } from '../../ingredients/families';
+import { salmonFillet } from '../../ingredients/forms/salmon';
+import { mushroomUpright } from '../../ingredients/forms/mushroom';
+import { oneBlueberry } from '../../ingredients/forms/blueberries';
+import { buildChicken } from '../../ingredients/forms/chicken';
+import { buildPotato } from '../../ingredients/forms/potato';
+import { buildBroccoli } from '../../ingredients/forms/broccoli';
+import { buildCheese } from '../../ingredients/forms/cheese';
+import { CERAMIC_SKIN, FLESH_SKIN, NO_SKIN, SAUCE_SKIN, type Skin } from '../../shading/effects/skinTexture';
+import { cutPieces, knife, withFrame } from '../kit/cut';
+import { inCm, posed } from '../kit/place';
+import { pool, wobble } from '../kit/pool';
+import { COOKED_PORTION } from '../forms/salmonPeach';
+import { BODY, type Part } from './layout';
+
+/**
+ * The composer's element library: every `ingredient:form` a catalogue dish asks for, built in
+ * code from the pantry's own forms where one fits (a drumstick, a broccoli head, a cheese wedge, a
+ * mushroom, a blueberry, the cooked salmon) and otherwise from one recipe: a smooth body cut with
+ * flat knives whose edges are rounded (DESIGN.md: cut fruit comes from a smooth body, cut pieces
+ * have soft edges), meshed whole, and painted as one piece from its core out to its skin (the
+ * watermelon treatment: no seam where skin meets flesh).
+ *
+ * Each element comes back in centimetres, its middle over (0, 0), resting on y = 0, laid the way
+ * its plan shape is drawn at no turn: a rectangle's long side along z, a half circle's flat side
+ * toward -z (up the page).
+ */
+
+export type Look = Skin & { pale?: string; green?: string };
+
+/** One role a dish uses: its family, its skin, and whether it keeps a glossy highlight. */
+export interface RoleLook {
+  role: string;
+  family: FamilyId;
+  skin?: Look;
+  glossy?: boolean;
+}
+
+/** The colour of each ingredient's flesh: the family, its core colour and its skin's colour. */
+const FLESH: Record<string, { family: FamilyId; core: string; skin: string; segments?: number }> = {
+  apple: { family: 'apple-flesh', core: '#f2e2a6', skin: '#c8303a' },
+  pear: { family: 'pear-flesh', core: '#ece0a4', skin: '#b4b84a' },
+  peach: { family: 'peach-flesh', core: '#e8783a', skin: '#c8384a' },
+  orange: { family: 'orange-flesh', core: '#ffd27a', skin: '#f0821e', segments: 10 },
+  lemon: { family: 'lemon-flesh', core: '#fff3a8', skin: '#f2c81e', segments: 9 },
+  lime: { family: 'lime-flesh', core: '#f4f1c4', skin: '#6ea42c', segments: 10 },
+  tomato: { family: 'tomato-flesh', core: '#f8c08a', skin: '#d8301e', segments: 4 },
+  onion: { family: 'onion-flesh', core: '#fbeef4', skin: '#9a2a6a' },
+  potato: { family: 'potato-flesh', core: '#ffe9a8', skin: '#b07a3c' },
+  avocado: { family: 'avocado-flesh', core: '#f4ee9a', skin: '#3e5a26' },
+  strawberry: { family: 'berry-flesh', core: '#ffd8d2', skin: '#c8203c' },
+  garlic: { family: 'garlic-roast', core: '#fff0c4', skin: '#e8d8bc', segments: 8 },
+  pepper: { family: 'pepper-flesh', core: '#ffd2a0', skin: '#ee6a14' },
+  cabbage: { family: 'cabbage-flesh', core: '#fbfbe4', skin: '#8eb45a', segments: 12 },
+  eggs: { family: 'egg-white', core: '#f6b62a', skin: '#fffaf0' },
+  watermelon: { family: 'melon', core: '#ff8a96', skin: '#ff5a6e' },
+  peachCube: { family: 'peach-flesh', core: '#ffb05a', skin: '#f6a040' },
+  steak: { family: 'rare', core: '#e0606a', skin: '#7a3a22' },
+  chicken: { family: 'poultry', core: '#fff0e0', skin: '#d8904a' },
+  baguette: { family: 'crumb', core: '#fff6e0', skin: '#b06a2c' },
+  rice: { family: 'cooked-rice', core: '#fffaea', skin: '#d8a050' },
+  salmon: { family: 'salmon', core: '#ff9a6a', skin: '#f07848' },
+  cheese: { family: 'cheese', core: '#fff0b0', skin: '#f2c460' },
+  butter: { family: 'butter', core: '#fff4c0', skin: '#f6e08a' },
+};
+
+/** Cooked elements take a sear (the DESIGN rule: seared, not charred). */
+const SEARED: Record<string, number> = {
+  potato: 0.8, chicken: 0.9, steak: 0.9, baguette: 0.7, rice: 0.8, peach: 0.5, pear: 0.4, garlic: 0.5, cabbage: 0.85, mushroom: 0.6, pepper: 0.4,
+};
+
+/** The roles an element needs, decided from the idea alone (the entry lists its parts before building). */
+export function elementLooks(part: Part, seared: boolean): RoleLook[] {
+  const { ingredient, form } = part;
+  const id = `${ingredient}${form[0].toUpperCase()}${form.slice(1)}`;
+  const sear = seared ? (SEARED[ingredient] ?? 0) : 0;
+  const flesh = FLESH[ingredient];
+  switch (`${ingredient}:${form}`) {
+    case 'salmon:fillet':
+      return [{ role: id, family: 'cooked-salmon', skin: { kind: 'salmon', size_mm: 4, amount: 0.9, seared: 0.95, pale: '#fffaf6', green: '#efc0b0' } }];
+    case 'salmon:slice':
+    case 'salmon:cube':
+      // Raw salmon cut small: the flesh skin in the salmon's own colours (its fillet skin needs a whole fillet's map).
+      return [{ role: id, family: 'salmon', skin: { ...FLESH_SKIN, pale: '#ff8a5a', green: '#ff7448' }, glossy: true }];
+    case 'steak:steak':
+      return [{ role: id, family: 'rare', skin: { ...FLESH_SKIN, pale: '#d8505e', green: '#6e3420', seared: 0.9 } }];
+    case 'chicken:drumstick':
+      return [
+        { role: 'chicken_meat_glow', family: 'poultry', skin: { kind: 'poultry', size_mm: 3, amount: 0.5, seared: 0.97, pale: '#c8501e', green: '#e09040' } },
+        { role: 'knuckle', family: 'bone-roast' },
+      ];
+    case 'potato:whole':
+      return [{ role: id, family: 'potato', skin: { kind: 'potato', size_mm: 2.2, amount: 0.9, seared: 0.6 } }];
+    case 'broccoli:whole':
+      return [
+        { role: 'broccoli_florets', family: 'green', skin: { kind: 'florets', size_mm: 4, amount: 0.9, seared: 0.35 } },
+        { role: 'broccoli_stalk', family: 'pale-green' },
+        { role: 'broccoli_leaf', family: 'leaf' },
+      ];
+    case 'cheese:wedge':
+      return [
+        { role: 'cheese_body', family: 'cheese', skin: { kind: 'pores', size_mm: 1.6, amount: 0.35 } },
+        { role: 'cheese_rind', family: 'rind' },
+      ];
+    case 'eggs:egg':
+      return [
+        { role: 'white', family: 'albumen', skin: { ...SAUCE_SKIN, amount: 0.6 } },
+        { role: 'yolk', family: 'yolk', glossy: true },
+      ];
+    case 'blueberries:berry':
+      return [{ role: id, family: 'blueberry', skin: { kind: 'blueberry', size_mm: 1.5, amount: 0.9 } }];
+    case 'grapes:berry':
+      return [{ role: id, family: 'grape', skin: { kind: 'grape', size_mm: 2, amount: 0.9 }, glossy: true }];
+    case 'mushroom:half':
+    case 'mushroom:slice':
+      return [
+        { role: 'mushroom', family: 'mushroom', skin: { kind: 'mushroom', size_mm: 2, amount: 0.9, seared: 0.6 } },
+        { role: 'mushroomCut', family: 'garlic', skin: { ...FLESH_SKIN, pale: '#f2e2c4', green: '#a87a5a', seared: 0.6 } },
+      ];
+    case 'spinach:leaf':
+      return [{ role: id, family: 'spinach' }];
+    case 'cabbage:leaf':
+      return [{ role: id, family: 'cabbage' }];
+    case 'onion:wheel':
+      return [{ role: id, family: 'onion-flesh', skin: { ...FLESH_SKIN, pale: '#fbeef4', green: '#9a2a6a' } }];
+    case 'pepper:slice':
+      return [{ role: id, family: 'pepper', skin: { kind: 'pepper', size_mm: 4, amount: 0.8, seared: sear }, glossy: true }];
+    case 'cheese:crumble':
+    case 'cheese:slice':
+      return [{ role: id, family: 'cheese', skin: { kind: 'pores', size_mm: 1.2, amount: 0.3 } }];
+    case 'butter:cube':
+    case 'butter:crumble':
+      return [{ role: id, family: 'butter', skin: { kind: 'pores', size_mm: 1.1, amount: 0.18 }, glossy: true }];
+    case 'potato:mash':
+      return [{ role: id, family: 'mash', skin: { ...SAUCE_SKIN, amount: 0.4, seared: seared ? 0.7 : 0 } }];
+    case 'milk:mash':
+      return [{ role: id, family: 'cream', skin: { ...SAUCE_SKIN, amount: 0.4 } }];
+    case 'avocado:half':
+      return [
+        { role: id, family: 'avocado-flesh', skin: { ...FLESH_SKIN, pale: flesh.core, green: flesh.skin } },
+        { role: 'pit', family: 'pit', glossy: true },
+      ];
+    default: {
+      // A cut body (wheel, half, wedge, slice, cube, toast): one piece, flesh to skin.
+      const f = (ingredient === 'peach' && form === 'cube' ? FLESH.peachCube : flesh) ?? { family: 'crumb' as FamilyId, core: '#fff6e0', skin: '#c08040' };
+      return [{ role: id, family: f.family, skin: { ...FLESH_SKIN, pale: f.core, green: f.skin, seared: sear }, glossy: ['tomato', 'peach', 'orange', 'lemon', 'lime', 'strawberry', 'watermelon'].includes(ingredient) }];
+    }
+  }
+}
+
+// ---- The cut-body recipe ----------------------------------------------------------------------
+
+/** A body's distance field (cm): negative inside. Each ingredient has its own soft silhouette. */
+function bodyField(ingredient: string, random: () => number, scaleR = 1): (x: number, y: number, z: number) => number {
+  const b = BODY[ingredient] ?? { r: 2.5, h: 2.5 };
+  const R = b.r * scaleR;
+  const H = (b.long ?? b.h) * scaleR;
+  const lump = random() * 6;
+  return (x, y, z) => {
+    const t = Math.max(-1, Math.min(1, y / H));
+    const angle = Math.atan2(z, x + 1e-6);
+    let k = 1 + 0.025 * Math.sin(2 * angle + lump) + 0.02 * Math.sin(3 * y + lump);
+    if (ingredient === 'pear') k *= 1 - 0.38 * Math.max(0, t + 0.1) ** 1.3;
+    if (ingredient === 'avocado') k *= 1 - 0.22 * Math.max(0, t + 0.2);
+    if (ingredient === 'strawberry') k *= 0.45 + 0.55 * Math.min(1, (t + 1.15) / 1.6);
+    if (ingredient === 'eggs') k *= 1 - 0.12 * t;
+    if (ingredient === 'garlic' || ingredient === 'onion') k *= 1 - 0.3 * Math.max(0, t) ** 2;
+    if (ingredient === 'pepper') k *= 1 + 0.07 * Math.cos(4 * angle + lump);
+    if (ingredient === 'tomato') k *= 1 + 0.03 * Math.cos(6 * angle + lump);
+    if (ingredient === 'potato') k *= 1 + 0.05 * Math.sin(x * 1.3 + lump) * Math.sin(z * 1.1 + y);
+    const q = Math.hypot(x / (R * k), y / H, z / (R * k));
+    return (q - 1) * Math.min(R * k, H);
+  };
+}
+
+/** A rounded box's distance field (cm), half sizes. */
+function boxField(hx: number, hy: number, hz: number, round: number): (x: number, y: number, z: number) => number {
+  return (x, y, z) => {
+    const qx = Math.abs(x) - hx + round;
+    const qy = Math.abs(y) - hy + round;
+    const qz = Math.abs(z) - hz + round;
+    return Math.hypot(Math.max(qx, 0), Math.max(qy, 0), Math.max(qz, 0)) + Math.min(Math.max(qx, qy, qz), 0) - round;
+  };
+}
+
+type Field = (x: number, y: number, z: number) => number;
+
+/**
+ * Cut a body with flat knives (each a plane `n . p <= d` kept), rounded where they meet, meshed whole.
+ * Its map: on the cut faces x runs 0 at the deepest point to 1 at the skin (the flesh skin paints
+ * the core colour deep in, the skin's colour at the rim), and past 1 over the skin itself, blended
+ * across the rounded edge; y counts segments round the middle (citrus, garlic, tomato).
+ */
+function cutBody(body: Field, cuts: [Vector3, number][], o: { reach: number; depth: number; rounding: number; segments?: number; turn?: number }): BufferGeometry {
+  const planes = cuts.map(([n, d]) => (x: number, y: number, z: number) => x * n.x + y * n.y + z * n.z - d);
+  const shape: Field = (x, y, z) => (planes.length ? roundedIntersection([body(x, y, z), ...planes.map((p) => p(x, y, z))], o.rounding) : body(x, y, z));
+  const cell = Math.max(0.06, o.reach / 24);
+  const m = o.reach + cell * 3;
+  const geometry = relaxOnSurface(surfaceNets(shape, new Vector3(-m, -m, -m), new Vector3(m, m, m), cell), shape, cell);
+  const pos = geometry.getAttribute('position');
+  const uv = new Float32Array(pos.count * 2);
+  const own = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+    const toSkin = Math.abs(body(x, y, z));
+    const toCut = planes.length ? Math.min(...planes.map((p) => Math.abs(p(x, y, z)))) : Infinity;
+    const t = Math.min(1, Math.max(0, (toCut - toSkin + 0.25) / 0.5));
+    const skinness = t * t * (3 - 2 * t);
+    const inside = Math.max(0, -body(x, y, z));
+    const r = 1 - Math.min(1, inside / o.depth);
+    uv[2 * i] = r * (1 - skinness) + 1.3 * skinness;
+    uv[2 * i + 1] = o.segments ? ((Math.atan2(z, x + 1e-4) + Math.PI) / (2 * Math.PI)) * o.segments + (o.turn ?? 0) + 0.001 : 0;
+    own.set([x, y, z], 3 * i);
+  }
+  geometry.setAttribute('uv', new BufferAttribute(uv, 2));
+  geometry.setAttribute('ownPos', new BufferAttribute(own, 3));
+  return geometry;
+}
+
+/** Turn and move a geometry so its lowest point is at y = 0 and its middle over the origin. */
+function settle(pieces: FormPiece[]): FormPiece[] {
+  let minY = Infinity;
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minZ = Infinity;
+  let maxZ = -Infinity;
+  for (const p of pieces) {
+    const pos = p.geometry.getAttribute('position');
+    for (let i = 0; i < pos.count; i++) {
+      minY = Math.min(minY, pos.getY(i));
+      minX = Math.min(minX, pos.getX(i));
+      maxX = Math.max(maxX, pos.getX(i));
+      minZ = Math.min(minZ, pos.getZ(i));
+      maxZ = Math.max(maxZ, pos.getZ(i));
+    }
+  }
+  for (const p of pieces) p.geometry.translate(-(minX + maxX) / 2, -minY, -(minZ + maxZ) / 2);
+  return pieces;
+}
+
+/** A rotation turning one direction onto another. */
+function turnOnto(from: Vector3, to: Vector3): Matrix4 {
+  return new Matrix4().makeRotationFromQuaternion(new Quaternion().setFromUnitVectors(from.clone().normalize(), to.clone().normalize()));
+}
+
+/** Turn pieces round the upright axis so their bulk lies toward +z (a wedge's round back, a half moon's curve). */
+function bulgeToFront(pieces: FormPiece[]): FormPiece[] {
+  let sx = 0;
+  let sz = 0;
+  let n = 0;
+  for (const p of pieces) {
+    const pos = p.geometry.getAttribute('position');
+    for (let i = 0; i < pos.count; i += 3) {
+      sx += pos.getX(i);
+      sz += pos.getZ(i);
+      n++;
+    }
+  }
+  const a = Math.atan2(sx / n, sz / n);
+  return posed(pieces, { turn: -a });
+}
+
+/** A cut piece of fruit or vegetable: wheel, half, wedge, slice or cube, by the recipe above. */
+function cutElement(part: Part, role: string, random: () => number): FormPiece[] {
+  const { ingredient, form } = part;
+  const b = BODY[ingredient] ?? { r: 2.5, h: 2.5 };
+  const flesh = FLESH[ingredient];
+  const segments = flesh?.segments;
+  const body = bodyField(ingredient, random);
+  const R = b.r;
+  const H = b.long ?? b.h;
+  const reach = Math.max(R, H) * 1.08;
+  const depth = Math.min(R, H) * 0.9;
+  const rounding = Math.min(0.3, Math.min(R, H) * 0.12);
+  const up = new Vector3(0, 1, 0);
+  const lengthwise = ['pear', 'avocado', 'pepper', 'strawberry', 'eggs', 'garlic', 'lemon', 'lime', 'potato'].includes(ingredient);
+  let geometry: BufferGeometry;
+  let pieces: FormPiece[];
+  switch (form) {
+    case 'wheel': {
+      const t = ingredient === 'potato' ? 0.45 : ['tomato', 'orange'].includes(ingredient) ? 0.6 : 0.3;
+      const y = signed(random) * R * 0.15;
+      // A wheel of a long fruit is cut across its long axis: here the body's axis is y, so cut across y.
+      geometry = cutBody(body, [[up, y + t / 2], [up.clone().negate(), -(y - t / 2)]], { reach, depth, rounding: Math.min(rounding, t * 0.3), segments, turn: random() * 6 });
+      pieces = [{ role, geometry }];
+      break;
+    }
+    case 'half': {
+      if (lengthwise) {
+        // Halved through its long axis, lying on its back with the cut face up.
+        geometry = cutBody(body, [[new Vector3(0, 0, 1), 0]], { reach, depth, rounding, segments: ingredient === 'garlic' ? 8 : undefined });
+        pieces = posed([{ role, geometry }], turnOnto(new Vector3(0, 0, 1), up));
+      } else {
+        // Halved across its middle, the cut face up.
+        geometry = cutBody(body, [[up, 0]], { reach, depth, rounding, segments, turn: random() * 6 });
+        pieces = [{ role, geometry }];
+      }
+      break;
+    }
+    case 'wedge': {
+      const angle = 0.75 + random() * 0.3;
+      const a = random() * Math.PI * 2;
+      const n1 = new Vector3(Math.sin(a), 0, -Math.cos(a));
+      const n2 = new Vector3(-Math.sin(a + angle), 0, Math.cos(a + angle));
+      geometry = cutBody(body, [[n1, 0], [n2, 0]], { reach, depth, rounding, segments: segments ? segments : undefined, turn: random() * 6 });
+      const flip = random() < 0.5;
+      // Lying on a cut face: that face's outward direction turned down.
+      pieces = posed([{ role, geometry }], turnOnto(flip ? n2 : n1, new Vector3(0, -1, 0)));
+      pieces = bulgeToFront(pieces);
+      if (ingredient === 'potato') pieces = posed(pieces, { turn: Math.PI / 2 });
+      break;
+    }
+    case 'slice': {
+      const t = 0.35;
+      // A half-moon slice through the middle, laid flat.
+      const cuts: [Vector3, number][] = [[new Vector3(1, 0, 0), t / 2], [new Vector3(-1, 0, 0), t / 2]];
+      if (!['strawberry', 'cheese'].includes(ingredient)) cuts.push([new Vector3(0, 0, -1), 0]);
+      geometry = cutBody(body, cuts, { reach, depth, rounding: t * 0.3 });
+      pieces = posed([{ role, geometry }], turnOnto(new Vector3(1, 0, 0), up));
+      if (ingredient === 'avocado') pieces = posed(pieces, { turn: Math.PI / 2 });
+      pieces = bulgeToFront(pieces);
+      if (ingredient === 'avocado') pieces = posed(pieces, { turn: Math.PI / 2 });
+      break;
+    }
+    case 'cube':
+    default: {
+      // A cube cut from the flesh: a rounded box, its edges softly caught by the sear or the skin's colour.
+      const s = ['steak', 'chicken'].includes(ingredient) ? 1.4 : ingredient === 'rice' ? 0 : 1.1;
+      const field = ingredient === 'rice' ? boxField(2.1, 0.7, 3, 0.45) : boxField(s, s * 0.92, s, s * 0.28);
+      const lumpy: Field = (x, y, z) => field(x, y, z) + 0.04 * Math.sin(x * 4.1 + y * 2.3) * Math.sin(z * 3.7 - y);
+      geometry = cutBody(lumpy, [], { reach: ingredient === 'rice' ? 3.4 : s * 1.3, depth: ingredient === 'rice' ? 0.7 : s, rounding: 0 });
+      // A cube's map from its own middle: the edges and corners reach the skin's band.
+      const pos = geometry.getAttribute('position');
+      const uv = geometry.getAttribute('uv') as BufferAttribute;
+      const hx = ingredient === 'rice' ? 2.1 : s;
+      const hz = ingredient === 'rice' ? 3 : s;
+      for (let i = 0; i < pos.count; i++) {
+        const e = Math.max(Math.abs(pos.getX(i)) / hx, Math.abs(pos.getZ(i)) / hz, Math.abs(pos.getY(i)) / (ingredient === 'rice' ? 0.7 : s * 0.92));
+        const corners = (Math.abs(pos.getX(i)) / hx) * (Math.abs(pos.getZ(i)) / hz) + (Math.abs(pos.getY(i)) / (ingredient === 'rice' ? 0.7 : s)) * 0.5;
+        const crust = ['steak', 'chicken', 'baguette', 'rice'].includes(ingredient);
+        uv.setX(i, crust ? Math.min(1.1, 0.8 + 0.3 * e) : Math.min(1.05, 0.35 + 0.45 * e * e + 0.35 * corners));
+      }
+      pieces = posed([{ role, geometry }], { turn: random() * 0.6 });
+      break;
+    }
+  }
+  return pieces;
+}
+
+/**
+ * A seared steak carved into thick slices, leaning on each other like fallen dominoes so their rosy
+ * cut faces show: one rounded slab, cut five times across, each slice tipped a little.
+ */
+function slicedSteak(role: string, random: () => number): FormPiece[] {
+  const slab = boxField(4, 1.4, 6.2, 1.0);
+  const body: Field = (x, y, z) => slab(x, y, z) + 0.08 * Math.sin(x * 1.3 + 1) * Math.sin(z * 0.8 + 2);
+  const n = 5;
+  const pieces: FormPiece[] = [];
+  const width = 12.4 / n;
+  for (let k = 0; k < n; k++) {
+    const z0 = -6.2 + k * width;
+    const z1 = z0 + width - 0.12;
+    const g = cutBody(body, [[new Vector3(0, 0, 1), z1], [new Vector3(0, 0, -1), -z0]], { reach: 7, depth: 1.3, rounding: 0.18 });
+    g.translate(0, 0, -(z0 + z1) / 2);
+    // Each slice tipped back so its cut face looks up toward the camera, then set in a row.
+    g.rotateX(-0.55 + signed(random) * 0.08);
+    g.translate(signed(random) * 0.2, 0, -5 + k * (width + 0.25));
+    pieces.push({ role, geometry: g });
+  }
+  return pieces;
+}
+
+/** A toast: a slice of loaf, crumb on top and bottom, crust round its sides. */
+function toast(role: string, random: () => number, ingredient: string): FormPiece[] {
+  const crumb = ingredient === 'baguette' ? 0 : 0;
+  const field = boxField(4, 2.5, 5.5, 1.6);
+  const lumpy: Field = (x, y, z) => field(x, y, z) + 0.12 * Math.sin(x * 1.1 + 2) * Math.sin(z * 0.9 + y) + crumb;
+  const up = new Vector3(0, 1, 0);
+  const geometry = cutBody(lumpy, [[up, 0.85], [up.clone().negate(), 0.85]], { reach: 6.2, depth: 2.5, rounding: 0.25 });
+  return posed([{ role, geometry }], { turn: signed(random) * 0.1 });
+}
+
+/** A soft mound (mash, a scoop of milk ice, a rösti): a pool with height and soft bumps. */
+function mound(role: string, random: () => number, r: number, height: number): FormPiece[] {
+  const ph = [random() * 6, random() * 6, random() * 6];
+  const geometry = pool({
+    outline: wobble(r, [[3, 0.04, ph[0]], [5, 0.025, ph[1]]]),
+    at: [0, 0],
+    depth: height,
+    edge: 0.75,
+    floor: () => 0,
+    bumps: (x, z, rn) => (0.18 * Math.sin(x * 2.1 + ph[2]) * Math.sin(z * 1.9 + ph[0]) + 0.1 * Math.sin(x * 4.3 + z * 1.7)) * (1 - rn * 0.5),
+    rings: 26,
+    segments: 80,
+  });
+  return [{ role, geometry: withFrame(geometry, false) }];
+}
+
+/** A fried egg: a round soft white and a domed yolk. */
+function friedEgg(random: () => number): FormPiece[] {
+  const white = pool({
+    outline: wobble(4.2, [[2, 0.05, random() * 6], [3, 0.04, random() * 6], [5, 0.02, random() * 6]]),
+    at: [0, 0],
+    depth: 0.5,
+    edge: 0.55,
+    floor: () => 0,
+    bumps: (x, z, rn) => 0.12 * Math.sin(x * 1.3 + 1) * Math.sin(z * 1.1 + 2) * (1 - rn),
+    rings: 26,
+    segments: 80,
+  });
+  const yolk = new SphereGeometry(1.45, 36, 22);
+  yolk.scale(1, 0.62, 1);
+  yolk.translate(0.35, 0.95, -0.1);
+  return [
+    { role: 'white', geometry: withFrame(white, false) },
+    { role: 'yolk', geometry: withFrame(yolk, false) },
+  ];
+}
+
+/** A small crumble (cheese, butter): a lumpy little stone. */
+function crumble(role: string, random: () => number): FormPiece[] {
+  const g = new IcosahedronGeometry(0.6 + random() * 0.25, 1);
+  const pos = g.getAttribute('position');
+  for (let i = 0; i < pos.count; i++) {
+    const k = 1 + signed(random) * 0.18;
+    pos.setXYZ(i, pos.getX(i) * k, pos.getY(i) * k * 0.75, pos.getZ(i) * k);
+  }
+  return [{ role, geometry: withFrame(g.toNonIndexed(), false) }];
+}
+
+/** A pantry form at real size, its roles renamed for the dish. */
+function pantry(pieces: FormPiece[], names: Record<string, string>): FormPiece[] {
+  return inCm(pieces)
+    .filter((p) => names[p.role])
+    .map((p) => ({ ...p, role: names[p.role] }));
+}
+
+/** A herb fleck: a tiny leaf lying flat. */
+export function herbLeaf(random: () => number): FormPiece {
+  return {
+    role: 'herb',
+    doubleSided: true,
+    geometry: leafPiece({ base: new Vector3(0, 0.02, 0), turn: random() * Math.PI * 2, length: 0.34 + random() * 0.24, width: 0.15 + random() * 0.07, lift: () => 0.02, fold: 0.1, twist: 0, rows: 4, cols: 2 }),
+  };
+}
+
+/**
+ * Build one element. `role` is its first role from `elementLooks` (the others are fixed names).
+ * Comes back resting on y = 0, its middle over the origin, at scale 1 (the caller scales it).
+ */
+export function makeElement(part: Part, random: () => number, seed: number): FormPiece[] {
+  const { ingredient, form } = part;
+  const role = elementLooks(part, false)[0].role;
+  switch (`${ingredient}:${form}`) {
+    case 'salmon:fillet':
+      // The approved cooked portion, its long side along z.
+      return settle(posed([{ role, geometry: salmonFillet(seed, COOKED_PORTION) }], { turn: Math.PI / 2 }));
+    case 'salmon:slice': {
+      const field = boxField(1.7, 0.28, 3.75, 0.25);
+      const wavy: Field = (x, y, z) => field(x, y - 0.18 * Math.sin(z * 0.9 + x * 0.4), z);
+      const g = cutBody(wavy, [], { reach: 4.2, depth: 1, rounding: 0 });
+      return settle([{ role, geometry: g }]);
+    }
+    case 'pepper:slice': {
+      const field = boxField(0.65, 0.22, 3, 0.2);
+      const bent: Field = (x, y, z) => field(x, y - 0.25 * Math.cos(x * 1.6) - 0.15 * Math.sin(z * 0.6), z);
+      return settle([{ role, geometry: cutBody(bent, [], { reach: 3.4, depth: 0.5, rounding: 0 }) }]);
+    }
+    case 'cheese:slice': {
+      const field = boxField(2, 0.25, 2.5, 0.2);
+      return settle([{ role, geometry: cutBody(field, [], { reach: 3, depth: 0.5, rounding: 0 }) }]);
+    }
+    case 'steak:steak':
+      return settle(slicedSteak(role, random));
+    case 'potato:wedge':
+      return settle(posed(cutElement(part, role, random), { scale: 0.68 }));
+    case 'chicken:drumstick':
+      return settle(pantry(buildChicken({ state: 'whole', seed }), { meat_glow: 'chicken_meat_glow', knuckle: 'knuckle' }));
+    case 'potato:whole':
+      return settle(pantry(buildPotato({ state: 'whole', seed }), { skin: role }));
+    case 'broccoli:whole':
+      return settle(posed(pantry(buildBroccoli({ state: 'whole', seed }), { florets: 'broccoli_florets', stalk: 'broccoli_stalk', leaf: 'broccoli_leaf' }), { scale: 0.5 }));
+    case 'cheese:wedge':
+      return settle(posed(pantry(buildCheese({ state: 'whole', seed }), { cheese: 'cheese_body', rind: 'cheese_rind' }), { scale: 0.75 }));
+    case 'eggs:egg':
+      return settle(friedEgg(random));
+    case 'blueberries:berry':
+      return settle([{ role, geometry: withFrame(oneBlueberry(random), false) }]);
+    case 'grapes:berry': {
+      const g = new SphereGeometry(1, 28, 20);
+      g.scale(0.95 + random() * 0.1, 1.15, 0.95);
+      g.rotateZ(Math.PI / 2 + signed(random) * 0.4);
+      return settle([{ role, geometry: withFrame(g, true) }]);
+    }
+    case 'mushroom:half':
+    case 'mushroom:slice': {
+      const { geometry } = mushroomUpright(0.62 + random() * 0.14, seed % 97, random);
+      let m: FormPiece[] = [{ role: 'mushroom', geometry }];
+      m = cutPieces(m, knife(new Vector3(0, 0, form === 'slice' ? 0.25 : 0), new Vector3(0, 0, 1)), 'mushroomCut', 'radial');
+      if (form === 'slice') m = cutPieces(m, knife(new Vector3(0, 0, -0.25), new Vector3(0, 0, -1)), 'mushroomCut', 'radial');
+      return settle(posed(m, { tip: -Math.PI / 2 }));
+    }
+    case 'spinach:leaf':
+    case 'cabbage:leaf': {
+      const big = ingredient === 'cabbage';
+      const g = leafPiece({ base: new Vector3(0, 0.05, -3), turn: Math.PI / 2, length: big ? 7 : 6.2, width: big ? 5.5 : 3.4, lift: (d) => 0.25 * d * d + 0.08, fold: big ? 0.5 : 0.35, twist: signed(random) * 0.2, rows: 10, cols: 6 });
+      return settle([{ role, geometry: g, doubleSided: true }]);
+    }
+    case 'onion:wheel': {
+      // A single ring of red onion: a soft band, paler inside, magenta at its edge.
+      const R = 1.6 + random() * 1.1;
+      const field: Field = (x, y, z) => Math.hypot(Math.hypot(x, z) - R, y / 0.8) - 0.2;
+      const g = cutBody(field, [], { reach: R + 0.4, depth: 0.2, rounding: 0 });
+      const pos = g.getAttribute('position');
+      const uv = g.getAttribute('uv') as BufferAttribute;
+      for (let i = 0; i < pos.count; i++) uv.setX(i, Math.min(1.2, 0.5 + Math.max(0, Math.hypot(pos.getX(i), pos.getZ(i)) - R + 0.2) * 2));
+      return settle([{ role, geometry: g }]);
+    }
+    case 'cheese:crumble':
+    case 'butter:crumble':
+      return settle(crumble(role, random));
+    case 'butter:cube': {
+      const g = cutBody(boxField(1.3, 0.8, 1.3, 0.3), [], { reach: 1.7, depth: 1, rounding: 0 });
+      return settle([{ role, geometry: g }]);
+    }
+    case 'baguette:toast':
+      return settle(toast(role, random, ingredient));
+    case 'potato:mash':
+      return mound(role, random, 4.5, 1.6);
+    case 'milk:mash':
+      return mound(role, random, 4.2, 2.4);
+    case 'avocado:half': {
+      const body = bodyField('avocado', random);
+      const g = cutBody(body, [[new Vector3(0, 0, 1), 0]], { reach: 5.3, depth: 3, rounding: 0.3 });
+      const pit = new SphereGeometry(1.5, 28, 18);
+      pit.scale(1, 1.15, 0.85);
+      pit.translate(0, -0.6, -0.15);
+      const pieces = posed(
+        [
+          { role, geometry: g },
+          { role: 'pit', geometry: withFrame(pit, false) },
+        ],
+        turnOnto(new Vector3(0, 0, 1), new Vector3(0, 1, 0)),
+      );
+      return settle(pieces);
+    }
+    default:
+      return settle(cutElement(part, role, random));
+  }
+}
+
+/** The whole-plate parts: tableware's looks. */
+export const PLATE_LOOK: Record<string, RoleLook> = {
+  plate: { role: 'plate', family: 'porcelain', skin: { ...CERAMIC_SKIN, amount: 0.12, pale: '#ece8e2' } },
+  bowl: { role: 'plate', family: 'porcelain', skin: { ...CERAMIC_SKIN, amount: 0.12, pale: '#ece8e2' } },
+  slate: { role: 'plate', family: 'slate', skin: { ...CERAMIC_SKIN, pale: '#b9b1a4' } },
+  board: { role: 'board', family: 'wood', skin: NO_SKIN },
+};
+
+/** Sauces, bases and drinks: their family. */
+export const BASE_FAMILY: Record<string, FamilyId> = {
+  'pool:citrus-oil': 'citrus-oil',
+  'pool:brown-butter': 'brown-butter',
+  'pool:honey': 'honey',
+  'pool:chili': 'chili-oil',
+  'pool:tomato-sauce': 'tomato-sauce',
+  'pool:cream': 'cream',
+  'pool:herb-oil': 'herb-oil',
+  'pool:berry-sauce': 'berry-sauce',
+  'pool:cheese-sauce': 'cheese-sauce',
+  'pool:jus': 'jus',
+  'soup:potato': 'soup-potato',
+  'soup:tomato': 'soup-tomato',
+  'soup:pepper': 'drink-orange',
+  'mash:potato': 'mash',
+  'mash:risotto': 'cooked-rice',
+  'leaves:cabbage': 'cabbage',
+  'leaves:romaine': 'romaine',
+  'leaves:spinach': 'spinach',
+  'drink:avocado': 'avocado-flesh',
+  'drink:strawberry': 'drink-pink',
+  'drink:orange': 'drink-orange',
+  'drink:blueberry': 'drink-purple',
+  'drink:watermelon': 'drink-pink',
+  'drink:tomato': 'drink-red',
+  'drink:green': 'drink-green',
+  'drink:grape': 'drink-pale',
+  rice: 'cooked-rice',
+};
