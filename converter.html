@@ -1,0 +1,90 @@
+<!doctype html>
+<!-- The dish converter: a dish painting matched and traced, then turned into 3D (docs/dishes/converter.md).
+     Round 1: the camera match from the plate's rim, the traced outlines and their footprints. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dish Converter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <main class="cv">
+      <header class="cv-head">
+        <h1>Dish converter</h1>
+        <p class="cv-dish" id="dish-name"></p>
+      </header>
+
+      <section class="cv-stage">
+        <figure class="cv-pane">
+          <figcaption>Painting</figcaption>
+          <div class="cv-frame" id="painting">
+            <img id="painting-img" alt="The dish painting" draggable="false" />
+            <svg id="overlay" viewBox="0 0 512 640" aria-label="Rim points and outlines"></svg>
+          </div>
+          <div class="cv-tabs" role="tablist">
+            <button type="button" role="tab" data-mode="camera" aria-selected="true">Camera</button>
+            <button type="button" role="tab" data-mode="outlines" aria-selected="false">Outlines</button>
+          </div>
+          <p class="cv-hint" id="hint"></p>
+        </figure>
+
+        <figure class="cv-pane">
+          <figcaption>3D</figcaption>
+          <div class="cv-frame" id="view">
+            <canvas id="canvas" aria-label="The dish in 3D: drag to turn, scroll to zoom"></canvas>
+            <img id="onion" alt="" aria-hidden="true" draggable="false" />
+          </div>
+          <div class="cv-row">
+            <button type="button" class="cv-button" id="match">Match view</button>
+            <button type="button" class="cv-toggle" id="show-blockout" aria-pressed="true">Blockout</button>
+            <button type="button" class="cv-toggle" id="show-built" aria-pressed="true">Hand-built dish</button>
+          </div>
+          <label class="cv-slider">Onion skin <input type="range" id="onion-amount" min="0" max="100" value="50" /><output id="onion-value">50%</output></label>
+        </figure>
+
+        <aside class="cv-side">
+          <section class="cv-card">
+            <h2>Camera</h2>
+            <label class="cv-slider">Lens <input type="range" id="lens" min="12" max="60" step="1" /><output id="lens-value"></output></label>
+            <p class="cv-note">One circle cannot tell a long lens far away from a wide lens close up. Judge the lens by how well the blockout lines up.</p>
+            <dl class="cv-facts" id="camera-facts"></dl>
+          </section>
+
+          <section class="cv-card" id="piece-card">
+            <h2>Outlines</h2>
+            <ul class="cv-pieces" id="pieces"></ul>
+            <div id="piece-edit" hidden>
+              <label class="cv-slider">Height <input type="range" id="piece-height" min="0.1" max="8" step="0.1" /><output id="piece-height-value"></output></label>
+              <label class="cv-field">Size
+                <select id="piece-size">
+                  <option value="ground">Ground</option>
+                  <option value="big">Big</option>
+                  <option value="medium">Medium</option>
+                  <option value="small">Small</option>
+                </select>
+              </label>
+              <button type="button" class="cv-button quiet" id="remove-piece">Remove outline</button>
+            </div>
+            <button type="button" class="cv-button quiet" id="add-piece">New outline</button>
+          </section>
+
+          <section class="cv-card">
+            <h2>Plan from above</h2>
+            <div id="plan"></div>
+            <p class="cv-note">Filled: measured from the painting. Dashed: the hand-built plan.</p>
+            <table class="cv-table" id="plan-table"></table>
+          </section>
+
+          <section class="cv-card cv-row">
+            <button type="button" class="cv-button" id="copy">Copy trace</button>
+            <button type="button" class="cv-button quiet" id="reset">Reset to draft</button>
+          </section>
+        </aside>
+      </section>
+    </main>
+    <script type="module" src="/src/converter/main.ts"></script>
+  </body>
+</html>

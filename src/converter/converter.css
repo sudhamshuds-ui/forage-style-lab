@@ -1,0 +1,387 @@
+/* The dish converter's page: white, quiet, the two pictures side by side. */
+:root {
+  --ink: #2b2730;
+  --muted: #77727c;
+  --line: #e6e2e8;
+  --soft: #f6f4f7;
+  --accent: #6a4fd8;
+  --big: #e07a3c;
+  --medium: #e0a33c;
+  --small: #6bb04a;
+  --ground: #8fb6d8;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #ffffff;
+  color: var(--ink);
+  font: 14px/1.45 'Geist', system-ui, sans-serif;
+}
+
+.cv {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 28px 24px 48px;
+}
+
+.cv-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.cv-head h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.cv-dish {
+  margin: 0;
+  color: var(--muted);
+}
+
+.cv-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .cv-stage {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .cv-side {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 680px) {
+  .cv {
+    padding: 20px 16px 40px;
+  }
+  .cv-stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.cv-pane {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.cv-pane figcaption,
+.cv-card h2 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cv-frame {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: var(--soft);
+  overflow: hidden;
+  touch-action: none;
+}
+
+.cv-frame img,
+.cv-frame svg,
+.cv-frame canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  user-select: none;
+}
+
+#onion {
+  pointer-events: none;
+  transition: opacity 200ms ease-out;
+}
+
+#onion[hidden] {
+  display: block;
+  opacity: 0 !important;
+}
+
+.cv-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--soft);
+  border-radius: 999px;
+  justify-self: start;
+}
+
+.cv-tabs button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.cv-tabs button[aria-selected='true'] {
+  background: #ffffff;
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+.cv-hint,
+.cv-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.cv-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.cv-button,
+.cv-toggle {
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.cv-button:not(.quiet) {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #ffffff;
+}
+
+.cv-toggle[aria-pressed='true'] {
+  background: #efeaff;
+  border-color: #d8cdfb;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cv-button:hover,
+  .cv-toggle:hover {
+    filter: brightness(0.97);
+  }
+}
+
+.cv-button:active,
+.cv-toggle:active {
+  transform: scale(0.97);
+}
+
+.cv-slider,
+.cv-field {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr) 52px;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+}
+
+.cv-field {
+  grid-template-columns: 80px minmax(0, 1fr);
+}
+
+.cv-slider output {
+  color: var(--muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.cv-slider input {
+  width: 100%;
+  accent-color: var(--ink);
+}
+
+.cv-field select {
+  font: inherit;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.cv-side {
+  display: grid;
+  gap: 16px;
+}
+
+.cv-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.cv-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.cv-facts dt {
+  color: var(--muted);
+}
+
+.cv-facts dd {
+  margin: 0;
+}
+
+.cv-facts .good {
+  color: #2f8a46;
+}
+
+.cv-facts .poor {
+  color: #b5542b;
+}
+
+.cv-pieces {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.cv-pieces button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cv-pieces button[aria-current='true'] {
+  background: var(--soft);
+}
+
+.cv-pieces .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.cv-pieces .meta {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+#piece-edit {
+  display: grid;
+  gap: 10px;
+}
+
+#piece-edit[hidden] {
+  display: none;
+}
+
+#plan svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.cv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cv-table th,
+.cv-table td {
+  text-align: left;
+  padding: 3px 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.cv-table th {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* The overlay on the painting. */
+#overlay .outline {
+  fill: currentColor;
+  fill-opacity: 0.16;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+
+#overlay .outline.selected {
+  fill-opacity: 0.28;
+  stroke-width: 2;
+}
+
+#overlay[data-mode='camera'] .outline {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+#overlay .rim-fit {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+#overlay[data-mode='outlines'] .rim-fit {
+  opacity: 0.35;
+}
+
+#overlay .handle {
+  fill: #ffffff;
+  stroke: var(--ink);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+  cursor: grab;
+}
+
+#overlay .handle.rim {
+  stroke: var(--accent);
+}
+
+#overlay .handle:active {
+  cursor: grabbing;
+}

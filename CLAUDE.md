@@ -753,6 +753,26 @@ The dish kit (`src/dishes/kit/`): the knife (`cut.ts`), plates and bowls (`ware.
 their bodies for cutting (`peachBody`, `limeBody`, `strawberryBody`, `mushroomUpright`,
 `avocadoBody`), unchanged for the pantry.
 
+## Dish converter (branch `claude/dazzling-volta-hxj0ij`, from `dishes`, started 2026-11-19; not merged)
+The user's idea: turn a dish painting into 3D, 1:1, to turn all the way round. **Planned with the
+user** (`docs/dishes/converter.md`): a **3D reference** for building dishes (they are still built in
+code); 1:1 means **both** the painting's layout and sizes and its own colours, painted live by our
+shaders; a full 360 degree turn; **no outside AI at all**, not even models that run in the browser
+(no depth model, no Segment Anything): everything is matched and traced by hand on the page.
+Five steps: camera match from the plate's rim, traced outlines, a blockout from their footprints
+(filling the dish's `Plan`), the painting projected onto the built pieces (hue and saturation only),
+the viewer (Match view, onion skin). Its own page, `converter.html` (`src/converter/`,
+`vite.converter.config.ts`), published as the private preview "Dish Converter".
+**Round 1 (salmon, steps 1 and 2)**: `camera.ts` fits the camera to the rim points (Levenberg-
+Marquardt over distance, height angle and three small turns; the lens is a slider, since one circle
+cannot tell lens from distance; tested on a known camera); `trace.ts` lays each outline on the plate,
+each point read at its own height (top edge at the piece's height, foot at the plate, sides climbing
+between; tested on a known block to half a centimetre) and measures it with the tightest turned box;
+`traces/salmonPeach.ts` is Claude's drafted trace (the user drags points, "Copy trace" hands it back).
+The salmon reference is `references/dishes/salmon-peach.png`. First reading: the camera looks down
+about 38 degrees; the hand-built salmon follows the user's top view sketch, about 70 degrees round
+from the painting, where it lies across the plate.
+
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one
 review** (not approved, not merged; `/forage-brand` after approval, then merge to `main`):
