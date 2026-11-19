@@ -33,6 +33,9 @@ in code from the pantry's own forms (the same peach, the same lime, cut with the
     its own middle (a steak slice: rare at the heart, browned at the crust).
   - `ware.ts`: plates and wide bowls, with `floor(x, z)` to set food down on.
   - `pool.ts`: sauces, jams, foams and butter pools, lying in the plate's well.
+  - `pour.ts`: a sauce poured over food: a flow on the table's height map (poured a little at a
+    time, running downhill, setting once its slope is gentle: thick sauces stay in ribbons), then a
+    sheet lying on the food, its outline cut smoothly where the sauce thins to nothing.
   - `place.ts`: pantry forms back in cm (`inCm`), new roles (`roles`), moving (`posed`), setting
     down on a surface (`setDown`, `surfaceOf`), and `plate()` to finish.
 - **Each part is painted by its own skin** (`partSkins` on the dish's entry): the peach keeps its
