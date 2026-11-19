@@ -762,7 +762,7 @@ shaders; a full 360 degree turn; **no outside AI at all**, not even models that 
 Five steps: camera match from the plate's rim, traced outlines, a blockout from their footprints
 (filling the dish's `Plan`), the painting projected onto the built pieces (hue and saturation only),
 the viewer (Match view, onion skin). Its own page, `converter.html` (`src/converter/`,
-`vite.converter.config.ts`), published as the private preview "Dish Converter".
+`vite.converter.config.ts`), published as the private preview "Dish Converter" (https://claude.ai/artifact/Vi2McNnXNMkWuhkD77kti9; republish the built `dist-converter/converter.html` with its `assets/` to the same link).
 **Round 1 (salmon, steps 1 and 2)**: `camera.ts` fits the camera to the rim points (Levenberg-
 Marquardt over distance, height angle and three small turns; the lens is a slider, since one circle
 cannot tell lens from distance; tested on a known camera); `trace.ts` lays each outline on the plate,

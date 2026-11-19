@@ -68,7 +68,10 @@
               </label>
               <button type="button" class="cv-button quiet" id="remove-piece">Remove outline</button>
             </div>
-            <button type="button" class="cv-button quiet" id="add-piece">New outline</button>
+            <div class="cv-row">
+              <input type="text" id="new-label" class="cv-input" placeholder="What is it? (lime, herb)" aria-label="Name of the new outline" />
+              <button type="button" class="cv-button quiet" id="add-piece">New outline</button>
+            </div>
           </section>
 
           <section class="cv-card">
@@ -78,9 +81,13 @@
             <table class="cv-table" id="plan-table"></table>
           </section>
 
-          <section class="cv-card cv-row">
-            <button type="button" class="cv-button" id="copy">Copy trace</button>
-            <button type="button" class="cv-button quiet" id="reset">Reset to draft</button>
+          <section class="cv-card">
+            <div class="cv-row">
+              <button type="button" class="cv-button" id="copy">Copy trace</button>
+              <button type="button" class="cv-button quiet" id="reset">Reset to draft</button>
+            </div>
+            <p class="cv-note">Your edits stay in this browser. Copy the trace and paste it to Claude to keep them.</p>
+            <textarea id="trace-text" class="cv-input" rows="4" hidden aria-label="The trace, to copy"></textarea>
           </section>
         </aside>
       </section>

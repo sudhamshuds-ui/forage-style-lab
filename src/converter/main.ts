@@ -449,10 +449,10 @@ $('remove-piece').addEventListener('click', () => {
   changed();
 });
 $('add-piece').addEventListener('click', () => {
-  const label = prompt('What is it? (for example: lime, peach, herb)')?.trim();
-  if (!label) return;
+  const label = $<HTMLInputElement>('new-label').value.trim() || 'piece';
   const [cx, cy] = [trace.picture.width / 2, trace.picture.height / 2];
   trace.pieces.push({ label, ingredient: label, size: 'small', height: 1, outline: [[cx - 20, cy - 15], [cx + 20, cy - 15], [cx + 20, cy + 15], [cx - 20, cy + 15]] });
+  $<HTMLInputElement>('new-label').value = '';
   setMode('outlines');
   selected = trace.pieces.length - 1;
   changed();
@@ -465,12 +465,29 @@ $('copy').addEventListener('click', async () => {
     await navigator.clipboard.writeText(text);
     button.textContent = 'Copied';
   } catch {
-    prompt('Copy the trace:', text);
+    // The clipboard was refused: show the trace selected, ready to copy by hand.
+    const box = $<HTMLTextAreaElement>('trace-text');
+    box.hidden = false;
+    box.value = text;
+    box.select();
   }
   setTimeout(() => (button.textContent = 'Copy trace'), 1400);
 });
+// Reset asks twice: the first click arms it, a second click within three seconds resets.
+let resetArmed = 0;
 $('reset').addEventListener('click', () => {
-  if (!confirm('Go back to the drafted trace? Your edits on this page are lost.')) return;
+  const button = $('reset');
+  if (!resetArmed) {
+    button.textContent = 'Click again to lose your edits';
+    resetArmed = window.setTimeout(() => {
+      resetArmed = 0;
+      button.textContent = 'Reset to draft';
+    }, 3000);
+    return;
+  }
+  clearTimeout(resetArmed);
+  resetArmed = 0;
+  button.textContent = 'Reset to draft';
   trace = structuredClone(DRAFT);
   selected = -1;
   lens.value = String(trace.fov);
