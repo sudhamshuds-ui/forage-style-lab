@@ -35,8 +35,13 @@ sketches and reference photos.
   orange...thats raw...its more pinkish white"): a cooked ingredient gets a cooked family (pale
   coral pink for salmon), never the raw one. On a seared top the fat lines turn brown, deeper than
   the crust round them ("the white lines become brown"; a skin marks them with `searMark`).
-- **A white plate is pristine** (salmon: "keep the plate white pristine clean"): porcelain white,
-  the faintest glaze, no specks, unless the reference shows stoneware.
+- **A white plate is pristine** (salmon: "keep the plate white pristine clean", then "still not
+  clear white it has some dirty texture"): porcelain white, no specks, and none of the shared
+  paint grain either (on white it reads as dirt): the ceramic skin at a low amount lays the
+  colour again from the light alone.
+- **A seared crust is rough, never plastic** (salmon, 2026-11-19: "flat and glossy on top, it
+  needs to be rough, bumby and not shine"): real lumps in the top (`crust` on the fillet), an
+  embossed lumpy shading, darker crumbs in the pits, and the shine broken into small glints.
 - **Crust follows the food**: golden on pale food (salmon, bread), deep brown on dark (beef); the
   sear picks its tone from the food's own colour.
 - **Bones and white parts browned when cooked** (drumsticks: "white parts need browning and

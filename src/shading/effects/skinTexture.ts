@@ -1759,9 +1759,21 @@ if (kind > 0 && amount > 0.0) {
       // Soft warm and cool washes in the glaze (never blotches), fine iron specks in its own deep
       // shade, a paler line where the glaze thins over the rim, an unglazed foot (uMelonPale) and a
       // cool lilac shade side (a painted white is never grey).
+      // Pristine porcelain (a low amount: the user, 2026-11-19, "plate is still not clear white it
+      // has some dirty texture"): the shared paint grain and its colour shifts read as dirt on white,
+      // so the colour is laid again from the light alone, a clean turn from lit white to a lilac shade.
+      float pristine = 1.0 - smoothstep(0.1, 0.4, amount);
+      if (pristine > 0.0) {
+        float wrap = smoothstep(-0.45, 0.9, dot(N, L)) * mix(0.55, 1.0, lightMask);
+        vec3 litL = linearToOklab(uLitColour);
+        vec3 baseL = linearToOklab(uBaseColour);
+        vec3 shadowL = linearToOklab(uShadowColour);
+        vec3 clean = wrap > 0.5 ? mix(baseL, litL, (wrap - 0.5) * 2.0) : mix(shadowL, baseL, 0.3 + wrap * 1.4);
+        lab = mix(lab, clean, pristine);
+      }
       lab = depthWash(lab, cm * 0.5, vec3(0.012, 0.004, 0.022), vec3(-0.03, 0.006, -0.03), 0.0, 0.75 * amount);
-      float speck = smoothstep(0.84, 0.94, valueNoise3(cm * 7.0));
-      float fine = smoothstep(0.86, 0.95, valueNoise3(cm * 19.0 + 4.0));
+      float speck = smoothstep(0.84, 0.94, valueNoise3(cm * 7.0)) * (1.0 - pristine);
+      float fine = smoothstep(0.86, 0.95, valueNoise3(cm * 19.0 + 4.0)) * (1.0 - pristine);
       lab = shadeOwn(lab, (speck * 0.32 + fine * 0.16) * show);
       float rim = smoothstep(0.9, 0.995, vSurfaceUv.y);
       lab = mix(lab, vec3(lab.x + 0.03, lab.y + 0.004, lab.z + 0.018), rim * 0.6 * amount);
@@ -1865,6 +1877,16 @@ if (kind > 0 && amount > 0.0) {
     searLab = mix(searLab, marked, searMark * 0.8);
     float turnDown = (1.0 - smoothstep(0.45, 0.95, N.y)) * smoothstep(0.1, 0.5, N.y);
     searLab = mix(searLab, deep + vec3(toneS * 0.5, 0.0, 0.0), turnDown * 0.3);
+    // A rough crust, never smooth plastic (the user, 2026-11-19: "it needs to be rough, bumpy and
+    // not shine"): small lumps lit on the side that faces the light and shaded on the other (an
+    // emboss, like the lemon's pebbling), darker caramel crumbs in the pits, a fine grain.
+    vec3 pS = cmS * 2.4;
+    float lumpHere = fbm3(pS + 5.0);
+    float lumpToward = fbm3(pS + 5.0 + L * 0.3);
+    float emboss = clamp((lumpToward - lumpHere) * 4.0, -1.0, 1.0);
+    searLab.x += emboss * 0.07;
+    searLab = mix(searLab, deep + vec3(toneS * 0.5 - 0.03, 0.0, 0.0), smoothstep(0.6, 0.78, valueNoise3(cmS * 6.5 + 3.0)) * 0.45);
+    searLab.x += (valueNoise3(cmS * 15.0) - 0.5) * 0.06;
     float broken = mix(0.8, 1.0, smoothstep(0.3, 0.6, fbm3(cmS * 3.0 + 1.0)));
     // A full sear (0.97 or more) covers what faces up completely: nothing of the raw surface shows
     // through (the salmon's white fat lines read as raw on a seared top, the user, 2026-11-18).
@@ -1874,6 +1896,13 @@ if (kind > 0 && amount > 0.0) {
     upward = mix(upward, smoothstep(-0.05, 0.45, N.y + (fbm3(cmS * 0.8 + 11.0) - 0.5) * 0.3), full * step(uSkin.w, 0.995));
     lab = mix(lab, searLab, upward * mix(broken * uSkin.w * 0.93, 1.0, full));
     highlightOwn = mix(highlightOwn, 0.0, upward * full);
+    // The shine breaks up on the crust: a faint sheen skipping the pits, small glints on the lumps
+    // facing the light, in the crust's own colour.
+    float crust = upward * min(1.0, uSkin.w * 1.1);
+    highlightBumpy = max(highlightBumpy, crust);
+    highlightBreak = max(highlightBreak, crust * smoothstep(0.35, 0.6, lumpHere));
+    highlightGlint = max(highlightGlint, crust * smoothstep(0.35, 0.8, emboss) * 0.5);
+    highlightOwn = max(highlightOwn, crust * 0.8);
   }
   // Drizzled sauce (dishes): pooled on what faces up in soft blobs, running down the sides in
   // streaks, in the sauce's own colour (shaded like the surface under it), wet and glinting.

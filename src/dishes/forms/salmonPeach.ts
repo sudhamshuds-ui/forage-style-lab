@@ -36,6 +36,8 @@ const COOKED_PORTION: FilletShape = {
   backDrop: 0.12,
   bellyDrop: 0.26,
   groove: 0.22,
+  // A rough, lumpy seared top (the user, 2026-11-19: "rough, bumpy and not shine like plastic").
+  crust: 0.14,
   // From the side (the user's sketch, 2026-11-19): a short end, the top rising in a long gentle
   // arc to its peak about 40% along, then a long slope down to a thin tail.
   along: (t) => {

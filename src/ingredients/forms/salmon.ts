@@ -50,6 +50,8 @@ export interface FilletShape {
   groove: number;
   /** Its height along its length, t 0 at one end to 1 at the other, as a share (default level). */
   along?: (t: number) => number;
+  /** A seared top's lumpy, uneven crust: how high its bumps stand (cm; default none). */
+  crust?: number;
 }
 
 /** The pantry's raw fillet. */
@@ -72,6 +74,10 @@ export function salmonFillet(seed: number, f: FilletShape = RAW_FILLET): BufferG
     h -= f.groove * Math.exp(-(((zc - wander) / 0.42) ** 2));
     // Along: one end a little thicker, and slow soft swells (flakes of muscle), never flat.
     if (f.along) h *= f.along(Math.min(1, Math.max(0, x / f.length + 0.5)));
+    if (f.crust) {
+      // Lumps of crust in several sizes, so the top is never one smooth sheet.
+      h += f.crust * (0.5 * Math.sin(x * 2.3 + phase[3]) * Math.sin(z * 2.7 + phase[4]) + 0.35 * Math.sin(x * 4.1 - z * 1.9 + phase[5]) * Math.sin(z * 4.6 + x * 1.3) + 0.25 * Math.sin(x * 7.3 + z * 5.1) * Math.sin(z * 6.7 - x * 2.9 + phase[1]));
+    }
     h *= 1 + 0.07 * (x / (f.length / 2)) + 0.035 * Math.sin(x * 0.55 + phase[1]) + 0.025 * Math.sin(x * 1.1 + z * 0.6 + phase[2]);
     return h;
   };
