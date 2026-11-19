@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Matrix4, Quaternion, Vector3 } from 'three';
+import { BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
 import { relaxOnSurface, surfaceNets } from '../../ingredients/forms/kit/surfaceNets';
 import { roundedIntersection } from '../../ingredients/forms/kit/wedge';
 import { salmonFillet, type FilletShape } from '../../ingredients/forms/salmon';
@@ -58,8 +58,8 @@ function alignDown(direction: Vector3): Matrix4 {
 /**
  * A peach wedge with soft, rounded edges (the user's photo, 2026-11-19: "all the edges are uniform
  * and sharp"): one smooth form, the peach's round body and two cuts through its stone's axis
- * blended with rounded corners, meshed whole (surface nets), then split into its skin and its
- * flesh faces along the rounded edge, sharing one set of smooth normals so no crease shows.
+ * blended with rounded corners, meshed whole (surface nets), one piece painted by the flesh skin
+ * from the stone out to the skin.
  * Laid on one cut face (either), the other turned to look along +z.
  */
 function peachWedge(random: () => number, angle: number): FormPiece[] {
@@ -78,40 +78,24 @@ function peachWedge(random: () => number, angle: number): FormPiece[] {
   const shape = (x: number, y: number, z: number) => roundedIntersection([body(x, y, z), x * n1.x + z * n1.z, x * n2.x + z * n2.z], 0.32);
   const cell = 0.11;
   const geometry = relaxOnSurface(surfaceNets(shape, new Vector3(-R - 0.6, -H - 0.6, -R - 0.6), new Vector3(R + 0.6, H + 0.6, R + 0.6), cell), shape, cell);
-  geometry.computeVertexNormals();
-  // Split: a triangle belongs to the skin where the body is nearer than either cut.
+  // One piece, one paint, like the watermelon (the user, 2026-11-19: no line where skin meets
+  // flesh): its map runs 0 at the stone's axis to 1 at the rim of the cut faces, and on past 1 to
+  // 1.3 over the skin, blending across the rounded edge, so the flesh fades into the red skin.
   const pos = geometry.getAttribute('position');
-  const nor = geometry.getAttribute('normal');
-  const index = geometry.getIndex()!;
-  const skin: number[][] = [[], [], [], []];
-  const flesh: number[][] = [[], [], [], []];
-  for (let t = 0; t < index.count; t += 3) {
-    const ids = [index.getX(t), index.getX(t + 1), index.getX(t + 2)];
-    const c = ids.reduce((sum, i) => sum.add(new Vector3().fromBufferAttribute(pos, i)), new Vector3()).multiplyScalar(1 / 3);
-    const toSkin = Math.abs(body(c.x, c.y, c.z));
-    const toCut = Math.min(Math.abs(c.x * n1.x + c.z * n1.z), Math.abs(c.x * n2.x + c.z * n2.z));
-    const into = toSkin < toCut ? skin : flesh;
-    for (const i of ids) {
-      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-      into[0].push(x, y, z);
-      into[1].push(nor.getX(i), nor.getY(i), nor.getZ(i));
-      // Skin: height share (the peach skin's map); flesh: 0 at the stone's axis, 1 at the skin.
-      into[2].push(into === skin ? (y + H) / (2 * H) : Math.min(1, Math.hypot(x, z) / R), 0);
-      into[3].push(x, y, z);
-    }
+  const uv = new Float32Array(pos.count * 2);
+  const own = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const toSkin = Math.abs(body(x, y, z));
+    const toCut = Math.min(Math.abs(x * n1.x + z * n1.z), Math.abs(x * n2.x + z * n2.z));
+    const t = Math.min(1, Math.max(0, (toCut - toSkin + 0.3) / 0.6));
+    const skinness = t * t * (3 - 2 * t);
+    uv[2 * i] = Math.min(1, Math.hypot(x, z) / R) * (1 - skinness) + 1.3 * skinness;
+    own.set([x, y, z], 3 * i);
   }
-  const build = (arrays: number[][]) => {
-    const g = new BufferGeometry();
-    g.setAttribute('position', new BufferAttribute(new Float32Array(arrays[0]), 3));
-    g.setAttribute('normal', new BufferAttribute(new Float32Array(arrays[1]), 3));
-    g.setAttribute('uv', new BufferAttribute(new Float32Array(arrays[2]), 2));
-    g.setAttribute('ownPos', new BufferAttribute(new Float32Array(arrays[3]), 3));
-    return g;
-  };
-  const pieces: FormPiece[] = [
-    { role: 'peach_glow', geometry: build(skin), keepNormals: true },
-    { role: 'peachFlesh', geometry: build(flesh), keepNormals: true },
-  ];
+  geometry.setAttribute('uv', new BufferAttribute(uv, 2));
+  geometry.setAttribute('ownPos', new BufferAttribute(own, 3));
+  const pieces: FormPiece[] = [{ role: 'peachFlesh', geometry }];
   const flip = random() < 0.5;
   // Lying on a cut face: the cut's outward direction (minus its plane normal) turned down.
   const down = alignDown((flip ? n2 : n1).clone());

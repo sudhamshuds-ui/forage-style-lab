@@ -41,7 +41,7 @@ export const DISHES: Dish[] = [
         forms: ['whole'],
         scale: 'M',
         size_cm: [27, 6, 27],
-        parts: ['salmon:glow', 'plate@porcelain', 'foam@foam', 'peach:glow@peach', 'peachFlesh@peach-flesh', 'lime:glow@lime', 'limeFlesh@lime-flesh', 'herb@leaf'],
+        parts: ['salmon:glow', 'plate@porcelain', 'foam@foam', 'peachFlesh@peach-flesh', 'lime:glow@lime', 'limeFlesh@lime-flesh', 'herb@leaf'],
         light_case: 'pale',
         notes: 'Dish batch 1 (2026-11-18), after the generated reference (Figma node 214:2).',
       },
@@ -54,7 +54,6 @@ export const DISHES: Dish[] = [
         // A clean white plate: the faintest glaze washes, no specks (the user: "white pristine clean").
         plate: { ...CERAMIC_SKIN, amount: 0.12, pale: '#ece8e2' },
         foam: SAUCE_SKIN,
-        peach_glow: { kind: 'peach', size_mm: 2, amount: 0.9 },
         peachFlesh: { ...FLESH_SKIN, pale: '#e8783a', green: '#c8384a', seared: 0.85 },
         lime_glow: { kind: 'lime', size_mm: 1.6, amount: 0.9 },
         limeFlesh: { ...FLESH_SKIN, pale: '#f4f1c4', green: '#6ea42c' },

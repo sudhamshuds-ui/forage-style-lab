@@ -1810,7 +1810,8 @@ if (kind > 0 && amount > 0.0) {
         lab = mix(lab, pithLab, (1.0 - smoothstep(0.03, 0.12, r)) * 0.7 * amount);
         lab.x += smoothstep(0.6, 0.85, valueNoise3(vec3(vSurfaceUv.y * 6.0, r * 9.0, 1.0))) * 0.03 * smoothstep(0.15, 0.4, r);
       }
-      lab = mix(lab, skinLab, smoothstep(0.86, 0.99, r + wander * 0.3) * 0.8 * amount);
+      // (Past 1 the map runs over the fruit's skin itself, a peach wedge's: all skin there.)
+      lab = mix(lab, skinLab, smoothstep(0.86, 0.99, r + wander * 0.3) * mix(0.8, 1.0, smoothstep(1.0, 1.25, r)) * amount);
       // Charred (grilled fruit): soft dark grill bars across the face, broken where the bars did
       // not touch, in a deep caramel-plum (never black), with a caramel halo round each.
       if (kind == 41) {
@@ -1825,7 +1826,7 @@ if (kind > 0 && amount > 0.0) {
       // Seared (a pan-seared peach wedge, a mushroom's cut face): a caramel-brown edge running
       // in from the rim in soft, uneven patches, deeper right at the edge; the middle stays fresh.
       if (uSkin.w > 0.0) {
-        float edge = smoothstep(0.45, 0.98, r + (fbm3(cm * 1.6 + 2.0) - 0.5) * 0.35);
+        float edge = smoothstep(0.45, 0.98, r + (fbm3(cm * 1.6 + 2.0) - 0.5) * 0.35) * (1.0 - smoothstep(1.02, 1.2, r));
         // (Deepening to a mahogany right at the rim, like caramelised fruit: the user's photo.)
         vec3 brown = mix(vec3(0.66 + tone * 0.6, 0.05, 0.11), vec3(0.42 + tone * 0.5, 0.07, 0.07), smoothstep(0.7, 1.0, r));
         lab = mix(lab, brown, edge * uSkin.w * 0.85);

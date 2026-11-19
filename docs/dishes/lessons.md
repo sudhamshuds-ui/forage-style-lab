@@ -86,7 +86,10 @@ sketches and reference photos.
   ridges once cut; slices come from a plain body (`peachBody(random, true)`).
 - **Soft edges on cut fruit** (peach wedges, 2026-11-19: "all the edges are uniform and sharp"):
   a wedge is one smooth form with rounded edges (surface nets, its cuts blended with
-  `roundedIntersection`), its cut faces caramelised darker at the rim, wet and glossy.
+  `roundedIntersection`), its cut faces caramelised darker at the rim, wet and glossy. One piece,
+  one paint, like the watermelon: split into a skin piece and a flesh piece, the seam showed as a
+  pale band and a fold ("avoid this for the edges...just have watermelon treatment"); its map runs
+  from the stone to the rim and on over the skin, so the flesh fades into the skin.
 - **Vary repeated pieces** (wedges: "need more variety in rotation"): each turned its own way, lying
   on either cut face, a little different in size.
 - **Thick fillets** (salmon: "needs to be shaped proper"; then "it should be a fillet like this",
