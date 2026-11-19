@@ -47,7 +47,9 @@ export const DISHES: Dish[] = [
       },
       form: buildSalmonPeach,
       turn: 0,
-      skin: { kind: 'salmon', size_mm: 4, amount: 0.9, seared: 0.95, pale: '#fffaf6', green: '#5c6278' },
+      // No dark skin underneath (the user, 2026-11-19: "looks very ugly"): the band at its foot is
+      // painted in the cooked flesh's own pale pink.
+      skin: { kind: 'salmon', size_mm: 4, amount: 0.9, seared: 0.95, pale: '#fffaf6', green: '#efc0b0' },
       partSkins: {
         // A clean white plate: the faintest glaze washes, no specks (the user: "white pristine clean").
         plate: { ...CERAMIC_SKIN, amount: 0.12, pale: '#ece8e2' },

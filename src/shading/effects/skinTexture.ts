@@ -1884,7 +1884,7 @@ if (kind > 0 && amount > 0.0) {
     float lumpHere = fbm3(pS + 5.0);
     float lumpToward = fbm3(pS + 5.0 + L * 0.3);
     float emboss = clamp((lumpToward - lumpHere) * 4.0, -1.0, 1.0);
-    searLab.x += emboss * 0.07;
+    searLab.x += emboss * 0.045;
     searLab = mix(searLab, deep + vec3(toneS * 0.5 - 0.03, 0.0, 0.0), smoothstep(0.6, 0.78, valueNoise3(cmS * 6.5 + 3.0)) * 0.45);
     searLab.x += (valueNoise3(cmS * 15.0) - 0.5) * 0.06;
     float broken = mix(0.8, 1.0, smoothstep(0.3, 0.6, fbm3(cmS * 3.0 + 1.0)));

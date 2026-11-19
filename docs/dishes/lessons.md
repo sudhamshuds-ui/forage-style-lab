@@ -19,6 +19,13 @@ sketches and reference photos.
   draws the top view: follow it.
 - **Sauce pooled under and drizzled over** (tomahawk, egg, drumsticks): a round pool, plus the
   same sauce running over the ingredients (the `drizzle` on a skin), so it looks spooned over.
+- **Plate it to the sketch, measured** (salmon, 2026-11-19: "u can clearly see the difference...in
+  sizes, rotation and placement"): read every piece's size and place off the user's top view,
+  relative to the hero (along it and across it), and check the dish from straight above against
+  the sketch before showing it. Garnish sits close round the hero, sized to the sketch (thin limes
+  about 3.5 cm, peach wedges about 4 cm), cut faces turned toward the hero.
+- **No ugly details** (salmon: the dark skin underneath "looks very ugly"): leave out real-world
+  details that read badly in the painting.
 - **Garnish never on the hero** (salmon: "never on top of salmon"): pieces lie next to or over
   each other and the hero, never on top of it (`clearOf`). Herbs go on last, over everything.
 - **Toppings lie on their base gently** (rice bowl): the base level, not a peak with things perched
@@ -41,7 +48,8 @@ sketches and reference photos.
   colour again from the light alone.
 - **A seared crust is rough, never plastic** (salmon, 2026-11-19: "flat and glossy on top, it
   needs to be rough, bumby and not shine"): real lumps in the top (`crust` on the fillet), an
-  embossed lumpy shading, darker crumbs in the pits, and the shine broken into small glints.
+  embossed lumpy shading, darker crumbs in the pits, and the shine broken into small glints. Gently:
+  half the first try's bumps was right ("too bumpy reduce a bit").
 - **Crust follows the food**: golden on pale food (salmon, bread), deep brown on dark (beef); the
   sear picks its tone from the food's own colour.
 - **Bones and white parts browned when cooked** (drumsticks: "white parts need browning and
