@@ -55,7 +55,7 @@ function alignDown(direction: Vector3): Matrix4 {
 
 /** A peach wedge: two cuts through the stone's axis, `angle` apart, laid on one cut face. */
 function peachWedge(random: () => number, angle: number): FormPiece[] {
-  const { skin } = peachBody(random);
+  const { skin } = peachBody(random, true);
   // The flesh's map: 0 at the stone's axis, 1 at the skin.
   const flesh = (p: Vector3) => ({ uv: [Math.min(1, Math.hypot(p.x, p.z) / 3.55), 0] });
   const a = random() * Math.PI * 2;
@@ -64,10 +64,11 @@ function peachWedge(random: () => number, angle: number): FormPiece[] {
   let pieces: FormPiece[] = [{ role: 'peach_glow', geometry: skin }];
   pieces = cutPieces(pieces, knife(new Vector3(), n1), 'peachFlesh', flesh);
   pieces = cutPieces(pieces, knife(new Vector3(), n2), 'peachFlesh', flesh);
-  // Lying on one cut face; then turned so the other, seared face looks along +z (the caller turns it
-  // to face the salmon).
-  const down = alignDown(n1);
-  const up = n2.clone().applyMatrix4(down);
+  // Lying on one cut face (either one), the other, seared face up; then turned so that face looks
+  // along +z (the caller turns it toward the salmon, each a little its own way).
+  const flip = random() < 0.5;
+  const down = alignDown(flip ? n2 : n1);
+  const up = (flip ? n1 : n2).clone().applyMatrix4(down);
   const toCamera = Math.atan2(up.x, up.z);
   return posed(posed(pieces, down), { turn: -toCamera });
 }
@@ -90,7 +91,7 @@ function herb(random: () => number, x: number, y: number, z: number): FormPiece 
   return {
     role: 'herb',
     doubleSided: true,
-    geometry: leafPiece({ base: new Vector3(x, y, z), turn: random() * Math.PI * 2, length: 0.45 + random() * 0.35, width: 0.16 + random() * 0.08, lift: () => 0.02, fold: 0.1, twist: 0, rows: 4, cols: 2 }),
+    geometry: leafPiece({ base: new Vector3(x, y, z), turn: random() * Math.PI * 2, length: 0.3 + random() * 0.22, width: 0.14 + random() * 0.06, lift: () => 0.02, fold: 0.1, twist: 0, rows: 4, cols: 2 }),
   };
 }
 
@@ -169,7 +170,8 @@ export const buildSalmonPeach: FormBuilder = ({ seed }) => {
   for (const [u, v] of wedgeSpots) {
     const spot = at(u, v);
     const toSalmon = Math.atan2(centre.x + along.x * u - spot.x, centre.z + along.z * u - spot.z);
-    const w = posed(peachWedge(random, 0.8 + random() * 0.15), { turn: toSalmon, scale: 0.62 });
+    // Each turned its own way (the user: "more variety in rotation on these wedges").
+    const w = posed(peachWedge(random, 0.75 + random() * 0.25), { turn: toSalmon + signed(random) * 0.75, scale: 0.6 + random() * 0.06 });
     parts.push(...table.rest(clearOf(posed(w, { at: [spot.x, 4, spot.z] }), keep, middle, 0.05), { tilt: 0.3, sink: 0.12 }));
   }
 

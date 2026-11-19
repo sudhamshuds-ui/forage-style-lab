@@ -78,6 +78,11 @@ sketches and reference photos.
 - **Bread is a slice, not a turned tube** (baguette: "looks like a cylinder cut in half"): pressed
   and puffed out of round, toasted, the top resting right on the filling (no gap), the filling's
   layers showing at a cut end (build it whole, then cut through everything).
+- **Cut from a smooth body** (peach wedges, 2026-11-19: "dont have these bumps showing in
+  slices"): a whole fruit's signature (the peach's cleft, its deep stem dip) shows as dents and
+  ridges once cut; slices come from a plain body (`peachBody(random, true)`).
+- **Vary repeated pieces** (wedges: "need more variety in rotation"): each turned its own way, lying
+  on either cut face, a little different in size.
 - **Thick fillets** (salmon: "needs to be shaped proper"; then "it should be a fillet like this",
   with a watercolour of a cooked portion): a squarish block cut from the loin, its top nearly level
   with a soft groove, the belly only a little lower, well-rounded top edges, the fat's arcs on the
