@@ -1851,7 +1851,9 @@ if (kind > 0 && amount > 0.0) {
     // after the skin, the salmon's pale fat lines leaked into the crust as lighter stripes.
     float toneS = linearToOklab(colour).x - linearToOklab(uBaseColour).x;
     // Up to 0.99 it is the top only (a fillet seared in the pan); 1 all round (a steak's crust).
-    float upward = mix(smoothstep(0.25, 0.8, N.y + (fbm3(cmS * 0.8 + 11.0) - 0.5) * 0.4), 1.0, step(0.995, uSkin.w));
+    // A wide, uneven band where the crust gives way to the sides (the user, 2026-11-19: no sudden
+    // shift in colour from the top to the body).
+    float upward = mix(smoothstep(0.05, 0.85, N.y + (fbm3(cmS * 0.8 + 11.0) - 0.5) * 0.45), 1.0, step(0.995, uSkin.w));
     // Golden caramel on pale things (salmon, bread), a deep brown crust on dark ones (beef).
     float darkBase = smoothstep(0.7, 0.52, linearToOklab(uBaseColour).x);
     vec3 golden = mix(vec3(0.7, 0.05, 0.12), vec3(0.46, 0.06, 0.07), darkBase);
@@ -1861,8 +1863,8 @@ if (kind > 0 && amount > 0.0) {
     // down, caramelises darker too.
     vec3 marked = mix(golden, deep, 0.85) + vec3(toneS * 0.5 - 0.05, 0.01, -0.01);
     searLab = mix(searLab, marked, searMark * 0.8);
-    float turnDown = 1.0 - smoothstep(0.55, 0.92, N.y);
-    searLab = mix(searLab, deep + vec3(toneS * 0.5, 0.0, 0.0), turnDown * 0.45);
+    float turnDown = (1.0 - smoothstep(0.45, 0.95, N.y)) * smoothstep(0.1, 0.5, N.y);
+    searLab = mix(searLab, deep + vec3(toneS * 0.5, 0.0, 0.0), turnDown * 0.3);
     float broken = mix(0.8, 1.0, smoothstep(0.3, 0.6, fbm3(cmS * 3.0 + 1.0)));
     // A full sear (0.97 or more) covers what faces up completely: nothing of the raw surface shows
     // through (the salmon's white fat lines read as raw on a seared top, the user, 2026-11-18).

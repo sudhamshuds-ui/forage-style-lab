@@ -576,11 +576,12 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     rooms: [],
   },
   // A strawberry's cut flesh: pale rose at the heart to red at the edge, a crimson shade.
-  // Cooked salmon: no longer raw orange but a pale coral pink, nearly white where lit, a rose-violet
-  // shade (the user, 2026-11-18: "when cooked the body cannot be orange...its more pinkish white").
+  // Cooked salmon: opaque and pale, a light pink nearly white where lit, flaking into pale layers,
+  // a soft rose-mauve shade (the user, 2026-11-18/19: "its more pinkish white", "more lighter
+  // whitish"): cooking turns the translucent orange flesh opaque and pale.
   'cooked-salmon': {
     name: 'Cooked salmon',
-    colours: { lit: '#ffd9cb', base: '#ec9f8a', shadow: '#a0546e', glow: '#ff967c', highlight: '#fff8f2' },
+    colours: { lit: '#fff2ec', base: '#f5cdbf', shadow: '#ae7a8c', glow: '#ffb6a2', highlight: '#fffaf6' },
     rooms: [],
   },
   // A clean white porcelain plate: white where lit, a cool lilac shade, never grey or cream.

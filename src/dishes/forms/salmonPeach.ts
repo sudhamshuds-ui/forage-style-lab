@@ -27,7 +27,23 @@ import { DINNER_PLATE, ware } from '../kit/ware';
  * loin, its top nearly level with a soft groove down the middle and the belly side only a little
  * lower, its top edges well rounded; the cut ends show the fat's arcs.
  */
-const COOKED_PORTION: FilletShape = { length: 11, width: 6.6, height: 3.1, midline: -0.2, rounding: 0.6, backDrop: 0.12, bellyDrop: 0.26, groove: 0.22 };
+const COOKED_PORTION: FilletShape = {
+  length: 12,
+  width: 6.6,
+  height: 3.4,
+  midline: -0.2,
+  rounding: 0.6,
+  backDrop: 0.12,
+  bellyDrop: 0.26,
+  groove: 0.22,
+  // From the side (the user's sketch, 2026-11-19): a short end, the top rising in a long gentle
+  // arc to its peak about 40% along, then a long slope down to a thin tail.
+  along: (t) => {
+    const rise = 0.45 + 0.55 * Math.sin((Math.PI / 2) * Math.min(1, t / 0.4));
+    const fall = t <= 0.4 ? 1 : 1 - 0.82 * ((t - 0.4) / 0.6) ** 1.25;
+    return rise * fall;
+  },
+};
 
 /** A rotation that turns a direction to point straight down. */
 function alignDown(direction: Vector3): Matrix4 {
@@ -110,7 +126,8 @@ export const buildSalmonPeach: FormBuilder = ({ seed }) => {
   // The salmon: a thick portion (the pantry's fillet, shorter belly to back, taller), lying across
   // the middle on a gentle diagonal, settled into the foam.
   const fillet: FormPiece[] = [{ role: 'salmon_glow', geometry: salmonFillet(seed, COOKED_PORTION) }];
-  const salmon = table.rest(posed(fillet, { turn: Math.PI / 2 - 0.32, at: [-0.9, 3, 0.2] }), { tilt: 0.08, sink: 0.22 });
+  // On a diagonal, so its side shape (thick end rising to a peak, a long slope to the thin tail) reads.
+  const salmon = table.rest(posed(fillet, { turn: 0.75, at: [-0.9, 3, 0.2] }), { tilt: 0.08, sink: 0.22 });
   parts.push(...salmon);
   // What garnish must stay clear of: the salmon alone.
   const keep = new Table(dish.floor);

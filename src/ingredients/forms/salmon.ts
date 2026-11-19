@@ -48,6 +48,8 @@ export interface FilletShape {
   backDrop: number;
   bellyDrop: number;
   groove: number;
+  /** Its height along its length, t 0 at one end to 1 at the other, as a share (default level). */
+  along?: (t: number) => number;
 }
 
 /** The pantry's raw fillet. */
@@ -69,6 +71,7 @@ export function salmonFillet(seed: number, f: FilletShape = RAW_FILLET): BufferG
     const wander = 0.18 * Math.sin(x * 0.42 + phase[0]);
     h -= f.groove * Math.exp(-(((zc - wander) / 0.42) ** 2));
     // Along: one end a little thicker, and slow soft swells (flakes of muscle), never flat.
+    if (f.along) h *= f.along(Math.min(1, Math.max(0, x / f.length + 0.5)));
     h *= 1 + 0.07 * (x / (f.length / 2)) + 0.035 * Math.sin(x * 0.55 + phase[1]) + 0.025 * Math.sin(x * 1.1 + z * 0.6 + phase[2]);
     return h;
   };

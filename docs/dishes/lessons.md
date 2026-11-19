@@ -68,7 +68,13 @@ sketches and reference photos.
 - **Thick fillets** (salmon: "needs to be shaped proper"; then "it should be a fillet like this",
   with a watercolour of a cooked portion): a squarish block cut from the loin, its top nearly level
   with a soft groove, the belly only a little lower, well-rounded top edges, the fat's arcs on the
-  cut end (`salmonFillet` with its own measurements, `COOKED_PORTION`).
+  cut end (`salmonFillet` with its own measurements, `COOKED_PORTION`). From the side (the user's
+  sketch, 2026-11-19): a short end, the top rising in a long arc to a peak about 40% along, a long
+  slope down to a thin tail (`along`); plated on a diagonal so that side shape reads.
+- **Cooked salmon is pale** (2026-11-19: "more lighter whitish, research how salmon looks
+  cooked"): cooking turns the translucent orange opaque, a light pink nearly white where lit,
+  with paler fat lines; the crust fades into the sides over a wide uneven band, never a sudden
+  change of colour.
 - **Rounder knuckles** (drumsticks: "the bone ends need more rounded deform").
 - **A cut face needs points inside it** (built into the knife, 2026-11-18). A face with points only
   round its edge left a lime wheel's flesh one flat green: the shading from the core to the peel
