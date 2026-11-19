@@ -27,4 +27,13 @@ describe('dishes', () => {
       for (const piece of pieces) expect(named.has(piece.role) || piece.role === dish.entry.spec.parts[0], `${dish.entry.spec.id}: ${piece.role}`).toBe(true);
     }
   }, 60000);
+
+  // DESIGN.md: white plates are pristine (the user, 2026-11-19: "plate is still not clear white").
+  it('a porcelain plate is painted pristine (no speckled glaze)', () => {
+    for (const dish of DISHES) {
+      const plateFamily = dish.entry.spec.parts.find((p) => p.startsWith('plate@'))?.split('@')[1];
+      const skin = dish.entry.partSkins?.plate;
+      if (plateFamily === 'porcelain' && skin) expect(skin.amount, dish.entry.spec.id).toBeLessThanOrEqual(0.15);
+    }
+  });
 });

@@ -724,6 +724,7 @@ of dishes, kept on a Figma page; they will add a page of Pinterest dish referenc
 session: ask for the images in Figma.
 
 ## Dishes (branch `dishes`, from `kitchen`, started 2026-11-18; not merged)
+**Before building or changing a dish, read `DESIGN.md`** (the taste rules learned on the salmon dish).
 **Rule (the user, 2026-11-19): plan before building.** Every dish is first drawn from straight above
 in simple shapes (circles, rectangles, half circles), its composition worked out with symmetry, the
 golden ratio, big-medium-small and circular plating, then built from the same numbers: a `Plan`
