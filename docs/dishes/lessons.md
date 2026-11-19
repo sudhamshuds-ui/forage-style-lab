@@ -13,6 +13,9 @@ sketches and reference photos.
   composition, not a reinterpretation of it.
 
 ## Composition and presentation
+- **Draw the plan first, in simple shapes, from above** (the user's rule, 2026-11-19), composed with
+  symmetry, the golden ratio, big-medium-small and circular plating; build from its numbers. See
+  the README's "Plan first".
 - **Centre plating, big, medium, small** (salmon, then all: "use same plating approach as salmon
   dish. circular"). A round pool of the sauce in the middle; the hero (big) in it; the medium
   pieces round it; the small ones (thin wheels, berries, herbs) in clusters and scattered. The user
@@ -81,6 +84,9 @@ sketches and reference photos.
 - **Cut from a smooth body** (peach wedges, 2026-11-19: "dont have these bumps showing in
   slices"): a whole fruit's signature (the peach's cleft, its deep stem dip) shows as dents and
   ridges once cut; slices come from a plain body (`peachBody(random, true)`).
+- **Soft edges on cut fruit** (peach wedges, 2026-11-19: "all the edges are uniform and sharp"):
+  a wedge is one smooth form with rounded edges (surface nets, its cuts blended with
+  `roundedIntersection`), its cut faces caramelised darker at the rim, wet and glossy.
 - **Vary repeated pieces** (wedges: "need more variety in rotation"): each turned its own way, lying
   on either cut face, a little different in size.
 - **Thick fillets** (salmon: "needs to be shaped proper"; then "it should be a fillet like this",

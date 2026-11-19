@@ -724,6 +724,11 @@ of dishes, kept on a Figma page; they will add a page of Pinterest dish referenc
 session: ask for the images in Figma.
 
 ## Dishes (branch `dishes`, from `kitchen`, started 2026-11-18; not merged)
+**Rule (the user, 2026-11-19): plan before building.** Every dish is first drawn from straight above
+in simple shapes (circles, rectangles, half circles), its composition worked out with symmetry, the
+golden ratio, big-medium-small and circular plating, then built from the same numbers: a `Plan`
+(`src/dishes/kit/plan.ts`) in the dish's form file, drawn to `docs/dishes/plans/{id}.svg` by
+`npm run plans`, checked to fit the plate by `src/dishes/plans.test.ts`. Show the plan with the dish.
 The user's plan (2026-11-18): dishes designed by Claude from the pantry, the **three chosen
 ingredients always the heroes** (support ingredients allowed, never the hero); a reference for
 each made with the user's Figma AI (GPT 2.5) in our style; each built **in code** from the pantry's

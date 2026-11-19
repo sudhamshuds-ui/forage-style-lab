@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "build:kitchen": "tsc && vite build --config vite.kitchen.config.ts && mv dist-kitchen/kitchen.html dist-kitchen/index.html",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "plans": "WRITE_PLANS=1 vitest run src/dishes/plans.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

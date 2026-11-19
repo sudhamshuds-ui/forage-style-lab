@@ -1,6 +1,7 @@
-import { Matrix4, Quaternion, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, Matrix4, Quaternion, Vector3 } from 'three';
+import { relaxOnSurface, surfaceNets } from '../../ingredients/forms/kit/surfaceNets';
+import { roundedIntersection } from '../../ingredients/forms/kit/wedge';
 import { salmonFillet, type FilletShape } from '../../ingredients/forms/salmon';
-import { peachBody } from '../../ingredients/forms/peach';
 import { limeBody, LIME_SIZE } from '../../ingredients/forms/lime';
 import { leafPiece } from '../../ingredients/forms/kit/stemLeaf';
 import { seededRandom, signed } from '../../ingredients/forms/kit/random';
@@ -9,6 +10,7 @@ import { cutPieces, knife } from '../kit/cut';
 import { Table, clearOf, plate, posed } from '../kit/place';
 import { pool, wobble } from '../kit/pool';
 import { DINNER_PLATE, ware } from '../kit/ware';
+import type { Plan } from '../kit/plan';
 
 /**
  * Seared salmon, seared peach, lime foam (salmon + peach + lime; fine dining, a main).
@@ -53,21 +55,66 @@ function alignDown(direction: Vector3): Matrix4 {
   return new Matrix4().makeRotationFromQuaternion(q);
 }
 
-/** A peach wedge: two cuts through the stone's axis, `angle` apart, laid on one cut face. */
+/**
+ * A peach wedge with soft, rounded edges (the user's photo, 2026-11-19: "all the edges are uniform
+ * and sharp"): one smooth form, the peach's round body and two cuts through its stone's axis
+ * blended with rounded corners, meshed whole (surface nets), then split into its skin and its
+ * flesh faces along the rounded edge, sharing one set of smooth normals so no crease shows.
+ * Laid on one cut face (either), the other turned to look along +z.
+ */
 function peachWedge(random: () => number, angle: number): FormPiece[] {
-  const { skin } = peachBody(random, true);
-  // The flesh's map: 0 at the stone's axis, 1 at the skin.
-  const flesh = (p: Vector3) => ({ uv: [Math.min(1, Math.hypot(p.x, p.z) / 3.55), 0] });
+  const R = 3.55;
+  const H = 3.45;
   const a = random() * Math.PI * 2;
   const n1 = new Vector3(Math.sin(a), 0, -Math.cos(a));
   const n2 = new Vector3(-Math.sin(a + angle), 0, Math.cos(a + angle));
-  let pieces: FormPiece[] = [{ role: 'peach_glow', geometry: skin }];
-  pieces = cutPieces(pieces, knife(new Vector3(), n1), 'peachFlesh', flesh);
-  pieces = cutPieces(pieces, knife(new Vector3(), n2), 'peachFlesh', flesh);
-  // Lying on one cut face (either one), the other, seared face up; then turned so that face looks
-  // along +z (the caller turns it toward the salmon, each a little its own way).
+  const lump = random() * 6;
+  const body = (x: number, y: number, z: number) => {
+    // A soft, slightly lopsided ball (no cleft, no stem dip: cut through they read as bumps).
+    const k = 1 + 0.03 * Math.sin(2 * Math.atan2(z, x) + lump) + 0.02 * Math.sin(3 * y + lump);
+    const q = Math.hypot(x / (R * k), y / H, z / (R * k));
+    return (q - 1) * Math.min(R, H);
+  };
+  const shape = (x: number, y: number, z: number) => roundedIntersection([body(x, y, z), x * n1.x + z * n1.z, x * n2.x + z * n2.z], 0.32);
+  const cell = 0.11;
+  const geometry = relaxOnSurface(surfaceNets(shape, new Vector3(-R - 0.6, -H - 0.6, -R - 0.6), new Vector3(R + 0.6, H + 0.6, R + 0.6), cell), shape, cell);
+  geometry.computeVertexNormals();
+  // Split: a triangle belongs to the skin where the body is nearer than either cut.
+  const pos = geometry.getAttribute('position');
+  const nor = geometry.getAttribute('normal');
+  const index = geometry.getIndex()!;
+  const skin: number[][] = [[], [], [], []];
+  const flesh: number[][] = [[], [], [], []];
+  for (let t = 0; t < index.count; t += 3) {
+    const ids = [index.getX(t), index.getX(t + 1), index.getX(t + 2)];
+    const c = ids.reduce((sum, i) => sum.add(new Vector3().fromBufferAttribute(pos, i)), new Vector3()).multiplyScalar(1 / 3);
+    const toSkin = Math.abs(body(c.x, c.y, c.z));
+    const toCut = Math.min(Math.abs(c.x * n1.x + c.z * n1.z), Math.abs(c.x * n2.x + c.z * n2.z));
+    const into = toSkin < toCut ? skin : flesh;
+    for (const i of ids) {
+      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+      into[0].push(x, y, z);
+      into[1].push(nor.getX(i), nor.getY(i), nor.getZ(i));
+      // Skin: height share (the peach skin's map); flesh: 0 at the stone's axis, 1 at the skin.
+      into[2].push(into === skin ? (y + H) / (2 * H) : Math.min(1, Math.hypot(x, z) / R), 0);
+      into[3].push(x, y, z);
+    }
+  }
+  const build = (arrays: number[][]) => {
+    const g = new BufferGeometry();
+    g.setAttribute('position', new BufferAttribute(new Float32Array(arrays[0]), 3));
+    g.setAttribute('normal', new BufferAttribute(new Float32Array(arrays[1]), 3));
+    g.setAttribute('uv', new BufferAttribute(new Float32Array(arrays[2]), 2));
+    g.setAttribute('ownPos', new BufferAttribute(new Float32Array(arrays[3]), 3));
+    return g;
+  };
+  const pieces: FormPiece[] = [
+    { role: 'peach_glow', geometry: build(skin), keepNormals: true },
+    { role: 'peachFlesh', geometry: build(flesh), keepNormals: true },
+  ];
   const flip = random() < 0.5;
-  const down = alignDown(flip ? n2 : n1);
+  // Lying on a cut face: the cut's outward direction (minus its plane normal) turned down.
+  const down = alignDown((flip ? n2 : n1).clone());
   const up = (flip ? n1 : n2).clone().applyMatrix4(down);
   const toCamera = Math.atan2(up.x, up.z);
   return posed(posed(pieces, down), { turn: -toCamera });
@@ -95,23 +142,52 @@ function herb(random: () => number, x: number, y: number, z: number): FormPiece 
   };
 }
 
+// The plating, measured from the user's top-view sketch (Figma node 234:251, 2026-11-18; "u can
+// clearly see the difference...in sizes, rotation and placement", 2026-11-19): a foam circle on the
+// golden circle (the plate's radius over phi), filling most of the well; the salmon (big, 13 x 6
+// cm) across it, its long side about 18 degrees off front-to-back, a little left of the middle;
+// round it, in the salmon's own frame (u along it from its back end, v across it, cm): three small
+// lime wheels past its back corner, two by its front side opposite (small), peach wedges (medium)
+// by its back side, against its other side and off its front corner, cut faces toward it. The plan
+// below draws exactly these numbers (docs/dishes/plans/dish-salmon-peach.svg).
+const centre = new Vector3(-2.2, 0, 0.5);
+const along = new Vector3(0.315, 0, 0.949).normalize();
+const right = new Vector3(0.949, 0, -0.315);
+const at = (u: number, v: number) => centre.clone().addScaledVector(along, u).addScaledVector(right, v);
+const FOAM = { at: [-0.7, 0] as [number, number], r: 8.7 };
+const WEDGES: [number, number][] = [[-4.0, -4.1], [0.35, 4.5], [3.7, 6.5]];
+const WHEELS: [number, number][] = [[-4.3, 4.4], [-3.4, 6.6], [-2.0, 4.5], [-1.3, -5.0], [0.6, -3.6]];
+
+/** The salmon dish's plan, from straight above (the shapes the dish is built from). */
+export const SALMON_PLAN: Plan = {
+  title: 'Seared salmon, caramelised peach, lime foam',
+  plate: DINNER_PLATE.radius,
+  well: DINNER_PLATE.well,
+  shapes: [
+    { kind: 'circle', label: 'foam', size: 'ground', at: FOAM.at, r: FOAM.r },
+    { kind: 'rect', label: 'salmon', size: 'big', at: [centre.x, centre.z], w: 6.2, h: 13, angle: (-Math.atan2(along.x, along.z) * 180) / Math.PI, round: 0.8 },
+    ...WEDGES.map(([u, v]) => {
+      const p = at(u, v);
+      const toSalmon = at(u, 0).sub(p);
+      return { kind: 'half' as const, label: 'peach', size: 'medium' as const, at: [p.x, p.z] as [number, number], r: 2.1, angle: (Math.atan2(toSalmon.x, -toSalmon.z) * 180) / Math.PI };
+    }),
+    ...WHEELS.map(([u, v]) => {
+      const p = at(u, v);
+      return { kind: 'circle' as const, label: 'lime', size: 'small' as const, at: [p.x, p.z] as [number, number], r: 1.75 };
+    }),
+  ],
+  notes: [
+    'Big: the salmon, a little left of the middle. Medium: three peach wedges.',
+    'Small: five thin lime wheels in two clusters, on a diagonal across the salmon.',
+    'Circular: the foam on the golden circle; the garnish rings the salmon in odd numbers.',
+  ],
+};
+
 export const buildSalmonPeach: FormBuilder = ({ seed }) => {
   const random = seededRandom(seed ^ 0x5a1e);
   const dish = ware(DINNER_PLATE);
   const table = new Table(dish.floor);
   const parts: FormPiece[] = [];
-
-  // The plating, measured from the user's top-view sketch (Figma node 234:251, 2026-11-18;
-  // "u can clearly see the difference...in sizes, rotation and placement", 2026-11-19): a foam
-  // circle filling most of the well; the salmon (13 x 6 cm) across it, its long side about 18
-  // degrees off front-to-back, a little left of the middle; round it, in the salmon's own frame (u
-  // along it from its back end, v to its right, cm): three small lime wheels past its back right
-  // corner, two by its front left side, a peach wedge by its back left, one against its right side
-  // and one off its front right corner, the wedges' cut faces turned toward the salmon.
-  const centre = new Vector3(-2.2, 0, 0.5);
-  const along = new Vector3(0.315, 0, 0.949).normalize();
-  const right = new Vector3(0.949, 0, -0.315);
-  const at = (u: number, v: number) => centre.clone().addScaledVector(along, u).addScaledVector(right, v);
 
   // The foam: a round pool filling most of the well, full of bubbles of several sizes.
   const bubbles = Array.from({ length: 220 }, () => {
@@ -128,8 +204,8 @@ export const buildSalmonPeach: FormBuilder = ({ seed }) => {
     return h;
   };
   const foam = pool({
-    outline: wobble(8.7, [[3, 0.025, random() * 6], [5, 0.02, random() * 6], [9, 0.012, random() * 6]]),
-    at: [-0.7, 0],
+    outline: wobble(FOAM.r, [[3, 0.025, random() * 6], [5, 0.02, random() * 6], [9, 0.012, random() * 6]]),
+    at: FOAM.at,
     depth: 0.4,
     floor: dish.floor,
     edge: 0.3,
@@ -166,8 +242,7 @@ export const buildSalmonPeach: FormBuilder = ({ seed }) => {
 
   // Seared peach wedges (medium, about 4 cm across), their cut faces toward the salmon, resting
   // against its sides, never on it.
-  const wedgeSpots: [number, number][] = [[-4.0, -4.1], [0.35, 4.5], [3.7, 6.5]];
-  for (const [u, v] of wedgeSpots) {
+  for (const [u, v] of WEDGES) {
     const spot = at(u, v);
     const toSalmon = Math.atan2(centre.x + along.x * u - spot.x, centre.z + along.z * u - spot.z);
     // Each turned its own way (the user: "more variety in rotation on these wedges").
@@ -177,8 +252,7 @@ export const buildSalmonPeach: FormBuilder = ({ seed }) => {
 
   // Thin lime wheels (small, about 3.5 cm), overlapping like fallen coins: three past the back
   // right corner, two by the front left side.
-  const wheelSpots: [number, number][] = [[-4.3, 4.4], [-3.4, 6.6], [-2.0, 4.5], [-1.3, -5.0], [0.6, -3.6]];
-  for (const [u, v] of wheelSpots) {
+  for (const [u, v] of WHEELS) {
     const spot = at(u, v);
     const wheel = posed(limeWheel(random, 0.2), { turn: random() * 6, scale: 0.66 });
     parts.push(...table.rest(clearOf(posed(wheel, { at: [spot.x, 4, spot.z] }), keep, middle, 0.05), { tilt: 0.5, sink: 0.08 }));

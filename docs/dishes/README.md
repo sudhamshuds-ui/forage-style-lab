@@ -4,6 +4,23 @@ What the kitchen's Cook button reveals: a dish painted in the same style as the 
 in code from the pantry's own forms (the same peach, the same lime, cut with the knife and plated).
 
 ## How a dish is made
+- **Plan first** (the user's rule, 2026-11-19: "always make a 2d drawing of the dish, its
+  composition and plating first from top view...using basic forms/shapes.. and then recreate it
+  using the elements. use theory of symmetry, golden ratio, BMS, circular plating"). A `Plan` in the
+  dish's form file (`src/dishes/kit/plan.ts`): a circle for each pool, a rectangle for a fillet or a
+  slab, a half circle for a wedge, small circles for wheels, berries and garnish, each tagged big,
+  medium or small. `npm run plans` draws them to `docs/dishes/plans/{id}.svg` with the guides (the
+  plate, its well, the golden circle at the plate's radius over phi, the centre cross). Compose on
+  the drawing:
+  - **Big, medium, small**: one hero, a few medium pieces, small ones in clusters; sizes clearly
+    stepped.
+  - **Circular plating**: a round base (pool, bed) centred or on the golden circle; the rest rings
+    the hero.
+  - **Golden ratio**: the hero's middle off centre, near the golden circle; groups split about
+    62 to 38, not half and half.
+  - **Symmetry, broken**: balance across the plate's centre, but never mirror-even; odd numbers
+    (three, five) in each group.
+  The dish is then built from the plan's own numbers, and checked from straight above against it.
 - **Reference first.** Each dish starts from a reference painting made with the user's Figma AI
   (`generate_image`, GPT 2.5) in our style: soft light, muted room, a painterly gouache plate. The
   references live on the Figma page "Dish refs (generated)" (node 214:8), one board per batch.

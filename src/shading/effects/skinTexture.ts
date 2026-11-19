@@ -1796,7 +1796,7 @@ if (kind > 0 && amount > 0.0) {
       core.x += tone * 0.8;
       lab = mix(lab, core, (1.0 - smoothstep(0.0, 0.5, r + wander)) * 0.7 * amount);
       float fibre = valueNoise3(vec3(around * 9.0, r * 2.5, q.y * 0.6 + 2.0));
-      lab.x += (fibre - 0.5) * 0.05 * smoothstep(0.1, 0.4, r) * amount;
+      lab.x += (fibre - 0.5) * 0.08 * smoothstep(0.1, 0.4, r) * amount;
       vec3 skinLab = linearToOklab(uMelonGreen);
       skinLab.x += tone * 0.8;
       // Citrus (a lime wheel): uv.y counts the segments round the middle; thin pale membranes
@@ -1826,7 +1826,8 @@ if (kind > 0 && amount > 0.0) {
       // in from the rim in soft, uneven patches, deeper right at the edge; the middle stays fresh.
       if (uSkin.w > 0.0) {
         float edge = smoothstep(0.45, 0.98, r + (fbm3(cm * 1.6 + 2.0) - 0.5) * 0.35);
-        vec3 brown = mix(vec3(0.66 + tone * 0.6, 0.05, 0.11), vec3(0.5 + tone * 0.5, 0.06, 0.08), smoothstep(0.75, 1.0, r));
+        // (Deepening to a mahogany right at the rim, like caramelised fruit: the user's photo.)
+        vec3 brown = mix(vec3(0.66 + tone * 0.6, 0.05, 0.11), vec3(0.42 + tone * 0.5, 0.07, 0.07), smoothstep(0.7, 1.0, r));
         lab = mix(lab, brown, edge * uSkin.w * 0.85);
       }
       lab = mix(lab, linearToOklab(uGlowColour), clamp(turnBand * 0.35 + (1.0 - lit) * 0.22, 0.0, 0.45) * amount);
