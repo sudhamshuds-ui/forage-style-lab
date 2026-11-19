@@ -1,74 +1,87 @@
-import { Vector3 } from 'three';
+import { SphereGeometry, Vector3 } from 'three';
 import { mushroomUpright } from '../../ingredients/forms/mushroom';
-import { buildEgg } from '../../ingredients/forms/egg';
 import { leafPiece } from '../../ingredients/forms/kit/stemLeaf';
 import { seededRandom, signed } from '../../ingredients/forms/kit/random';
 import type { FormBuilder, FormPiece } from '../../ingredients/forms/kit/piece';
 import { cutPieces, knife } from '../kit/cut';
-import { inCm, plate, posed, roles, setDown, surfaceOf } from '../kit/place';
+import { Table, plate, posed } from '../kit/place';
 import { pool, wobble } from '../kit/pool';
 import { PASTA_BOWL, ware } from '../kit/ware';
 
 /**
  * Soft egg in butter-roasted mushrooms (eggs + mushrooms + butter; a starter).
- * After the generated reference on the Figma page "Dish refs (generated)" (node 214:6).
+ * After the generated reference (Figma node 214:6) and the user's notes (node 238:38,
+ * 2026-11-18: "plating more circular. place egg in center, mushrooms around it ... sauce as a
+ * pool circle under it and then drizzled over. then the garnish on top of everything").
  *
- * In a wide cream bowl: a pool of golden brown butter, a ring of roasted mushrooms (halved to
- * show their pale insides, and whole caps), a soft fried egg in the middle with its yolk up, and
- * a few small herb leaves.
+ * In a wide cream bowl: a round pool of brown butter; a soft fried egg in the middle, round with
+ * a soft edge (no browned lace), its yolk domed; mushrooms in a ring round it, halved and whole,
+ * leaning on each other and on the egg's edge, seared golden; butter drizzled over them; herbs
+ * scattered over everything last.
  */
 export const buildEggMushroom: FormBuilder = ({ seed }) => {
   const random = seededRandom(seed ^ 0xe95);
   const bowl = ware(PASTA_BOWL);
+  const table = new Table(bowl.floor);
   const parts: FormPiece[] = [];
 
-  // The brown butter: a golden pool filling the bowl's well.
-  const butter = pool({ outline: wobble(8.6, [[3, 0.05, random() * 6], [5, 0.04, random() * 6]]), at: [0, 0], depth: 0.35, edge: 0.3, floor: bowl.floor });
-  parts.push({ role: 'butter', geometry: butter });
+  // The brown butter: a round pool filling the bowl's well.
+  const butter = pool({ outline: wobble(7.6, [[3, 0.025, random() * 6], [5, 0.02, random() * 6]]), at: [0, 0], depth: 0.35, edge: 0.3, floor: bowl.floor, rings: 40, segments: 120 });
+  table.add([{ role: 'butter', geometry: butter }]);
 
-  // The egg in the middle: the pantry's fried egg (its white and yolk, no pan), a little smaller.
-  const egg = posed(roles(inCm(buildEgg({ state: 'whole', seed })), { white: 'white', yolk: 'yolk' }), { scale: 0.8, turn: random() * 6 });
-  setDown(egg, surfaceOf([{ role: 'butter', geometry: butter }], bowl.floor), 0.1);
-  // The egg goes first: it is the hero (the main highlight, its own skin).
-  parts.unshift(...egg);
-  const eggSurface = surfaceOf(egg, () => -10);
+  // The egg: a round, soft-edged white set on the butter, the yolk domed in its middle.
+  const white = pool({
+    outline: wobble(4.2, [[2, 0.05, random() * 6], [3, 0.04, random() * 6], [5, 0.02, random() * 6]]),
+    at: [0.2, 0.1],
+    depth: 0.55,
+    edge: 0.55,
+    floor: (x, z) => table.height(x, z) - 0.05,
+    bumps: (x, z, rn) => 0.12 * Math.sin(x * 1.3 + 1) * Math.sin(z * 1.1 + 2) * (1 - rn),
+    rings: 30,
+    segments: 96,
+  });
+  table.add([{ role: 'white', geometry: white }]);
+  const yolk = new SphereGeometry(1.5, 40, 24);
+  yolk.scale(1, 0.62, 1);
+  yolk.translate(0.45, table.height(0.45, -0.1) + 0.45, -0.1);
+  parts.push({ role: 'white', geometry: white }, { role: 'yolk', geometry: yolk });
+  table.add([{ role: 'yolk', geometry: yolk }]);
 
-  // Mushrooms round the egg: halves lying cut face up and whole ones tipped on their side.
-  const count = 11;
+  // Mushrooms in a ring round the egg: two of every three halved through the stem (its pale inside
+  // up), the others whole, tipped onto their side; each settles where it lands, leaning on its
+  // neighbours and the egg's edge.
+  const count = 12;
   for (let k = 0; k < count; k++) {
-    const around = (k / count) * Math.PI * 2 + signed(random) * 0.2;
-    const reach = 6.7 + signed(random) * 0.5;
-    const { geometry } = mushroomUpright(0.62 + random() * 0.18, k, random);
+    const around = (k / count) * Math.PI * 2 + signed(random) * 0.12;
+    const reach = 5.9 + signed(random) * 0.35;
+    const { geometry } = mushroomUpright(0.6 + random() * 0.16, k, random);
     let m: FormPiece[] = [{ role: 'mushroom', geometry }];
     if (k % 3 !== 2) {
-      // Halved through the stem: its pale inside up.
       m = cutPieces(m, knife(new Vector3(0, 0, 0), new Vector3(0, 0, 1)), 'mushroomCut', 'radial');
-      m = posed(m, { tip: -Math.PI / 2 + 0.15 });
+      m = posed(m, { tip: -Math.PI / 2 });
     } else {
-      // Whole, tipped over onto its cap's rim.
-      m = posed(m, { tip: -1.1 });
+      m = posed(m, { tip: -1.25 });
     }
-    m = posed(m, { turn: around + Math.PI / 2 + signed(random) * 0.6 });
-    const placed = posed(m, { at: [Math.cos(around) * reach, 0, Math.sin(around) * reach] });
-    // On the butter and the bowl only (stacked on each other, they rode up into the air).
-    setDown(placed, surfaceOf(parts.filter((p) => p.role === 'butter'), bowl.floor), 0.2);
-    parts.push(...placed);
+    // Stems pointing in toward the egg, caps out.
+    m = posed(m, { turn: -around - Math.PI / 2 + signed(random) * 0.4 });
+    const placed = posed(m, { at: [Math.cos(around) * reach, 6, Math.sin(around) * reach] });
+    // A half barely rocks (left free, it rolled onto its side and hid its face); a whole one
+    // settles onto whatever it leans on.
+    parts.push(...table.rest(placed, { tilt: k % 3 !== 2 ? 0.12 : 0.45, sink: 0.15 }));
   }
 
-  // Herb leaves: small flat-leaf parsley leaves scattered over the mushrooms and the egg's edge.
-  const top = surfaceOf(parts.filter((p) => p.role !== 'butter'), bowl.floor);
-  for (let k = 0; k < 9; k++) {
+  // Herbs last, over everything: small parsley leaves on whatever is highest where they fall.
+  for (let k = 0; k < 14; k++) {
     const a = random() * Math.PI * 2;
-    const r = 4.5 + random() * 3.5;
+    const r = 1.5 + random() * 6.0;
     const x = Math.cos(a) * r;
     const z = Math.sin(a) * r;
-    const y = Math.max(top(x, z), eggSurface(x, z)) + 0.05;
     const leaf = leafPiece({
-      base: new Vector3(x, y, z),
+      base: new Vector3(x, table.height(x, z) + 0.04, z),
       turn: random() * Math.PI * 2,
-      length: 1.3 + random() * 0.5,
-      width: 0.75 + random() * 0.2,
-      lift: (d) => 0.08 * d,
+      length: 1.1 + random() * 0.4,
+      width: 0.65 + random() * 0.2,
+      lift: (d) => 0.06 * d,
       fold: 0.25,
       twist: signed(random) * 0.3,
       rows: 8,
@@ -76,6 +89,7 @@ export const buildEggMushroom: FormBuilder = ({ seed }) => {
     parts.push({ role: 'herb', geometry: leaf, doubleSided: true });
   }
 
+  parts.push({ role: 'butter', geometry: butter });
   parts.push({ role: 'bowl', geometry: bowl.geometry });
   return plate(parts);
 };

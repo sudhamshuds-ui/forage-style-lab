@@ -1,35 +1,69 @@
-import { Vector3 } from 'three';
+import { BufferAttribute, Vector3, type BufferGeometry } from 'three';
 import { buildBread } from '../../ingredients/forms/bread';
 import { strawberryBody } from '../../ingredients/forms/strawberry';
 import { paperSheet } from '../../ingredients/forms/kit/block';
 import { seededRandom, signed } from '../../ingredients/forms/kit/random';
 import type { FormBuilder, FormPiece } from '../../ingredients/forms/kit/piece';
 import { cutPieces, knife } from '../kit/cut';
-import { inCm, plate, posed, setDown, surfaceOf } from '../kit/place';
+import { Table, inCm, plate, posed } from '../kit/place';
 import { pool, wobble } from '../kit/pool';
 
 /**
  * Strawberry and melted cheese baguette (baguette + cheese + strawberry; street food, a snack).
- * After the generated reference on the Figma page "Dish refs (generated)" (node 214:3).
+ * After the generated reference (Figma node 214:3) and the user's notes (node 235:258,
+ * 2026-11-18: "weakest one ... recreate this").
  *
- * Two pieces of the pantry's baguette, each sliced open like a sandwich: strawberry slices on the
- * crumb, melted cheese running over them, a little strawberry jam, the top crust lifted and tipped
- * open. One rests on the other, on a crumpled sheet of baking paper.
+ * Two pieces of the pantry's baguette, each a pressed, toasted sandwich: the loaf cut into a
+ * short piece, puffed and pressed out of round (never a neat cylinder), split, its lower half
+ * spread with melted cheese that oozes over the edge, strawberry slices and halves on it with a
+ * spoon of jam running between them, the top half resting right on the filling (no gap). The cut
+ * ends face the camera, showing the layers. One piece rests across the other, on crumpled baking
+ * paper.
  */
 
-/** A section of the baguette, `length` cm long, cut from its middle. */
-function loafSection(seed: number, length: number): FormPiece[] {
-  let pieces = inCm(buildBread({ state: 'baguette', seed }));
-  // The loaf lies along x; two cuts across it, keeping the middle.
-  pieces = cutPieces(pieces, knife(new Vector3(length / 2, 0, 0), new Vector3(1, 0, 0)), 'crumb');
-  pieces = cutPieces(pieces, knife(new Vector3(-length / 2, 0, 0), new Vector3(-1, 0, 0)), 'crumb');
-  return pieces;
+/** A soft, seeded bump field (cm), for pressing the bread out of round. */
+function lumps(random: () => number) {
+  const waves = Array.from({ length: 6 }, () => ({ k: new Vector3(signed(random), signed(random) * 0.6, signed(random)).multiplyScalar(0.35 + random() * 0.5), phase: random() * 6 }));
+  return (p: Vector3) => waves.reduce((sum, w) => sum + Math.sin(p.dot(w.k) + w.phase), 0) / waves.length;
+}
+
+/** Move every point of a shape (and its own frame stays where it was). */
+function deform(geometry: BufferGeometry, move: (p: Vector3) => Vector3): void {
+  const pos = geometry.getAttribute('position') as BufferAttribute;
+  const p = new Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    const q = move(p.fromBufferAttribute(pos, i).clone());
+    pos.setXYZ(i, q.x, q.y, q.z);
+  }
+  pos.needsUpdate = true;
 }
 
 /**
- * The flesh's map on a cut through a berry: 0 along its pale heart (the axis), 1 at the red skin,
- * measured against the berry's width at that height, so the heart runs the length of the berry.
+ * A piece of the loaf, `length` cm long, from its middle: pressed a little flatter, puffed in
+ * soft lumps, one end a little wider, so it reads as torn and toasted bread, not a turned tube.
  */
+function breadPiece(seed: number, random: () => number, length: number): FormPiece[] {
+  let pieces = inCm(buildBread({ state: 'baguette', seed }));
+  const bump = lumps(random);
+  const flare = 0.06 + random() * 0.05;
+  for (const piece of pieces) {
+    deform(piece.geometry, (p) => {
+      const b = bump(p);
+      // Pressed: the top comes down a little more than the sides; puffed in soft lumps.
+      const fine = bump(p.clone().multiplyScalar(2.6));
+      const y = p.y * (0.86 + 0.1 * b + 0.035 * fine);
+      const swell = 1 + 0.12 * b + 0.04 * fine + flare * (p.x / 16);
+      return new Vector3(p.x + 0.3 * bump(p.clone().multiplyScalar(1.7)), y, p.z * swell);
+    });
+  }
+  // The cut ends: slightly slanted, as a knife goes through a loaf.
+  pieces = cutPieces(pieces, knife(new Vector3(length / 2, 0, 0), new Vector3(1, 0, 0.12).normalize()), 'crumb');
+  pieces = cutPieces(pieces, knife(new Vector3(-length / 2, 0, 0), new Vector3(-1, 0, 0.08).normalize()), 'crumb');
+  // Centred on its middle.
+  return posed(pieces, { at: [0, 0, 0] });
+}
+
+/** The flesh's map on a cut through a berry: 0 along its pale heart, 1 at the red skin. */
 function berryFlesh(half: number, profileAt: (t: number) => number) {
   return (p: Vector3) => {
     const width = Math.max(0.2, profileAt(Math.min(1, Math.max(0, (half - p.y) / (2 * half)))));
@@ -37,73 +71,78 @@ function berryFlesh(half: number, profileAt: (t: number) => number) {
   };
 }
 
-/** A strawberry slice, lying flat: the berry cut lengthwise, `thickness` cm thick. */
+/** A strawberry slice, lying flat: cut lengthwise, `thickness` cm thick. */
 function berrySlice(random: () => number, thickness: number): FormPiece[] {
   const { berry, half, profileAt } = strawberryBody(random);
   const flesh = berryFlesh(half, profileAt);
   let pieces: FormPiece[] = [{ role: 'berry_glow', geometry: berry }];
   pieces = cutPieces(pieces, knife(new Vector3(0, 0, thickness / 2), new Vector3(0, 0, 1)), 'berryFlesh', flesh);
   pieces = cutPieces(pieces, knife(new Vector3(0, 0, -thickness / 2), new Vector3(0, 0, -1)), 'berryFlesh', flesh);
-  // Lay it flat (its cut faces up and down), tip pointing along x.
   return posed(pieces, { tip: -Math.PI / 2 });
 }
 
-/** A strawberry half: cut lengthwise, standing on its round back, its cut face toward +z. */
-function berryHalf(random: () => number): FormPiece[] {
-  const { berry, half, profileAt } = strawberryBody(random);
-  const flesh = berryFlesh(half, profileAt);
-  const pieces = cutPieces([{ role: 'berry_glow', geometry: berry }], knife(new Vector3(0, 0, 0), new Vector3(0, 0, 1)), 'berryFlesh', flesh);
-  // Tip forward a little, so the face looks up toward the camera, and lie the berry along x.
-  return posed(pieces, { roll: Math.PI / 2 + 0.25, tip: -0.35 });
-}
-
+/**
+ * One sandwich, its cut end toward +x. Built whole and filled on a table of its own (bottom bread,
+ * melted cheese, strawberry slices, jam, the top bread set right down on them), then cut across
+ * its front with the knife, so the bread, the cheese, the berries and the jam all show their
+ * layers at the cut, like the reference. The cheese oozes over the bread's sides.
+ */
 function sandwich(seed: number, random: () => number): FormPiece[] {
-  const section = loafSection(seed, 12);
-  // Slice it open, a little below the middle.
-  const cutAt = 3.2;
-  const bottom = cutPieces(section, knife(new Vector3(0, cutAt, 0), new Vector3(0, 1, 0)), 'crumb');
-  const top = cutPieces(section, knife(new Vector3(0, cutAt, 0), new Vector3(0, -1, 0)), 'crumb');
-  const parts: FormPiece[] = [...bottom];
-  // The crumb's height (a little lower past the bread's edge, so what hangs over droops softly).
-  const onBread = (x: number, z: number) => cutAt - 0.5 * Math.max(0, Math.abs(x) - 5.8) - 0.5 * Math.max(0, Math.abs(z) - 3.6);
+  const bread = breadPiece(seed, random, 15);
+  const splitAt = 2.9;
+  const bottom = cutPieces(bread, knife(new Vector3(0, splitAt, 0), new Vector3(0, 1, 0)), 'crumb');
+  const top = cutPieces(bread, knife(new Vector3(0, splitAt, 0), new Vector3(0, -1, 0)), 'crumb');
+  // (Nothing past the bread's edge falls away: the table's floor is just under the crumb.)
+  const table = new Table(() => splitAt - 0.4, 0.15);
+  table.add(bottom);
 
-  // Strawberry slices lying flat at the back, and a row of halves along the front edge, their
-  // red and pale cut faces turned out (the reference shows the berries' insides in the filling).
-  const slices: FormPiece[] = [];
-  for (let k = 0; k < 5; k++) {
-    const x = -4.4 + k * 2.2 + signed(random) * 0.3;
-    const z = -1.4 + signed(random) * 0.4;
-    const s = posed(berrySlice(random, 0.5), { turn: random() * Math.PI * 2, scale: 1.05 + random() * 0.15 });
-    const placed = posed(s, { at: [x, 0, z] });
-    setDown(placed, surfaceOf(slices, onBread), 0.05);
-    slices.push(...placed);
-  }
-  for (let k = 0; k < 4; k++) {
-    const x = -4.2 + k * 2.8 + signed(random) * 0.3;
-    const h = posed(berryHalf(random), { turn: signed(random) * 0.25, scale: 1.1 + random() * 0.1 });
-    const placed = posed(h, { at: [x, 0, 2.1 + signed(random) * 0.2] });
-    setDown(placed, onBread, 0.25);
-    slices.push(...placed);
-  }
-  parts.push(...slices);
-  const filled = surfaceOf(slices, onBread);
-
-  // Melted cheese over the strawberries, running toward the front edge in soft lobes.
+  // Melted cheese spread over the crumb, oozing a little way over its sides in soft lobes.
   const cheese = pool({
-    outline: wobble(5.4, [[2, 0.32, 0.2], [5, 0.08, random() * 6], [7, 0.06, random() * 6]]),
-    at: [0, 0.4],
-    depth: 0.35,
-    edge: 0.45,
-    floor: (x, z) => filled(x, z * 1.0) - 0.15,
+    outline: (a) => (1 / Math.hypot(Math.cos(a) / 7.0, Math.sin(a) / 4.7)) * (1 + 0.06 * Math.sin(5 * a + seed) + 0.05 * Math.sin(9 * a + seed * 2)),
+    at: [0, 0],
+    depth: 0.3,
+    edge: 0.3,
+    floor: (x, z) => table.height(x, z) - 0.04,
     rings: 30,
     segments: 120,
   });
-  // Squash it into the sandwich's long shape.
-  cheese.scale(1, 1, 0.62);
-  parts.push({ role: 'cheese', geometry: cheese });
-  // The top crust, lifted over the filling and tipped open toward the front.
-  const lift = Math.max(...[[0, 0], [-3, 1], [3, -1], [2, 1.5], [-2, -1.5], [-3, -1], [3, 1]].map(([x, z]) => filled(x, z))) - cutAt + 0.15;
-  parts.push(...posed(posed(top, { at: [0, lift, 4.3] }).map((p) => p), { tip: -0.16, at: [0, 0, -4.3] }));
+  table.add([{ role: 'cheese', geometry: cheese }]);
+
+  // Strawberry slices lying flat in two loose rows along the sandwich, overlapping a little.
+  const slices: FormPiece[][] = [];
+  for (let k = 0; k < 10; k++) {
+    const x = -6 + (k % 5) * 2.7 + signed(random) * 0.3;
+    const z = (k < 5 ? -1.2 : 1.2) + signed(random) * 0.3;
+    const s = posed(berrySlice(random, 0.65), { turn: random() * Math.PI * 2, scale: 1.05 });
+    slices.push(table.rest(posed(s, { at: [x, 8, z] }), { tilt: 0.08, sink: 0.2 }));
+  }
+
+  // Strawberry jam spooned over the berries, dark and glossy, running into the gaps.
+  const jam = pool({
+    outline: wobble(4.2, [[2, 0.2, random() * 6], [3, 0.12, random() * 6], [6, 0.06, random() * 6]]),
+    at: [0, 0],
+    depth: 0.16,
+    edge: 0.45,
+    floor: (x, z) => table.height(x, z) - 0.06,
+    rings: 26,
+    segments: 110,
+  });
+  jam.scale(1.45, 1, 0.75);
+  table.add([{ role: 'jam', geometry: jam }]);
+
+  // The top half set right down on the filling: no gap.
+  const lid = table.rest(posed(top, { at: [0, 1.2, 0] }), { tilt: 0.06, sink: 0.04, add: false });
+
+  // Cut across the front: every layer shows its section.
+  const front = knife(new Vector3(4.6, 0, 0), new Vector3(1, 0, -0.1).normalize());
+  const parts: FormPiece[] = [
+    ...cutPieces(bottom, front, 'crumb'),
+    ...cutPieces(lid, front, 'crumb'),
+    ...cutPieces([{ role: 'cheese', geometry: cheese }], front, 'cheese'),
+    ...cutPieces([{ role: 'jam', geometry: jam }], front, 'jam'),
+    ...slices.flatMap((slice) => cutPieces(slice, front, 'berryFlesh', 'radial')),
+  ];
+
   return parts;
 }
 
@@ -130,14 +169,13 @@ export const buildBerryBaguette: FormBuilder = ({ seed }) => {
       return h + corner * 3.5 + Math.max(0, Math.abs(u) - 0.85) * 2;
     },
   });
-  parts.push({ role: 'paper', geometry: paper, doubleSided: true });
 
-  // The lower sandwich on the paper, the upper one resting across it.
-  const lower = posed(sandwich(seed, random), { turn: 0.3, at: [-0.4, 0, 1.2] });
-  setDown(lower, () => 0.15, 0);
-  parts.unshift(...lower);
-  const upper = posed(sandwich((seed + 7919) >>> 0, random), { turn: -0.15, roll: 0.06, at: [0.6, 0, -0.6] });
-  setDown(upper, surfaceOf(lower, () => 0), 0.25);
-  parts.push(...upper);
+  // The two sandwiches, their cut ends toward the camera (+x turned to +z): the lower one on the
+  // paper, the upper one resting across it, a little back and turned.
+  const table = new Table(() => 0.25, 0.2);
+  const lower = table.rest(posed(sandwich(seed, random), { turn: -Math.PI / 2 + 0.25, at: [-0.3, 2, 1.3] }), { tilt: 0.06 });
+  const upper = table.rest(posed(sandwich((seed + 7919) >>> 0, random), { turn: -Math.PI / 2 - 0.18, at: [0.6, 12, -1.0] }), { tilt: 0.18, sink: 0.1 });
+  parts.push(...lower, ...upper);
+  parts.push({ role: 'paper', geometry: paper, doubleSided: true });
   return plate(parts);
 };

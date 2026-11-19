@@ -732,7 +732,15 @@ Lab built with `VITE_COLLECTION=dishes`: the registry deals the dishes, "Next di
 name as the title, the camera at 60 degrees looking down, framed higher). Learn from every note:
 `docs/dishes/lessons.md`, read before each batch. Plan, kit and workflow: `docs/dishes/README.md`.
 Batch 1 (the six references on Figma node 214:8) built: salmon and peach, strawberry baguette,
-tomahawk, egg and mushrooms, grape drumsticks, watermelon rice bowl. Waiting for review.
+tomahawk, egg and mushrooms, grape drumsticks, watermelon rice bowl. **First review** (the user's
+notes and plating sketches on Figma node 240:57, 2026-11-18) applied, waiting for the second look:
+centre plating (a round sauce pool, the hero in it, big, medium, small round it, per the user's top
+views), sauces drizzled over (`drizzle` on a skin), seared not charred (flesh browns at its edges;
+a full sear covers a top; the crust's tone follows the food), nothing floating or intersecting
+(`Table.rest`, `clearOf` in `kit/place.ts`), the baguette rebuilt (pressed, toasted bread; built
+whole then cut at the front so every layer shows), D-shaped avocado slices fanned in a curve, a
+flatter cooked rice (`riceBowlParts(seed, dome)`), the black faces on the user's Mac fixed (every
+dish part carries `ownPos`; `atan` nudged off zero; `dishes.test.ts`). Lessons: `docs/dishes/lessons.md`.
 The dish kit (`src/dishes/kit/`): the knife (`cut.ts`), plates and bowls (`ware.ts`), sauce pools
 (`pool.ts`), plating (`place.ts`). Shared additions: `partSkins` and `room` on an entry; skins
 `ceramic`, `flesh`, `sauce`, `charred` and `seared` (a crust on any skin); pantry forms export

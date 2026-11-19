@@ -248,6 +248,11 @@ function capFor(found: Vector3[][], plane: Plane, names: { name: string; size: n
  * added as a piece named `capRole`; if a piece by that name already exists, it is added to it.
  */
 export function cutPieces(pieces: FormPiece[], plane: Plane, capRole: string, extra?: CapAttributes | 'radial'): FormPiece[] {
+  // Every piece carries a map and its own frame, so the faces the knife makes get them too. A cut
+  // face with no frame of its own read as a zero point in the shader, and on Mac graphics cards
+  // the flesh skin's angle round that point came out "not a number": the face painted black
+  // (the user's screenshots, 2026-11-18: steak slices, strawberry slices, grapes, melon cubes).
+  for (const piece of pieces) withFrame(piece.geometry);
   const kept: FormPiece[] = [];
   const segments: [Vector3, Vector3][] = [];
   let names: { name: string; size: number }[] = [];
@@ -314,4 +319,12 @@ export function radialMap(cap: BufferGeometry): void {
     uv.setX(i, Math.min(1, p.distanceTo(centre) / edge));
   }
   uv.needsUpdate = true;
+}
+
+/** Give a shape the attributes skins read, if it has none: its own frame (where it is now) and a blank map. */
+export function withFrame(geometry: BufferGeometry, map = true): BufferGeometry {
+  const position = geometry.getAttribute('position') as BufferAttribute;
+  if (!geometry.getAttribute('ownPos')) geometry.setAttribute('ownPos', new BufferAttribute(Float32Array.from(position.array as ArrayLike<number>), 3));
+  if (map && !geometry.getAttribute('uv')) geometry.setAttribute('uv', new BufferAttribute(new Float32Array(position.count * 2), 2));
+  return geometry;
 }

@@ -2,45 +2,53 @@ import { Matrix4, Quaternion, Vector3 } from 'three';
 import { buildSalmon } from '../../ingredients/forms/salmon';
 import { peachBody } from '../../ingredients/forms/peach';
 import { limeBody, LIME_SIZE } from '../../ingredients/forms/lime';
+import { leafPiece } from '../../ingredients/forms/kit/stemLeaf';
 import { seededRandom, signed } from '../../ingredients/forms/kit/random';
 import type { FormBuilder, FormPiece } from '../../ingredients/forms/kit/piece';
 import { cutPieces, knife } from '../kit/cut';
-import { inCm, plate, posed, roles, setDown, surfaceOf } from '../kit/place';
+import { Table, clearOf, inCm, plate, posed, roles } from '../kit/place';
 import { pool, wobble } from '../kit/pool';
 import { DINNER_PLATE, ware } from '../kit/ware';
 
 /**
- * Seared salmon, charred peach, lime foam (salmon + peach + lime; fine dining, a main).
- * After the generated reference on the Figma page "Dish refs (generated)" (node 214:2).
+ * Seared salmon, seared peach, lime foam (salmon + peach + lime; fine dining, a main).
+ * After the generated reference (Figma node 214:2) and the user's notes and plating sketch
+ * (Figma node 234:251, 2026-11-18).
  *
- * On a cream stoneware plate: a pool of pale lime foam, the salmon fillet lying across it, three
- * peach wedges and three lime wheels tucked round it, leaning on the plate and on each other.
- * Everything is the pantry's own: the same salmon, the peach cut into wedges with the knife, the
- * lime cut into wheels.
+ * Centre plating, big, medium, small: a round pool of pale lime foam in the middle of a cream
+ * plate; the salmon (big) lying across it, a thick seared portion, a spoon of foam on it; seared
+ * peach wedges (medium) beside it on the right and the left; thin lime wheels (small) in two
+ * clusters, overlapping each other; flecks of herb. Nothing ever on top of the salmon but the
+ * foam, every piece resting on the plate or on its neighbours (the table's `rest`).
  */
 
-/** A peach half: cut through the stone's axis, laid skin down with its flesh up (grilled). */
-function peachHalf(random: () => number): FormPiece[] {
-  const { skin } = peachBody(random);
-  // The flesh's map: 0 at the stone's axis, 1 at the skin.
-  const flesh = (p: Vector3) => ({ uv: [Math.min(1, Math.hypot(p.x, p.z) / 3.55), 0] });
-  const a = random() * Math.PI * 2;
-  const n = new Vector3(Math.cos(a), 0, Math.sin(a));
-  const pieces = cutPieces([{ role: 'peach_glow', geometry: skin }], knife(new Vector3(), n), 'peachFlesh', flesh);
-  // Face up: the cut's normal turned to point up (its skin down).
-  return posed(pieces, alignDown(n.clone().negate()));
-}
-
 /** A rotation that turns a direction to point straight down. */
-function alignDown(direction: Vector3) {
+function alignDown(direction: Vector3): Matrix4 {
   const q = new Quaternion().setFromUnitVectors(direction.clone().normalize(), new Vector3(0, -1, 0));
   return new Matrix4().makeRotationFromQuaternion(q);
 }
 
-/** A lime wheel: the lime cut across its middle, a slice `thickness` cm thick, flesh both sides. */
+/** A peach wedge: two cuts through the stone's axis, `angle` apart, laid on one cut face. */
+function peachWedge(random: () => number, angle: number): FormPiece[] {
+  const { skin } = peachBody(random);
+  // The flesh's map: 0 at the stone's axis, 1 at the skin.
+  const flesh = (p: Vector3) => ({ uv: [Math.min(1, Math.hypot(p.x, p.z) / 3.55), 0] });
+  const a = random() * Math.PI * 2;
+  const n1 = new Vector3(Math.sin(a), 0, -Math.cos(a));
+  const n2 = new Vector3(-Math.sin(a + angle), 0, Math.cos(a + angle));
+  let pieces: FormPiece[] = [{ role: 'peach_glow', geometry: skin }];
+  pieces = cutPieces(pieces, knife(new Vector3(), n1), 'peachFlesh', flesh);
+  pieces = cutPieces(pieces, knife(new Vector3(), n2), 'peachFlesh', flesh);
+  // Lying on one cut face; then turned so the other, seared face looks toward the camera (+z).
+  const down = alignDown(n1);
+  const up = n2.clone().applyMatrix4(down);
+  const toCamera = Math.atan2(up.x, up.z);
+  return posed(posed(pieces, down), { turn: -toCamera });
+}
+
+/** A thin lime wheel: the lime cut across its middle, flesh both sides. */
 function limeWheel(random: () => number, thickness: number): FormPiece[] {
   const whole = limeBody(random);
-  // Its map for the cut flesh (the lime skin reads uv.y 1 as cut, uv.x 0 at the middle, 1 at the peel).
   // The flesh skin's map: x 0 at the middle, 1 at the peel; y counts the ten segments round it.
   const turn = random() * 6;
   const flesh = (p: Vector3) => ({ uv: [Math.min(1, Math.hypot(p.x, p.z) / LIME_SIZE.radius), ((Math.atan2(p.z, p.x) + Math.PI) / (2 * Math.PI)) * 10 + turn + 0.001] });
@@ -51,54 +59,97 @@ function limeWheel(random: () => number, thickness: number): FormPiece[] {
   return posed(pieces, { at: [0, -y, 0] });
 }
 
+/** A fleck of herb: a tiny leaf lying flat. */
+function herb(random: () => number, x: number, y: number, z: number): FormPiece {
+  return {
+    role: 'herb',
+    doubleSided: true,
+    geometry: leafPiece({ base: new Vector3(x, y, z), turn: random() * Math.PI * 2, length: 0.45 + random() * 0.35, width: 0.16 + random() * 0.08, lift: () => 0.02, fold: 0.1, twist: 0, rows: 4, cols: 2 }),
+  };
+}
+
 export const buildSalmonPeach: FormBuilder = ({ seed }) => {
   const random = seededRandom(seed ^ 0x5a1e);
   const dish = ware(DINNER_PLATE);
+  const table = new Table(dish.floor);
   const parts: FormPiece[] = [];
 
-  // The foam: a soft pale pool, a little off centre, full of small bubbles.
-  const bubbles = Array.from({ length: 140 }, () => ({ x: signed(random) * 6.5, z: signed(random) * 6.5, r: 0.12 + random() * 0.26 }));
-  const foam = pool({
-    outline: wobble(6.6, [[2, 0.14, random() * 6], [3, 0.09, random() * 6], [5, 0.05, random() * 6]]),
-    at: [1.2, 0.6],
-    depth: 0.45,
-    floor: dish.floor,
-    edge: 0.35,
-    bumps: (x, z) => {
-      let h = 0;
-      for (const b of bubbles) {
-        const d = Math.hypot(x - 1.2 - b.x, z - 0.6 - b.z) / b.r;
-        if (d < 1) h = Math.max(h, Math.sqrt(1 - d * d) * b.r * 0.7);
-      }
-      return h;
-    },
+  // The foam: a round pool in the middle of the plate, full of bubbles of several sizes.
+  const bubbles = Array.from({ length: 150 }, () => {
+    const a = random() * Math.PI * 2;
+    const r = Math.sqrt(random()) * 6.6;
+    return { x: Math.cos(a) * r, z: Math.sin(a) * r, r: 0.16 + random() ** 2 * 0.42 };
   });
+  const foamBumps = (cx: number, cz: number, list: typeof bubbles) => (x: number, z: number) => {
+    let h = 0;
+    for (const b of list) {
+      const d = Math.hypot(x - cx - b.x, z - cz - b.z) / b.r;
+      if (d < 1) h = Math.max(h, Math.sqrt(1 - d * d) * b.r * 0.75);
+    }
+    return h;
+  };
+  const foam = pool({
+    outline: wobble(7.4, [[3, 0.03, random() * 6], [5, 0.025, random() * 6], [9, 0.015, random() * 6]]),
+    at: [0, 0],
+    depth: 0.4,
+    floor: dish.floor,
+    edge: 0.3,
+    bumps: foamBumps(0, 0, bubbles),
+    rings: 44,
+    segments: 120,
+  });
+  table.add([{ role: 'foam', geometry: foam }]);
 
-  // The salmon: the pantry's fillet, a little smaller (a portion), lying across the foam.
-  const salmon = posed(roles(inCm(buildSalmon({ state: 'whole', seed })), { flesh_glow: 'salmon_glow' }), { turn: 0.45, scale: 0.78 });
-  // Centre it, then set it down in the foam.
-  const centred = posed(salmon, { at: [-0.4, 0, -0.6] });
-  setDown(centred, surfaceOf([{ role: 'foam', geometry: foam }], dish.floor), 0.12);
-  parts.push(...centred);
+  // The salmon: a thick portion (the pantry's fillet, shorter belly to back, taller), lying across
+  // the middle on a gentle diagonal, settled into the foam.
+  const fillet = roles(inCm(buildSalmon({ state: 'whole', seed })), { flesh_glow: 'salmon_glow' });
+  const salmon = table.rest(posed(fillet, { scale: [1.12, 1.25, 0.95], turn: Math.PI / 2 - 0.32, at: [-0.9, 3, 0.2] }), { tilt: 0.08, sink: 0.22 });
+  parts.push(...salmon);
+  // What garnish must stay clear of: the salmon alone.
+  const keep = new Table(dish.floor);
+  keep.add(salmon);
+  const middle: [number, number] = [-0.9, 0.2];
+
+  // A spoon of foam on the salmon, following its top.
+  const onTop = pool({
+    outline: wobble(1.3, [[2, 0.18, random() * 6], [3, 0.1, random() * 6]]),
+    at: [-0.7, 0.3],
+    depth: 0.22,
+    floor: (x, z) => table.height(x, z),
+    edge: 0.5,
+    bumps: foamBumps(-0.5, -0.4, bubbles.slice(0, 40).map((b) => ({ ...b, x: b.x * 0.3, z: b.z * 0.3 }))),
+    rings: 18,
+    segments: 64,
+  });
+  onTop.scale(1, 1, 1.5);
+  onTop.translate(0, 0, 0.2);
+
   parts.push({ role: 'plate', geometry: dish.geometry });
-  parts.push({ role: 'foam', geometry: foam });
+  parts.push({ role: 'foam', geometry: foam }, { role: 'foam', geometry: onTop });
 
-  // Grilled peach halves, flesh up, round the front and left of the salmon, each tipped a little.
-  const halfSpots: [number, number, number, number][] = [[-5.4, 1.4, 0.4, 0.25], [-2.6, 5.0, -0.5, 0.2], [5.2, -3.6, 1.9, 0.3]];
-  for (const [x, z, turn, tip] of halfSpots) {
-    const h = posed(peachHalf(random), { turn, tip, scale: 0.72 });
-    const placed = posed(h, { at: [x, 0, z] });
-    setDown(placed, surfaceOf(parts.filter((p) => p.role === 'foam'), dish.floor), 0.15);
-    parts.push(...placed);
+  // Seared peach wedges (medium): two on the right of the salmon, one on the left, each lying on a
+  // cut face with its other face up, next to the salmon, never on it.
+  const wedges: [number, number, number][] = [[5.2, -1.2, 0.4], [4.9, 2.9, -0.5], [-7.0, -2.6, 2.4]];
+  for (const [x, z, turn] of wedges) {
+    const w = posed(peachWedge(random, 0.75 + random() * 0.15), { turn: turn * 0.3, scale: 0.9 });
+    parts.push(...table.rest(clearOf(posed(w, { at: [x, 4, z] }), keep, middle), { tilt: 0.35, sink: 0.12 }));
   }
 
-  // Lime wheels on the foam to the right and in front, lying almost flat, a little apart.
-  const wheelSpots: [number, number, number, number][] = [[5.6, 1.6, 0.5, 0.12], [3.0, 5.0, -0.4, 0.1], [0.9, 4.2, 1.2, 0.16]];
-  for (const [x, z, turn, tip] of wheelSpots) {
-    const wheel = posed(limeWheel(random, 0.5), { turn, tip, scale: 0.92 });
-    const placed = posed(wheel, { at: [x, 0, z] });
-    setDown(placed, surfaceOf(parts.filter((p) => p.role === 'foam'), dish.floor), 0.12);
-    parts.push(...placed);
+  // Thin lime wheels (small) in two clusters, overlapping like fallen coins: three at the back
+  // right, two at the front left.
+  const wheels: [number, number][] = [[1.0, -5.0], [2.9, -4.7], [1.9, -3.2], [-6.6, 1.5], [-5.2, 3.2]];
+  for (const [x, z] of wheels) {
+    const wheel = posed(limeWheel(random, 0.22), { turn: random() * 6, scale: 0.9 });
+    parts.push(...table.rest(clearOf(posed(wheel, { at: [x, 4, z] }), keep, middle, 0.1), { tilt: 0.5, sink: 0.08 }));
+  }
+
+  // Flecks of herb over the salmon and the foam.
+  for (let k = 0; k < 26; k++) {
+    const a = random() * Math.PI * 2;
+    const r = Math.sqrt(random()) * 6.5;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    parts.push(herb(random, x, table.height(x, z) + 0.03, z));
   }
 
   return plate(parts);

@@ -86,7 +86,10 @@ export type FamilyId =
   | 'tomato-flesh'
   | 'garlic-roast'
   | 'berry-flesh'
-  | 'lime-flesh';
+  | 'lime-flesh'
+  | 'berry-jam'
+  | 'bone-roast'
+  | 'cooked-rice';
 
 export interface ColourFamily {
   name: string;
@@ -571,6 +574,25 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     rooms: [],
   },
   // A strawberry's cut flesh: pale rose at the heart to red at the edge, a crimson shade.
+  // Cooked rice in a dish: warmer than the pantry's raw white, ivory with a golden glow, a lilac
+  // shade (the user, 2026-11-18: "add some colour to the rice...like its cooked").
+  'cooked-rice': {
+    name: 'Cooked rice',
+    colours: { lit: '#fffaea', base: '#f2e6cc', shadow: '#ad9fc4', glow: '#f8dca6', highlight: '#ffffff' },
+    rooms: [],
+  },
+  // A roasted bone: golden tan, browned, a rosy-brown shade (never a raw white).
+  'bone-roast': {
+    name: 'Roast bone',
+    colours: { lit: '#f2d4a2', base: '#cc9a62', shadow: '#6e4a48', glow: '#e4a25c', highlight: '#fff2dc' },
+    rooms: [],
+  },
+  // Strawberry jam: a deep glossy red, ruby where lit, a dark wine-plum in shadow.
+  'berry-jam': {
+    name: 'Berry jam',
+    colours: { lit: '#e8324a', base: '#a81834', shadow: '#4c0c2c', glow: '#f03a52', highlight: '#ffe0e6' },
+    rooms: [],
+  },
   // A lime's cut flesh: pale yellow-green, a sage shade.
   'lime-flesh': {
     name: 'Lime flesh',

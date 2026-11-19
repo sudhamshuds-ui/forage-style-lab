@@ -45,7 +45,8 @@ export const buildRice: FormBuilder = ({ state, seed }) => {
   ]);
 };
 
-export function riceBowlParts(seed: number): RiceBowlParts {
+/** `dome` scales how high the rice heaps (1: the pantry's tall dome; a dish may want it flatter). */
+export function riceBowlParts(seed: number, dome = 1): RiceBowlParts {
   const random = seededRandom(seed ^ 0x51ce);
   const ph = Array.from({ length: 12 }, () => random() * Math.PI * 2);
 
@@ -66,8 +67,8 @@ export function riceBowlParts(seed: number): RiceBowlParts {
     const rn = Math.min(1, Math.hypot(x, z) / radius);
     // A heaped dome, its top a little off centre, flatter on one side, lumpy with clumps.
     const off = Math.hypot((x - 0.5) / radius, (z + 0.3) / radius);
-    const dome = 3.7 * Math.max(0, 1 - Math.min(1, off) ** 2.1) ** 0.75 + 0.5 * (1 - rn * rn);
-    return (dome + 1.5 * lumps(x, z)) * smoothstep(1, 0.86, rn) + 0.25 * (1 - rn);
+    const heap = 3.7 * dome * Math.max(0, 1 - Math.min(1, off) ** 2.1) ** 0.75 + 0.5 * (1 - rn * rn);
+    return (heap + 1.5 * Math.min(1, dome * 1.4) * lumps(x, z)) * smoothstep(1, 0.86, rn) + 0.25 * (1 - rn);
   };
   const mound = moundGeometry({ radius, edge, rings: 40, segments: 88, height: (x, z) => moundAt(x, z) });
 
