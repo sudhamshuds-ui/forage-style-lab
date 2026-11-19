@@ -194,6 +194,12 @@ function tierScale(size: Size, info: ElementInfo, ingredient: string): number {
   return r > 2.6 ? 0.55 : 0.72;
 }
 
+/** Garnish never outgrows its ware: a piece's reach is capped (a share of the ware's reach), never below 0.45. */
+function fitWare(scale: number, info: ElementInfo, cap: number): number {
+  const reach = footprint(info, scale);
+  return reach > cap ? Math.max(0.45 * scale, (scale * cap) / reach) : scale;
+}
+
 /** Positions of `n` pieces of one element, as a group round (0, 0), with their turns. */
 function arrange(group: Group, n: number, info: ElementInfo, scale: number, random: () => number): { at: [number, number]; angle: number }[] {
   const out: { at: [number, number]; angle: number }[] = [];
@@ -290,7 +296,7 @@ export function composePlan(idea: DishIdea, seed = 1): ComposedPlan {
   const mediumPieces = ring.flatMap((g) => Array.from({ length: g.count }, (_, k) => ({ part: g.part, k })));
   mediumPieces.forEach(({ part, k }, i) => {
     const info = elementInfo(part.ingredient, part.form);
-    const scale = tierScale('medium', info, part.ingredient);
+    const scale = fitWare(tierScale('medium', info, part.ingredient), info, R * 0.34);
     const own = footprint(info, scale);
     const a = startAngle + (mediumPieces.length === 1 ? mediumArc / 2 : (mediumArc * i) / Math.max(1, mediumPieces.length - 1)) + signed(random) * 0.08;
     // Close round the hero, never out at the rim (the user's sketch); the 3D build slides them clear.
@@ -315,7 +321,7 @@ export function composePlan(idea: DishIdea, seed = 1): ComposedPlan {
   const smallArc = 2 * Math.PI - mediumArc;
   clusters.forEach((cluster, c) => {
     const info = elementInfo(cluster.part.ingredient, cluster.part.form);
-    const scale = tierScale('small', info, cluster.part.ingredient);
+    const scale = fitWare(tierScale('small', info, cluster.part.ingredient), info, R * 0.24);
     const own = footprint(info, scale);
     const a = startAngle + mediumArc + smallArc * ((c + 0.5) / clusters.length) + signed(random) * 0.1;
     const r = Math.min(R - own * 1.6, heroReach + own * 1.2 + 0.2);
