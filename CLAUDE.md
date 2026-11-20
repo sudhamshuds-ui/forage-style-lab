@@ -772,6 +772,12 @@ between; tested on a known block to half a centimetre) and measures it with the 
 The salmon reference is `references/dishes/salmon-peach.png`. First reading: the camera looks down
 about 38 degrees; the hand-built salmon follows the user's top view sketch, about 70 degrees round
 from the painting, where it lies across the plate.
+**Round 2 (salmon, steps 3 and 4, 2026-11-20)**: the user: "follow the painting's layout". `build.ts`
+builds the dish from the footprints (pantry forms fitted to each, set down with `rest`; limes lean
+by their oval, `leanOf`); `projection.ts` projects the painting from the painter's camera (a depth
+picture for what it saw; hue and saturation plus the painting's detail over each piece's average
+brightness, our light doing the lighting; unseen sides take the piece's average). Details in
+`docs/dishes/converter.md`.
 
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one

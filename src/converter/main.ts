@@ -1,5 +1,5 @@
 import {
-  ACESFilmicToneMapping,
+  NeutralToneMapping,
   BufferGeometry,
   CircleGeometry,
   Color,
@@ -33,6 +33,8 @@ import { UNITS_PER_CM } from '../ingredients/scale';
 import { cameraPose, worldToPixel } from './camera';
 import { describeCamera, rimOf, solveTrace, WARES, type DishTrace, type Footprint, type Solved, type TracedPiece } from './trace';
 import { SALMON_PEACH_TRACE } from './traces/salmonPeach';
+import { buildFromTrace } from './build';
+import { labToHex, Projector, referenceColours, type Lab } from './projection';
 
 /**
  * The dish converter, round 1 (docs/dishes/converter.md): the painting on the left with its
@@ -209,8 +211,9 @@ const canvas = $<HTMLCanvasElement>('canvas');
 const view = $('view');
 const renderer = new WebGLRenderer({ canvas, antialias: true });
 renderer.outputColorSpace = SRGBColorSpace;
-renderer.toneMapping = ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMapping = NeutralToneMapping;
+// A touch brighter than neutral, so the cream plate reads as cream, as painted.
+renderer.toneMappingExposure = 1.32;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PCFShadowMap;
 renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
@@ -221,8 +224,8 @@ const camera = new PerspectiveCamera(trace.fov, trace.picture.width / trace.pict
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = false;
 
-scene.add(new HemisphereLight('#fff6ec', '#b8aecb', 1.4));
-const sun = new DirectionalLight('#fff1df', 2.2);
+scene.add(new HemisphereLight('#f3f1ff', '#c4b8d6', 1.4));
+const sun = new DirectionalLight('#fff4e6', 2.2);
 // Upper left, a little in front (the Style Lab's key light).
 sun.position.set(-40, 60, 30);
 sun.castShadow = true;
@@ -244,6 +247,13 @@ const blockout = new Group();
 scene.add(blockout);
 const built = new Group();
 scene.add(built);
+// The dish built from the painting (step 3), painted with the painting's colours (step 4).
+const converted = new Group();
+scene.add(converted);
+// Shown at first: the converted dish in the painting's colours. The blockout and the hand-built
+// dish are a button away.
+blockout.visible = false;
+built.visible = false;
 
 /** Each footprint raised to its piece's height: a block per piece, see-through. */
 function drawBlockout() {
@@ -289,6 +299,87 @@ function buildHandBuilt() {
   }
   invalidate();
 }
+
+// ---------------------------------------------------------------------------------------------
+// Steps 3 and 4: the converted dish and the projector.
+
+let projector: Projector | null = null;
+let refs: Record<string, Lab> = {};
+let paintingPixels: ImageData | null = null;
+const HERB: Lab = [0.55, -0.09, 0.09];
+
+/** Which colour in the painting each part takes when the painter never saw it. */
+function refFor(role: string): Lab {
+  const key = /salmon/.test(role) ? 'salmon' : /peach/.test(role) ? 'peach' : /lime/.test(role) ? 'lime' : /foam/.test(role) ? 'foam' : /plate/.test(role) ? 'plate' : role;
+  return refs[key] ?? (role === 'herb' ? HERB : [0.8, 0, 0]);
+}
+
+/** The painting's pixels, read once (for the average colours). */
+function readPixels(img: HTMLImageElement): ImageData {
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  const ctx = c.getContext('2d')!;
+  ctx.drawImage(img, 0, 0);
+  return ctx.getImageData(0, 0, c.width, c.height);
+}
+
+function rimPolygon(): [number, number][] {
+  const rim = rimOf(WARES[trace.ware]);
+  const pts: [number, number][] = [];
+  for (let k = 0; k < 120; k++) {
+    const a = (k / 120) * Math.PI * 2;
+    const p = worldToPixel(solved.fit, trace.picture, new Vector3(Math.cos(a) * rim.radius, rim.height, Math.sin(a) * rim.radius));
+    if (p) pts.push(p);
+  }
+  return pts;
+}
+
+/** Plain colours (projection off) and projected ones (on) for the plate, table and wall. */
+function paintRoom() {
+  if (!projector) return;
+  refs = referenceColours(paintingPixels!, trace, solved.fit, rimPolygon());
+  (plateMesh.material as MeshStandardMaterial).dispose();
+  (table.material as MeshStandardMaterial).dispose();
+  plateMesh.material = projector.material('#f4f0e8', refFor('plate'), { roughness: 0.6 });
+  table.material = projector.material('#e7e0ea', refs.table ?? [0.9, 0.01, -0.02], { roughness: 0.95 });
+  scene.background = new Color(projector.uniforms.uOn.value > 0.5 && refs.wall ? labToHex(refs.wall) : '#ece6ef');
+}
+
+/** Build the dish from the painting's numbers, every part taking the painting. */
+function buildConverted() {
+  if (!projector) return;
+  for (const child of [...converted.children]) {
+    converted.remove(child);
+    (child as Mesh).geometry.dispose();
+    ((child as Mesh).material as MeshStandardMaterial).dispose();
+  }
+  paintRoom();
+  const pieces = buildFromTrace(trace, solved);
+  for (const piece of pieces) {
+    if (piece.role === 'plate') continue;
+    const geometry = (piece.geometry as BufferGeometry).clone();
+    geometry.scale(1 / UNITS_PER_CM, 1 / UNITS_PER_CM, 1 / UNITS_PER_CM);
+    const plain = ROLE_COLOURS.find(([re]) => re.test(piece.role))?.[1] ?? '#cccccc';
+    const mesh = new Mesh(geometry, projector.material(plain, refFor(piece.role), { roughness: /foam/.test(piece.role) ? 0.5 : 0.7, doubleSided: piece.doubleSided }));
+    mesh.castShadow = mesh.receiveShadow = true;
+    converted.add(mesh);
+  }
+  aimProjector();
+}
+
+/** Stand the projector where the painter stood and take its depth picture of the dish. */
+function aimProjector() {
+  if (!projector) return;
+  projector.update(renderer, scene, solved.fit, [converted, plateMesh, table]);
+  invalidate();
+}
+
+paintingImg.decode().then(() => {
+  projector = new Projector(paintingImg, trace.picture);
+  paintingPixels = readPixels(paintingImg);
+  buildConverted();
+});
 
 // The camera: "Match view" puts it exactly where the painter stood; dragging takes over from there.
 let matched = true;
@@ -371,6 +462,23 @@ function toggle(id: string, group: Group) {
 }
 toggle('show-blockout', blockout);
 toggle('show-built', built);
+toggle('show-converted', converted);
+
+$('show-colours').addEventListener('click', () => {
+  const button = $('show-colours');
+  const on = button.getAttribute('aria-pressed') !== 'true';
+  button.setAttribute('aria-pressed', String(on));
+  if (projector) projector.uniforms.uOn.value = on ? 1 : 0;
+  paintRoom();
+  invalidate();
+});
+
+const paintLight = $<HTMLInputElement>('paint-light');
+paintLight.addEventListener('input', () => {
+  $('paint-light-value').textContent = `${paintLight.value}%`;
+  if (projector) projector.uniforms.uPaintLight.value = Number(paintLight.value) / 100;
+  invalidate();
+});
 
 for (const tab of document.querySelectorAll<HTMLButtonElement>('.cv-tabs button')) {
   tab.addEventListener('click', () => setMode(tab.dataset.mode as typeof mode));
@@ -572,6 +680,7 @@ function refresh() {
   drawPlan();
   drawPieces();
   if (matched) matchView();
+  aimProjector();
   // Redraw the dashed rim without rebuilding the handle being dragged.
   const fit = overlay.querySelector('.rim-fit');
   if (fit) {
@@ -593,6 +702,8 @@ function changed() {
   saveTrace();
   refresh();
   drawOverlay();
+  // Rebuilding the dish takes a moment: once the drag has ended.
+  setTimeout(buildConverted, 0);
 }
 
 // Start.

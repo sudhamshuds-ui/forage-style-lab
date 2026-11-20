@@ -39,9 +39,12 @@
           </div>
           <div class="cv-row">
             <button type="button" class="cv-button" id="match">Match view</button>
-            <button type="button" class="cv-toggle" id="show-blockout" aria-pressed="true">Blockout</button>
-            <button type="button" class="cv-toggle" id="show-built" aria-pressed="true">Hand-built dish</button>
+            <button type="button" class="cv-toggle" id="show-converted" aria-pressed="true">Converted dish</button>
+            <button type="button" class="cv-toggle" id="show-colours" aria-pressed="true">Painting colours</button>
+            <button type="button" class="cv-toggle" id="show-blockout" aria-pressed="false">Blockout</button>
+            <button type="button" class="cv-toggle" id="show-built" aria-pressed="false">Hand-built dish</button>
           </div>
+          <label class="cv-slider">Painted light <input type="range" id="paint-light" min="0" max="100" value="0" /><output id="paint-light-value">0%</output></label>
           <label class="cv-slider">Onion skin <input type="range" id="onion-amount" min="0" max="100" value="50" /><output id="onion-value">50%</output></label>
         </figure>
 

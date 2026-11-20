@@ -40,4 +40,20 @@ camera of each dish are saved in `src/converter/traces/{dish}.ts`.
   their footprints on the plate in 3D, the measured plan next to the hand-built plan, and the
   current hand-built salmon dish seen through the painter's camera, faded over the painting, to
   show where it differs.
-- Next: steps 3 to 5 for the salmon, then batch 1's other five, then batch 2.
+- **Round 2 (salmon, steps 3 and 4; built 2026-11-20)**: the user: "follow the painting's layout"
+  (it wins over the earlier top view sketch). `build.ts` builds the dish from the footprints: the
+  cooked salmon at the measured length and width, the hand-built dish's peach wedges and lime
+  wheels fitted to each footprint (turned, sized, moved, then set down with the table's `rest`),
+  limes leaning toward the painter as much as their oval says (`leanOf`), foam poured into its
+  outline with herbs; tested (the salmon within 1 cm and 6 degrees of the painting). `projection.ts`
+  projects the painting from the painter's camera: a depth picture decides what the painter saw;
+  seen spots take the painting's hue and saturation, with its detail (painting minus its blur) over
+  each piece's average brightness, so our light does the lighting; unseen sides take the piece's
+  average colour. The page: Converted dish and Painting colours (on), Blockout and Hand-built dish
+  (off), a "Painted light" slider (0%: our light only; 100%: the painting's light baked in). Light:
+  Neutral tone mapping at 1.32, a warm key and a cool fill, measured against the painting (plate,
+  table and salmon within a few levels). Known: the foam ribbon painted over the salmon shows on its
+  top (the hand-built dish left it off at the user's request); the painted cast shadow's lilac stays
+  on the table beside our own shadow.
+- Next: the Forage paint pass over the converted dish (step 5's viewer in our style), then batch 1's
+  other five, then batch 2.

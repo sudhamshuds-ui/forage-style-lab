@@ -207,3 +207,28 @@ export function describeCamera(fit: CameraFit): { height: number; angle: number;
   const position = new Vector3(0, fit.dist * Math.sin(fit.elev), fit.dist * Math.cos(fit.elev));
   return { height: position.y, angle: (fit.elev * 180) / Math.PI, distance: fit.dist };
 }
+
+/** The outer hull of a cloud of points seen from above (like shrink-wrapping them). */
+export function convexHull(points: [number, number][]): [number, number][] {
+  const p = [...points].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  if (p.length < 3) return p;
+  const cross = (o: [number, number], a: [number, number], b: [number, number]) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lower: [number, number][] = [];
+  for (const q of p) {
+    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], q) <= 0) lower.pop();
+    lower.push(q);
+  }
+  const upper: [number, number][] = [];
+  for (let i = p.length - 1; i >= 0; i--) {
+    const q = p[i];
+    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], q) <= 0) upper.pop();
+    upper.push(q);
+  }
+  return lower.slice(0, -1).concat(upper.slice(0, -1));
+}
+
+/** Middle, long side, short side and turn of a shape seen from above (cm, plan degrees). */
+export function measurePoints(points: [number, number][]): { centre: [number, number]; length: number; width: number; angle: number } {
+  const centre = areaCentre(points);
+  return { centre, ...spread(points, centre) };
+}

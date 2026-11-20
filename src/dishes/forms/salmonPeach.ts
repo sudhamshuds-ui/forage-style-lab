@@ -62,7 +62,7 @@ function alignDown(direction: Vector3): Matrix4 {
  * from the stone out to the skin.
  * Laid on one cut face (either), the other turned to look along +z.
  */
-function peachWedge(random: () => number, angle: number): FormPiece[] {
+export function peachWedge(random: () => number, angle: number): FormPiece[] {
   const R = 3.55;
   const H = 3.45;
   const a = random() * Math.PI * 2;
@@ -105,7 +105,7 @@ function peachWedge(random: () => number, angle: number): FormPiece[] {
 }
 
 /** A thin lime wheel: the lime cut across its middle, flesh both sides. */
-function limeWheel(random: () => number, thickness: number): FormPiece[] {
+export function limeWheel(random: () => number, thickness: number): FormPiece[] {
   const whole = limeBody(random);
   // The flesh skin's map: x 0 at the middle, 1 at the peel; y counts the ten segments round it.
   const turn = random() * 6;
@@ -118,7 +118,7 @@ function limeWheel(random: () => number, thickness: number): FormPiece[] {
 }
 
 /** A fleck of herb: a tiny leaf lying flat. */
-function herb(random: () => number, x: number, y: number, z: number): FormPiece {
+export function herb(random: () => number, x: number, y: number, z: number): FormPiece {
   return {
     role: 'herb',
     doubleSided: true,
