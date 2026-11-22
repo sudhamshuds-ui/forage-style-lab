@@ -753,6 +753,26 @@ The dish kit (`src/dishes/kit/`): the knife (`cut.ts`), plates and bowls (`ware.
 their bodies for cutting (`peachBody`, `limeBody`, `strawberryBody`, `mushroomUpright`,
 `avocadoBody`), unchanged for the pantry.
 
+**Batch 2 (2026-11-19 to 22): 100 composed dishes, waiting for the user's review.** The user asked for
+100 more dishes (Figma AI references, 2D plans first, then 3D, no approvals asked). Built:
+- `src/dishes/catalog.ts`: 100 dish ideas from the pantry (title, heroes, course, ware, base, big,
+  medium, small as `ingredient:form*count`).
+- References: Figma page "Dish refs (generated)", board "Batch 2: 100 dishes (references)" (node 251:2),
+  made with gpt-image-2.5.
+- 2D plans: `src/dishes/compose/layout.ts` (`composePlan`): the hero off centre toward the golden spot,
+  medium on 62% of the ring, small in odd clusters, spaced apart (`relax`, capsule footprints), garnish
+  capped to its ware (`fitWare`). Drawn to `docs/dishes/plans/dish-{id}.svg` and on the Figma page
+  "Dish plans (2D)" (board 253:3), every shape named Base, Big, Medium or Small.
+- 3D: `compose/elements.ts` (the element library: cut bodies meshed with rounded edges and painted
+  flesh to skin in one piece, the pantry's drumstick, broccoli, cheese, mushroom and blueberry, the
+  approved cooked salmon, a carved steak, toast, mounds, fried eggs, leaves) and `compose/build.ts`
+  (ware, base, hero, medium, small, herbs, each set down with `Table.rest`, garnish slid clear of the
+  hero). `DISHES` = the six hand-built dishes plus the hundred (`composedDish`). New families for
+  sauces, cut faces, the wooden board and drinks. Known limits: glass cannot be see-through in the
+  painting (drinks are a liquid column with a thin lip); an omelette, a tart's pastry and a stew's
+  chunks are stand-ins (fried eggs, no pastry, cubes).
+- Preview: "Forage Dish Review" built with `NEXT=` the hundred ids in catalogue order.
+
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one
 review** (not approved, not merged; `/forage-brand` after approval, then merge to `main`):

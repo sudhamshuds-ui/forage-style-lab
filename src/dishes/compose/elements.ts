@@ -72,7 +72,7 @@ const FLESH: Record<string, { family: FamilyId; core: string; skin: string; segm
 
 /** Cooked elements take a sear (the DESIGN rule: seared, not charred). */
 const SEARED: Record<string, number> = {
-  potato: 0.8, chicken: 0.9, steak: 0.9, baguette: 0.7, rice: 0.8, peach: 0.5, pear: 0.4, garlic: 0.5, cabbage: 0.85, mushroom: 0.6, pepper: 0.4,
+  potato: 0.8, chicken: 0.5, steak: 0.9, baguette: 0.7, rice: 0.8, peach: 0.5, pear: 0.4, garlic: 0.5, cabbage: 0.85, mushroom: 0.6, pepper: 0.4,
 };
 
 /** The roles an element needs, decided from the idea alone (the entry lists its parts before building). */
@@ -511,7 +511,7 @@ export function makeElement(part: Part, random: () => number, seed: number): For
     case 'spinach:leaf':
     case 'cabbage:leaf': {
       const big = ingredient === 'cabbage';
-      const g = leafPiece({ base: new Vector3(0, 0.05, -3), turn: Math.PI / 2, length: big ? 7 : 6.2, width: big ? 5.5 : 3.4, lift: (d) => 0.25 * d * d + 0.08, fold: big ? 0.5 : 0.35, twist: signed(random) * 0.2, rows: 10, cols: 6 });
+      const g = leafPiece({ base: new Vector3(0, 0.05, -3), turn: Math.PI / 2, length: big ? 7 : 6.2, width: big ? 5.5 : 3.4, lift: (d) => 0.5 * (d / (big ? 7 : 6.2)) ** 2 + 0.08, fold: big ? 0.5 : 0.35, twist: signed(random) * 0.2, rows: 10, cols: 6 });
       return settle([{ role, geometry: g, doubleSided: true }]);
     }
     case 'onion:wheel': {

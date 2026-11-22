@@ -228,7 +228,7 @@ function arrange(group: Group, n: number, info: ElementInfo, scale: number, rand
     return out;
   }
   // A sunflower heap (cubes, berries, halves): the golden angle packs them evenly and never in rows.
-  const step = width * 0.92;
+  const step = width * 1.25;
   for (let k = 0; k < n; k++) {
     const r = Math.sqrt(k + 0.5) * step * 0.62;
     const a = k * GOLDEN_ANGLE;

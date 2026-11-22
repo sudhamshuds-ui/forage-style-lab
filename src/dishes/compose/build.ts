@@ -113,7 +113,9 @@ function boardGeometry(w: number, h: number, d: number): BufferGeometry {
 /** A glass tumbler with a drink in it: the drink's column, a glass base and a lip above it. */
 function drinkPieces(at: [number, number], random: () => number): FormPiece[] {
   const R = 3.6;
-  const height = 10;
+  // Only a thin lip stands above the drink: the painting cannot see through glass, so a tall clear
+  // wall would read as an opaque white band.
+  const height = 8.4;
   const fill = 7.8;
   // The drink: a column, its top a soft dome (froth, a meniscus), its sides a touch tapered.
   const drink = new LatheGeometry(
@@ -174,7 +176,7 @@ export function composedBuilder(idea: DishIdea): FormBuilder {
           turn: -a,
           length: long,
           width: long * (what === 'romaine' ? 0.42 : 0.62),
-          lift: (d) => 0.6 * d * d + 0.15,
+          lift: (d) => 0.9 * (d / long) ** 2 + 0.15,
           fold: 0.45,
           twist: signed(random) * 0.25,
           rows: 12,

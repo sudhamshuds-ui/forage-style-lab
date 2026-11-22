@@ -112,3 +112,11 @@ sketches and reference photos.
 - **Never stack food on a height grid of its neighbours** (2026-11-18). Mushrooms and lime wheels
   set down on "whatever is highest nearby" rode up into the air; set food down on the plate and the
   sauce, and space the pieces so they do not meet.
+
+## Batch 2, the composer (2026-11-19 to 22)
+- A leaf's `lift` is a height in centimetres at a distance in centimetres: write it as a share of the
+  leaf's length (`(d / length) ** 2`), or a 9 cm leaf rises 48 cm and stands up like a flag.
+- A heap of cubes packed at less than its own width stacks into a tower when each is set down with
+  `Table.rest`: space heap pieces at about 1.25 of their width.
+- Garnish must be capped to its ware: a 9 cm avocado slice fits a dinner plate, not the 13 cm rice bowl.
+- The painting has no see-through glass: anything clear standing above a drink reads as an opaque band.
