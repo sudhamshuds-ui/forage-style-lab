@@ -22,6 +22,10 @@ import { createPanel } from './ui/panel';
 import { setupActions } from './ui/actions';
 import { mountStyleBar } from './ui/styleBar';
 import { paintLike } from './randomize';
+import { loadPhysics } from './dishes/kit/physics';
+
+// The dish review plates its dishes with real physics (the engine loads once, before the first dish).
+if (import.meta.env.VITE_COLLECTION === 'dishes') await loadPhysics();
 
 /**
  * Entry point: builds the scene, the painter, the panel and the buttons,

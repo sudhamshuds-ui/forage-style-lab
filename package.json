@@ -9,10 +9,12 @@
     "build:kitchen": "tsc && vite build --config vite.kitchen.config.ts && mv dist-kitchen/kitchen.html dist-kitchen/index.html",
     "preview": "vite preview",
     "test": "vitest run",
-    "plans": "WRITE_PLANS=1 vitest run src/dishes/plans.test.ts"
+    "plans": "WRITE_PLANS=1 vitest run src/dishes/plans.test.ts",
+    "qa": "WRITE_QA=1 vitest run src/dishes/compose/qa.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
+    "@dimforge/rapier3d-compat": "0.19.3",
     "clsx": "^2.1.1",
     "gsap": "3.15.0",
     "motion": "^14.11.1",

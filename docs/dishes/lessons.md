@@ -120,3 +120,31 @@ sketches and reference photos.
   `Table.rest`: space heap pieces at about 1.25 of their width.
 - Garnish must be capped to its ware: a 9 cm avocado slice fits a dinner plate, not the 13 cm rice bowl.
 - The painting has no see-through glass: anything clear standing above a drink reads as an opaque band.
+
+## The references as source of truth, and real physics (2026-11-22)
+- The user: "the generated refs have a real good plating ... right now it feels like just seperate
+  ingredient pieces on the plate", "levitating, or intersecting or wierdly laying on top of
+  eachother", "make the 2d plan to replicate the generated dish refs ... source of truth for
+  everything". Every dish is now traced from its reference and plated by a physics engine (Rapier):
+  each piece a solid of its convex outline, dropped layer by layer onto the one under it.
+- Physics lessons: work in centimetres (in metres a strawberry is 0.03 and slips through the
+  ground); build the ground as one grid of heights from the plate, sauce, leaves and rice, as an
+  up-facing triangle mesh (the rice's own mesh had gaps, the engine's height field let detailed
+  shapes through); spawn each piece above those already dropped, never inside them (the engine
+  flings overlapping pieces); a layer is at rest only when every piece sleeps (a piece pausing at
+  the top of a bounce is not at rest); hold settled pieces still so the next layer leans on them;
+  food is sticky (high friction, strong roll damping), or berries and cubes roll off the rice.
+- Second physics round (2026-11-23), from the renders: (1) a piece locked to fall straight down
+  balances in poses no food holds (fried eggs and a steak stood on their edges): pieces now slide
+  a little, heavily damped; (2) never trust the engine's "asleep" with heavy damping (a tipping
+  piece moves slowly enough to be put to sleep mid-tip): a layer is at rest only after a quarter
+  second of real stillness; (3) chunky pieces of one layer (cubes, florets, halves) are spread in
+  the plan until their footprints just touch, or the drop stacks them into towers; flat pieces
+  (slices, leaves) may still shingle; (4) leaves are draped, not dropped (a stiff curled leaf
+  tumbles onto its edge like a card); (5) a piece that slips over the rim is plated again where
+  the reference has it, set straight down, instead of being lost (the salmon cakes lost their
+  salmon); (6) a piece on another sits higher in the painting, so its traced spot is moved forward
+  by the height under it (the cheesecake's berries had landed behind the cake).
+- The painting pass: plates and boards are props, so the card frames the food; full coloured
+  shadows; every dish skin at a lighter touch (`PAINT_TOUCH`), so the watercolour bands carry the
+  form as on the apple and the orange.

@@ -75,9 +75,9 @@ export function planSvg(plan: Plan, fills: Partial<Record<string, string>> = {})
 }
 
 /** True if every shape lies inside the plate's rim (a quick check before building). */
-export function fitsPlate(plan: Plan): boolean {
+export function fitsPlate(plan: Plan, overhang = 0): boolean {
   return plan.shapes.every((s) => {
     const reach = s.kind === 'rect' ? Math.hypot(s.w, s.h) / 2 : s.r;
-    return Math.hypot(s.at[0], s.at[1]) + reach <= plan.plate;
+    return Math.hypot(s.at[0], s.at[1]) + reach <= plan.plate + overhang;
   });
 }

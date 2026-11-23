@@ -724,7 +724,8 @@ of dishes, kept on a Figma page; they will add a page of Pinterest dish referenc
 session: ask for the images in Figma.
 
 ## Dishes (branch `dishes`, from `kitchen`, started 2026-11-18; not merged)
-**Before building or changing a dish, read `DESIGN.md`** (the taste rules learned on the salmon dish).
+**Before building or changing a dish, read `DESIGN.md`** (the taste rules learned on the salmon dish),
+and **run its three QA passes on every round** (cohesion, physics, painting; the user, 2026-11-22).
 **Rule (the user, 2026-11-19): plan before building.** Every dish is first drawn from straight above
 in simple shapes (circles, rectangles, half circles), its composition worked out with symmetry, the
 golden ratio, big-medium-small and circular plating, then built from the same numbers: a `Plan`
@@ -772,6 +773,28 @@ their bodies for cutting (`peachBody`, `limeBody`, `strawberryBody`, `mushroomUp
   painting (drinks are a liquid column with a thin lip); an omelette, a tart's pastry and a stew's
   chunks are stand-ins (fried eggs, no pastry, cubes).
 - Preview: "Forage Dish Review" built with `NEXT=` the hundred ids in catalogue order.
+
+**Batch 2, second round (2026-11-22): the references as source of truth, real physics, the
+watercolour.** The user's notes: plating like the references (cohesive, not pieces apart), real
+physics (nothing floating, intersecting or lying on top weirdly), the pantry's watercolour; then
+"make the 2d plan to replicate the generated dish refs ... source of truth for everything". Done:
+- Every dish traced from its reference (`docs/dishes/refs/{id}.jpg`, `compose/traces.ts`, read by
+  `compose/trace.ts`): each piece's foot, real size and turn, in layers bottom first. The ware may
+  change to match (`round`: a round wooden board). New forms from the references: whole fruits,
+  `butter:cake`, `butter:pastry`, `cheese:cake`, `eggs:omelette`, `milk:pancake`, `cabbage:roll`,
+  skewers (`chicken|steak|salmon:skewer`).
+- Colours sampled from each reference (`npx tsx scripts/dump-traces.ts out.json` then
+  `python3 scripts/sample-ref-colours.py out.json` writes `compose/refColours.ts`), turned into
+  families and a room per dish (`compose/refLook.ts`); a sample is kept only when it agrees with the
+  ingredient's own colour.
+- Physics (`dishes/kit/physics.ts`, Rapier, loaded on the dish review and the kitchen with
+  `loadPhysics()`): centimetres; the ground one up-facing triangle grid of heights; each layer
+  dropped (spawned clear of the others), settled until asleep, then held as exact triangle meshes;
+  pieces fall and tip but do not slide across the plate (the reference sets where they go).
+- QA every round (DESIGN.md's three passes): `npm run qa` writes `docs/dishes/qa.md` (pieces apart,
+  floating, overlapping, moving, lost), plus renders next to the references and the pantry's apple.
+- Painting: plates and boards are props (the card frames the food), full coloured shadows, dish
+  skins at a lighter touch (`PAINT_TOUCH`).
 
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one

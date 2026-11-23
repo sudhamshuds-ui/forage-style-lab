@@ -31,7 +31,7 @@ export const SMALL_PARTS = ['stem', 'leaf', 'calyx', 'star', 'curl'];
  * later a plate or a board). Left out of its real size and of the card's subject zone (the
  * framing only keeps a prop inside the card).
  */
-export const PROPS = ['paper', 'pan'];
+export const PROPS = ['paper', 'pan', 'plate', 'board'];
 
 /** The pieces that make up the ingredient's real size: everything but its small parts and props. */
 export function bodyPieces(pieces: FormPiece[]): FormPiece[] {

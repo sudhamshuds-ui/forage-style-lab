@@ -19,7 +19,7 @@ export interface DishIdea {
   heroes: [string, string, string];
   course: 'starter' | 'main' | 'dessert' | 'snack' | 'drink';
   description: string;
-  ware: 'plate' | 'bowl' | 'deep' | 'board' | 'slate' | 'glass';
+  ware: 'plate' | 'bowl' | 'deep' | 'board' | 'round' | 'slate' | 'glass';
   base: string;
   big: string;
   medium: string[];

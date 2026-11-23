@@ -34,6 +34,7 @@ export const WARE_PLAN: Record<Ware, { plate: number; well: number; reach: numbe
   bowl: { plate: 12.5, well: 4.5, reach: 7.4 },
   deep: { plate: 6.6, well: 4.2, reach: 4.6 },
   board: { plate: 15, well: 11, reach: 10.5 },
+  round: { plate: 14, well: 12, reach: 10 },
   glass: { plate: 13.5, well: 3.6, reach: 10 },
 };
 
@@ -84,6 +85,21 @@ export const BODY: Record<string, { r: number; h: number; long?: number }> = {
 /** The footprint of an `ingredient:form` at scale 1, and how a group of them is laid out. */
 export function elementInfo(ingredient: string, form: string): ElementInfo {
   const body = BODY[ingredient] ?? { r: 2.5, h: 2.5 };
+  // Forms the references brought in (2026-11-22), seen from above.
+  switch (form) {
+    case 'skewer':
+      return { shape: 'rect', w: 3.4, h: 22, group: 'pair', shrinks: false };
+    case 'roll':
+      return { shape: 'rect', w: 3.6, h: 8.4, group: 'pair', shrinks: false };
+    case 'omelette':
+      return { shape: 'half', r: 6, group: 'pair', shrinks: false };
+    case 'cake':
+      return ingredient === 'cheese' ? { shape: 'half', r: 7, group: 'pair', shrinks: false } : { shape: 'circle', r: 5, group: 'pair', shrinks: false };
+    case 'pancake':
+      return { shape: 'circle', r: 6, group: 'pair', shrinks: false };
+    case 'pastry':
+      return { shape: 'circle', r: 7.5, group: 'pair', shrinks: false };
+  }
   switch (form) {
     case 'whole':
       if (ingredient === 'broccoli') return { shape: 'circle', r: 4, group: 'pair', shrinks: false };
@@ -163,6 +179,9 @@ export interface Placed {
   angle: number;
   /** An index within its group, for seeding. */
   index: number;
+  /** Traced plans: the piece's real size (its longest side, cm) and its layer (bottom first). */
+  target?: number;
+  layer?: number;
 }
 
 export interface ComposedPlan {
@@ -300,7 +319,7 @@ export function composePlan(idea: DishIdea, seed = 1): ComposedPlan {
     const own = footprint(info, scale);
     const a = startAngle + (mediumPieces.length === 1 ? mediumArc / 2 : (mediumArc * i) / Math.max(1, mediumPieces.length - 1)) + signed(random) * 0.08;
     // Close round the hero, never out at the rim (the user's sketch); the 3D build slides them clear.
-    const r = Math.min(R - own, heroReach + own * 0.75 + 0.3);
+    const r = Math.min(R - own, heroReach + own * 0.5);
     const at: [number, number] = [heroAt[0] + Math.cos(a) * r, heroAt[1] + Math.sin(a) * r];
     // Wedges and halves turn their flat side to the hero; others lie along the ring.
     const angle = info.shape === 'half' ? (a * 180) / Math.PI - 90 + signed(random) * 25 : (a * 180) / Math.PI + signed(random) * 20;
@@ -324,7 +343,7 @@ export function composePlan(idea: DishIdea, seed = 1): ComposedPlan {
     const scale = fitWare(tierScale('small', info, cluster.part.ingredient), info, R * 0.24);
     const own = footprint(info, scale);
     const a = startAngle + mediumArc + smallArc * ((c + 0.5) / clusters.length) + signed(random) * 0.1;
-    const r = Math.min(R - own * 1.6, heroReach + own * 1.2 + 0.2);
+    const r = Math.min(R - own * 1.6, heroReach + own * 0.8);
     const centre: [number, number] = [heroAt[0] + Math.cos(a) * r, heroAt[1] + Math.sin(a) * r];
     for (let k = 0; k < cluster.n; k++) {
       // Overlapping a little, like fallen coins, along the ring.
@@ -346,7 +365,7 @@ export function composePlan(idea: DishIdea, seed = 1): ComposedPlan {
     shapes.push({ kind: 'circle', label: 'herb', size: 'small', at: herbs[k], r: 0.3 });
   }
 
-  relax(placed, idea.ware === 'glass' ? R + 2 : ware.plate - 0.6);
+  relax(placed, idea.ware === 'glass' ? R + 2 : ware.plate - 0.6, heroAt);
 
   // Keep it on the plate: pull anything past the reach back in toward the middle.
   for (let i = 0; i < placed.length; i++) {
@@ -471,10 +490,31 @@ function closest(a0: [number, number], a1: [number, number], b0: [number, number
  * meant to overlap (a fan of slices, a cluster of wheels like fallen coins) may overlap by a third.
  * Then everything is kept inside the plate. A few dozen rounds settle it.
  */
-function relax(placed: Placed[], limit: number): void {
+function relax(placed: Placed[], limit: number, centre: [number, number] = [0, 0]): void {
   const tier = { big: 0, medium: 1, small: 2, ground: 3 } as const;
-  for (let round = 0; round < 80; round++) {
+  for (let round = 0; round < 160; round++) {
     let moved = false;
+    // Cohesion (the user, 2026-11-22: "the elements are a lot of times too far apart"): every piece
+    // not yet touching another is drawn in toward the hero, like gathering food together with a
+    // spoon, until it touches; the spacing below stops it at its neighbour.
+    for (const p of placed) {
+      if (p.size === 'big') continue;
+      const c = capsule(p);
+      let gap = Infinity;
+      for (const q of placed) {
+        if (q === p) continue;
+        const o = capsule(q);
+        gap = Math.min(gap, closest(c.a, c.b, o.a, o.b).d - c.r - o.r);
+      }
+      const dx = centre[0] - p.at[0];
+      const dz = centre[1] - p.at[1];
+      const d = Math.hypot(dx, dz);
+      if (gap > 0.05 && d > 0.5) {
+        const step = Math.min(gap, 0.4, d - 0.5);
+        p.at = [p.at[0] + (dx / d) * step, p.at[1] + (dz / d) * step];
+        moved = true;
+      }
+    }
     for (let i = 0; i < placed.length; i++) {
       for (let j = i + 1; j < placed.length; j++) {
         const p = placed[i];
@@ -484,7 +524,8 @@ function relax(placed: Placed[], limit: number): void {
         const cj = capsule(q);
         const { d, pa, pb } = closest(ci.a, ci.b, cj.a, cj.b);
         // A fan or heap of the hero overlaps on purpose; small clusters overlap a little.
-        const allowed = same && p.size === 'big' ? Infinity : same ? -(Math.min(ci.r, cj.r) * 0.35) : 0.25;
+        // Neighbours touch and overlap a little (the 3D build lets them lean on each other).
+        const allowed = same && p.size === 'big' ? Infinity : same ? -(Math.min(ci.r, cj.r) * 0.35) : -(Math.min(ci.r, cj.r) * 0.15);
         const need = ci.r + cj.r + allowed - d;
         if (!(need > 0.01)) continue;
         let nx = pb[0] - pa[0];

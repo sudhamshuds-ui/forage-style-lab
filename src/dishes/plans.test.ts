@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { fitsPlate, planSvg, type Plan } from './kit/plan';
 import { SALMON_PLAN } from './forms/salmonPeach';
 import { CATALOG } from './catalog';
-import { composePlan, planFills } from './compose/layout';
+import { planFills } from './compose/layout';
+import { planFor, TRACES } from './compose/traces';
 
 // (Node's file tools and environment, typed here: the project's type-check runs without Node's types.)
 declare const process: { env: Record<string, string | undefined> };
@@ -16,9 +17,13 @@ const nodeFs = 'node:fs';
 const PLANS: Record<string, { plan: Plan; fills: Record<string, string> }> = {
   'dish-salmon-peach': { plan: SALMON_PLAN, fills: { foam: '#e6ecb4', salmon: '#e8a080', peach: '#e48a3c', lime: '#6aa83a' } },
 };
+// Traced plans follow their reference, which may let a piece lean over the rim (bread on a bowl,
+// a skewer past the board): up to 4 cm; a drink's fruit lies on the table, so drinks are not held to it.
+const OVERHANG: Record<string, number> = {};
 for (const idea of CATALOG) {
-  const composed = composePlan(idea);
+  const composed = planFor(idea);
   PLANS[`dish-${idea.id}`] = { plan: composed.plan, fills: planFills(composed) };
+  if (TRACES[idea.id]) OVERHANG[`dish-${idea.id}`] = idea.ware === 'glass' ? Infinity : 4;
 }
 
 async function write(path: string, data: string): Promise<void> {
@@ -32,7 +37,7 @@ describe('plating plans', () => {
   });
   for (const [id, { plan, fills }] of Object.entries(PLANS)) {
     it(`${id} fits its plate`, async () => {
-      expect(fitsPlate(plan), id).toBe(true);
+      expect(fitsPlate(plan, OVERHANG[id] ?? 0), id).toBe(true);
       const svg = planSvg(plan, fills);
       expect(svg).toContain('<svg');
       if (process.env.WRITE_PLANS) await write(`docs/dishes/plans/${id}.svg`, svg);
