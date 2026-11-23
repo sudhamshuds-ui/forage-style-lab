@@ -9,7 +9,7 @@ Written by `npm run qa`. Widest gap: cm from a piece to its nearest neighbour, s
 | salmon-citrus-crudo | 0.0 | 0 | 0 | 0.06 | 0 | pass |
 | steak-frites-garlic | 0.1 | 0 | 0 | 0.49 | 1 | 1 moving |
 | charred-cabbage-lemon | 1.0 | 2 | 0 | 0.00 | 0 | 2 apart |
-| rosti-salmon-onion | 1.4 | 1 | 0 | 0.15 | 0 | 1 apart, 1 lost |
+| rosti-salmon-onion | 0.6 | 0 | 1 | 0.16 | 0 | 1 floating, 1 lost |
 | pear-cheese-garlic | 3.4 | 1 | 0 | 0.62 | 0 | 1 apart |
 | hot-chicken-lime-avocado | 0.6 | 0 | 0 | 0.00 | 0 | pass |
 | baked-eggs-tomato-pepper | 0.3 | 0 | 0 | 0.34 | 1 | 1 moving |
@@ -23,10 +23,10 @@ Written by `npm run qa`. Widest gap: cm from a piece to its nearest neighbour, s
 | chicken-grape-skewer | 0.5 | 0 | 0 | 0.00 | 0 | pass |
 | blueberry-pancakes | 1.7 | 4 | 0 | 0.45 | 0 | 4 apart |
 | orange-salmon-cabbage | 0.1 | 0 | 2 | 0.00 | 0 | 2 floating |
-| stuffed-peppers | 0.3 | 0 | 1 | 0.27 | 1 | 1 floating, 1 moving, 1 lost |
+| stuffed-peppers | 0.3 | 0 | 1 | 0.27 | 1 | 1 floating, 1 moving |
 | potato-onion-soup | 0.0 | 0 | 0 | 0.08 | 0 | pass |
 | caesar-romaine-egg | 1.9 | 2 | 0 | 0.75 | 0 | 2 apart |
-| pear-grape-cheese-board | 3.3 | 2 | 0 | 0.63 | 2 | 2 apart, 2 moving, 2 lost |
+| pear-grape-cheese-board | 3.3 | 2 | 0 | 0.63 | 2 | 2 apart, 2 moving |
 | steak-mushroom-pepper | 2.1 | 1 | 0 | 0.47 | 0 | 1 apart |
 | lemon-chicken-spinach | 0.1 | 0 | 0 | 0.00 | 0 | pass |
 | apple-tart | 0.0 | 0 | 0 | 0.12 | 0 | pass |
@@ -80,7 +80,7 @@ Written by `npm run qa`. Widest gap: cm from a piece to its nearest neighbour, s
 | salmon-cabbage-lime | 0.1 | 0 | 0 | 0.19 | 0 | pass |
 | orange-chicken-rice | 0.8 | 0 | 0 | 0.89 | 0 | pass |
 | lemon-potato-wedges | 0.4 | 0 | 0 | 0.57 | 0 | pass |
-| peach-cheese-board | 3.6 | 2 | 0 | 0.61 | 0 | 2 apart |
+| peach-cheese-board | 3.6 | 2 | 1 | 0.61 | 0 | 2 apart, 1 floating, 2 lost |
 | mushroom-egg-rice | 1.3 | 1 | 0 | 0.42 | 0 | 1 apart |
 | avocado-tomato-salad | 4.7 | 2 | 0 | 0.40 | 0 | 2 apart |
 | strawberry-cheese-toast | 0.1 | 0 | 0 | 0.25 | 0 | pass |
@@ -89,17 +89,17 @@ Written by `npm run qa`. Widest gap: cm from a piece to its nearest neighbour, s
 | grape-cheese-salad | 3.0 | 4 | 0 | 0.58 | 0 | 4 apart |
 | pear-butter-cake | 2.7 | 1 | 0 | 0.00 | 0 | 1 apart |
 | blueberry-yogurt-bowl | 0.2 | 0 | 0 | 0.39 | 0 | pass |
-| salmon-potato-cakes | 1.8 | 2 | 0 | 0.02 | 2 | 2 apart, 2 moving, 1 lost |
+| salmon-potato-cakes | 1.8 | 3 | 0 | 0.02 | 2 | 3 apart, 2 moving |
 | tomato-egg-toast | 0.0 | 0 | 0 | 0.20 | 1 | 1 moving |
 | cabbage-potato-colcannon | 0.0 | 0 | 0 | 0.00 | 0 | pass |
-| lime-chili-chicken | 1.8 | 2 | 0 | 0.00 | 1 | 2 apart, 1 moving, 1 lost |
+| lime-chili-chicken | 1.8 | 1 | 0 | 0.00 | 1 | 1 apart, 1 moving |
 | mushroom-spinach-toast | 0.0 | 0 | 1 | 0.24 | 0 | 1 floating |
 | orange-pear-salad | 2.2 | 3 | 0 | 0.23 | 0 | 3 apart |
 | steak-garlic-rice | 1.2 | 1 | 0 | 1.03 | 0 | 1 apart, overlap 1.0 cm |
 | peach-butter-toast | 0.0 | 0 | 0 | 0.38 | 2 | 2 moving |
 | roast-tomato-garlic | 0.1 | 0 | 0 | 0.51 | 0 | pass |
 | apple-cabbage-steak | 0.1 | 0 | 0 | 0.45 | 0 | pass |
-| grape-peach-salad | 1.2 | 1 | 0 | 0.71 | 0 | 1 apart |
+| grape-peach-salad | 1.4 | 2 | 0 | 0.71 | 0 | 2 apart |
 | egg-spinach-rice | 0.0 | 0 | 0 | 0.00 | 0 | pass |
 | lemon-cheese-dessert | 0.7 | 0 | 1 | 0.91 | 0 | 1 floating |
 | onion-potato-gratin | 0.2 | 0 | 0 | 0.21 | 1 | 1 moving |
