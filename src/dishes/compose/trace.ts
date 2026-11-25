@@ -49,7 +49,7 @@ const SIZE: Record<'b' | 'm' | 's', Size> = { b: 'big', m: 'medium', s: 'small' 
 /** How tall a piece stands, as a share of its traced size (for pieces laid on top of it). */
 const HEIGHT_SHARE: Record<string, number> = {
   cake: 0.4, pastry: 0.12, pancake: 0.1, mash: 0.18, toast: 0.17, fillet: 0.25, steak: 0.2, omelette: 0.2,
-  whole: 0.6, cube: 0.8, half: 0.45, slice: 0.08, wheel: 0.1, leaf: 0.05, egg: 0.15, wedge: 0.5, roll: 0.45, drumstick: 0.3, skewer: 0.15,
+  fries: 0.18, chip: 0.05, whole: 0.6, cube: 0.8, half: 0.45, slice: 0.08, wheel: 0.1, leaf: 0.05, egg: 0.15, wedge: 0.5, roll: 0.45, drumstick: 0.3, skewer: 0.15,
 };
 
 /**
@@ -134,6 +134,13 @@ export function tracedPlan(idea: DishIdea, trace: Trace): ComposedPlan {
         const a = k * 2.39996 + random() * 0.4;
         const rr = n > 1 ? spread * Math.sqrt((k + 0.5) / n) : 0;
         let at: [number, number] = [centre[0] + Math.cos(a) * rr, centre[1] + Math.sin(a) * rr];
+        // Beside a drink, fruit lies on the table within reach of the glass (the glass is a small
+        // ruler, so a far point in the picture traced tens of centimetres away and was lost).
+        if (ware === 'glass') {
+          const d = Math.hypot(at[0], at[1]);
+          const most = 10;
+          if (d > most) at = [(at[0] * most) / d, (at[1] * most) / d];
+        }
         // In a rice bowl everything sits on the rice, inside the rim.
         if (ware === 'deep') {
           const d = Math.hypot(at[0], at[1]);
@@ -154,8 +161,17 @@ export function tracedPlan(idea: DishIdea, trace: Trace): ComposedPlan {
     below.push(...thisLayer);
     spreadLayer(placed.filter((q) => q.layer === layerIndex), shapes, ware);
   });
-  const base = trace.base ? { kind: trace.base[0].split(':')[0], what: trace.base[0].split(':')[1] ?? '', at: toCm(trace.base[1], trace.base[2]), r: trace.base[3] } : { kind: 'none', what: '', at: [0, 0] as [number, number], r: 0 };
-  if (trace.base) shapes.unshift({ kind: 'circle', label: trace.base[0], size: 'ground', at: base.at, r: base.r });
+  let base = trace.base ? { kind: trace.base[0].split(':')[0], what: trace.base[0].split(':')[1] ?? '', at: toCm(trace.base[1], trace.base[2]), r: trace.base[3] } : { kind: 'none', what: '', at: [0, 0] as [number, number], r: 0 };
+  // No sauce in the reference but a pool chosen for the dish: it lies under the first layer, a
+  // little wider than the food, so the plate is layered from the sauce up.
+  if (!trace.base && idea.base.startsWith('pool:')) {
+    const first = placed.filter((q) => q.layer === 0);
+    const cx = first.reduce((a, q) => a + q.at[0], 0) / Math.max(1, first.length);
+    const cz = first.reduce((a, q) => a + q.at[1], 0) / Math.max(1, first.length);
+    const reach = first.reduce((most, q) => Math.max(most, Math.hypot(q.at[0] - cx, q.at[1] - cz) + (q.target ?? 3) * 0.3), 0);
+    base = { kind: 'pool', what: idea.base.split(':')[1], at: [cx, cz], r: Math.min(WARE_PLAN[ware].well + 1, Math.max(4.5, reach + 1.2)) };
+  }
+  if (base.kind !== 'none') shapes.unshift({ kind: 'circle', label: `${base.kind}:${base.what}`, size: 'ground', at: base.at, r: base.r });
   const herbs: [number, number][] = [];
   if (trace.herbs) {
     const [n, u, v, rad] = trace.herbs;

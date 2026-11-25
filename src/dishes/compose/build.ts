@@ -13,11 +13,11 @@ import { DINNER_PLATE, PASTA_BOWL, ware } from '../kit/ware';
 import type { DishIdea } from '../catalog';
 import type { Dish } from '../dishes';
 import { readPart, type ComposedPlan, type Placed } from './layout';
-import { planFor, effectiveIdea, tracedParts } from './traces';
+import { planFor, effectiveIdea, tracedParts, TRACES } from './traces';
 import { refFamilies, refRoom } from './refLook';
 import { FAMILIES } from '../../ingredients/families';
 import { hexToOklch } from '../../utils/colour';
-import { BASE_FAMILY, PLATE_LOOK, elementLooks, herbLeaf, makeElement, type Look, type RoleLook } from './elements';
+import { BASE_FAMILY, PLATE_LOOK, elementLooks, herbLeaf, makeElement, shaving, type Look, type RoleLook } from './elements';
 
 /**
  * The composer's second step: the plan built in 3D (the user's rule: "and then recreate it using
@@ -53,6 +53,13 @@ export function dishLooks(original: DishIdea): RoleLook[] {
   if (kind === 'drink') {
     add({ role: 'drink', family: BASE_FAMILY[idea.base] ?? 'drink-pale', skin: { ...SAUCE_SKIN, amount: 0.5 }, glossy: true });
     add({ role: 'glass', family: 'glass', glossy: true });
+  }
+  if (idea.ware !== 'glass') {
+    // The garnish layer every dish ends with: shavings in three colours, then herbs.
+    add({ role: 'shaving_gold', family: 'shaving-gold' });
+    add({ role: 'shaving_yellow', family: 'cheese' });
+    add({ role: 'shaving_white', family: 'shaving-white' });
+    add({ role: 'herb', family: 'leaf' });
   }
   if (idea.ware === 'deep') {
     add({ role: 'rice', family: 'cooked-rice', skin: { kind: 'rice', size_mm: 5.5, amount: 0.9 } });
@@ -448,6 +455,42 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       parts.push(...posed([h], { at: [x, table.height(x, z) + 0.02, z] }));
     }
 
+    // The garnish layer, the last step of every dish (the user, 2026-11-25: "approach dishes in
+    // terms of layers ... sprinkle some bits of yellow, golden and white shavings as garnish, then
+    // some herb garnish", so it "feels like food, not just 2-3 big elements"). Bits fall over and
+    // round the food, never out on the bare rim.
+    if (idea.ware !== 'glass') {
+      const skip = new Set(['pool', 'bed', 'rice', 'herb', 'plate', 'board', 'bowl']);
+      const boxes = parts.filter((p) => !skip.has(p.role)).map((p) => {
+        p.geometry.computeBoundingBox();
+        return p.geometry.boundingBox!.clone();
+      });
+      const inside = (x: number, z: number) =>
+        idea.ware === 'board' ? Math.abs(x) < 13.5 && Math.abs(z) < 9.5 : Math.hypot(x, z) < (idea.ware === 'deep' ? 4.8 : idea.ware === 'round' ? 12.5 : 10.5);
+      const pick = (): [number, number] | null => {
+        for (let tries = 0; tries < 30 && boxes.length; tries++) {
+          const b = boxes[Math.floor(random() * boxes.length)];
+          const x = b.min.x - 1 + random() * (b.max.x - b.min.x + 2);
+          const z = b.min.z - 1 + random() * (b.max.z - b.min.z + 2);
+          if (inside(x, z)) return [x, z];
+        }
+        return null;
+      };
+      const kinds = ['shaving_gold', 'shaving_yellow', 'shaving_white'];
+      const count = 40 + Math.floor(random() * 12);
+      for (let i = 0; i < count; i++) {
+        const at = pick();
+        if (!at) break;
+        parts.push(...posed([shaving(kinds[i % 3], random)], { at: [at[0], table.height(at[0], at[1]), at[1]], turn: random() * Math.PI * 2 }));
+      }
+      // Chopped herbs, big enough to read as herbs from the starting view (about 1 cm).
+      for (let i = 0; i < 18; i++) {
+        const at = pick();
+        if (!at) break;
+        parts.push(...posed([herbLeaf(random)], { scale: 1.9, turn: random() * Math.PI * 2, at: [at[0], table.height(at[0], at[1]) + 0.03, at[1]] }));
+      }
+    }
+
     // The hero's role first in the finished list (it takes the entry's skin and main highlight).
     const looks = dishLooks(idea);
     const order = new Map(looks.map((l, i) => [l.role, i]));
@@ -484,6 +527,8 @@ export function composedDish(idea: DishIdea): Dish {
   // A sample is kept only when it agrees with the ingredient's own colour: a small piece's sample
   // can catch what lies under it (blueberries on a pancake read pancake-brown).
   const sampled = refFamilies(idea.id);
+  // Colours the user set by hand stay their own (the steak's saturated pink, golden fries and chips).
+  const KEEP_OWN = new Set<FamilyId>(['rare', 'fries', 'garlic-chip']);
   const agrees = (own: FamilyId, ref: FamilyId) => {
     const a = hexToOklch(FAMILIES[own].colours.base);
     const b = hexToOklch(FAMILIES[ref].colours.base);
@@ -491,7 +536,7 @@ export function composedDish(idea: DishIdea): Dish {
     const gap = Math.abs(((((a.h - b.h) % 360) + 540) % 360) - 180);
     return gap < 50;
   };
-  const looks = dishLooks(idea).map((l) => (sampled[l.role] && (l.role === 'pool' || l.role === 'plate' || agrees(l.family, sampled[l.role])) ? { ...l, family: sampled[l.role] } : l));
+  const looks = dishLooks(idea).map((l) => (sampled[l.role] && (l.role === 'pool' ? !!TRACES[idea.id]?.base : l.role === 'plate' || (!KEEP_OWN.has(l.family) && agrees(l.family, sampled[l.role]))) ? { ...l, family: sampled[l.role] } : l));
   const [hero, ...rest] = looks;
   const partSkins: Record<string, Look> = {};
   for (const l of rest) if (l.skin) partSkins[l.role] = painterly(l.skin);

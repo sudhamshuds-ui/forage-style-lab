@@ -79,7 +79,8 @@ const FLESH: Record<string, { family: FamilyId; core: string; skin: string; segm
 
 /** Cooked elements take a sear (the DESIGN rule: seared, not charred). */
 const SEARED: Record<string, number> = {
-  potato: 0.8, chicken: 0.5, steak: 0.9, baguette: 0.7, rice: 0.8, peach: 0.5, pear: 0.4, garlic: 0.5, cabbage: 0.85, mushroom: 0.6, pepper: 0.4,
+  // Potatoes roast golden, not brown (the user, 2026-11-25: "golden brown bright").
+  potato: 0.45, chicken: 0.5, steak: 0.9, baguette: 0.7, rice: 0.8, peach: 0.5, pear: 0.4, garlic: 0.5, cabbage: 0.85, mushroom: 0.6, pepper: 0.4,
 };
 
 /** The roles an element needs, decided from the idea alone (the entry lists its parts before building). */
@@ -96,7 +97,8 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
       // Raw salmon cut small: the flesh skin in the salmon's own colours (its fillet skin needs a whole fillet's map).
       return [{ role: id, family: 'salmon', skin: { ...FLESH_SKIN, pale: '#ff8a5a', green: '#ff7448' }, glossy: true }];
     case 'steak:steak':
-      return [{ role: id, family: 'rare', skin: { ...FLESH_SKIN, pale: '#d8505e', green: '#6e3420', seared: 0.9 } }];
+      // Saturated pink inside, a thinner crust, so the slices read pink (the user, 2026-11-25).
+      return [{ role: id, family: 'rare', skin: { ...FLESH_SKIN, pale: '#f2587a', green: '#8a3a2a', seared: 0.55 } }];
     case 'chicken:drumstick':
       return [
         { role: 'chicken_meat_glow', family: 'poultry', skin: { kind: 'poultry', size_mm: 3, amount: 0.5, seared: 0.97, pale: '#c8501e', green: '#e09040' } },
@@ -141,6 +143,12 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
     case 'cheese:crumble':
     case 'cheese:slice':
       return [{ role: id, family: 'cheese', skin: { kind: 'pores', size_mm: 1.2, amount: 0.3 } }];
+    case 'potato:fries':
+      // Thick-cut fries, golden brown and bright (the user, 2026-11-25), toasted a little at the ends.
+      return [{ role: id, family: 'fries', skin: { kind: 'potato', size_mm: 2, amount: 0.3, seared: 0.25 } }];
+    case 'garlic:chip':
+      // Garlic shows only as crisp golden chips, never a bulb (the user, 2026-11-25).
+      return [{ role: id, family: 'garlic-chip' }];
     case 'butter:cube':
     case 'butter:crumble':
       return [{ role: id, family: 'butter', skin: { kind: 'pores', size_mm: 1.1, amount: 0.18 }, glossy: true }];
@@ -404,7 +412,7 @@ function slicedSteak(role: string, random: () => number): FormPiece[] {
     const g = cutBody(body, [[new Vector3(0, 0, 1), z1], [new Vector3(0, 0, -1), -z0]], { reach: 7, depth: 1.3, rounding: 0.18 });
     g.translate(0, 0, -(z0 + z1) / 2);
     // Each slice tipped back so its cut face looks up toward the camera, then set in a row.
-    g.rotateX(-0.55 + signed(random) * 0.08);
+    g.rotateX(-0.85 + signed(random) * 0.08);
     g.translate(signed(random) * 0.2, 0, -5 + k * (width + 0.25));
     pieces.push({ role, geometry: g });
   }
@@ -467,6 +475,22 @@ function crumble(role: string, random: () => number): FormPiece[] {
     pos.setXYZ(i, pos.getX(i) * k, pos.getY(i) * k * 0.75, pos.getZ(i) * k);
   }
   return [{ role, geometry: withFrame(g.toNonIndexed(), false) }];
+}
+
+/**
+ * A garnish shaving (the user, 2026-11-25: "sprinkle some bits of yellow, golden and white shavings
+ * as garnish"): a thin, irregular flake of 3 to 9 mm, lying flat, its foot at y = 0.
+ */
+export function shaving(role: string, random: () => number): FormPiece {
+  const r = 0.16 + random() * 0.28;
+  const g = new IcosahedronGeometry(r, 0);
+  const pos = g.getAttribute('position');
+  const sx = 1 + random() * 0.6;
+  for (let i = 0; i < pos.count; i++) {
+    const k = 1 + signed(random) * 0.25;
+    pos.setXYZ(i, pos.getX(i) * k * sx, pos.getY(i) * 0.22 + r * 0.22, pos.getZ(i) * k * 0.7);
+  }
+  return { role, geometry: withFrame(g.toNonIndexed(), false) };
 }
 
 /** A pantry form at real size, its roles renamed for the dish. */
@@ -560,6 +584,21 @@ export function makeElement(part: Part, random: () => number, seed: number): For
     case 'cheese:crumble':
     case 'butter:crumble':
       return settle(crumble(role, random));
+    case 'potato:fries': {
+      // One thick-cut fry: a square baton about 1.2 cm across, 6 to 8 cm long, a slight bend.
+      const half = 3 + random() * 1;
+      const t = 0.55 + random() * 0.1;
+      const baton = boxField(t, t, half, 0.22);
+      const bend = signed(random) * 0.05;
+      const bent: Field = (x, y, z) => baton(x - bend * z * z, y, z);
+      return settle([{ role, geometry: cutBody(bent, [], { reach: half + 0.5, depth: 0.6, rounding: 0 }) }]);
+    }
+    case 'garlic:chip': {
+      // A thin slice of a clove, crisp and slightly curled.
+      const a2 = 0.75 + random() * 0.2;
+      const field: Field = (x, y, z) => Math.max(Math.hypot(x / a2, z / (a2 * 0.72)) - 1, Math.abs(y - 0.12 * (x * x)) - 0.07);
+      return settle([{ role, geometry: cutBody(field, [], { reach: 1.1, depth: 0.1, rounding: 0 }) }]);
+    }
     case 'butter:cube': {
       const g = cutBody(boxField(1.3, 0.8, 1.3, 0.3), [], { reach: 1.7, depth: 1, rounding: 0 });
       return settle([{ role, geometry: g }]);

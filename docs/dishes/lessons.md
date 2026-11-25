@@ -148,3 +148,22 @@ sketches and reference photos.
 - The painting pass: plates and boards are props, so the card frames the food; full coloured
   shadows; every dish skin at a lighter touch (`PAINT_TOUCH`), so the watercolour bands carry the
   form as on the apple and the orange.
+
+## Layers, fries and no garlic bulbs (2026-11-25)
+- The user, on the steak frites: "in a dish like this, there is no need to show a bulb of garlic.
+  never show garlic bulb anywhere from now onwards, it isnt appetizing. i feel there is a lot of
+  empty space in dishes. when u have an element like fries (make them look like fries, thick cuts
+  instead of these wedges. also make them golden brown bright) add a lot of them in a bunch to
+  create volume"; "approach dishes in terms of layers ... first place the sauce pool, then place
+  the cut pieces of steak (btw they need to be more saturated pink) then a bunch of fries next to
+  it, then sprinkle some bits of yellow, golden and white shavings as garnish, then some herb
+  garnish ... Do this for every dish as a process."
+- Done: every garlic bulb (22 in the traced dishes, one on the tomahawk) is now a scatter of crisp
+  golden garlic chips; the steak frites has about 33 thick-cut fries piled in two layers; the
+  steak is a saturated pink with a thinner crust; every plated dish without a sauce in its
+  reference gets a pool under its food; every dish but the drinks ends with 40 to 50 shavings
+  (golden, yellow, white) and 18 chopped herbs over and round its food; roast potatoes sear
+  golden, not brown.
+- Lesson: an empty plate reads as "not food". Fill it with layers (sauce, hero, a generous bunch,
+  shavings, herbs) before adding more big elements.
+

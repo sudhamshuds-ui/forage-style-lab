@@ -120,6 +120,10 @@ export type FamilyId =
   | 'bone-roast'
   | 'cooked-rice'
   | 'cooked-salmon'
+  | 'fries'
+  | 'garlic-chip'
+  | 'shaving-gold'
+  | 'shaving-white'
   | 'porcelain';
 
 export interface ColourFamily {
@@ -577,7 +581,8 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // A steak's medium-rare inside: rosy pink, a deep wine shade.
   rare: {
     name: 'Rare',
-    colours: { lit: '#f59a92', base: '#cf4f56', shadow: '#6c2142', glow: '#f2605c', highlight: '#ffe4e2' },
+    // More saturated pink (the user, 2026-11-25: the steak pieces "need to be more saturated pink").
+    colours: { lit: '#ffa0aa', base: '#e64a6a', shadow: '#7a1e4a', glow: '#ff5c74', highlight: '#ffe8ec' },
     rooms: [],
   },
   // A seared crust (salmon, steak): golden caramel where lit, a russet-plum shade.
@@ -608,6 +613,31 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // Cooked salmon: opaque and pale, a light pink nearly white where lit, flaking into pale layers,
   // a soft rose-mauve shade (the user, 2026-11-18/19: "its more pinkish white", "more lighter
   // whitish"): cooking turns the translucent orange flesh opaque and pale.
+  // Thick-cut fries (the user, 2026-11-25: "golden brown bright"): a sunny gold, toasted brown at
+  // the ends, a russet-plum shade, never grey.
+  fries: {
+    name: 'Fries',
+    colours: { lit: '#ffeb9e', base: '#f8c650', shadow: '#a45a34', glow: '#ffb238', highlight: '#fff9e2' },
+    rooms: [],
+  },
+  // Crisp garlic chips, the only way garlic shows on a dish (never a bulb: the user, 2026-11-25).
+  'garlic-chip': {
+    name: 'Garlic chip',
+    colours: { lit: '#fff0b4', base: '#f0c662', shadow: '#a8683c', glow: '#ffbe4a', highlight: '#fffaea' },
+    rooms: [],
+  },
+  // Garnish shavings (hard cheese, butter, crisp shallot): golden and yellow ones, and a creamy white
+  // one with a lilac shade.
+  'shaving-gold': {
+    name: 'Golden shaving',
+    colours: { lit: '#ffe9a0', base: '#f6c84e', shadow: '#b0703c', glow: '#ffc23a', highlight: '#fffbe6' },
+    rooms: [],
+  },
+  'shaving-white': {
+    name: 'White shaving',
+    colours: { lit: '#fffcf2', base: '#f6eedc', shadow: '#b4a2bc', glow: '#ffe8c0', highlight: '#ffffff' },
+    rooms: [],
+  },
   'cooked-salmon': {
     name: 'Cooked salmon',
     colours: { lit: '#fff2ec', base: '#f5cdbf', shadow: '#ae7a8c', glow: '#ffb6a2', highlight: '#fffaf6' },

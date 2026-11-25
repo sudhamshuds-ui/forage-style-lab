@@ -1,7 +1,7 @@
 import { Box3, Vector3 } from 'three';
 import { buildSteak } from '../../ingredients/forms/steak';
 import { buildBlueberries, oneBlueberry } from '../../ingredients/forms/blueberries';
-import { garlicBulb } from '../../ingredients/forms/garlic';
+import { makeElement } from '../compose/elements';
 import { seededRandom, signed } from '../../ingredients/forms/kit/random';
 import type { FormBuilder, FormPiece } from '../../ingredients/forms/kit/piece';
 import { cutPieces, knife } from '../kit/cut';
@@ -16,7 +16,7 @@ import { ware, type WareShape } from '../kit/ware';
  *
  * Centre plating on a deep blue platter: a round pool of dark blueberry glaze; the rest of the
  * tomahawk (big) at the back with its long bone running away, its eye carved into slices shingled
- * toward the front (rare and rosy inside, a dark crust round each); a halved roast garlic bulb by
+ * toward the front (rare and rosy inside, a dark crust round each); crisp garlic chips by
  * the bone, its cut face up and seared; blueberries heaped beside the slices and scattered over
  * the plate. The glaze is drizzled over everything.
  */
@@ -37,16 +37,6 @@ function centred(pieces: FormPiece[]): FormPiece[] {
   return posed(pieces, { at: [-c.x, -c.y, -c.z] });
 }
 
-/** Half a garlic bulb, cut across, the cut face up: cloves round its middle, seared at the edges. */
-function garlicHalf(random: () => number): FormPiece[] {
-  const bulb = garlicBulb(random);
-  bulb.computeBoundingBox();
-  const at = bulb.boundingBox!.max.y * 0.42;
-  const centre = bulb.boundingBox!.getCenter(new Vector3());
-  // The face's map: x from the middle (0) to the skin (1), y counts the nine cloves round it.
-  const flesh = (p: Vector3) => ({ uv: [Math.min(1, Math.hypot(p.x - centre.x, p.z - centre.z) / 3.0), ((Math.atan2(p.z - centre.z, p.x - centre.x) + Math.PI) / (2 * Math.PI)) * 9 + 0.3] });
-  return cutPieces([{ role: 'garlic', geometry: bulb }], knife(new Vector3(0, at, 0), new Vector3(0, 1, 0)), 'garlicCut', flesh);
-}
 
 export const buildTomahawkBerry: FormBuilder = ({ seed }) => {
   const random = seededRandom(seed ^ 0x70b4);
@@ -87,9 +77,13 @@ export const buildTomahawkBerry: FormBuilder = ({ seed }) => {
     parts.push(...table.rest(placed, { tilt: 0.3, sink: 0.08 }));
   });
 
-  // The halved roast garlic by the bone, cut face up.
-  const garlic = posed(centred(garlicHalf(random)), { scale: 0.9, turn: random() * 6 });
-  parts.push(...table.rest(posed(garlic, { at: [3.8, 6, -5.6] }), { tilt: 0.2, sink: 0.1 }));
+  // Crisp garlic chips by the bone (never a bulb: the user, 2026-11-25, "it isnt appetizing").
+  for (let k = 0; k < 8; k++) {
+    const chip = makeElement({ ingredient: 'garlic', form: 'chip', count: 1 }, random, seed + k).map((p) => ({ ...p, role: 'garlicCut' }));
+    const a = random() * Math.PI * 2;
+    const r = Math.sqrt(random()) * 1.8;
+    parts.push(...table.rest(posed(chip, { turn: random() * 6, at: [3.8 + Math.cos(a) * r, 6, -5.6 + Math.sin(a) * r] }), { tilt: 0.25, sink: 0.02 }));
+  }
   // What the berries keep clear of: the meat and the garlic.
   const keep = new Table(dish.floor);
   keep.add(parts);

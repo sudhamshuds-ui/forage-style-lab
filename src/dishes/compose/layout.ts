@@ -99,6 +99,10 @@ export function elementInfo(ingredient: string, form: string): ElementInfo {
       return { shape: 'circle', r: 6, group: 'pair', shrinks: false };
     case 'pastry':
       return { shape: 'circle', r: 7.5, group: 'pair', shrinks: false };
+    case 'fries':
+      return { shape: 'rect', w: 1.3, h: 7, group: 'heap', shrinks: false };
+    case 'chip':
+      return { shape: 'circle', r: 0.8, group: 'heap', shrinks: false };
   }
   switch (form) {
     case 'whole':

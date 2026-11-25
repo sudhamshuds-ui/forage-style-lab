@@ -795,6 +795,11 @@ physics (nothing floating, intersecting or lying on top weirdly), the pantry's w
   floating, overlapping, moving, lost), plus renders next to the references and the pantry's apple.
 - Painting: plates and boards are props (the card frames the food), full coloured shadows, dish
   skins at a lighter touch (`PAINT_TOUCH`).
+- **Layers, every dish** (the user, 2026-11-25; DESIGN.md "Build every dish in layers"): sauce pool
+  first (added under the food when the reference has none, `defaultPool`), hero, the medium in a
+  generous bunch, then the automatic garnish layer (golden, yellow and white shavings, then herbs).
+  **Never a garlic bulb**: garlic is `garlic:chip`. Fries are thick-cut `potato:fries`, golden,
+  piled for volume. Steak cut faces a saturated pink (`rare`), never repainted by sampled colours.
 
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one

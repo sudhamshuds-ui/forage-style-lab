@@ -46,6 +46,25 @@ showing any dish, and say what each found.
   Why: "make the 2d plan to replicate the generated dish refs. they are perfect, use them as source
   of truth for everything, shapes, form, plating, coulours, composition".
   <!-- 2026-11-22 -->
+- **Build every dish in layers, and fill the plate.** The process for every dish, in order: (1) the
+  sauce pool (a plate, slate or pasta bowl with no sauce in its reference still gets one, under the
+  food and a little wider: `defaultPool` in `compose/traces.ts`); (2) the hero (the cut steak);
+  (3) the medium element in a generous bunch with volume (a big pile of fries, not five); (4) a
+  sprinkle of shavings in yellow, golden and white; (5) herbs, last, big enough to read. Steps 4
+  and 5 are automatic for every dish but drinks (the garnish layer in `compose/build.ts`). The dish
+  should feel like food, not two or three big elements on an empty plate.
+  Why: "i feel there is a lot of empty space in dishes", "approach dishes in terms of layers, u can
+  add more garnishes, herbs, tiny bits and pieces so it feels like food ... Do this for every dish
+  as a process".
+  <!-- 2026-11-25 -->
+- **Never show a garlic bulb, anywhere.** Garlic on a dish is crisp golden chips (`garlic:chip`).
+  Why: "never show garlic bulb anywhere from now onwards, it isnt appetizing".
+  <!-- 2026-11-25 -->
+- **Fries look like fries**: thick square-cut batons, golden brown and bright (`potato:fries`, the
+  `fries` family), piled in a bunch for volume, never a few wedges.
+  Why: "make them look like fries, thick cuts instead of these wedges. also make them golden brown
+  bright ... add a lot of them in a bunch to create volume".
+  <!-- 2026-11-25 -->
 - **Draw every dish first, from straight above, in simple shapes, and build it from those numbers.**
   A `Plan` (`src/dishes/kit/plan.ts`): circles for pools, wheels and berries, rectangles for
   fillets and slabs, half circles for wedges, each tagged big, medium or small. Composed with
@@ -103,6 +122,12 @@ showing any dish, and say what each found.
   <!-- 2026-11-19 -->
 
 ## Dishes: colour and texture
+
+- **Cut steak is a saturated pink**, its crust a thin band (the `rare` family, the slices tipped so
+  their cut faces show). Colours the user set by hand (rare, fries, garlic chip) are never
+  repainted by the reference's sampled colours.
+  Why: "they need to be more saturated pink".
+  <!-- 2026-11-25 -->
 
 - **Cooked food gets a cooked family, never the raw one.** Cooked salmon is a pale pink nearly white
   where lit (`cooked-salmon`), never raw orange.

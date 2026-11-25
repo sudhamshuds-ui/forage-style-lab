@@ -26,11 +26,11 @@ export const TRACES: Record<string, Trace> = {
     base: ['pool:brown-butter', 180, 195, 9],
     layers: [
       [['steak:steak', 'b', 150, 185, 14, 5]],
-      [
-        ['potato:wedge', 'm', 205, 112, 7, 60], ['potato:wedge', 'm', 238, 112, 7, 120], ['potato:wedge', 'm', 268, 132, 7, 80],
-        ['potato:wedge', 'm', 288, 165, 7, 30], ['potato:wedge', 'm', 240, 150, 7, 100], ['potato:wedge', 'm', 185, 128, 6.5, 150],
-      ],
-      [['garlic:half', 's', 262, 205, 5, 0], ['garlic:half', 's', 290, 192, 4.5, 30]],
+      // A big bunch of thick-cut fries beside the steak, piled in two layers for volume (the user,
+      // 2026-11-25: "add a lot of them in a bunch to create volume").
+      [['potato:fries', 'm', 240, 130, 7, 70, 14, 3.6], ['potato:fries', 'm', 282, 170, 7, 110, 10, 3]],
+      [['potato:fries', 'm', 258, 150, 7, 95, 9, 2.6]],
+      [['garlic:chip', 's', 195, 200, 1.6, 0, 8, 4]],
     ],
     herbs: [10, 170, 200, 7],
   },
@@ -53,7 +53,7 @@ export const TRACES: Record<string, Trace> = {
     edge: [10, 330, 65, 295],
     base: ['pool:honey', 170, 200, 7],
     layers: [
-      [['pear:half', 'b', 140, 175, 9, 95], ['pear:half', 'b', 215, 205, 9, 80], ['garlic:half', 's', 212, 112, 4.5, 0], ['garlic:half', 's', 85, 182, 3, 0], ['garlic:half', 's', 120, 222, 3, 40]],
+      [['pear:half', 'b', 140, 175, 9, 95], ['pear:half', 'b', 215, 205, 9, 80], ['garlic:chip', 's', 212, 112, 1.6, 0, 5, 2.2], ['garlic:chip', 's', 85, 182, 1.6, 0, 5, 1.5], ['garlic:chip', 's', 120, 222, 1.6, 40, 5, 1.5]],
       [['cheese:crumble', 'm', 140, 165, 2.5, 0, 4, 1.5], ['cheese:crumble', 'm', 215, 192, 2.5, 0, 4, 1.5]],
     ],
     herbs: [10, 170, 190, 8],
@@ -128,7 +128,7 @@ export const TRACES: Record<string, Trace> = {
     edge: [10, 335, 70, 290],
     base: ['pool:herb-oil', 160, 215, 7],
     layers: [
-      [['broccoli:whole', 'b', 170, 170, 7, 0, 5, 4], ['garlic:half', 'm', 100, 192, 4, 0], ['garlic:half', 'm', 135, 218, 4, 30], ['garlic:half', 'm', 75, 182, 3, 60], ['lemon:half', 's', 275, 122, 6, 0]],
+      [['broccoli:whole', 'b', 170, 170, 7, 0, 5, 4], ['garlic:chip', 's', 100, 192, 1.6, 0, 5, 2.0], ['garlic:chip', 's', 135, 218, 1.6, 30, 5, 2.0], ['garlic:chip', 's', 75, 182, 1.6, 60, 5, 1.5], ['lemon:half', 's', 275, 122, 6, 0]],
     ],
     herbs: [6, 170, 190, 7],
   },
@@ -231,7 +231,7 @@ export const TRACES: Record<string, Trace> = {
     layers: [
       [['baguette:toast', 'b', 170, 175, 18, -5]],
       [['mushroom:half', 'm', 165, 155, 3.5, 0, 12, 5]],
-      [['garlic:half', 's', 165, 150, 1.5, 0, 3, 3]],
+      [['garlic:chip', 's', 165, 150, 1.6, 0, 9, 3.0]],
     ],
     herbs: [14, 165, 155, 6],
   },
@@ -321,7 +321,7 @@ export const TRACES: Record<string, Trace> = {
     edge: [10, 340, 70, 300],
     layers: [
       [['potato:wedge', 'm', 185, 182, 5, 0, 10, 6]],
-      [['chicken:drumstick', 'b', 175, 142, 12, 60], ['chicken:drumstick', 'b', 230, 152, 12, 110], ['chicken:drumstick', 'b', 150, 192, 11, 20], ['garlic:half', 's', 262, 232, 3, 0], ['garlic:half', 's', 200, 242, 3, 40], ['garlic:half', 's', 285, 197, 3, 80]],
+      [['chicken:drumstick', 'b', 175, 142, 12, 60], ['chicken:drumstick', 'b', 230, 152, 12, 110], ['chicken:drumstick', 'b', 150, 192, 11, 20], ['garlic:chip', 's', 262, 232, 1.6, 0, 5, 1.5], ['garlic:chip', 's', 200, 242, 1.6, 40, 5, 1.5], ['garlic:chip', 's', 285, 197, 1.6, 80, 5, 1.5]],
     ],
     herbs: [12, 190, 180, 7],
   },
@@ -363,7 +363,7 @@ export const TRACES: Record<string, Trace> = {
     edge: [10, 340, 70, 290],
     base: ['pool:brown-butter', 180, 202, 8],
     layers: [
-      [['salmon:fillet', 'b', 160, 172, 15, 15], ['lemon:wheel', 'm', 285, 182, 5, 0], ['lemon:wheel', 'm', 195, 242, 5, 0], ['garlic:half', 'm', 270, 212, 6, 0], ['garlic:half', 's', 115, 177, 3, 0]],
+      [['salmon:fillet', 'b', 160, 172, 15, 15], ['lemon:wheel', 'm', 285, 182, 5, 0], ['lemon:wheel', 'm', 195, 242, 5, 0], ['garlic:chip', 's', 270, 212, 1.6, 0, 5, 3.0], ['garlic:chip', 's', 115, 177, 1.6, 0, 5, 1.5]],
       [['lemon:wheel', 's', 165, 120, 4.5, 0]],
     ],
     herbs: [12, 190, 180, 8],
@@ -378,7 +378,7 @@ export const TRACES: Record<string, Trace> = {
   },
   'mushroom-steak-garlic': {
     edge: [20, 345, 85, 320],
-    layers: [[['steak:steak', 'b', 160, 202, 13, 60]], [['mushroom:half', 'm', 210, 172, 3.5, 0, 9, 5], ['garlic:half', 's', 272, 137, 6, 0], ['garlic:half', 's', 277, 187, 3, 30]]],
+    layers: [[['steak:steak', 'b', 160, 202, 13, 60]], [['mushroom:half', 'm', 210, 172, 3.5, 0, 9, 5], ['garlic:chip', 's', 272, 137, 1.6, 0, 5, 3.0], ['garlic:chip', 's', 277, 187, 1.6, 30, 5, 1.5]]],
   },
   'avocado-egg-rice': {
     edge: [25, 320, 55, 250],
@@ -513,7 +513,7 @@ export const TRACES: Record<string, Trace> = {
   'tomato-rice-soup': {
     edge: [5, 345, 60, 295],
     base: ['soup:tomato', 205, 182, 8],
-    layers: [[['garlic:half', 's', 205, 162, 2, 0, 3, 1]]],
+    layers: [[['garlic:chip', 's', 205, 162, 1.6, 0, 9, 1.5]]],
     herbs: [14, 205, 170, 4],
   },
   'chicken-pepper-stew': {
@@ -537,7 +537,7 @@ export const TRACES: Record<string, Trace> = {
     ware: 'round',
     layers: [
       [['potato:wedge', 'b', 190, 182, 6, 0, 14, 7]],
-      [['lemon:wedge', 'm', 95, 177, 5, 30], ['lemon:wedge', 'm', 255, 212, 5, -20], ['garlic:half', 's', 290, 142, 3, 0], ['garlic:half', 's', 112, 227, 3, 40]],
+      [['lemon:wedge', 'm', 95, 177, 5, 30], ['lemon:wedge', 'm', 255, 212, 5, -20], ['garlic:chip', 's', 290, 142, 1.6, 0, 5, 1.5], ['garlic:chip', 's', 112, 227, 1.6, 40, 5, 1.5]],
     ],
     herbs: [12, 190, 180, 8],
   },
@@ -638,7 +638,7 @@ export const TRACES: Record<string, Trace> = {
   },
   'steak-garlic-rice': {
     edge: [25, 345, 48, 240],
-    layers: [[['steak:cube', 'b', 200, 177, 2.8, 0, 9, 4]], [['garlic:half', 's', 200, 152, 1.8, 0, 8, 3.5]]],
+    layers: [[['steak:cube', 'b', 200, 177, 2.8, 0, 9, 4]], [['garlic:chip', 's', 200, 152, 1.6, 0, 24, 3.5]]],
     herbs: [10, 200, 170, 4],
   },
   'peach-butter-toast': {
@@ -649,7 +649,7 @@ export const TRACES: Record<string, Trace> = {
   'roast-tomato-garlic': {
     edge: [15, 335, 60, 310],
     layers: [
-      [['tomato:half', 'b', 130, 177, 6, 0], ['tomato:half', 'b', 195, 142, 6.5, 0], ['tomato:half', 'b', 255, 182, 6, 0], ['tomato:half', 'b', 140, 237, 6, 0], ['tomato:half', 'b', 215, 232, 6.5, 0], ['garlic:half', 'm', 195, 197, 3.5, 0], ['garlic:half', 'm', 265, 147, 3, 30]],
+      [['tomato:half', 'b', 130, 177, 6, 0], ['tomato:half', 'b', 195, 142, 6.5, 0], ['tomato:half', 'b', 255, 182, 6, 0], ['tomato:half', 'b', 140, 237, 6, 0], ['tomato:half', 'b', 215, 232, 6.5, 0], ['garlic:chip', 's', 195, 197, 1.6, 0, 5, 1.8], ['garlic:chip', 's', 265, 147, 1.6, 30, 5, 1.5]],
       [['cheese:crumble', 's', 190, 187, 1.2, 0, 12, 6]],
     ],
     herbs: [8, 190, 190, 7],
@@ -703,7 +703,22 @@ export const TRACES: Record<string, Trace> = {
 export function effectiveIdea(idea: DishIdea): DishIdea {
   const t = TRACES[idea.id];
   if (!t) return idea;
-  return { ...idea, ware: t.ware ?? idea.ware, base: t.base?.[0] ?? 'none' };
+  const ware = t.ware ?? idea.ware;
+  return { ...idea, ware, base: t.base?.[0] ?? defaultPool(idea, ware) ?? 'none' };
+}
+
+/**
+ * The sauce every plated dish starts from (the user, 2026-11-25: "first place the sauce pool, then
+ * place the cut pieces ..."): a plate, slate or pasta bowl with no sauce in its reference gets one
+ * under its food, the catalogue's own when it names one, else one that suits the dish.
+ */
+function defaultPool(idea: DishIdea, ware: DishIdea['ware']): string | undefined {
+  if (!['plate', 'slate', 'bowl'].includes(ware)) return undefined;
+  if (idea.base.startsWith('pool:')) return idea.base;
+  if (idea.course === 'dessert') return 'pool:berry-sauce';
+  if (idea.heroes.some((h) => ['steak', 'chicken', 'mushroom'].includes(h))) return 'pool:jus';
+  if (idea.heroes.some((h) => ['salmon', 'eggs', 'potato'].includes(h))) return 'pool:cream';
+  return 'pool:herb-oil';
 }
 
 /** Every part a traced dish uses (for its roles and colours), or nothing when it is not traced. */
