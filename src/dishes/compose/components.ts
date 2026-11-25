@@ -57,6 +57,10 @@ export interface DishComponent {
   place: 'under' | 'beside' | 'on-hero-allowed' | 'on-base' | 'dots-around';
   /** For pieces: the part written into the idea (`quenelle:ice-cream*1`). Garnish has none. */
   part?: string;
+  /** What the caption calls it, when it is a table ingredient made sweet ("a lime curd"). */
+  label?: string;
+  /** The table ingredient it was made from (a sweet dish's curd, jam or brittle). */
+  from?: string;
 }
 
 /** The part names of the piece components (the `ingredient` half of `kind:family`). */

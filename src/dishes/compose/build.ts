@@ -842,7 +842,8 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       };
       // Puddings and sweet plates take a light dusting of buttery crumbs, not the savoury layer
       // (the layout's `savoryGarnish`).
-      const savoury = layoutById(idea.layout)?.savoryGarnish ?? true;
+      // A sweet dish never takes the savoury layer, nor herbs (Group 1).
+      const savoury = (layoutById(idea.layout)?.savoryGarnish ?? true) && !idea.sweet;
       const kinds = savoury ? ['shaving_gold', 'shaving_yellow', 'shaving_white'] : ['shaving_gold', 'shaving_white'];
       const count = savoury ? 40 + Math.floor(random() * 12) : 10 + Math.floor(random() * 4);
       // How much of the garnish lands over food or its pool (a check for generated dishes).
@@ -861,7 +862,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         parts.push(...posed([shaving(kinds[i % kinds.length], random)], { at: [at[0], table.height(at[0], at[1]), at[1]], turn: random() * Math.PI * 2 }));
       }
       // Chopped herbs, big enough to read as herbs from the starting view (about 1 cm).
-      for (let i = 0; i < (savoury ? 18 : 5); i++) {
+      for (let i = 0; i < (savoury ? 18 : idea.sweet ? 0 : 5); i++) {
         const at = pick();
         if (!at) break;
         count1(at[0], at[1]);

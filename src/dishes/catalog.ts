@@ -36,6 +36,8 @@ export interface DishIdea {
   blended?: string[];
   /** Generated dishes: the chosen sauce (a pool key), also when it is not a pool (pancake syrup). */
   sauce?: string;
+  /** Generated dishes: a sweet dish (no herbs, no savoury garnish layer). */
+  sweet?: boolean;
 }
 
 const d = (id: string, title: string, heroes: [string, string, string], course: DishIdea['course'], ware: DishIdea['ware'], base: string, big: string, medium: string[], small: string[], description: string): DishIdea => ({ id, title, heroes, course, ware, base, big, medium, small, description });

@@ -126,6 +126,7 @@ export type FamilyId =
   | 'shaving-white'
   | 'porcelain'
   | 'caramel'
+  | 'custard'
   | 'roast-chicken'
   | 'ice'
   | 'glass-rim'
@@ -688,6 +689,12 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   'roast-chicken': {
     name: 'Roast chicken',
     colours: { lit: '#fff3de', base: '#f1d2a2', shadow: '#a46a6a', glow: '#f2a454', highlight: '#fffaf0' },
+    rooms: [],
+  },
+  // Egg custard in a dessert (Group 1: never a fried egg): a warm vanilla yellow, a rose shade.
+  custard: {
+    name: 'Custard',
+    colours: { lit: '#fff4c4', base: '#f6d66e', shadow: '#b0806e', glow: '#ffc24a', highlight: '#fffbea' },
     rooms: [],
   },
   // Maple syrup over pancakes: a deep amber, redder than caramel, a wine shade.

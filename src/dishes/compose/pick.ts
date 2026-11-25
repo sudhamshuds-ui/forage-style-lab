@@ -2,7 +2,7 @@ import { seededRandom } from '../../ingredients/forms/kit/random';
 import { TRAITS, heroPriority } from '../../ingredients/traits';
 import type { FamilyId } from '../../ingredients/families';
 import type { DishIdea } from '../catalog';
-import { componentGarnish, componentPiece, type DishComponent } from './components';
+import { componentGarnish, componentPiece, isComponent, type DishComponent } from './components';
 import { SKEWERS } from './elements';
 import { layoutById, type LayoutId, type LayoutSpec } from './layouts';
 
@@ -54,6 +54,12 @@ export interface Slots {
   star: string;
   /** The dish's chosen sauce (the pool, or for a dry dish the smear and drizzle beside it). */
   sauce: string;
+  /** A sweet dish (Group 1): only sweet-compatible pieces, no herbs, no savoury garnish. */
+  sweet?: boolean;
+  /** Savoury table ingredients made sweet for a sweet dish (a curd, a jam, a brittle). */
+  made?: DishComponent[];
+  /** The one savoury piece kept on purpose in an Unhinged sweet dish (one egg with a tart). */
+  twist?: Piece;
 }
 
 /** The longest a title may be: it must fit on one line on the result screen (the fix list). */
@@ -67,6 +73,53 @@ const CITRUS = ['lemon', 'lime', 'orange'];
 const TART_FILLING = ['apple', 'pear', 'peach', 'strawberry', 'blueberries', 'grapes', 'lemon', 'lime', 'orange', 'cheese', 'butter', 'milk', 'watermelon'];
 /** What is good cut small and raw: a crudo or a tartare. */
 const CRUDO = ['salmon', 'steak', 'watermelon', 'peach', 'tomato', 'avocado', 'pear', 'apple', 'strawberry'];
+
+/** True for ingredients that read sweet as they are (fruit, dairy). */
+const SWEET_OK_TASTE = (id: string) => TRAITS[id]?.taste === 'sweet' || TRAITS[id]?.taste === 'both';
+
+/** Layouts that are sweet dishes, whatever the taste chip says. */
+const SWEET_LAYOUTS: LayoutId[] = ['tart', 'plated-dessert', 'dessert-bowl', 'pancake-stack'];
+
+/** A sweet dish: a dessert, a sweet layout, or toast chosen sweet (strawberry toast). */
+export function isSweetDish(layout: LayoutId, course: string, taste: string): boolean {
+  return course.toLowerCase() === 'dessert' || SWEET_LAYOUTS.includes(layout) || (taste === 'Sweet' && layout === 'toast-board');
+}
+
+/** A piece a sweet dish may carry as it is. Citrus wheels, herbs, a fried egg, croutons do not. */
+export function sweetPiece(id: string, form: string): boolean {
+  if (isComponent(id) || id === 'whip' || id === 'tart') return true;
+  if (id === 'baguette') return form === 'toast';
+  if (id === 'milk') return form === 'pancake' || form === 'mash';
+  if (id === 'lemon' || id === 'lime') return false;
+  return SWEET_OK_TASTE(id);
+}
+
+/**
+ * What a savoury table ingredient becomes in a sweet dish (Group 1): kept, but made sweet, never
+ * dropped: an egg is a custard, citrus a curd, a tomato a jam, meat a brittle shard of caramel.
+ */
+const SWEETENED: Record<string, { kind: 'smear' | 'gel' | 'tuile'; family: FamilyId; label: string }> = {
+  eggs: { kind: 'smear', family: 'custard', label: 'a vanilla egg custard' },
+  lemon: { kind: 'smear', family: 'lemon-flesh', label: 'a lemon curd' },
+  lime: { kind: 'smear', family: 'lime-flesh', label: 'a lime curd' },
+  tomato: { kind: 'gel', family: 'tomato-sauce', label: 'beads of tomato jam' },
+  pepper: { kind: 'gel', family: 'pepper-flesh', label: 'beads of sweet pepper jam' },
+  onion: { kind: 'smear', family: 'caramel', label: 'a sweet onion jam' },
+  garlic: { kind: 'gel', family: 'honey', label: 'beads of garlic honey' },
+  avocado: { kind: 'smear', family: 'avocado-flesh', label: 'an avocado mousse' },
+  spinach: { kind: 'gel', family: 'lime-flesh', label: 'beads of green spinach syrup' },
+  romaine: { kind: 'gel', family: 'lime-flesh', label: 'beads of green syrup' },
+  cabbage: { kind: 'gel', family: 'lime-flesh', label: 'beads of green syrup' },
+  broccoli: { kind: 'gel', family: 'lime-flesh', label: 'beads of green syrup' },
+  mushroom: { kind: 'gel', family: 'caramel', label: 'beads of mushroom caramel' },
+  potato: { kind: 'tuile', family: 'pastry', label: 'a candied potato crisp' },
+  rice: { kind: 'tuile', family: 'pastry', label: 'a puffed rice crisp' },
+  baguette: { kind: 'tuile', family: 'pastry', label: 'a toasted bread crisp' },
+  steak: { kind: 'tuile', family: 'caramel', label: 'a steak caramel brittle' },
+  chicken: { kind: 'tuile', family: 'caramel', label: 'a chicken skin brittle' },
+  salmon: { kind: 'tuile', family: 'caramel', label: 'a salmon praline' },
+  sauce: { kind: 'smear', family: 'caramel', label: 'a chili caramel' },
+};
 
 /** A number from a string (for seeds): the same text always gives the same number. */
 export function hashText(text: string): number {
@@ -106,10 +159,11 @@ export function layoutCandidates(ids: string[], course: Course, taste: string): 
   const protein = ids.some((id) => PROTEINS.includes(id));
   if (course === 'drink') return ['glass-drink'];
   if (course === 'dessert') {
-    // Rice is a rice pudding; romaine a sweet leaf salad (fruit and honey over the leaves).
+    // Rice is a rice pudding. A table with nothing sweet becomes a vehicle dessert (a custard or
+    // cream tart, pancakes) carrying the rest made sweet (Group 1: never leaves or a fried egg).
     if (has('rice')) return ['dessert-bowl'];
-    if (has('romaine')) return ['leaf-salad'];
     const fruit = ids.some((id) => TART_FILLING.includes(id));
+    if (!ids.some((id) => SWEET_OK_TASTE(id))) return ['tart', 'pancake-stack'];
     if (has('milk') && !fruit) add('pancake-stack');
     if (fruit) add('tart');
     add('plated-dessert');
@@ -118,7 +172,8 @@ export function layoutCandidates(ids: string[], course: Course, taste: string): 
     return out;
   }
   if (has('rice')) return ['rice-bowl'];
-  if (has('romaine')) return ['leaf-salad'];
+  // A main is always plated, never a salad or a soup (Group 1): its leaves are wilted beside the food.
+  if (has('romaine') && course !== 'main') return ['leaf-salad'];
   const threaded = ['chicken', 'steak', 'salmon'].find((p) => has(p) && SKEWERS[p].some((bead) => bead.ingredient !== p && has(bead.ingredient)));
   const skillet = (has('eggs') && ids.some((id) => ['tomato', 'pepper', 'mushroom', 'spinach'].includes(id))) || (has('broccoli') && has('cheese'));
   const soupy = ['potato', 'tomato', 'pepper'].some(has);
@@ -145,7 +200,6 @@ export function layoutCandidates(ids: string[], course: Course, taste: string): 
   if (skillet) add('skillet-bake');
   if (has('baguette') && !protein) add('toast-board');
   add('circular-plate');
-  if (ids.some((id) => LEAFY.includes(id)) && protein) add('leaf-salad');
   // Mash only when the table brings the potato (never a library mash: the P0 list).
   if (has('potato')) add('mash-plate');
   if (threaded) add('skewer-platter');
@@ -177,8 +231,8 @@ export const pickLayout = pickArchetype;
  */
 function chooseSauce(layout: LayoutSpec, ids: string[], lead: string, taste: string, wild: number): string {
   const has = (id: string) => ids.includes(id);
-  if (has('sauce')) return has('tomato') ? 'pool:tomato-sauce' : 'pool:chili';
   const sweet = ['tart', 'plated-dessert', 'dessert-bowl', 'pancake-stack'].includes(layout.id);
+  if (has('sauce') && !sweet) return has('tomato') ? 'pool:tomato-sauce' : 'pool:chili';
   // Pancakes take a syrup, never a fruit sauce (item 5): maple, honey or caramel.
   if (layout.id === 'pancake-stack') return wild < 30 ? 'pool:maple' : wild < 70 ? (CITRUS.includes(lead) || lead === 'peach' ? 'pool:honey' : 'pool:maple') : 'pool:caramel';
   if (sweet) {
@@ -267,7 +321,8 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
   const inBase: string[] = [];
   const take = (id: string) => left.delete(id);
   const sweetFirst = course === 'dessert' || choices.taste === 'Sweet';
-  const rank = (id: string) => heroPriority(id) - (sweetFirst && TRAITS[id]?.taste !== 'savoury' ? 2.5 : 0);
+  // A sweet dish is led by something sweet whenever the table has it (Group 1: never an egg first).
+  const rank = (id: string) => heroPriority(id) - (sweetFirst && TRAITS[id]?.taste !== 'savoury' ? (course === 'dessert' ? 10 : 2.5) : 0);
   const byRank = (list: string[]) => [...list].sort((a, b) => rank(a) - rank(b));
 
   let base = 'none';
@@ -320,8 +375,12 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
   }
 
   // The table's sauce never becomes a piece: it is the pool (or the drizzle on a dry layout).
-  if (left.has('sauce')) {
+  if (left.has('sauce') && !isSweetDish(layout.id, course, choices.taste)) {
     if (base === 'none') base = left.has('tomato') ? 'pool:tomato-sauce' : 'pool:chili';
+    take('sauce');
+    inBase.push('sauce');
+  } else if (left.has('sauce')) {
+    // In a sweet dish the hot sauce is a chili caramel (made sweet below), never a pool.
     take('sauce');
     inBase.push('sauce');
   }
@@ -333,7 +392,14 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
     case 'pancake-stack': {
       // The vehicle is the platform; the table's best filling is the star on it.
       const filling = byRank([...left].filter((id) => TART_FILLING.includes(id) && id !== 'butter' && id !== 'milk'));
-      const vehicle = layout.id === 'tart' ? componentPiece('tart', left.has('milk') || left.has('cheese') || filling.length === 0 ? 'cream' : 'pastry', 1, 'under').part! : 'milk:pancake';
+      // Eggs in a tart are its custard (Group 1: an egg in a dessert is never a fried egg); in pancakes,
+      // they are in the batter.
+      const custard = left.has('eggs');
+      // A citrus tart is a curd tart: the lemon or lime is its filling, not wheels on top.
+      const curd = filling.length === 0 ? (['lemon', 'lime'] as const).find((id) => left.has(id)) : undefined;
+      const vehicle = layout.id === 'tart' ? componentPiece('tart', curd ? (curd === 'lemon' ? 'lemon-flesh' : 'lime-flesh') : custard ? 'custard' : left.has('milk') || left.has('cheese') || filling.length === 0 ? 'cream' : 'pastry', 1, 'under').part! : 'milk:pancake';
+      if (curd && layout.id === 'tart') take(curd), inBase.push(curd), (star = curd);
+      if (custard) take('eggs'), inBase.push('eggs');
       // Pancakes come as a stack of three or four (item 5).
       hero = { id: vehicle.split(':')[0], form: vehicle.split(':')[1], count: layout.id === 'pancake-stack' ? between(random, [3, 4]) : 1 };
       if (layout.id === 'pancake-stack' && left.has('milk')) take('milk');
@@ -469,7 +535,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
       // A carved breast or a steak is one piece (sliced), never four of them.
       const single = ['steak', 'fillet', 'drumstick'].includes(form) || (id === 'chicken' && form === 'slice' && !platform);
       // Avocado slices fan in a short curve of five to seven (twelve read as a pile of cucumber).
-      const fan = id === 'avocado' && form === 'slice' ? odd(between(random, [5, 6])) : undefined;
+      const fan = id === 'avocado' && form === 'slice' ? odd(between(random, [5, 6])) : form === 'leaf' ? between(random, [4, 5]) : undefined;
       support.push({ id, form, count: single ? 1 : fan ?? Math.max(1, supportCount(form)) });
     } else if (traits.forms.accent?.length) {
       const form = formFor(id, 'accent', wild, random)!;
@@ -503,6 +569,47 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
 
   // The ware: Unhinged always takes the layout's alternative; a step out sometimes does.
   const ware = layout.wildWare && (b === 2 || (b === 1 && random() < 0.3)) ? layout.wildWare : layout.ware;
+  // A sweet dish carries only sweet-compatible pieces (Group 1). Classic and a step out: every
+  // savoury piece is made sweet (an egg a custard, a lime a curd, a tomato a jam). Unhinged keeps one
+  // savoury piece, a single one, on purpose (one fried egg by a tart), never a pile of leftovers.
+  const sweet = isSweetDish(layout.id, course, choices.taste);
+  const made: DishComponent[] = [];
+  let twist: Piece | undefined;
+  if (sweet) {
+    const savoury = [...support, ...accent].filter((p) => !sweetPiece(p.id, p.form));
+    // The twist is something with a presence (an egg, a slice of meat, a pepper strip), never a lone leaf.
+    const candidates = savoury.filter((p) => p.form !== 'leaf');
+    if (b === 2 && candidates.length) {
+      twist = candidates.find((p) => p.id === 'eggs') ?? candidates[0];
+      twist.count = 1;
+      if (twist.id === 'eggs') twist.form = 'egg';
+      if (twist.id === 'chicken') twist.form = 'slice';
+      savoury.splice(savoury.indexOf(twist), 1);
+    }
+    const sweeten = (id: string) => {
+      const m = SWEETENED[id];
+      if (!m || made.some((c) => c.from === id)) return;
+      const c = m.kind === 'gel' ? componentGarnish('gel', m.family, 7) : componentPiece(m.kind, m.family, 1, 'beside');
+      made.push({ ...c, label: m.label, from: id });
+    };
+    for (const p of savoury) {
+      for (const list of [support, accent]) if (list.includes(p)) list.splice(list.indexOf(p), 1);
+      inBase.push(p.id);
+      sweeten(p.id);
+    }
+    // A savoury lead in a sweet dish is a scoop of custard ice cream (an egg) or the ingredient made
+    // sweet beside a scoop of vanilla.
+    if (!sweetPiece(hero.id, hero.form)) {
+      inBase.push(hero.id);
+      if (hero.id !== 'eggs') sweeten(hero.id);
+      hero = { id: 'quenelle', form: hero.id === 'eggs' ? 'custard' : 'ice-cream', count: 1 };
+    }
+    // Savoury table ingredients already in the base (a lime in the sauce) are made sweet too.
+    const curdTart = hero.id === 'tart' && ['lemon-flesh', 'lime-flesh'].includes(hero.form);
+    for (const id of inBase) if (ids.includes(id) && !SWEET_OK_TASTE(id) && !['eggs', 'rice', 'baguette', 'milk', 'butter'].includes(id) && !(curdTart && ['lemon', 'lime'].includes(id))) sweeten(id);
+    if (ids.includes('eggs') && !made.some((c) => c.from === 'eggs') && !['tart', 'pancake-stack'].includes(layout.id) && hero.form !== 'custard' && twist?.id !== 'eggs') sweeten('eggs');
+  }
+
   // Never drop an ingredient (the P0 list): one that found no part above joins as an accent in any
   // cut it has, or goes into the sauce.
   for (const id of ids) {
@@ -514,7 +621,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
   }
   const dishCourse: Course = course === 'drink' ? 'snack' : course;
   const sauce = base.startsWith('pool:') ? base : chooseSauce(layout, ids, star, choices.taste, wild);
-  return { layout, hero, support, accent, base, inBase, ware, course: dishCourse, star, sauce };
+  return { layout, hero, support, accent, base, inBase, ware, course: dishCourse, star, sauce, sweet, made, twist };
 }
 
 /**
@@ -615,6 +722,18 @@ export function chooseComponents(slots: Slots, wild: number, random: () => numbe
       if (b === 2) out.push(componentGarnish('microherb', 'leaf', 7));
       if (b === 2) out.push(componentPiece('tuile', 'pastry', 1, 'beside'), componentGarnish('gel', savouryGel, 5));
   }
+  if (slots.sweet) {
+    // A sweet dish keeps only sweet finishes (Group 1): no herbs, croutons, savoury oils or gels.
+    const savouryFamilies: FamilyId[] = ['herb-oil', 'chili-oil', 'citrus-oil', 'tomato-sauce', 'jus', 'leaf', 'cream-sauce'];
+    for (let i = out.length - 1; i >= 0; i--) {
+      const c = out[i];
+      if (c.kind === 'microherb' || c.kind === 'crouton' || savouryFamilies.includes(c.family)) out.splice(i, 1);
+    }
+    // Sweet toast: whipped cream and honey over the fruit.
+    if (slots.layout.id === 'toast-board') out.push(componentPiece('whip', 'cream', 1, 'on-hero-allowed'), componentGarnish('gel', 'honey', 7));
+  }
+  // Savoury table ingredients made sweet (a curd, a jam, a brittle) come last, as they are.
+  out.push(...(slots.made ?? []));
   return out;
 }
 
@@ -681,6 +800,8 @@ function firstFit(candidates: string[], fallback: string): string {
 
 /** How a piece reads in a sentence ("a fan of avocado slices", "crisp garlic chips"). */
 function piecePhrase(p: Piece): string {
+  if (p.id === 'quenelle') return p.form === 'custard' ? 'a scoop of egg custard ice cream' : 'a scoop of vanilla ice cream';
+  if (p.id === 'tart') return p.form === 'custard' ? 'a vanilla custard tart' : p.form === 'lemon-flesh' ? 'a lemon curd tart' : p.form === 'lime-flesh' ? 'a lime curd tart' : 'a crisp pastry tart';
   const n = NOUN[p.id] ?? p.id;
   const many = p.count > 1;
   switch (p.form) {
@@ -743,18 +864,26 @@ function describeDish(slots: Slots, components: DishComponent[], random: () => n
   else if (layout.id === 'mash-plate') where = platform ? pick(['on a low dome of buttery mash', 'over a swirl of potato mash']) : '';
   else if (sauceWords) where = pick([`over ${sauceWords}`, `on a pool of ${sauceWords}`, `with ${sauceWords} spooned round`]);
   const extras = components
-    .map((c) => ({ quenelle: 'a scoop of ice cream', 'whipped-cream': 'whipped cream', smear: 'a swipe of sauce', tuile: 'a crisp tuile', puree: 'a silky puree', gel: 'bright gel beads', 'oil-dot': pick(['a few drops of oil', 'a thread of oil']), microherb: pick(['microherbs', 'a scatter of fresh herbs']) } as Record<string, string>)[c.kind])
+    .map((c) => c.label ?? ({ quenelle: 'a scoop of ice cream', 'whipped-cream': 'whipped cream', smear: 'a swipe of sauce', tuile: 'a crisp tuile', puree: 'a silky puree', gel: 'bright gel beads', 'oil-dot': pick(['a few drops of oil', 'a thread of oil']), microherb: pick(['microherbs', 'a scatter of fresh herbs']) } as Record<string, string>)[c.kind])
     .filter(Boolean);
+  // A sweet dish names its made-sweet ingredients first (a lime curd), and its one Unhinged savoury
+  // piece as the deliberate contrast it is.
+  extras.sort((a, b) => Number(components.some((c) => c.label === b)) - Number(components.some((c) => c.label === a)));
+  const twistAt = slots.twist ? sides.indexOf(piecePhrase(slots.twist)) : -1;
+  if (twistAt >= 0) sides.splice(twistAt, 1);
   const withSides = sides.length ? ` with ${listOf(sides.slice(0, 2))}` : '';
   const finish = extras.length ? pick([`, finished with ${extras[0]}`, `. ${cap(extras[0])} to finish`, `, ${extras[0]} on the side`]) : '';
-  const sentence = `${cap(lead)}${withSides}${where ? ` ${where}` : ''}${finish}.`;
+  const twist = slots.twist ? `, and ${piecePhrase(slots.twist).replace(/^an? /, 'a single ')} for contrast` : '';
+  const sentence = `${cap(lead)}${withSides}${twist}${where ? ` ${where}` : ''}${finish}.`;
   return sentence.replace(/\s+/g, ' ').replace(/ ,/g, ',');
 }
 
 /** A short dish name in sentence case and one sentence for the card (no em dashes). */
 export function titleDish(slots: Slots, cooked: boolean, components: DishComponent[] = [], random: () => number = () => 0): { title: string; description: string } {
   const { layout, hero, support, accent, base } = slots;
-  const star = NOUN[slots.star] ?? slots.star;
+  // In a sweet dish a savoury star is named as what it became ("lime curd tart", Group 1).
+  const madeStar = slots.sweet ? slots.made?.find((c) => c.from === slots.star) : undefined;
+  const star = madeStar ? madeStar.label!.replace(/^(an? |beads of )/, '').replace(/^vanilla egg custard$/, 'egg custard') : NOUN[slots.star] ?? slots.star;
   const heroWords = pieceWords(hero);
   const sides = support.map(pieceWords).filter((w) => w !== heroWords);
   const bits = accent.map(pieceWords);
@@ -804,7 +933,9 @@ export function titleDish(slots: Slots, cooked: boolean, components: DishCompone
       // The topping in the singular, as a name: "blueberry toast", "avocado toast".
       const first = support[0] ? NOUN[support[0].id] ?? support[0].id : star;
       const second = sides[1] ?? bits[0];
-      candidates = [second ? `${first} toast with ${second}` : '', `${first} toast with herbs`, `${first} crostini with herbs`, 'Toast with fresh herbs'];
+      candidates = slots.sweet
+        ? [second ? `${first} toast with ${second}` : '', `${first} toast with cream`, `${first} and honey toast`, 'Sweet toast with cream']
+        : [second ? `${first} toast with ${second}` : '', `${first} toast with herbs`, `${first} crostini with herbs`, 'Toast with fresh herbs'];
       break;
     }
     case 'soup-bowl': candidates = base === `soup:${hero.id}` ? [`creamy ${NOUN[hero.id]} soup${side1 ? ` with ${side1}` : ''}`, `creamy ${NOUN[hero.id]} soup`] : [`${cap(base.startsWith('soup:') ? NOUN[base.split(':')[1]] : 'creamy')} soup with ${heroWords}`, `${base.startsWith('soup:') ? NOUN[base.split(':')[1]] : star} soup`, `${star} soup`]; break;
@@ -845,7 +976,8 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number): Dis
     base: slots.base,
     big: part(slots.hero),
     medium: slots.support.map(part),
-    small: [...slots.accent.map(part), ...pieces, `herb*${slots.layout.savoryGarnish ? 8 : 3}`],
+    // Herbs only on a savoury dish (Group 1: never savoury herbs on pancakes, tarts or sweet toast).
+    small: [...slots.accent.map(part), ...pieces, ...(slots.sweet ? [] : [`herb*${slots.layout.savoryGarnish ? 8 : 3}`])],
     layout: slots.layout.id,
     seed,
     archetype: slots.layout.id,
@@ -853,5 +985,6 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number): Dis
     table,
     blended: [...new Set(slots.inBase)],
     sauce: slots.sauce,
+    sweet: slots.sweet,
   };
 }

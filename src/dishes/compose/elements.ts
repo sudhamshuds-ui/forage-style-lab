@@ -139,6 +139,8 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
       return [{ role: id, family: 'spinach' }];
     case 'cabbage:leaf':
       return [{ role: id, family: 'cabbage' }];
+    case 'romaine:leaf':
+      return [{ role: id, family: 'romaine' }];
     case 'onion:wheel':
       return [{ role: id, family: 'onion-flesh', skin: { ...FLESH_SKIN, pale: '#fbeef4', green: '#9a2a6a' } }];
     case 'pepper:slice':
@@ -688,8 +690,9 @@ export function makeElement(part: Part, random: () => number, seed: number): For
       return settle(posed(m, { tip: -Math.PI / 2 }));
     }
     case 'spinach:leaf':
+    case 'romaine:leaf':
     case 'cabbage:leaf': {
-      const big = ingredient === 'cabbage';
+      const big = ingredient !== 'spinach';
       const g = leafPiece({ base: new Vector3(0, 0.05, -3), turn: Math.PI / 2, length: big ? 7 : 6.2, width: big ? 5.5 : 3.4, lift: (d) => 0.5 * (d / (big ? 7 : 6.2)) ** 2 + 0.08, fold: big ? 0.5 : 0.35, twist: signed(random) * 0.2, rows: 10, cols: 6 });
       return settle([{ role, geometry: g, doubleSided: true }]);
     }

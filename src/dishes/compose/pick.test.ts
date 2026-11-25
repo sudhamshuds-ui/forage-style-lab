@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { TRAITS } from '../../ingredients/traits';
 import { BASE_FAMILY, SKEWERS } from './elements';
 import { readPart } from './layout';
-import { TITLE_MAX, cookSeed, pickDish, type CookChoices } from './pick';
+import { TITLE_MAX, cookSeed, pickDish, sweetPiece, type CookChoices } from './pick';
 import { isComponent } from './components';
 
 const COURSES = ['Starter', 'Main', 'Dessert', 'Snack', 'Drink'];
@@ -81,6 +81,48 @@ describe('pickDish (the P0 list)', () => {
     expect(captions.size).toBeGreaterThan(200);
   });
 
+  it('keeps sweet dishes sweet below the top Wild level, and the top level deliberate (Group 1a)', () => {
+    let sweetSeen = 0;
+    let twists = 0;
+    for (const { ids, choices, seed } of everyCook()) {
+      const idea = pickDish(ids, choices, seed);
+      if (!idea.sweet) continue;
+      sweetSeen++;
+      const where = `${ids.join('+')} ${choices.course} ${choices.taste} wild ${choices.wild}: ${idea.title} / ${idea.description} [${idea.big}; ${idea.medium}; ${idea.small}]`;
+      const savoury = piecesOf(idea).filter((p) => !sweetPiece(p.ingredient, p.form));
+      // Never herbs, microherbs, croutons or savoury oils on a sweet dish, at any Wild level.
+      expect(idea.small.some((t) => t.startsWith('herb')), where).toBe(false);
+      expect((idea.components ?? []).some((c) => c.kind === 'microherb' || c.kind === 'crouton' || ['herb-oil', 'chili-oil', 'citrus-oil'].includes(c.family)), where).toBe(false);
+      if (choices.wild < 70) {
+        expect(savoury.map((p) => `${p.ingredient}:${p.form}`), where).toEqual([]);
+        expect(idea.description, where).not.toMatch(/herb|oil|garlic chip|crouton|fried egg|lime wheel|lemon wheel/i);
+      } else {
+        // Unhinged may mix, but on purpose: at most one savoury piece, a single one, named as contrast.
+        expect(savoury.length, where).toBeLessThanOrEqual(1);
+        if (savoury.length) {
+          twists++;
+          expect(savoury[0].count, where).toBe(1);
+          expect(idea.description, where).toMatch(/for contrast/);
+        }
+      }
+      // An egg in a dessert is custard, a soufflé or ice cream, never a fried egg (below Unhinged).
+      if (choices.course === 'Dessert' && choices.wild < 70) expect(piecesOf(idea).some((p) => p.ingredient === 'eggs'), where).toBe(false);
+    }
+    expect(sweetSeen).toBeGreaterThan(300);
+    expect(twists).toBeGreaterThan(0);
+  });
+
+  it('plates every Main, never a salad or a soup (Group 1b)', () => {
+    for (const { ids, choices, seed } of everyCook()) {
+      if (choices.course !== 'Main') continue;
+      const idea = pickDish(ids, choices, seed);
+      expect(['leaf-salad', 'soup-bowl'], `${ids.join('+')} ${choices.taste} ${choices.wild}: ${idea.title}`).not.toContain(idea.layout);
+    }
+    const c = { course: 'Main', taste: 'Savoury', wild: 60 };
+    const idea = pickDish(['chicken', 'potato', 'spinach'], c, cookSeed(['chicken', 'potato', 'spinach'], c));
+    expect(idea.title).not.toMatch(/salad/i);
+  });
+
   it('never shows an avocado half or its seed', () => {
     for (const { ids, choices, seed } of everyCook()) {
       if (!ids.includes('avocado')) continue;
@@ -145,9 +187,10 @@ describe('pickDish', () => {
       for (const p of piecesOf(idea)) {
         if (p.ingredient === 'garlic') expect(p.form).toBe('chip');
         expect(p.ingredient).not.toBe('sauce');
-        expect(p.ingredient).not.toBe('romaine');
+        // Romaine is a leaf bed, or wilted leaves beside a main (Group 1b: a main is never a salad).
+        if (p.ingredient === 'romaine') expect([p.form, choices.course]).toEqual(['leaf', 'Main']);
       }
-      if (ids.includes('romaine') && !ids.includes('rice') && idea.ware !== 'glass') expect(idea.base).toBe('leaves:romaine');
+      if (ids.includes('romaine') && !ids.includes('rice') && idea.ware !== 'glass' && choices.course !== 'Main' && !idea.sweet) expect(idea.base).toBe('leaves:romaine');
     }
   });
 
@@ -221,7 +264,8 @@ describe('pickDish', () => {
         expect(`${p.ingredient}:${p.form}`).not.toBe('pepper:whole');
         if (p.ingredient === 'chicken' && p.form === 'cube') expect(idea.layout).toBe('soup-bowl');
       }
-      for (const p of pieces.filter((q) => q.ingredient === 'pepper' && idea.ware !== 'glass')) expect(p.count, `${idea.title}`).toBeGreaterThanOrEqual(2);
+      // (An Unhinged sweet dish's single savoury piece is the deliberate exception.)
+      for (const p of pieces.filter((q) => q.ingredient === 'pepper' && idea.ware !== 'glass' && !idea.sweet)) expect(p.count, `${idea.title}`).toBeGreaterThanOrEqual(2);
     }
     const bowl = pickDish(['chicken', 'rice'], { course: 'Main', taste: 'Savoury', wild: 0 }, 1);
     expect(bowl.big).toBe('chicken:slice');
