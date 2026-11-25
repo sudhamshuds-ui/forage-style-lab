@@ -48,7 +48,7 @@ const t = (row: IngredientTraits): IngredientTraits => row;
 export const TRAITS: Record<string, IngredientTraits> = {
   steak: t({ id: 'steak', category: 'protein', taste: 'savoury', slots: ['hero', 'support'], forms: { hero: ['steak'], support: ['cube', 'skewer'] }, family: 'beef', cookedFamily: 'rare', sear: 0.9 }),
   salmon: t({ id: 'salmon', category: 'protein', taste: 'savoury', slots: ['hero', 'support', 'accent'], forms: { hero: ['fillet'], support: ['slice', 'cube', 'skewer'], accent: ['slice'] }, family: 'salmon', cookedFamily: 'cooked-salmon', sear: 0.95 }),
-  chicken: t({ id: 'chicken', category: 'protein', taste: 'savoury', slots: ['hero', 'support'], forms: { hero: ['slice', 'drumstick', 'torn'], support: ['torn', 'slice', 'skewer'], stew: ['cube'] }, family: 'poultry', cookedFamily: 'poultry', sear: 0.5 }),
+  chicken: t({ id: 'chicken', category: 'protein', taste: 'savoury', slots: ['hero', 'support'], forms: { hero: ['slice', 'drumstick', 'torn'], support: ['torn', 'slice', 'skewer'], stew: ['torn'] }, family: 'poultry', cookedFamily: 'poultry', sear: 0.5 }),
   eggs: t({ id: 'eggs', category: 'protein', taste: 'savoury', slots: ['hero', 'support'], forms: { hero: ['egg', 'omelette'], support: ['egg', 'half'] }, family: 'eggshell', cookedFamily: 'albumen', sear: 0 }),
   potato: t({ id: 'potato', category: 'starch', taste: 'savoury', slots: ['support', 'hero', 'base'], forms: { hero: ['mash', 'whole'], support: ['fries', 'wedge', 'cube', 'wheel'], base: ['mash:potato', 'soup:potato'] }, family: 'potato', cookedFamily: 'fries', sear: 0.45 }),
   // Rice has no piece form: it is always the base (a rice bowl).

@@ -61,6 +61,25 @@ describe('pickDish (the P0 list)', () => {
     }
   });
 
+  it('names and captions match the plate (items A, B, H, 11)', () => {
+    const captions = new Set<string>();
+    for (const { ids, choices, seed } of everyCook()) {
+      const idea = pickDish(ids, choices, seed);
+      const where = `${ids.join('+')} ${choices.course} ${choices.taste} ${choices.wild}: ${idea.title} / ${idea.description}`;
+      expect(idea.title, where).not.toMatch(/ on /i);
+      expect(idea.title.split(/\s+/).length, where).toBeLessThanOrEqual(5);
+      expect(idea.title.split(/\s+/).length, where).toBeGreaterThanOrEqual(3);
+      if (!idea.base.startsWith('leaves:') && !piecesOf(idea).some((p) => p.form === 'leaf')) expect(idea.description, where).not.toMatch(/leaves/);
+      if (!ids.includes('baguette')) expect(piecesOf(idea).some((p) => p.ingredient === 'baguette' && p.form === 'cube'), where).toBe(false);
+      if (choices.course === 'Main') expect(idea.layout, where).not.toBe('soup-bowl');
+      if (idea.layout === 'leaf-salad') expect(idea.base, where).toMatch(/^leaves:/);
+      if (idea.layout === 'pancake-stack' && !ids.includes('sauce')) expect(['pool:maple', 'pool:honey', 'pool:caramel'], where).toContain(idea.base === 'none' ? idea.sauce : idea.base);
+      captions.add(idea.description.replace(/^[^,]*/, ''));
+    }
+    // Captions vary (not one stamp on every plate).
+    expect(captions.size).toBeGreaterThan(200);
+  });
+
   it('never shows an avocado half or its seed', () => {
     for (const { ids, choices, seed } of everyCook()) {
       if (!ids.includes('avocado')) continue;
@@ -154,7 +173,7 @@ describe('pickDish', () => {
     expect([drink.layout, drink.ware, drink.base]).toEqual(['glass-drink', 'glass', 'drink:strawberry']);
     // A protein drink is a savoury glass, and says so.
     const steakDrink = pickDish(['steak'], { course: 'Drink', taste: 'Savoury', wild: 0 }, 1);
-    expect([steakDrink.ware, steakDrink.base, steakDrink.title]).toEqual(['glass', 'drink:consomme', 'Golden consommé']);
+    expect([steakDrink.ware, steakDrink.base, steakDrink.title]).toEqual(['glass', 'drink:consomme', 'Clear golden consommé']);
   });
 
   it('cooks one apple into a dish for each course (the fix list, P1)', () => {

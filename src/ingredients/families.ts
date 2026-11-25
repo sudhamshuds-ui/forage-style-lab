@@ -126,6 +126,7 @@ export type FamilyId =
   | 'shaving-white'
   | 'porcelain'
   | 'caramel'
+  | 'maple'
   | 'drink-gold'
   | 'pastry'
   | 'ice-cream';
@@ -658,6 +659,12 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   caramel: {
     name: 'Caramel',
     colours: { lit: '#ffc45e', base: '#d9822a', shadow: '#7a3a3c', glow: '#f08a2a', highlight: '#fff0cc' },
+    rooms: [],
+  },
+  // Maple syrup over pancakes: a deep amber, redder than caramel, a wine shade.
+  maple: {
+    name: 'Maple syrup',
+    colours: { lit: '#f0a548', base: '#b8561e', shadow: '#5e2434', glow: '#e0702a', highlight: '#ffe2b0' },
     rooms: [],
   },
   // Apple juice, cider, a golden consommé: clear gold, a rose-brown shade.

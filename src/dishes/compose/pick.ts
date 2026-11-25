@@ -128,7 +128,8 @@ export function layoutCandidates(ids: string[], course: Course, taste: string): 
     if (soupy && !protein) add('soup-bowl');
     add('composed-plate');
     if (ids.some((id) => CRUDO.includes(id))) add('tartare-crudo');
-    add('leaf-salad');
+    // A salad only when the table brings leaves (a "salad" of chicken and onion had none, item B).
+    if (ids.some((id) => LEAFY.includes(id))) add('leaf-salad');
     return out;
   }
   if (course === 'snack') {
@@ -145,7 +146,8 @@ export function layoutCandidates(ids: string[], course: Course, taste: string): 
   // Mash only when the table brings the potato (never a library mash: the P0 list).
   if (has('potato')) add('mash-plate');
   if (threaded) add('skewer-platter');
-  if (soupy) add('soup-bowl');
+  // A main is always a plated dish, never a soup (item H); soup is a starter.
+  void soupy;
   return out;
 }
 
@@ -174,6 +176,8 @@ function chooseSauce(layout: LayoutSpec, ids: string[], lead: string, taste: str
   const has = (id: string) => ids.includes(id);
   if (has('sauce')) return has('tomato') ? 'pool:tomato-sauce' : 'pool:chili';
   const sweet = ['tart', 'plated-dessert', 'dessert-bowl', 'pancake-stack'].includes(layout.id);
+  // Pancakes take a syrup, never a fruit sauce (item 5): maple, honey or caramel.
+  if (layout.id === 'pancake-stack') return wild < 30 ? 'pool:maple' : wild < 70 ? (CITRUS.includes(lead) || lead === 'peach' ? 'pool:honey' : 'pool:maple') : 'pool:caramel';
   if (sweet) {
     if (BERRIES.includes(lead)) return 'pool:berry-sauce';
     if (['apple', 'pear', 'milk', 'butter', 'cheese', 'rice'].includes(lead)) return 'pool:caramel';
@@ -195,7 +199,7 @@ function chooseSauce(layout: LayoutSpec, ids: string[], lead: string, taste: str
 
 /** The family of a sauce (for smears, oil dots and gels that match it). */
 const SAUCE_FAMILY: Record<string, FamilyId> = {
-  'pool:caramel': 'caramel', 'pool:berry-sauce': 'berry-sauce', 'pool:honey': 'honey', 'pool:citrus-oil': 'citrus-oil', 'pool:chili': 'chili-oil',
+  'pool:caramel': 'caramel', 'pool:maple': 'maple', 'pool:berry-sauce': 'berry-sauce', 'pool:honey': 'honey', 'pool:citrus-oil': 'citrus-oil', 'pool:chili': 'chili-oil',
   'pool:herb-oil': 'herb-oil', 'pool:jus': 'jus', 'pool:cream': 'cream', 'pool:tomato-sauce': 'tomato-sauce', 'pool:cheese-sauce': 'cheese-sauce',
   'pool:brown-butter': 'brown-butter',
 };
@@ -368,7 +372,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
       break;
     }
     case 'soup-bowl': {
-      const p = byRank([...left].filter((id) => id === 'eggs' || TRAITS[id]?.forms.stew?.length || TRAITS[id]?.forms.support?.includes('cube')));
+      const p = byRank([...left].filter((id) => id !== 'baguette' && (id === 'eggs' || TRAITS[id]?.forms.stew?.length || TRAITS[id]?.forms.support?.includes('cube'))));
       if (p[0] === 'eggs') heroFrom('eggs', 'egg', 2);
       else if (p[0]) heroFrom(p[0], TRAITS[p[0]].forms.stew?.[0] ?? 'cube', between(random, [5, 7]));
       break;
@@ -552,13 +556,14 @@ export function chooseComponents(slots: Slots, wild: number, random: () => numbe
       if (b === 2) out.push(componentGarnish('gel', savouryGel, 5));
       break;
     case 'leaf-salad':
-      if (!hasTable('baguette')) out.push({ kind: 'crouton', family: 'crumb', role: 'baguetteCube', count: 5, place: 'on-base', part: 'baguette:cube*5' });
+      // Croutons only from the table's own bread (item A: never invented); the baguette is then a
+      // support piece, cut in cubes.
       out.push(componentGarnish('microherb', 'leaf', 7));
       if (b >= 1) out.push(componentGarnish('oil-dot', oil, 7));
       if (b === 2) out.push(componentPiece('tuile', 'pastry', 1, 'beside'));
       break;
     case 'soup-bowl':
-      out.push({ kind: 'crouton', family: 'crumb', role: 'baguetteCube', count: 3, place: 'on-base', part: 'baguette:cube*3' });
+      // Bread only when the table brings it (item A): then it is croutons in the soup.
       out.push(componentGarnish('oil-dot', oil, 9));
       if (b >= 1) out.push(componentGarnish('microherb', 'leaf', 7));
       if (b === 2) out.push(componentGarnish('gel', savouryGel, 5));
@@ -640,14 +645,14 @@ const COOKED: Record<string, string> = { steak: 'Seared', salmon: 'Seared', chic
 const SAUCE_WORDS: Record<string, string> = {
   'pool:jus': 'jus', 'pool:cream': 'cream sauce', 'pool:herb-oil': 'herb oil', 'pool:berry-sauce': 'berry sauce', 'pool:brown-butter': 'brown butter',
   'pool:chili': 'chili oil', 'pool:tomato-sauce': 'tomato sauce', 'pool:cheese-sauce': 'cheese sauce', 'pool:honey': 'honey', 'pool:citrus-oil': 'citrus oil',
-  'pool:caramel': 'caramel',
+  'pool:caramel': 'caramel', 'pool:maple': 'maple syrup',
 };
 const DRINK_WORDS: Record<string, string> = {
-  'drink:apple': 'Apple cider cooler', 'drink:pear': 'Pear juice spritz', 'drink:peach': 'Peach iced tea', 'drink:lemon': 'Fresh lemonade', 'drink:lime': 'Lime cooler',
-  'drink:orange': 'Fresh orange juice', 'drink:strawberry': 'Strawberry cooler', 'drink:watermelon': 'Watermelon cooler', 'drink:grape': 'Grape spritz',
+  'drink:apple': 'Apple cider cooler', 'drink:pear': 'Pear juice spritz', 'drink:peach': 'Peach iced tea', 'drink:lemon': 'Classic fresh lemonade', 'drink:lime': 'Fresh lime cooler',
+  'drink:orange': 'Fresh orange juice', 'drink:strawberry': 'Fresh strawberry cooler', 'drink:watermelon': 'Fresh watermelon cooler', 'drink:grape': 'Sparkling grape spritz',
   'drink:blueberry': 'Blueberry lemonade', 'drink:tomato': 'Tomato juice with celery', 'drink:pepper': 'Roast pepper cooler', 'drink:spinach': 'Green spinach juice',
-  'drink:avocado': 'Avocado lime smoothie', 'drink:green': 'Green garden juice', 'drink:milk': 'Vanilla milkshake', 'drink:horchata': 'Cinnamon rice horchata',
-  'drink:bloody': 'Spiced tomato chili sip', 'drink:consomme': 'Golden consommé',
+  'drink:avocado': 'Avocado lime smoothie', 'drink:green': 'Green garden juice', 'drink:milk': 'Thick vanilla milkshake', 'drink:horchata': 'Cinnamon rice horchata',
+  'drink:bloody': 'Spiced tomato chili sip', 'drink:consomme': 'Clear golden consommé',
 };
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -655,7 +660,8 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const fits = (t: string) => {
   const words = t.toLowerCase().trim().split(/\s+/);
   const content = words.filter((w) => !['with', 'and', 'on', 'a'].includes(w));
-  return t.length <= TITLE_MAX && words.length >= 2 && new Set(content).size === content.length;
+  // 3 to 5 words, one line (the user's rule for titles).
+  return t.length <= TITLE_MAX && words.length >= 3 && words.length <= 5 && new Set(content).size === content.length;
 };
 
 /** The first candidate that fits on one line (at most 32 characters, at least two words). */
@@ -663,8 +669,76 @@ function firstFit(candidates: string[], fallback: string): string {
   return cap(candidates.find((c) => fits(cap(c))) ?? fallback);
 }
 
+/** How a piece reads in a sentence ("a fan of avocado slices", "crisp garlic chips"). */
+function piecePhrase(p: Piece): string {
+  const n = NOUN[p.id] ?? p.id;
+  const many = p.count > 1;
+  switch (p.form) {
+    case 'slice': return p.id === 'avocado' ? 'a fan of avocado slices' : p.id === 'chicken' ? 'sliced roast chicken' : p.id === 'steak' ? 'sliced steak' : many ? `${n} slices` : `a slice of ${n}`;
+    case 'steak': return p.id === 'chicken' ? 'a carved chicken breast' : 'a seared steak, sliced';
+    case 'fillet': return `a ${p.id === 'salmon' ? 'salmon' : n} fillet with a seared top`;
+    case 'wheel': return p.id === 'onion' ? 'rings of red onion' : `${n} wheels`;
+    case 'wedge': return `${n} wedges`;
+    case 'half': return many ? `${n} halves` : `half a ${n}`;
+    case 'cube': return p.id === 'baguette' ? 'golden croutons' : `diced ${n}`;
+    case 'strip': return 'roast pepper strips';
+    case 'torn': return 'pulled chicken';
+    case 'chip': return 'crisp garlic chips';
+    case 'crumble': return `crumbled ${n}`;
+    case 'berry': return PLURAL[p.id] ?? n;
+    case 'leaf': return `${n} leaves`;
+    case 'fries': return 'golden fries';
+    case 'drumstick': return 'roast drumsticks';
+    case 'egg': return many ? 'fried eggs' : 'a fried egg';
+    case 'omelette': return 'a soft omelette';
+    case 'skewer': return `${n} skewers`;
+    case 'whole': return many ? PLURAL[p.id] ?? n : `a whole ${n}`;
+    case 'toast': return many ? 'two slices of toast' : 'a slice of toast';
+    case 'mash': return 'a low dome of buttery mash';
+    case 'pancake': return 'a stack of pancakes';
+    default: return pieceWords(p);
+  }
+}
+
+/** A list in words: "a, b and c". */
+const listOf = (items: string[]) => (items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`);
+
+/**
+ * One sentence for the card, written from what is on the plate (item B: never leaves that are not
+ * there) and varied by the seed (item 11: not the same "over cream sauce, finished with drops of oil"
+ * every time).
+ */
+function describeDish(slots: Slots, components: DishComponent[], random: () => number): string {
+  const { layout, hero, support, accent, base } = slots;
+  const pick = <T,>(list: T[]) => list[Math.floor(random() * list.length) % list.length];
+  const sauceWords = SAUCE_WORDS[base] ?? (slots.sauce !== 'none' ? SAUCE_WORDS[slots.sauce] : undefined);
+  const lead = piecePhrase(hero);
+  const sides = [...support, ...accent].filter((p) => !(p.id === hero.id && p.form === hero.form)).map(piecePhrase);
+  if (layout.id === 'glass-drink') {
+    const glass = DRINK_WORDS[base] ?? 'A cold drink';
+    return pick([`${glass}, poured cold, ${lead} on the rim.`, `${glass} over ice, finished with ${lead}.`, `${glass}, served chilled with ${lead}.`]);
+  }
+  // Where it sits: only what is really under it.
+  let where = '';
+  if (base.startsWith('soup:')) where = pick([`in a velvety ${NOUN[base.split(':')[1]]} soup`, `floating in a creamy ${NOUN[base.split(':')[1]]} soup`]);
+  else if (base === 'rice') where = pick(['over warm mixed rice', 'on a bowl of herbed rice']);
+  else if (base.startsWith('leaves:')) where = pick([`tossed with crisp ${NOUN[base.split(':')[1]]} leaves`, `on a mound of ${NOUN[base.split(':')[1]]} leaves`]);
+  else if (base === 'mash:risotto') where = 'in a creamy rice pudding';
+  else if (layout.id === 'tart') where = 'in a crisp pastry shell';
+  else if (layout.id === 'pancake-stack') where = `, ${sauceWords ?? 'syrup'} poured over`;
+  else if (layout.id === 'toast-board') where = pick(['piled on toasted bread', 'on golden toast']);
+  else if (sauceWords) where = pick([`over ${sauceWords}`, `on a pool of ${sauceWords}`, `with ${sauceWords} spooned round`]);
+  const extras = components
+    .map((c) => ({ quenelle: 'a scoop of ice cream', 'whipped-cream': 'whipped cream', smear: 'a swipe of sauce', tuile: 'a crisp tuile', puree: 'a silky puree', gel: 'bright gel beads', 'oil-dot': pick(['a few drops of oil', 'a thread of oil']), microherb: pick(['microherbs', 'a scatter of fresh herbs']) } as Record<string, string>)[c.kind])
+    .filter(Boolean);
+  const withSides = sides.length ? ` with ${listOf(sides.slice(0, 2))}` : '';
+  const finish = extras.length ? pick([`, finished with ${extras[0]}`, `. ${cap(extras[0])} to finish`, `, ${extras[0]} on the side`]) : '';
+  const sentence = `${cap(lead)}${withSides}${where ? ` ${where}` : ''}${finish}.`;
+  return sentence.replace(/\s+/g, ' ').replace(/ ,/g, ',');
+}
+
 /** A short dish name in sentence case and one sentence for the card (no em dashes). */
-export function titleDish(slots: Slots, cooked: boolean, components: DishComponent[] = []): { title: string; description: string } {
+export function titleDish(slots: Slots, cooked: boolean, components: DishComponent[] = [], random: () => number = () => 0): { title: string; description: string } {
   const { layout, hero, support, accent, base } = slots;
   const star = NOUN[slots.star] ?? slots.star;
   const heroWords = pieceWords(hero);
@@ -702,7 +776,7 @@ export function titleDish(slots: Slots, cooked: boolean, components: DishCompone
         : [`${cooked && COOKED[hero.id] && !heroWords.startsWith(COOKED[hero.id].toLowerCase()) ? `${COOKED[hero.id]} ` : ''}${heroWords} with ${sauce ?? 'herbs'}`, `${heroWords} with ${side1 ?? 'herbs'}`, `${star} starter plate`];
       break;
     case 'glass-drink':
-      candidates = slots.inBase.includes('milk') && base !== 'drink:milk' ? [`${star} milkshake`, `${star} shake`] : [DRINK_WORDS[base] ?? `${star} cooler`, `${star} cooler`];
+      candidates = slots.inBase.includes('milk') && base !== 'drink:milk' ? [`thick ${star} milkshake`, `${star} milk shake`] : [DRINK_WORDS[base] ?? `fresh ${star} cooler`, `fresh ${star} cooler`];
       break;
     case 'rice-bowl': candidates = [`${star} rice bowl${side1 ? ` with ${side1}` : ''}`, `${star} rice bowl`, `mixed rice bowl with ${heroWords}`, 'Herbed mixed rice bowl']; break;
     case 'leaf-salad': {
@@ -711,23 +785,23 @@ export function titleDish(slots: Slots, cooked: boolean, components: DishCompone
       candidates = hero.form === 'chip' && leaves ? [`${leaves} salad with ${heroWords}`, `${leaves} salad`] : [`${heroWords} salad with ${side1 ?? 'croutons'}`, `${heroWords} salad`, `${star} green salad`];
       break;
     }
-    case 'toast-board': candidates = [`${side1 ?? heroWords} on toast`, `${star} on toast`, `${star} toast`, 'Toast with herbs']; break;
+    case 'toast-board': {
+      // Never a plain "X on toast" (item 11): the topping names the toast.
+      const second = sides[1] ?? bits[0];
+      candidates = [second && side1 ? `${side1} toast with ${second}` : '', `${side1 ?? star} toast with herbs`, `${side1 ?? star} toast`, `${star} crostini`, 'Toast with herbs'];
+      break;
+    }
     case 'soup-bowl': candidates = base === `soup:${hero.id}` ? [`creamy ${NOUN[hero.id]} soup${side1 ? ` with ${side1}` : ''}`, `creamy ${NOUN[hero.id]} soup`] : [`${cap(base.startsWith('soup:') ? NOUN[base.split(':')[1]] : 'creamy')} soup with ${heroWords}`, `${base.startsWith('soup:') ? NOUN[base.split(':')[1]] : star} soup`, `${star} soup`]; break;
     case 'skewer-platter': candidates = [`${heroWords} with ${sauce ?? 'herbs'}`, `${heroWords}`, `grilled ${star} skewers`]; break;
     case 'skillet-bake': candidates = hero.id === 'eggs' ? [`baked ${heroWords} with ${side1 ?? 'herbs'}`, `baked ${heroWords} skillet`] : [`${heroWords} cheese bake`, `${star} skillet bake`]; break;
-    case 'mash-plate': candidates = [`${side1 ?? star} on ${heroWords}`, `${star} with mash`, `${star} on mash`, hero.id === 'milk' ? 'Vanilla milk pudding' : 'Buttery mash with herbs']; break;
+    case 'mash-plate': candidates = [side1 ? `${side1} with buttery mash` : '', side1 ? `${side1} and potato mash` : '', 'Buttery mash with herbs']; break;
     default: {
       const lead = `${cooked && COOKED[hero.id] && !heroWords.toLowerCase().startsWith(COOKED[hero.id].toLowerCase()) ? `${COOKED[hero.id]} ` : ''}${heroWords}`;
       candidates = [`${lead} with ${side1 ?? sauce ?? 'herbs'}`, `${lead} with ${sauce ?? 'herbs'}`, side1 ? `${heroWords} with ${side1}` : '', `${lead} plate`, `${star} plate`];
     }
   }
-  const title = firstFit(candidates.filter(Boolean), `${cap(star)} plate`);
-  const extras = components
-    .map((c) => ({ quenelle: 'a quenelle of ice cream', 'whipped-cream': 'whipped cream', smear: 'a smear of sauce', tuile: 'a crisp tuile', puree: 'a soft puree', crouton: 'croutons', gel: 'gel beads', 'oil-dot': 'drops of oil', microherb: 'microherbs' } as Record<string, string>)[c.kind])
-    .filter(Boolean);
-  const finish = extras.length ? `, finished with ${extras.slice(0, 2).join(' and ')}` : '';
-  const where = sauce ? `over ${sauce}` : base.startsWith('soup:') ? `in a velvety ${NOUN[base.split(':')[1]]} soup` : layout.id === 'rice-bowl' ? 'over warm mixed rice' : layout.id === 'leaf-salad' ? 'on a bed of crisp leaves' : layout.id === 'tart' ? 'in a crisp pastry shell' : 'plated together';
-  const description = layout.id === 'glass-drink' ? `${title}, poured cold with fresh fruit against the glass.` : `${title}, ${where}${finish}.`;
+  const title = firstFit(candidates.filter(Boolean), `${cap(star)} tasting plate`);
+  const description = describeDish(slots, components, random);
   return { title, description };
 }
 
@@ -741,7 +815,7 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number): Dis
   const components = chooseComponents(slots, choices.wild, random);
   const part = (p: Piece) => `${p.id}:${p.form}${p.count > 1 ? `*${p.count}` : ''}`;
   const raw = ['tartare-crudo', 'leaf-salad', 'glass-drink'].includes(layout.id) || slots.course === 'dessert';
-  const { title, description } = titleDish(slots, !raw, components);
+  const { title, description } = titleDish(slots, !raw, components, seededRandom(seed ^ 0x7e57));
   const heroes = [...table, ...table, ...table].slice(0, 3) as [string, string, string];
   const pieces = components.filter((c) => c.part).map((c) => c.part!);
   // On a platform, library cream sits with the toppings (on it); everything else beside.
@@ -762,5 +836,6 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number): Dis
     components,
     table,
     blended: [...new Set(slots.inBase)],
+    sauce: slots.sauce,
   };
 }

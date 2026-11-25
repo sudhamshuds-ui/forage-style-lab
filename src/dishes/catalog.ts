@@ -34,6 +34,8 @@ export interface DishIdea {
   /** Generated dishes: the table's ingredients, and those cooked into the base (rice, soup, sauce, drink). */
   table?: string[];
   blended?: string[];
+  /** Generated dishes: the chosen sauce (a pool key), also when it is not a pool (pancake syrup). */
+  sauce?: string;
 }
 
 const d = (id: string, title: string, heroes: [string, string, string], course: DishIdea['course'], ware: DishIdea['ware'], base: string, big: string, medium: string[], small: string[], description: string): DishIdea => ({ id, title, heroes, course, ware, base, big, medium, small, description });

@@ -887,5 +887,6 @@ export const BASE_FAMILY: Record<string, FamilyId> = {
   'drink:consomme': 'drink-gold',
   'drink:bloody': 'drink-red',
   'pool:caramel': 'caramel',
+  'pool:maple': 'maple',
   rice: 'cooked-rice',
 };
