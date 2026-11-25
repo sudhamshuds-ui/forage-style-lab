@@ -60,7 +60,9 @@ describe('generated dish QA', () => {
       (composedDish(idea).entry.form as FormBuilder)({ state: 'whole', seed: 3 });
       const qa = LAST_QA.get(idea.id)!;
       const garnish = qa.garnishOnFood ?? 1;
+      const missing = ids.filter((id) => !qa.served?.includes(id) && !idea.blended?.includes(id));
       const problems = [
+        missing.length ? `missing ${missing.join(', ')}` : '',
         qa.apart ? `${qa.apart} apart` : '',
         qa.widestGap > 0.5 ? `gap ${qa.widestGap.toFixed(1)} cm` : '',
         qa.floating ? `${qa.floating} floating` : '',

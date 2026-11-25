@@ -628,6 +628,9 @@ export function composedBuilder(original: DishIdea): FormBuilder {
           // It falls straight down without turning, so it lands touching what is under it (draped by
           // height map it hovered up to a centimetre over cubes and mushrooms).
           const start = spawn.rest(lifted, { tilt: 0.15, add: true });
+          // Kept like any piece, so a leaf that slides off the plate is laid again (spinach was lost).
+          copies.set(start, start.map((piece) => ({ ...piece, geometry: piece.geometry.clone() })));
+          placedOf.set(start, p);
           physics.drop(start, { lift: 0.4, straightDown: true, noTurn: true });
           dropped.push(start);
           food.push(start);
