@@ -944,7 +944,10 @@ function update(): void {
     context.objectColours = list[0].subject.colours(settings);
   }
 
-  context.lightDirection.copy(stage.updateLight(settings.light.direction));
+  // A dish in a tall bowl or glass takes a higher light, so its shadow starts under its foot.
+  const lift = mode !== 'table' && dishItem ? dishItem.subject.entry.lightLift ?? 0 : 0;
+  const pad = settings.light.direction;
+  context.lightDirection.copy(stage.updateLight(lift ? { x: pad.x * (1 - lift * 0.6), y: pad.y + lift * 1.4 } : pad));
   context.cameraPosition.copy(stage.camera.position);
   context.cameraRight.setFromMatrixColumn(stage.camera.matrixWorld, 0);
   context.rimGlints = true;

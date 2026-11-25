@@ -497,7 +497,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
       if (form === 'drumstick') count = 2;
       else if (form === 'egg') count = between(random, [1, 2]);
       else if (form === 'whole' && lead === 'broccoli') count = 2;
-      else if (lead === 'pepper') count = form === 'half' ? 2 : odd(between(random, [5, 7]));
+      else if (lead === 'pepper') count = form === 'half' ? 2 : 5;
       else if (form === 'torn') count = odd(between(random, [7, 9]));
       else if (['half', 'wedge', 'cube', 'whole'].includes(form) && !['cabbage', 'avocado', 'cheese'].includes(lead)) count = odd(between(random, [3, 5]));
       else if (form === 'slice' && !['chicken'].includes(lead)) count = odd(between(random, [5, 7]));
@@ -540,7 +540,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
     } else if (traits.forms.accent?.length) {
       const form = formFor(id, 'accent', wild, random)!;
       // Never one lonely piece: strips and wheels come at least in threes.
-      accent.push({ id, form, count: id === 'garlic' ? 8 : Math.max(['strip', 'wheel', 'slice'].includes(form) ? 3 : 1, odd(between(random, layout.accent))) });
+      accent.push({ id, form, count: id === 'garlic' ? 5 : Math.max(['strip', 'wheel', 'slice'].includes(form) ? 3 : 1, odd(between(random, layout.accent))) });
     } else if (traits.forms.support?.length) {
       const form = formFor(id, 'support', wild, random)!;
       support.push({ id, form, count: supportCount(form) });
@@ -565,7 +565,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
 
   // A savoury seared main gets a small scatter of garlic chips (never a bulb), out of the classic;
   // never on fruit (strawberries with crispy garlic, the first smoke test).
-  if (!ids.includes('garlic') && layout.id === 'circular-plate' && course === 'main' && b >= 1 && accent.length < 2 && TRAITS[hero.id]?.taste === 'savoury') accent.push({ id: 'garlic', form: 'chip', count: 7 });
+  if (!ids.includes('garlic') && layout.id === 'circular-plate' && course === 'main' && b >= 1 && accent.length < 2 && TRAITS[hero.id]?.taste === 'savoury') accent.push({ id: 'garlic', form: 'chip', count: 5 });
 
   // The ware: Unhinged always takes the layout's alternative; a step out sometimes does.
   const ware = layout.wildWare && (b === 2 || (b === 1 && random() < 0.3)) ? layout.wildWare : layout.ware;
@@ -578,7 +578,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
   if (sweet) {
     const savoury = [...support, ...accent].filter((p) => !sweetPiece(p.id, p.form));
     // The twist is something with a presence (an egg, a slice of meat, a pepper strip), never a lone leaf.
-    const candidates = savoury.filter((p) => p.form !== 'leaf');
+    const candidates = savoury.filter((p) => p.form !== 'leaf' && p.id !== 'lemon' && p.id !== 'lime');
     if (b === 2 && candidates.length) {
       twist = candidates.find((p) => p.id === 'eggs') ?? candidates[0];
       twist.count = 1;
@@ -716,7 +716,8 @@ export function chooseComponents(slots: Slots, wild: number, random: () => numbe
       if (b === 1) {
         const pickOne = Math.floor(random() * 3);
         if (pickOne === 0) out.push(componentGarnish('microherb', 'leaf', 7));
-        else if (pickOne === 1 && sauce) out.push(componentPiece('smear', sauce, 1, 'beside'));
+        // (A smear only where there is no pool already: the two together crowded the plate.)
+        else if (pickOne === 1 && sauce && !slots.base.startsWith('pool:')) out.push(componentPiece('smear', sauce, 1, 'beside'));
         else out.push(componentPiece('tuile', 'pastry', 1, 'beside'));
       }
       if (b === 2) out.push(componentGarnish('microherb', 'leaf', 7));

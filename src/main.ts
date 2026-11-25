@@ -603,7 +603,9 @@ function update(): void {
     needsFraming = false;
   }
 
-  context.lightDirection.copy(stage.updateLight(settings.light.direction));
+  const lift = subject.entry.lightLift ?? 0;
+  const pad = settings.light.direction;
+  context.lightDirection.copy(stage.updateLight(lift ? { x: pad.x * (1 - lift * 0.6), y: pad.y + lift * 1.4 } : pad));
   context.cameraPosition.copy(stage.camera.position);
   context.cameraRight.setFromMatrixColumn(stage.camera.matrixWorld, 0);
   context.objectColours = subject.colours(settings);

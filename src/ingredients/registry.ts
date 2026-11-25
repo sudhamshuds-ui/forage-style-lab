@@ -124,6 +124,11 @@ export interface IngredientEntry {
    */
   contactsFromFeet?: boolean;
   /**
+   * Raise the key light for this entry (0 to 1): a dish in a tall bowl or glass, whose wide rim threw
+   * its shadow well away from its narrow foot, so it seemed to float beside a shadow disc (Group 2).
+   */
+  lightLift?: number;
+  /**
    * Pieces left out in Playful strokes (the strokes pass repaints small dark parts as hard blocks
    * that read as errors: the watermelon's seeds, the user 2026-11-11). They still show in the
    * soft look.

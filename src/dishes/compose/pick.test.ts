@@ -208,7 +208,7 @@ describe('pickDish', () => {
     expect(steakFrites.layout).toBe('circular-plate');
     expect(steakFrites.big).toBe('steak:steak');
     expect(steakFrites.medium[0]).toMatch(/^potato:fries\*1\d$/);
-    expect(steakFrites.small).toContain('garlic:chip*8');
+    expect(steakFrites.small).toContain('garlic:chip*5');
     const bowl = pickDish(['salmon', 'rice', 'avocado'], { course: 'Main', taste: 'Savoury', wild: 0 }, 1);
     expect([bowl.layout, bowl.ware, bowl.base]).toEqual(['rice-bowl', 'deep', 'rice']);
     const toast = pickDish(['baguette', 'avocado', 'tomato'], { course: 'Snack', taste: 'Savoury', wild: 0 }, 1);

@@ -114,19 +114,34 @@ export interface WareFit {
 function fitWare(idea: DishIdea, composed: ComposedPlan): WareFit | undefined {
   if (!idea.layout || !['plate', 'slate', 'board', 'round'].includes(idea.ware)) return undefined;
   const discs = composed.placed.map((p) => ({ c: p.at, r: p.target ? p.target / 2 : footprint(elementInfo(p.part.ingredient, p.part.form), p.scale) }));
+  // Each piece's box seen from above, at its turn: a slice of toast is its rectangle, not the circle
+  // round its diagonal (boards stood far wider than the bread, Group 2).
+  const boxes = composed.placed.map((p) => {
+    const info = elementInfo(p.part.ingredient, p.part.form);
+    if (info.shape !== 'rect' || p.target) {
+      const r = p.target ? p.target / 2 : footprint(info, p.scale);
+      return { c: p.at, hx: r, hz: r };
+    }
+    const long = (Math.max(info.w!, info.h!) * p.scale) / 2;
+    const short = (Math.min(info.w!, info.h!) * p.scale) / 2;
+    const a = (p.angle * Math.PI) / 180;
+    return { c: p.at, hx: Math.abs(long * Math.sin(a)) + Math.abs(short * Math.cos(a)), hz: Math.abs(long * Math.cos(a)) + Math.abs(short * Math.sin(a)) };
+  });
   const { kind, at, r } = composed.base;
-  if (['pool', 'leaves', 'mash'].includes(kind)) discs.push({ c: at, r });
+  if (['pool', 'leaves', 'mash'].includes(kind)) discs.push({ c: at, r }), boxes.push({ c: at, hx: r, hz: r });
   if (!discs.length) return undefined;
-  const minX = Math.min(...discs.map((d) => d.c[0] - d.r)), maxX = Math.max(...discs.map((d) => d.c[0] + d.r));
-  const minZ = Math.min(...discs.map((d) => d.c[1] - d.r)), maxZ = Math.max(...discs.map((d) => d.c[1] + d.r));
+  const minX = Math.min(...boxes.map((d) => d.c[0] - d.hx)), maxX = Math.max(...boxes.map((d) => d.c[0] + d.hx));
+  const minZ = Math.min(...boxes.map((d) => d.c[1] - d.hz)), maxZ = Math.max(...boxes.map((d) => d.c[1] + d.hz));
   const c: [number, number] = [(minX + maxX) / 2, (minZ + maxZ) / 2];
   const reach = Math.max(...discs.map((d) => Math.hypot(d.c[0] - c[0], d.c[1] - c[1]) + d.r));
   if (idea.ware === 'board') {
-    const hx = Math.min(15, Math.max(8, (maxX - minX) / 2 + 2.2));
-    const hz = Math.min(11, Math.max(6.5, (maxZ - minZ) / 2 + 2.2));
+    // Tight to the bread: a finger's width of board round it.
+    const hx = Math.min(15, Math.max(5.5, (maxX - minX) / 2 + 1.3));
+    const hz = Math.min(11, Math.max(4.5, (maxZ - minZ) / 2 + 1.3));
     return { at: c, r: Math.max(hx, hz), hx, hz };
   }
-  const R = Math.min(idea.ware === 'round' ? 14 : 13.5, Math.max(9, reach + 2.8));
+  // A rim's width round the food, and a little room for a piece laid again beside the bunch.
+  const R = Math.min(idea.ware === 'round' ? 14 : 13.5, Math.max(9, reach * 1.08 + 3.2));
   return { at: c, r: R, hx: R, hz: R };
 }
 
@@ -420,9 +435,9 @@ export function composedBuilder(original: DishIdea): FormBuilder {
     const fit = fitWare(idea, composed);
     const w = makeWare(idea, seed, fit);
     /** True when a spot (with a half size) lies on the ware's top. */
-    const onTheWare = (c: [number, number], hx: number, hz: number): boolean => {
-      if (fit && idea.ware === 'board') return Math.abs(c[0] - fit.at[0]) + hx < fit.hx - 0.8 && Math.abs(c[1] - fit.at[1]) + hz < fit.hz - 0.8;
-      if (fit) return Math.hypot(c[0] - fit.at[0], c[1] - fit.at[1]) + Math.max(hx, hz) < fit.r - 1.2;
+    const onTheWare = (c: [number, number], hx: number, hz: number, margin = 1.2): boolean => {
+      if (fit && idea.ware === 'board') return Math.abs(c[0] - fit.at[0]) + hx < fit.hx - margin * 0.66 && Math.abs(c[1] - fit.at[1]) + hz < fit.hz - margin * 0.66;
+      if (fit) return Math.hypot(c[0] - fit.at[0], c[1] - fit.at[1]) + Math.max(hx, hz) < fit.r - margin;
       return idea.ware === 'board' ? Math.abs(c[0]) + hx < 13.5 && Math.abs(c[1]) + hz < 9.5 : Math.hypot(c[0], c[1]) + Math.max(hx, hz) < Math.max(WARE_PLAN[idea.ware].reach + 0.5, WARE_PLAN[idea.ware].plate - 1.5);
     };
     const table = new Table(w.floor);
@@ -522,7 +537,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
     /** The planned stacks the layouts allow, with their most extra height (cm): fries in two layers. */
     // Crispy garlic and crumbs are garnish-sized: like the shavings, they may lie over the food.
     // A pancake stack is the one tall exception (item 5): three or four high.
-    const stackAllowance = (p: Placed) => (p.part.form === 'fries' ? 2.6 : p.part.form === 'pancake' ? 4 : ['chip', 'crumble'].includes(p.part.form) ? 6 : 0.4);
+    const stackAllowance = (p: Placed) => (p.part.form === 'fries' ? 2.6 : p.part.form === 'pancake' ? 6 : ['chip', 'crumble'].includes(p.part.form) ? 6 : 0.4);
     /** A piece that stands on its edge (when it should lie flat) or is piled on another loose piece. */
     const towers = (pieces: FormPiece[]): boolean => {
       const p = placedOf.get(pieces);
@@ -539,7 +554,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       return lift > stackAllowance(p);
     };
     /** The nearest place touching the bunch where nothing loose lies under the piece's footprint. */
-    const freeSpot = (copy: FormPiece[], now: FormPiece[], here: Table, p: Placed): [number, number] | null => {
+    const freeSpot = (copy: FormPiece[], now: FormPiece[], here: Table, p: Placed, margin = 1.2): [number, number] | null => {
       const base = baseUnder(p);
       const box = boundsOf(copy);
       const hx = (box.max.x - box.min.x) / 2;
@@ -562,7 +577,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
             const [x, z] = [c[0] + Math.cos(b) * reachOut, c[1] + Math.sin(b) * reachOut];
             if (here.height(x, z) - base.height(x, z) > 0.2) touching = true;
           }
-          const onWare = onTheWare(c, hx, hz);
+          const onWare = onTheWare(c, hx, hz, margin);
           // The shift from where the laid copy sits to the free spot.
           if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) dbgCount[(clear ? 1 : 0) + (onWare ? 2 : 0) + (touching ? 4 : 0)]++;
           if (clear && onWare && touching) return [c[0] - planned[0], c[1] - planned[1]];
@@ -691,12 +706,15 @@ export function composedBuilder(original: DishIdea): FormBuilder {
           physics.drop(copy, { lift: 0.3, straightDown: true });
           again.push(copy);
         }
+        const offPlate: FormPiece[][] = [];
         if (again.length) {
           physics.settle();
           physics.bakeNew();
           for (const copy of again) {
             if (!onPlate(copy, rimFloor)) {
-              lost++;
+              // Off the ware twice: laid again by hand below (generated dishes), else lost.
+              if (idea.layout) offPlate.push(copy);
+              else lost++;
               continue;
             }
             dropped.push(copy);
@@ -710,11 +728,11 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         // dish (counted lost), never left as a tower.
         if (idea.layout) {
           const kept = dropped.filter((d) => !towers(d));
-          const bad = dropped.filter(towers);
+          const bad = [...dropped.filter(towers), ...offPlate];
           for (const pieces of bad) {
             physics.remove(pieces);
-            for (const piece of pieces) parts.splice(parts.indexOf(piece), 1);
-            food.splice(food.indexOf(pieces), 1);
+            for (const piece of pieces) if (parts.includes(piece)) parts.splice(parts.indexOf(piece), 1);
+            if (food.includes(pieces)) food.splice(food.indexOf(pieces), 1);
           }
           const laid: FormPiece[][] = [];
           for (const pieces of bad) {
@@ -740,6 +758,22 @@ export function composedBuilder(original: DishIdea): FormBuilder {
                 continue;
               }
               moved = tried;
+            }
+            // Still nowhere it settles by itself: laid by hand at the next free spot touching the bunch,
+            // flat, exactly on what is under it, and held there (lost 0, Group 5's QA contract).
+            for (let attempt = 0; attempt < 4 && !moved && copy; attempt++) {
+              // Out to the plate's well edge, if that is where the room is.
+              const spot = freeSpot(copy, pieces, here, p, 0.4);
+              if (!spot) break;
+              const byHand = here.rest(posed(copy, { at: [spot[0], 0, spot[1]] }), { tilt: 0, add: false });
+              // Flat on the plate or its base, not across a raised edge (a smear over a pool's rim).
+              if (liftAbove(byHand, baseUnder(p)) > stackAllowance(p)) {
+                here.add(byHand);
+                continue;
+              }
+              moved = byHand;
+              physics.hold(moved);
+              placedOf.set(moved, p);
             }
             if (!moved) {
               if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('no spot', p.part.ingredient, p.part.form);
@@ -790,6 +824,84 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         const gap = clearance(pieces, (x, z) => under.height(x, z));
         if (gap > 0.1 && gap < 3) for (const piece of pieces) piece.geometry.translate(0, -gap, 0);
       });
+      // Close the gaps (Group 2: plated mains showed pieces standing apart). A piece more than 0.45 cm
+      // from every other slides toward its nearest neighbour until about 0.2 cm off, then is set down
+      // on what is under it. Kept only if it still lies flat on the plate, its sauce or its base (never
+      // piled, never off the ware); otherwise it goes back where it was.
+      if (idea.layout && food.length > 1 && ['plate', 'slate', 'board', 'round'].includes(idea.ware)) {
+        const outline = (pieces: FormPiece[]): [number, number][] => {
+          const pts: [number, number][] = [];
+          for (const piece of pieces) {
+            const pos = piece.geometry.getAttribute('position');
+            const step = Math.max(1, Math.floor(pos.count / 160));
+            for (let i = 0; i < pos.count; i += step) pts.push([pos.getX(i), pos.getZ(i)]);
+          }
+          return pts;
+        };
+        const shift = (pieces: FormPiece[], x: number, y: number, z: number) => {
+          for (const piece of pieces) piece.geometry.translate(x, y, z);
+        };
+        for (let pass = 0; pass < 6; pass++) {
+          const outlines = food.map(outline);
+          food.forEach((pieces, i) => {
+            let best = Infinity;
+            let dx = 0;
+            let dz = 0;
+            for (const [ax, az] of outlines[i])
+              outlines.forEach((other, j) => {
+                if (j === i) return;
+                for (const [bx, bz] of other) {
+                  const d = Math.hypot(bx - ax, bz - az);
+                  if (d < best) (best = d), (dx = bx - ax), (dz = bz - az);
+                }
+              });
+            if (best <= 0.42 || !Number.isFinite(best)) return;
+            // Nearer on later rounds, in case a full slide was refused.
+            const k = (best - (pass < 3 ? 0.15 : 0.3)) / best;
+            shift(pieces, dx * k, 0, dz * k);
+            const under = new Table(groundOnly.height.bind(groundOnly));
+            food.forEach((other, j) => j !== i && under.add(other));
+            const lift = clearance(pieces, (x, z) => under.height(x, z));
+            shift(pieces, 0, -lift, 0);
+            const p = placedOf.get(pieces);
+            const box = boundsOf(pieces);
+            const centre: [number, number] = [(box.min.x + box.max.x) / 2, (box.min.z + box.max.z) / 2];
+            const ok = onPlate(pieces, idea.ware === 'glass' ? undefined : w.floor) && (idea.ware === 'glass' || idea.ware === 'deep' || onTheWare(centre, 0, 0)) && (!p || liftAbove(pieces, baseUnder(p)) <= stackAllowance(p));
+            // Nothing else may end up on it or hanging over it: every other piece still lies as before.
+            const box2 = boundsOf(pieces);
+            const near = food.filter((other, j) => {
+              if (j === i) return false;
+              const b = boundsOf(other);
+              return b.min.x < box2.max.x && b.max.x > box2.min.x && b.min.z < box2.max.z && b.max.z > box2.min.z;
+            });
+            const disturbs = near.some((other) => {
+              const q = placedOf.get(other);
+              return !!q && liftAbove(other, baseUnder(q)) > stackAllowance(q);
+            });
+            if (!ok || disturbs) {
+              shift(pieces, -dx * k, lift, -dz * k);
+              // Refused: on the later rounds, try sliding toward the middle of the food instead.
+              if (pass < 3) return;
+              const all = boundsOf(food.flat());
+              const mid: [number, number] = [(all.min.x + all.max.x) / 2, (all.min.z + all.max.z) / 2];
+              const [cx, cz] = centreOf(pieces);
+              const len = Math.hypot(mid[0] - cx, mid[1] - cz);
+              if (len < 0.05) return;
+              const step = Math.min(len, best - 0.25);
+              const mx = ((mid[0] - cx) / len) * step;
+              const mz = ((mid[1] - cz) / len) * step;
+              shift(pieces, mx, 0, mz);
+              const under2 = new Table(groundOnly.height.bind(groundOnly));
+              food.forEach((other, j) => j !== i && under2.add(other));
+              const lift2 = clearance(pieces, (x, z) => under2.height(x, z));
+              shift(pieces, 0, -lift2, 0);
+              const fine = onPlate(pieces, idea.ware === 'glass' ? undefined : w.floor) && (!p || liftAbove(pieces, baseUnder(p)) <= stackAllowance(p));
+              if (!fine) shift(pieces, -mx, lift2, -mz);
+              else outlines[i] = outline(pieces);
+            } else outlines[i] = outline(pieces);
+          });
+        }
+      }
       const height = food.reduce((most, pieces) => {
         const b = boundsOf(pieces);
         return Math.max(most, b.max.y - w.floor((b.min.x + b.max.x) / 2, (b.min.z + b.max.z) / 2));
@@ -963,6 +1075,8 @@ export function composedDish(idea: DishIdea): Dish {
       // Full coloured shadows, like the pantry's apple and orange (the user, 2026-11-22: vibrant watercolour).
       shadowTint: 1,
       contactsFromFeet: true,
+      // Bowls and glasses stand tall on a narrow foot: a higher light keeps their shadow under them.
+      lightLift: ['deep', 'bowl', 'glass'].includes(idea.ware) ? 0.75 : idea.ware === 'board' ? 0 : 0.3,
       room: refRoom(idea.id) ?? ROOM[heroIngredient] ?? 'lavender',
     },
   };

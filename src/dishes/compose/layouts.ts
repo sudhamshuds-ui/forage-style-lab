@@ -62,7 +62,7 @@ export interface LayoutSpec {
 }
 
 export const LAYOUTS: LayoutSpec[] = [
-  { id: 'circular-plate', courses: ['main', 'starter'], ware: 'plate', wildWare: 'slate', packing: 'cluster', wantsUnderPool: true, wantsTopSauce: true, savoryGarnish: true, support: [7, 12], accent: [3, 5], heroShare: 0.72, poolShare: 0.72 },
+  { id: 'circular-plate', courses: ['main', 'starter'], ware: 'plate', wildWare: 'slate', packing: 'cluster', wantsUnderPool: true, wantsTopSauce: true, savoryGarnish: true, support: [5, 7], accent: [3, 4], heroShare: 0.72, poolShare: 0.72 },
   { id: 'rice-bowl', courses: ['main', 'snack'], ware: 'deep', packing: 'cluster', wantsUnderPool: false, wantsTopSauce: true, savoryGarnish: true, support: [4, 6], accent: [1, 3], heroShare: 0.6, poolShare: 0 },
   { id: 'leaf-salad', courses: ['starter', 'main'], ware: 'plate', wildWare: 'bowl', packing: 'cluster', wantsUnderPool: false, wantsTopSauce: true, savoryGarnish: true, support: [5, 8], accent: [3, 5], heroShare: 0.6, poolShare: 0.8 },
   { id: 'toast-board', courses: ['snack', 'starter'], ware: 'board', packing: 'platform', wantsUnderPool: false, wantsTopSauce: true, savoryGarnish: true, support: [4, 6], accent: [3, 5], heroShare: 0.8, poolShare: 0 },
