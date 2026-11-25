@@ -107,6 +107,10 @@ export interface PhysicsReport {
 export class PhysicsPlate {
   private readonly world: import('@dimforge/rapier3d-compat').World;
   private readonly bodies: { body: import('@dimforge/rapier3d-compat').RigidBody; pieces: FormPiece[]; centre: Vector3; collider: number; baked: boolean }[] = [];
+  /** How far each settled piece turned from the way it was laid (degrees): 0 still flat, 90 on its edge. */
+  private readonly tilts = new Map<FormPiece[], number>();
+  /** The fixed solid each settled piece became, so a badly placed one can be lifted out again. */
+  private readonly held = new Map<FormPiece[], import('@dimforge/rapier3d-compat').RigidBody>();
 
   constructor() {
     if (!RAPIER) throw new Error('Physics is not loaded: call loadPhysics() first.');
@@ -251,6 +255,8 @@ export class PhysicsPlate {
         .multiply(new Matrix4().makeTranslation(-b.centre.x, -b.centre.y, -b.centre.z));
       for (const p of b.pieces) p.geometry.applyMatrix4(m);
       b.baked = true;
+      const up = new Vector3(0, 1, 0).applyQuaternion(new Quaternion(r.x, r.y, r.z, r.w));
+      this.tilts.set(b.pieces, (Math.acos(Math.min(1, Math.max(-1, up.y))) * 180) / Math.PI);
       // Held where it came to rest: the moving body is replaced by a fixed solid of the piece's
       // final shape, so the next layer leans on it but never moves it. (Switching the body itself
       // to fixed let the next pieces fall straight through it.)
@@ -259,7 +265,25 @@ export class PhysicsPlate {
       // Its exact surface as triangles (a falling piece is caught reliably by triangles; two convex
       // outlines let thin and detailed pieces slip through each other).
       for (const p of b.pieces) this.world.createCollider(heldShape(p.geometry).setFriction(1.6), fixed);
+      this.held.set(b.pieces, fixed);
     }
+  }
+
+  /** How far a settled piece turned from the way it was laid (degrees; 0 when it was never dropped). */
+  tiltOf(pieces: FormPiece[]): number {
+    return this.tilts.get(pieces) ?? 0;
+  }
+
+  /**
+   * Lift a settled piece back out (a piece left on its edge or on top of another, about to be laid
+   * again): its solid leaves the world and nothing rests on it any more. Its count as restless, if
+   * it was, stays.
+   */
+  remove(pieces: FormPiece[]): void {
+    const fixed = this.held.get(pieces);
+    if (fixed) this.world.removeRigidBody(fixed);
+    this.held.delete(pieces);
+    this.tilts.delete(pieces);
   }
 
   /** The physics QA: pieces held by nothing, the deepest overlap, pieces still moving (measured as each layer settles). */

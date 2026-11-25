@@ -27,6 +27,10 @@ export interface DishIdea {
   /** Generated dishes (the Kitchen's Cook, `pickDish`): the plating layout and the seed it was laid out with. */
   layout?: import('./compose/layouts').LayoutId;
   seed?: number;
+  /** Generated dishes: the course's dish archetype (an apple tart, a crudo) and the library
+   * components that complete it (src/dishes/compose/components.ts). Never heroes. */
+  archetype?: string;
+  components?: import('./compose/components').DishComponent[];
 }
 
 const d = (id: string, title: string, heroes: [string, string, string], course: DishIdea['course'], ware: DishIdea['ware'], base: string, big: string, medium: string[], small: string[], description: string): DishIdea => ({ id, title, heroes, course, ware, base, big, medium, small, description });

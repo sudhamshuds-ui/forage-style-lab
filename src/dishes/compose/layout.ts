@@ -1,3 +1,4 @@
+import { componentInfo, isComponent } from './components';
 import { seededRandom, signed } from '../../ingredients/forms/kit/random';
 import type { DishIdea } from '../catalog';
 import type { Plan, PlanShape, Size } from '../kit/plan';
@@ -84,6 +85,7 @@ export const BODY: Record<string, { r: number; h: number; long?: number }> = {
 
 /** The footprint of an `ingredient:form` at scale 1, and how a group of them is laid out. */
 export function elementInfo(ingredient: string, form: string): ElementInfo {
+  if (isComponent(ingredient)) return componentInfo(ingredient);
   const body = BODY[ingredient] ?? { r: 2.5, h: 2.5 };
   // Forms the references brought in (2026-11-22), seen from above.
   switch (form) {
@@ -103,7 +105,12 @@ export function elementInfo(ingredient: string, form: string): ElementInfo {
       return { shape: 'rect', w: 1.3, h: 7, group: 'heap', shrinks: false };
     case 'chip':
       return { shape: 'circle', r: 0.8, group: 'heap', shrinks: false };
+    case 'strip':
+      return { shape: 'rect', w: 1.7, h: 7.2, group: 'scatter', shrinks: false };
+    case 'torn':
+      return { shape: 'rect', w: 1.5, h: 4.2, group: 'heap', shrinks: false };
   }
+  if (ingredient === 'chicken' && form === 'slice') return { shape: 'rect', w: 7, h: 13, group: 'pair', shrinks: false };
   switch (form) {
     case 'whole':
       if (ingredient === 'broccoli') return { shape: 'circle', r: 4, group: 'pair', shrinks: false };

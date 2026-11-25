@@ -34,6 +34,8 @@ export interface RiceBowlParts {
   surfaceAt: (x: number, z: number) => number;
   /** The rice's radius at its edge (cm). */
   radius: number;
+  /** Mixed rice only: small cooked bits through it (herbs, diced vegetables, corn), by colour. */
+  flecks?: { green: BufferGeometry; orange: BufferGeometry; yellow: BufferGeometry };
 }
 
 export const buildRice: FormBuilder = ({ state, seed }) => {
@@ -46,7 +48,7 @@ export const buildRice: FormBuilder = ({ state, seed }) => {
 };
 
 /** `dome` scales how high the rice heaps (1: the pantry's tall dome; a dish may want it flatter). */
-export function riceBowlParts(seed: number, dome = 1): RiceBowlParts {
+export function riceBowlParts(seed: number, dome = 1, mixed = false): RiceBowlParts {
   const random = seededRandom(seed ^ 0x51ce);
   const ph = Array.from({ length: 12 }, () => random() * Math.PI * 2);
 
@@ -116,5 +118,45 @@ export function riceBowlParts(seed: number, dome = 1): RiceBowlParts {
   }
   rice.setAttribute('uv', new BufferAttribute(uv, 2));
 
-  return { rice, bowl, surfaceAt: (x, z) => edge + moundAt(x, z), radius };
+  // Mixed rice (the fix list, 2026-11-25: "rice in a bowl should read as mixed ... flecks of veg and
+  // herb through the body, not a white dome"): small bits half sunk in the rice like the grains,
+  // chopped herbs (thin slivers), diced vegetables (soft little cubes) and corn (round kernels).
+  let flecks: RiceBowlParts['flecks'];
+  if (mixed) {
+    const groups: Record<'green' | 'orange' | 'yellow', BufferGeometry[]> = { green: [], orange: [], yellow: [] };
+    const plan: ['green' | 'orange' | 'yellow', number][] = [['green', 46], ['orange', 30], ['yellow', 22]];
+    for (const [colour, count] of plan) {
+      for (let n = 0; n < count; n++) {
+        const rn = Math.sqrt(random()) * 0.92;
+        const a = random() * Math.PI * 2;
+        const x = Math.cos(a) * radius * rn;
+        const z = Math.sin(a) * radius * rn;
+        const e = 0.08;
+        const normal = new Vector3(moundAt(x - e, z) - moundAt(x + e, z), 2 * e, moundAt(x, z - e) - moundAt(x, z + e)).normalize();
+        if (up.dot(normal) < 0.3) continue;
+        let g: BufferGeometry;
+        if (colour === 'green') {
+          // A sliver of chopped herb or spring onion: a thin flat lozenge.
+          g = latheGeometry({ halfLength: 0.22 + random() * 0.12, radius: (u) => 0.09 * Math.sqrt(Math.max(0, 1 - (u / 0.34) ** 2)), rings: 3, segments: 5 });
+          g.scale(1, 0.45, 1.6);
+        } else if (colour === 'orange') {
+          // A soft little cube of carrot or pepper.
+          const k = 0.15 + random() * 0.05;
+          g = latheGeometry({ halfLength: k, radius: () => k * 1.05, rings: 2, segments: 4 });
+        } else {
+          // A corn kernel: a plump bead.
+          g = latheGeometry({ halfLength: 0.15, radius: (u) => 0.15 * Math.sqrt(Math.max(0, 1 - (u / 0.15) ** 2)) ** 0.6, rings: 3, segments: 6 });
+        }
+        const along = new Vector3(Math.cos(a * 5 + n), 0, Math.sin(a * 5 + n));
+        along.addScaledVector(normal, -along.dot(normal)).normalize();
+        const turn = new Quaternion().setFromUnitVectors(new Vector3(1, 0, 0), along);
+        const at = new Vector3(x, edge + moundAt(x, z), z).addScaledVector(normal, -0.04 + random() * 0.06);
+        g.applyMatrix4(new Matrix4().compose(at, turn, new Vector3(1, 1, 1)));
+        groups[colour].push(g);
+      }
+    }
+    flecks = { green: mergeGeometries(groups.green)!, orange: mergeGeometries(groups.orange)!, yellow: mergeGeometries(groups.yellow)! };
+  }
+
+  return { rice, bowl, surfaceAt: (x, z) => edge + moundAt(x, z), radius, flecks };
 }

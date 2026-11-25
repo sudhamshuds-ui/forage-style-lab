@@ -167,3 +167,17 @@ sketches and reference photos.
 - Lesson: an empty plate reads as "not food". Fill it with layers (sauce, hero, a generous bunch,
   shavings, herbs) before adding more big elements.
 
+
+## The Kitchen's generated dishes: the fix list (2026-11-25)
+
+- **The table's ingredients are the stars of a real dish, not the whole plate.** One apple as
+  Dessert is an apple tart with ice cream, not three wedges in a berry sauce. A library of supporting
+  pieces (tart shell, cream, quenelle, tuile, smear, puree, oil dots, gel beads, microherbs) completes
+  the plate and never becomes a hero.
+- **Course picks the kind of dish and the ware**: Drink is always a glass, Dessert a tart, pudding,
+  plated dessert or pancakes. **Wild must be visible**: the classic at 0, never the classic at 100.
+- **Choose the sauce for the dish**: never the same berry sauce on every fruit plate.
+- **Cut ingredients the way a cook would**: pepper in roasted strips or charred halves, never one
+  smooth blob; chicken sliced or torn, cubes only in a stew; avocado slices lying flat and yellow-green.
+- **Toppings on a platform are sized to fit it**, side by side, so a tart shows a fan of slices.
+- **Titles fit on one line**: 3 to 5 words, at most 32 characters, never a lone ingredient word.

@@ -21,7 +21,13 @@ export type LayoutId =
   | 'glass-drink'
   | 'dessert-bowl'
   | 'skillet-bake'
-  | 'mash-plate';
+  | 'mash-plate'
+  // Per-course archetypes (the fix list, 2026-11-25, P1).
+  | 'tart'
+  | 'plated-dessert'
+  | 'pancake-stack'
+  | 'tartare-crudo'
+  | 'composed-plate';
 
 /**
  * How the pieces pack round the hero:
@@ -66,6 +72,16 @@ export const LAYOUTS: LayoutSpec[] = [
   { id: 'dessert-bowl', courses: ['dessert'], ware: 'bowl', wildWare: 'plate', packing: 'cluster', wantsUnderPool: true, wantsTopSauce: true, savoryGarnish: false, support: [4, 6], accent: [3, 5], heroShare: 0.6, poolShare: 0.72 },
   { id: 'skillet-bake', courses: ['main', 'snack', 'starter'], ware: 'bowl', packing: 'cluster', wantsUnderPool: true, wantsTopSauce: true, savoryGarnish: true, support: [5, 7], accent: [3, 5], heroShare: 0.55, poolShare: 0.92 },
   { id: 'mash-plate', courses: ['main', 'starter'], ware: 'plate', wildWare: 'bowl', packing: 'platform', wantsUnderPool: true, wantsTopSauce: true, savoryGarnish: true, support: [4, 5], accent: [3, 5], heroShare: 0.55, poolShare: 0.75 },
+  // A fruit or cream tart: the shell is the platform, the hero's slices fanned in it, cream beside.
+  { id: 'tart', courses: ['dessert'], ware: 'plate', wildWare: 'slate', packing: 'platform', wantsUnderPool: false, wantsTopSauce: false, savoryGarnish: false, support: [7, 9], accent: [1, 1], heroShare: 0.62, poolShare: 0 },
+  // A plated dessert: the hero cut and caramelised, a quenelle, a crumb, a smear of a chosen sauce.
+  { id: 'plated-dessert', courses: ['dessert'], ware: 'plate', wildWare: 'slate', packing: 'cluster', wantsUnderPool: true, wantsTopSauce: false, savoryGarnish: false, support: [3, 5], accent: [3, 5], heroShare: 0.5, poolShare: 0.5 },
+  // Pancakes: the stack is the platform, the hero on top with whipped cream.
+  { id: 'pancake-stack', courses: ['dessert', 'snack'], ware: 'plate', wildWare: 'bowl', packing: 'platform', wantsUnderPool: false, wantsTopSauce: true, savoryGarnish: false, support: [5, 7], accent: [1, 3], heroShare: 0.6, poolShare: 0 },
+  // A crudo or tartare: the hero cut small or thin, packed as one mound, oil dots and microherbs.
+  { id: 'tartare-crudo', courses: ['starter'], ware: 'plate', wildWare: 'slate', packing: 'cluster', wantsUnderPool: true, wantsTopSauce: false, savoryGarnish: false, support: [3, 5], accent: [3, 5], heroShare: 0.5, poolShare: 0.55 },
+  // A composed small plate: the hero cut properly, a smear, oil dots, microherbs, a crisp element.
+  { id: 'composed-plate', courses: ['starter'], ware: 'plate', wildWare: 'slate', packing: 'cluster', wantsUnderPool: true, wantsTopSauce: false, savoryGarnish: true, support: [3, 5], accent: [3, 5], heroShare: 0.55, poolShare: 0.55 },
 ];
 
 export function layoutById(id: LayoutId | undefined): LayoutSpec | undefined {

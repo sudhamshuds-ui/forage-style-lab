@@ -607,7 +607,15 @@ const tray = mountTray(document.getElementById('tray') as HTMLElement, {
 
 const cookPanel = mountCookPanel(document.getElementById('cook-panel') as HTMLElement, {
   onCook: (choices) => cook(choices),
+  onReset: () => clearTable(),
 });
+
+/** Reset (the fix list, P3.5): the choices go back to their defaults and the table is cleared. */
+function clearTable(): void {
+  if (mode !== 'table' || cooking) return;
+  for (const item of staying()) removeIngredient(item.id);
+  cookPanel.showError('');
+}
 
 /** Something on the table changed: update everything that depends on it. */
 function changed(): void {
@@ -780,12 +788,22 @@ function cook(choices: CookChoices): void {
   const seed = cookSeed(ids, choices, attempt);
   cooking = true;
   cookPanel.setBusy(true);
+  cookPanel.showError('');
   // Plating takes a moment (physics settles every layer): let the button show it first.
   window.setTimeout(() => {
     let made = cooked.get(seed);
     if (!made) {
-      const dish = composedDish(pickDish(ids, choices, seed));
-      made = { dish, item: makeItemFrom(dish.entry) };
+      // Never a silent click (the fix list, P3.1): if plating fails, Cook is freed and says so.
+      try {
+        const dish = composedDish(pickDish(ids, choices, seed));
+        made = { dish, item: makeItemFrom(dish.entry) };
+      } catch (error) {
+        console.error('Cook failed', { ids, choices, seed }, error);
+        cooking = false;
+        cookPanel.setBusy(false);
+        cookPanel.showError('That dish did not come together. Try Cook again.');
+        return;
+      }
       cooked.set(seed, made);
       // Keep a few: older ones are let go.
       if (cooked.size > 4) {

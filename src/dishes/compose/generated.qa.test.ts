@@ -15,6 +15,23 @@ const nodeFs = 'node:fs';
  * With WRITE_QA=1 the table is written to docs/dishes/qa-generated.md (npm run qa:generated).
  */
 const FIXTURE: [string[], CookChoices][] = [
+  // The six combos from the test session's screenshots (the fix list, 2026-11-25).
+  [['pepper', 'avocado', 'salmon'], { course: 'Snack', taste: 'Savoury', wild: 60 }],
+  [['sauce', 'cheese'], { course: 'Main', taste: 'Savoury', wild: 60 }],
+  [['lemon'], { course: 'Starter', taste: 'Sweet', wild: 0 }],
+  [['lime', 'pepper'], { course: 'Dessert', taste: 'Both', wild: 100 }],
+  [['chicken', 'rice'], { course: 'Main', taste: 'Savoury', wild: 0 }],
+  [['apple'], { course: 'Drink', taste: 'Sweet', wild: 100 }],
+  // One apple through every course.
+  [['apple'], { course: 'Starter', taste: 'Sweet', wild: 60 }],
+  [['apple'], { course: 'Main', taste: 'Savoury', wild: 60 }],
+  [['apple'], { course: 'Dessert', taste: 'Sweet', wild: 0 }],
+  [['apple'], { course: 'Snack', taste: 'Sweet', wild: 60 }],
+  // The extras the fix list names.
+  [['lime', 'garlic', 'sauce'], { course: 'Main', taste: 'Savoury', wild: 60 }],
+  [['romaine'], { course: 'Main', taste: 'Savoury', wild: 60 }],
+  [['pepper', 'lime'], { course: 'Main', taste: 'Savoury', wild: 60 }],
+  // The earlier set (kept: they cover the other layouts).
   [['steak', 'potato', 'garlic'], { course: 'Main', taste: 'Savoury', wild: 0 }],
   [['salmon', 'rice', 'avocado'], { course: 'Main', taste: 'Savoury', wild: 20 }],
   [['baguette', 'avocado', 'tomato'], { course: 'Snack', taste: 'Savoury', wild: 10 }],
@@ -25,15 +42,8 @@ const FIXTURE: [string[], CookChoices][] = [
   [['peach', 'milk', 'strawberry'], { course: 'Dessert', taste: 'Sweet', wild: 20 }],
   [['potato', 'onion', 'milk'], { course: 'Starter', taste: 'Savoury', wild: 10 }],
   [['strawberry', 'milk', 'blueberries'], { course: 'Drink', taste: 'Sweet', wild: 30 }],
-  [['lime', 'garlic', 'sauce'], { course: 'Main', taste: 'Savoury', wild: 50 }],
-  [['romaine'], { course: 'Main', taste: 'Savoury', wild: 0 }],
-  [['steak', 'blueberries', 'milk'], { course: 'Dessert', taste: 'Sweet', wild: 80 }],
-  [['rice', 'baguette', 'potato'], { course: 'Main', taste: 'Savoury', wild: 60 }],
-  [['chicken', 'lemon', 'spinach'], { course: 'Main', taste: 'Savoury', wild: 30 }],
   [['broccoli', 'cheese', 'milk'], { course: 'Main', taste: 'Savoury', wild: 20 }],
-  [['pear', 'cheese', 'grapes'], { course: 'Starter', taste: 'Both', wild: 40 }],
-  [['watermelon', 'lime', 'mushroom'], { course: 'Main', taste: 'Both', wild: 100 }],
-  [['apple', 'cabbage', 'steak'], { course: 'Main', taste: 'Savoury', wild: 60 }],
+  [['chicken', 'lemon', 'spinach'], { course: 'Main', taste: 'Savoury', wild: 30 }],
   [['steak'], { course: 'Main', taste: 'Savoury', wild: 100 }],
 ];
 
@@ -58,11 +68,12 @@ describe('generated dish QA', () => {
         qa.restless ? `${qa.restless} moving` : '',
         qa.lost ? `${qa.lost} lost` : '',
         qa.offCentre ? `${qa.offCentre} off centre` : '',
+        qa.towering ? `${qa.towering} towering` : '',
         garnish < 0.7 ? `garnish ${Math.round(garnish * 100)}% on food` : '',
       ].filter(Boolean);
       const name = `${ids.join(' + ')} (${choices.course}, ${choices.taste}, wild ${choices.wild})`;
       if (problems.length) failing.push(`${name}: ${problems.join(', ')}`);
-      rows.push(`| ${name} | ${idea.layout} | ${idea.title} | ${qa.widestGap.toFixed(2)} | ${qa.floating} | ${qa.deepest.toFixed(2)} | ${qa.restless} | ${qa.offCentre ?? 0} | ${Math.round(garnish * 100)}% | ${problems.length ? problems.join(', ') : 'pass'} |`);
+      rows.push(`| ${name} | ${idea.layout} | ${idea.title} | ${qa.widestGap.toFixed(2)} | ${qa.floating} | ${qa.deepest.toFixed(2)} | ${qa.restless} | ${qa.offCentre ?? 0} | ${qa.towering ?? 0} | ${Math.round(garnish * 100)}% | ${problems.length ? problems.join(', ') : 'pass'} |`);
     }
     if (process.env.WRITE_QA) {
       const fs = (await import(/* @vite-ignore */ nodeFs)) as { writeFileSync: (path: string, data: string) => void };
@@ -71,12 +82,12 @@ describe('generated dish QA', () => {
         [
           '# Generated dish QA (the Kitchen\'s Cook)',
           '',
-          'Written by `npm run qa:generated`. Each row is a table of ingredients and cooking choices, cooked by `pickDish` and built with physics. The contract (the composable dishes spec): widest gap at most 0.5 cm, nothing floating, overlap at most 1 cm, nothing moving or lost, every piece near the hero (off centre 0), at least 70% of the garnish over food or its pool.',
+          'Written by `npm run qa:generated`. Each row is a table of ingredients and cooking choices, cooked by `pickDish` and built with physics. The contract (the composable dishes spec): widest gap at most 0.5 cm, nothing floating, overlap at most 1 cm, nothing moving or lost, nothing towering or on its edge, every piece near the hero (off centre 0), at least 70% of the garnish over food or its pool.',
           '',
           `${FIXTURE.length - failing.length} of ${FIXTURE.length} pass.`,
           '',
-          '| Table | Layout | Dish | Widest gap | Floating | Overlap | Moving | Off centre | Garnish on food | Result |',
-          '|---|---|---|---|---|---|---|---|---|---|',
+          '| Table | Layout | Dish | Widest gap | Floating | Overlap | Moving | Off centre | Towering | Garnish on food | Result |',
+          '|---|---|---|---|---|---|---|---|---|---|---|',
           ...rows,
           '',
         ].join('\n'),

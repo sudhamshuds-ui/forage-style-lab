@@ -32,11 +32,13 @@ export interface CookPanel {
   setCanCook(can: boolean): void;
   /** While the dish is being plated (a few seconds of physics): Cook reads "Cooking" and waits. */
   setBusy(busy: boolean): void;
+  /** A short line under Cook when a cook failed (never a silent click); empty clears it. */
+  showError(text: string): void;
 }
 
 const RESET_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>`;
 
-export function mountCookPanel(root: HTMLElement, options: { onCook: (choices: CookChoices) => void }): CookPanel {
+export function mountCookPanel(root: HTMLElement, options: { onCook: (choices: CookChoices) => void; onReset?: () => void }): CookPanel {
   const choices: CookChoices = { ...DEFAULT_CHOICES };
 
   const chipButtons: { group: ChipGroup; option: string; button: HTMLButtonElement }[] = [];
@@ -102,12 +104,18 @@ export function mountCookPanel(root: HTMLElement, options: { onCook: (choices: C
   reset.setAttribute('aria-label', 'Reset the choices');
   reset.title = 'Reset';
   reset.innerHTML = RESET_ICON;
+  // Reset puts the choices back and clears the table (the fix list: it left the ingredients on).
   reset.addEventListener('click', () => {
     Object.assign(choices, DEFAULT_CHOICES);
     paint();
+    options.onReset?.();
   });
   foot.append(cook, reset);
   root.append(foot);
+  const error = document.createElement('p');
+  error.className = 'cook-error';
+  error.setAttribute('role', 'status');
+  root.append(error);
 
   /** Show the current choices on the controls. */
   function paint(): void {
@@ -120,11 +128,11 @@ export function mountCookPanel(root: HTMLElement, options: { onCook: (choices: C
     // The filled part of the track follows the value.
     input.style.setProperty('--fill', `${choices.wild}%`);
     const changed = (Object.keys(DEFAULT_CHOICES) as (keyof CookChoices)[]).some((key) => choices[key] !== DEFAULT_CHOICES[key]);
-    reset.disabled = !changed;
+    reset.disabled = !changed && !canCook;
   }
+  let canCook = false;
   paint();
 
-  let canCook = false;
   let busy = false;
   const refresh = () => {
     cook.disabled = !canCook || busy;
@@ -134,7 +142,11 @@ export function mountCookPanel(root: HTMLElement, options: { onCook: (choices: C
   };
   return {
     choices: () => ({ ...choices }),
-    setCanCook: (can) => ((canCook = can), refresh()),
+    setCanCook: (can) => ((canCook = can), refresh(), paint()),
+    showError: (text) => {
+      error.textContent = text;
+      error.hidden = !text;
+    },
     setBusy: (on) => ((busy = on), refresh()),
   };
 }

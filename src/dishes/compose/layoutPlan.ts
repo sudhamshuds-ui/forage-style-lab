@@ -35,51 +35,93 @@ function packR(info: ElementInfo, scale: number): number {
 
 /** Flat pieces (slices, wheels, leaves, chips, crumbs) may shingle; chunks only just touch. */
 function isFlat(part: Part): boolean {
-  return ['slice', 'wheel', 'leaf', 'chip', 'crumble', 'fries'].includes(part.form);
+  // Fries count here too: they pile into a planned two-layer bunch (allowed up to 2.6 cm high).
+  return ['slice', 'wheel', 'leaf', 'chip', 'crumble', 'strip', 'fries'].includes(part.form);
 }
 
 interface Disc {
   c: [number, number];
   r: number;
+  /** A flat piece (slice, wheel, chip): two flat pieces may shingle; anything else only touches. */
+  flat?: boolean;
 }
 
 /**
- * Grow `n` pieces of radius `r` onto the mass, each one touching it, as near the anchor as it can be.
- * `limit` keeps a piece inside the ware; `sep` is how close two pieces' discs may come (1: just
- * touching, below 1: overlapping like fallen coins).
+ * A piece's footprint for packing: a capsule, like a row of coins along its length. Round and chunky
+ * pieces are one coin; a long one (a fillet, an avocado slice, a fry, a pepper strip) is a row, so its
+ * ends cannot reach over a neighbour the way one big circle let them (they landed on each other).
  */
-function grow(mass: Disc[], n: number, r: number, anchor: [number, number], limit: (c: [number, number], r: number) => boolean, sep: number, random: () => number): [number, number][] {
-  const out: [number, number][] = [];
+interface Shape {
+  /** Half the width (each coin's radius). */
+  r: number;
+  /** Half the length of the row of coin centres (0 for a single coin). */
+  half: number;
+}
+
+function shapeFor(info: ElementInfo, scale: number): Shape {
+  if (info.shape === 'rect') {
+    const long = Math.max(info.w!, info.h!) * scale;
+    const short = Math.min(info.w!, info.h!) * scale;
+    if (long / short >= 1.6) return { r: short / 2, half: long / 2 - short / 2 };
+  }
+  return { r: packR(info, scale), half: 0 };
+}
+
+/** The coins of a shape laid at `c`, turned `angle` degrees (the plan's turn: 0 runs front to back). */
+function discsAt(shape: Shape, c: [number, number], angle: number, flat = false): Disc[] {
+  if (shape.half <= 0) return [{ c, r: shape.r, flat }];
+  const a = (angle * Math.PI) / 180;
+  const along: [number, number] = [-Math.sin(a), Math.cos(a)];
+  const n = Math.max(2, Math.ceil((2 * shape.half) / shape.r) + 1);
+  const out: Disc[] = [];
   for (let k = 0; k < n; k++) {
-    let best: [number, number] | null = null;
+    const t = -shape.half + (2 * shape.half * k) / (n - 1);
+    out.push({ c: [c[0] + along[0] * t, c[1] + along[1] * t], r: shape.r, flat });
+  }
+  return out;
+}
+
+/**
+ * Grow `n` pieces onto the mass, each one touching it and overlapping nothing, as near the anchor as
+ * it can be. Long pieces try lying along the bunch and pointing out from it. `limit` keeps a piece
+ * inside the ware; `sep` is how close two coins may come (1: just touching, below 1: a light shingle).
+ */
+function grow(mass: Disc[], n: number, shape: Shape, anchor: [number, number], limit: (c: [number, number], r: number) => boolean, flat: boolean, random: () => number): { at: [number, number]; angle: number }[] {
+  const out: { at: [number, number]; angle: number }[] = [];
+  const extent = shape.r + shape.half;
+  for (let k = 0; k < n; k++) {
+    let best: { at: [number, number]; angle: number } | null = null;
     let bestScore = Infinity;
-    let fallback: [number, number] = anchor;
+    let fallback: { at: [number, number]; angle: number } = { at: anchor, angle: random() * 360 };
     let fallbackScore = Infinity;
     for (const d of mass) {
       for (let s = 0; s < 16; s++) {
         const a = (s / 16) * Math.PI * 2 + random() * 0.2;
-        // Pressed in (0.88): neighbours lean on each other, so they still touch after they settle
-        // (pieces slide a little as they come to rest).
-        const dist = (d.r + r) * Math.max(sep, 0.6) * 0.88;
-        const c: [number, number] = [d.c[0] + Math.cos(a) * dist, d.c[1] + Math.sin(a) * dist];
-        const score = Math.hypot(c[0] - anchor[0], c[1] - anchor[1]) + random() * 0.35;
-        const clear = mass.every((e) => Math.hypot(c[0] - e.c[0], c[1] - e.c[1]) >= (e.r + r) * sep * 0.84);
-        if (clear && limit(c, r) && score < bestScore) {
-          best = c;
-          bestScore = score;
-        }
-        if (limit(c, r) && score < fallbackScore) {
-          fallback = c;
-          fallbackScore = score;
+        const dir: [number, number] = [Math.cos(a), Math.sin(a)];
+        // Flat on flat shingles a little (0.86); against anything with height, just touching (1.02).
+        const touch = (d.r + shape.r) * (flat && d.flat ? 0.86 : 1.02);
+        // Plan turns whose long side lies along the bunch (tangent) or points out from it (radial).
+        const radialTurn = (Math.atan2(-dir[0], dir[1]) * 180) / Math.PI;
+        const tries: { dist: number; angle: number }[] = shape.half > 0
+          ? [{ dist: touch, angle: radialTurn + 90 }, { dist: touch + shape.half, angle: radialTurn }, { dist: touch, angle: radialTurn + 90 + (random() - 0.5) * 50 }]
+          : [{ dist: touch, angle: random() * 360 }];
+        for (const t of tries) {
+          const c: [number, number] = [d.c[0] + dir[0] * t.dist, d.c[1] + dir[1] * t.dist];
+          const score = Math.hypot(c[0] - anchor[0], c[1] - anchor[1]) + random() * 0.35;
+          if (!limit(c, extent)) continue;
+          const coins = discsAt(shape, c, t.angle, flat);
+          const clear = coins.every((q) => mass.every((e) => Math.hypot(q.c[0] - e.c[0], q.c[1] - e.c[1]) >= (e.r + q.r) * (flat && e.flat ? 0.8 : 0.98)));
+          if (clear && score < bestScore) (best = { at: c, angle: t.angle }), (bestScore = score);
+          if (score < fallbackScore) (fallback = { at: c, angle: t.angle }), (fallbackScore = score);
         }
       }
     }
     // No room left to touch the bunch without stacking: the plate holds what fits (the first piece
     // always goes down, so every ingredient shows).
     if (!best && k > 0) break;
-    const c = best ?? fallback;
-    out.push(c);
-    mass.push({ c, r });
+    const pick = best ?? fallback;
+    out.push(pick);
+    mass.push(...discsAt(shape, pick.at, pick.angle, flat));
   }
   return out;
 }
@@ -148,7 +190,7 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
     group.forEach((p, index) => {
       const at: [number, number] = [heroAt[0] + p.at[0] * k, heroAt[1] + p.at[1] * k];
       placed.push({ part: hero, size: 'big', scale: heroScale, at, angle: p.angle, index, layer: 0 });
-      heroDiscs.push({ c: at, r: packR(heroInfo, heroScale) });
+      heroDiscs.push(...discsAt(shapeFor(heroInfo, heroScale), at, p.angle));
     });
   }
   const heroCentre: [number, number] = [
@@ -164,7 +206,7 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
   const top: Disc[] = [];
   // A platform hero (toast, mash, a pancake, a cake, pastry, an omelette) carries its toppings on top,
   // whatever the layout (a dessert's pancake as much as a toast board).
-  const platform = layout.packing === 'platform' || PLATFORM_FORMS.includes(hero.form);
+  const platform = layout.packing === 'platform' || PLATFORM_FORMS.includes(hero.form) || hero.ingredient === 'tart';
   const groups: { text: string; size: 'medium' | 'small'; layer: number }[] = [
     ...idea.medium.map((text) => ({ text, size: 'medium' as const, layer: 1 })),
     ...idea.small.filter((text) => readPart(text).form !== 'herb').map((text) => ({ text, size: 'small' as const, layer: 2 })),
@@ -172,23 +214,36 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
   groups.forEach((g, gi) => {
     const part = readPart(g.text);
     const info = elementInfo(part.ingredient, part.form);
-    const cap = idea.ware === 'deep' ? R * 0.5 : g.size === 'medium' ? R * 0.34 : R * 0.24;
-    const scale = fitWare(tierScale(g.size, info, part.ingredient), info, cap);
-    const r = packR(info, scale);
-    let spots: [number, number][];
-    if (platform && idea.ware !== 'glass') {
+    // Toppings on a platform are cut to fit it: several side by side across a tart or a toast.
+    const onTop = platform && idea.ware !== 'glass' && !['quenelle', 'smear', 'tuile', 'puree'].includes(part.ingredient);
+    const cap = onTop ? Math.min(R * 0.34, heroR * (g.size === 'medium' ? 0.62 : 0.4)) : idea.ware === 'deep' ? R * 0.5 : g.size === 'medium' ? R * 0.34 : R * 0.24;
+    // On a platform the whole bunch must fit inside its edge: each piece is sized so the bunch's
+    // area is about two thirds of the platform's (never the usual floor of 45%).
+    const tier = tierScale(g.size, info, part.ingredient);
+    const fitTop = () => {
+      const each = Math.sqrt((Math.PI * (heroR * 0.82) ** 2 * (g.size === 'medium' ? 0.6 : 0.25)) / Math.max(1, part.count)) * 1.15;
+      return Math.min(tier, (tier * Math.min(cap, each)) / Math.max(0.1, footprint(info, tier)));
+    };
+    const scale = onTop ? fitTop() : fitWare(tier, info, cap);
+    const shape = shapeFor(info, scale);
+    const r = shape.r + shape.half;
+    let spots: { at: [number, number]; angle: number }[];
+    // A quenelle, a smear, a tuile or a puree goes beside a platform on the plate, never on it
+    // (a tart's ice cream sits next to the slice).
+    const besidePlatform = ['quenelle', 'smear', 'tuile', 'puree'].includes(part.ingredient);
+    if (platform && idea.ware !== 'glass' && !besidePlatform) {
       // Toppings on the platform: support spread over it, accents round its edge, all on top.
-      const edge = heroR * 0.82;
-      const inside = (c: [number, number], rr: number) => Math.hypot(c[0] - heroCentre[0], c[1] - heroCentre[1]) + rr * 0.6 <= edge && wareLimit(c, rr);
+      const edge = heroR * 0.86;
+      const inside = (c: [number, number], rr: number) => Math.hypot(c[0] - heroCentre[0], c[1] - heroCentre[1]) + rr * 0.4 <= edge && wareLimit(c, rr);
       if (!top.length) {
-        const first: [number, number] = [heroCentre[0] + signed(random) * 0.4, heroCentre[1] + signed(random) * 0.4];
-        top.push({ c: first, r });
-        spots = [first, ...grow(top, part.count - 1, r, heroCentre, inside, isFlat(part) ? 0.62 : 1, random)];
+        const first = { at: [heroCentre[0] + signed(random) * 0.4, heroCentre[1] + signed(random) * 0.4] as [number, number], angle: random() * 360 };
+        top.push(...discsAt(shape, first.at, first.angle, isFlat(part)));
+        spots = [first, ...grow(top, part.count - 1, shape, heroCentre, inside, isFlat(part), random)];
       } else {
         // Accents round the support, toward the platform's edge.
         const a = random() * Math.PI * 2;
         const anchor: [number, number] = [heroCentre[0] + Math.cos(a) * edge * 0.6, heroCentre[1] + Math.sin(a) * edge * 0.6];
-        spots = grow(top, part.count, r, anchor, inside, isFlat(part) ? 0.62 : 1, random);
+        spots = grow(top, part.count, shape, anchor, inside, isFlat(part), random);
       }
     } else {
       // The support bunch sits on one side of the hero (the bigger pocket, toward the plate's middle);
@@ -198,10 +253,9 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
       const a = away + turn;
       const d = heroR + r * 1.5;
       const anchor: [number, number] = [heroCentre[0] + Math.cos(a) * d, heroCentre[1] + Math.sin(a) * d];
-      spots = grow(mass, part.count, r, anchor, wareLimit, isFlat(part) ? 0.62 : 1, random);
+      spots = grow(mass, part.count, shape, anchor, wareLimit, isFlat(part), random);
     }
-    spots.forEach((at, k) => {
-      const angle = info.shape === 'half' ? (Math.atan2(heroCentre[1] - at[1], heroCentre[0] - at[0]) * 180) / Math.PI + 90 + signed(random) * 20 : random() * 360;
+    spots.forEach(({ at, angle }, k) => {
       placed.push({ part, size: g.size, scale, at, angle, index: gi * 20 + k, layer: g.layer });
     });
   });

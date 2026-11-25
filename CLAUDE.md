@@ -829,6 +829,29 @@ AI model. Built in the spec's order:
 - Physics speed-ups (all dishes): no CCD, settled pieces held as their convex outline when it is close
   to the piece, 120 outline points; a rice bowl went from 100 s to about 2 s to build.
 - Dev: `styleLab.cook(ids, course, taste, wild, attempt)` on the dish review page shows a cooked dish.
+**The fix list (the user's test session, 2026-11-25)**, applied on this branch:
+- **Placement (P0)**: pieces lie flat beside the hero, never towers or pieces on their edge; a piece
+  that lands badly is lifted out and laid again beside the food (the replate pass in `build.ts`); QA
+  fields `towering` and `maxFoodHeight`. Do not loosen the QA to hide towers.
+- **Cook never fails silently (P3.1)**: `cook()` in `kitchen/main.ts` catches a failed build, frees
+  the button and shows a short line under Cook; `cook.regression.test.ts` cooks every ingredient alone
+  with the panel's defaults. **Reset** restores the defaults and clears the table.
+- **Forms (P2)**: `pepper:strip` (roasted strips) and a hollow charred `pepper:half`, never a lone
+  whole pepper; `chicken:slice` (a carved breast) and `chicken:torn`, cubes only in soups and stews
+  (the `stew` forms in `traits.ts`); a generated rice bowl is mixed rice (herb, vegetable and corn
+  flecks, `riceBowlParts(seed, dome, mixed)`), nearly level so toppings sit in it.
+- **Component library (P1, `compose/components.ts`)**: tart shell, quenelle, whipped cream, tuile,
+  smear, puree as pieces (`kind:family*n`, the family is its colour); oil dots, gel beads and
+  microherbs in the garnish layer. Never heroes: `heroes` lists only the table.
+- **Archetypes per course** (`pickArchetype` in `pick.ts`, new layouts in `layouts.ts`): Drink is
+  always a glass (any juicable hero; a protein gives a golden consommé); Dessert: tart, plated
+  dessert, pudding bowl, pancakes; Starter: crudo or tartare, leaf salad, soup, composed plate; Main:
+  plate, rice bowl, skillet, mash; Snack: toast, skewers, pancakes. Wild 0 takes the classic, 30 to 69
+  one of the first two, 70 and up never the classic, so 0 and 100 always differ (tested).
+- **Sauce per dish** (`chooseSauce`): the table's sauce first; caramel for apple and pear desserts,
+  honey for citrus and peach, berry sauce only with berries; citrus oil with lemon or lime.
+- **Titles**: dish names, at least two words, at most 32 characters (`TITLE_MAX`, tested), one line.
+- New families: `caramel`, `drink-gold`, `pastry`, `ice-cream`.
 
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one

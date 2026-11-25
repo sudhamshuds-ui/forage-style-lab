@@ -124,7 +124,11 @@ export type FamilyId =
   | 'garlic-chip'
   | 'shaving-gold'
   | 'shaving-white'
-  | 'porcelain';
+  | 'porcelain'
+  | 'caramel'
+  | 'drink-gold'
+  | 'pastry'
+  | 'ice-cream';
 
 export interface ColourFamily {
   name: string;
@@ -649,6 +653,31 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     colours: { lit: '#ffffff', base: '#f5f4f2', shadow: '#b8b6d4', glow: '#fff6ea', highlight: '#ffffff' },
     rooms: [],
   },
+  // The Kitchen's library components (the fix list, 2026-11-25). A caramel smear: warm amber, a
+  // plum shade (never a brown-grey).
+  caramel: {
+    name: 'Caramel',
+    colours: { lit: '#ffc45e', base: '#d9822a', shadow: '#7a3a3c', glow: '#f08a2a', highlight: '#fff0cc' },
+    rooms: [],
+  },
+  // Apple juice, cider, a golden consommé: clear gold, a rose-brown shade.
+  'drink-gold': {
+    name: 'Gold drink',
+    colours: { lit: '#ffe08a', base: '#f2b440', shadow: '#9a5a44', glow: '#ffb83a', highlight: '#fff6dc' },
+    rooms: [],
+  },
+  // A tart shell or a tuile: pale biscuit gold, lighter than a bread crust, a lilac-rose shade.
+  pastry: {
+    name: 'Pastry',
+    colours: { lit: '#fde2a8', base: '#eab36a', shadow: '#a0685e', glow: '#f2a24c', highlight: '#fff6e4' },
+    rooms: [],
+  },
+  // A quenelle of vanilla ice cream or crème fraîche: warm ivory, a cool lilac shade.
+  'ice-cream': {
+    name: 'Ice cream',
+    colours: { lit: '#fffbec', base: '#f6ecd0', shadow: '#b4a8cc', glow: '#fbe2b0', highlight: '#ffffff' },
+    rooms: [],
+  },
   // Cooked rice in a dish: warmer than the pantry's raw white, ivory with a golden glow, a lilac
   // shade (the user, 2026-11-18: "add some colour to the rice...like its cooked").
   'cooked-rice': {
@@ -779,7 +808,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // An avocado's flesh: butter yellow to green, a sage-teal shade.
   'avocado-flesh': {
     name: 'Avocado flesh',
-    colours: { lit: '#f2f4a6', base: '#cfdc6c', shadow: '#6a8a62', glow: '#e8e86a', highlight: '#fdffe6' },
+    colours: { lit: '#faf29a', base: '#d6d458', shadow: '#5a7a52', glow: '#ece45a', highlight: '#fffde6' },
     rooms: [],
   },
   // An orange's flesh: bright tangerine, a rose-brown shade.

@@ -18,6 +18,7 @@ import { inCm, posed } from '../kit/place';
 import { pool, wobble } from '../kit/pool';
 import { COOKED_PORTION } from '../forms/salmonPeach';
 import { BODY, type Part } from './layout';
+import { componentLooks, isComponent, makeComponent } from './components';
 
 /**
  * The composer's element library: every `ingredient:form` a catalogue dish asks for, built in
@@ -60,7 +61,7 @@ const FLESH: Record<string, { family: FamilyId; core: string; skin: string; segm
   tomato: { family: 'tomato-flesh', core: '#f8c08a', skin: '#d8301e', segments: 4 },
   onion: { family: 'onion-flesh', core: '#fbeef4', skin: '#9a2a6a' },
   potato: { family: 'potato-flesh', core: '#ffe9a8', skin: '#b07a3c' },
-  avocado: { family: 'avocado-flesh', core: '#f4ee9a', skin: '#3e5a26' },
+  avocado: { family: 'avocado-flesh', core: '#f8ee7a', skin: '#2f5420' },
   strawberry: { family: 'berry-flesh', core: '#ffd8d2', skin: '#c8203c' },
   garlic: { family: 'garlic-roast', core: '#fff0c4', skin: '#e8d8bc', segments: 8 },
   pepper: { family: 'pepper-flesh', core: '#ffd2a0', skin: '#ee6a14' },
@@ -86,6 +87,7 @@ const SEARED: Record<string, number> = {
 /** The roles an element needs, decided from the idea alone (the entry lists its parts before building). */
 export function elementLooks(part: Part, seared: boolean): RoleLook[] {
   const { ingredient, form } = part;
+  if (isComponent(ingredient)) return componentLooks(ingredient, form as FamilyId);
   const id = `${ingredient}${form[0].toUpperCase()}${form.slice(1)}`;
   const sear = seared ? (SEARED[ingredient] ?? 0) : 0;
   const flesh = FLESH[ingredient];
@@ -140,6 +142,14 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
       return [{ role: id, family: 'onion-flesh', skin: { ...FLESH_SKIN, pale: '#fbeef4', green: '#9a2a6a' } }];
     case 'pepper:slice':
       return [{ role: id, family: 'pepper', skin: { kind: 'pepper', size_mm: 4, amount: 0.8, seared: sear }, glossy: true }];
+    case 'pepper:strip':
+    case 'pepper:half': {
+      // Roasted pepper: its glossy skin, blistered and touched with char (the fix list: lobes and a
+      // little char, never a smooth ovoid).
+      // Bright and glossy with only a touch of char on a strip (more read as bacon); a half chars more.
+      const roast: RoleLook = { role: id, family: 'pepper', skin: { kind: 'pepper', size_mm: 4, amount: 0.8, seared: form === 'strip' ? 0.2 : 0.45 }, glossy: true };
+      return form === 'half' ? [roast, { role: 'pepperStem', family: 'leaf' }] : [roast];
+    }
     case 'cheese:crumble':
     case 'cheese:slice':
       return [{ role: id, family: 'cheese', skin: { kind: 'pores', size_mm: 1.2, amount: 0.3 } }];
@@ -230,7 +240,7 @@ function boxField(hx: number, hy: number, hz: number, round: number): (x: number
   };
 }
 
-type Field = (x: number, y: number, z: number) => number;
+export type Field = (x: number, y: number, z: number) => number;
 
 /**
  * Cut a body with flat knives (each a plane `n . p <= d` kept), rounded where they meet, meshed whole.
@@ -238,7 +248,7 @@ type Field = (x: number, y: number, z: number) => number;
  * the core colour deep in, the skin's colour at the rim), and past 1 over the skin itself, blended
  * across the rounded edge; y counts segments round the middle (citrus, garlic, tomato).
  */
-function cutBody(body: Field, cuts: [Vector3, number][], o: { reach: number; depth: number; rounding: number; segments?: number; turn?: number }): BufferGeometry {
+export function cutBody(body: Field, cuts: [Vector3, number][], o: { reach: number; depth: number; rounding: number; segments?: number; turn?: number }): BufferGeometry {
   const planes = cuts.map(([n, d]) => (x: number, y: number, z: number) => x * n.x + y * n.y + z * n.z - d);
   const shape: Field = (x, y, z) => (planes.length ? roundedIntersection([body(x, y, z), ...planes.map((p) => p(x, y, z))], o.rounding) : body(x, y, z));
   const cell = Math.max(0.06, o.reach / 24);
@@ -267,7 +277,7 @@ function cutBody(body: Field, cuts: [Vector3, number][], o: { reach: number; dep
 }
 
 /** Turn and move a geometry so its lowest point is at y = 0 and its middle over the origin. */
-function settle(pieces: FormPiece[]): FormPiece[] {
+export function settle(pieces: FormPiece[]): FormPiece[] {
   let minY = Infinity;
   let minX = Infinity;
   let maxX = -Infinity;
@@ -397,6 +407,104 @@ function cutElement(part: Part, role: string, random: () => number): FormPiece[]
 }
 
 /**
+ * A long strip of roasted pepper (NEW, the fix list 2026-11-25): a band cut from the pepper's
+ * curved wall, about 1.6 cm wide and 6 to 8 cm long, lying skin up, its edges a little wavy and its
+ * length gently curled the way roasted strips slump.
+ */
+function pepperStrip(random: () => number): BufferGeometry {
+  const half = 3 + random() * 1;
+  const wall = 2.4 + random() * 0.6; // the pepper's radius where the strip was cut
+  const width = 0.4 + random() * 0.08; // half the strip's angle (radians)
+  const curl = signed(random) * 0.08;
+  const ph = random() * 6;
+  const field: Field = (x0, y, z) => {
+    const x = x0 - curl * z * z;
+    const cy = y + wall - 0.45; // the wall's centre, below the strip
+    const r = Math.hypot(x, cy);
+    const a = Math.atan2(x, cy);
+    const edge = width * (1 + 0.05 * Math.sin(z * 1.7 + ph));
+    const shell = Math.abs(r - wall) - 0.16;
+    const sides = (Math.abs(a) - edge) * wall;
+    const ends = Math.abs(z) - half * (1 - 0.08 * Math.abs(Math.sin(x * 3 + ph)));
+    return Math.max(shell, sides, ends);
+  };
+  return cutBody(field, [], { reach: half + 0.6, depth: 0.3, rounding: 0 });
+}
+
+/**
+ * Half a roasted pepper, lengthwise (NEW): a hollow boat lying on its back, its lobed wall thin, the
+ * inside open to the camera, a short green stem stub at its shoulder. Never a solid blob.
+ */
+function pepperHalf(role: string, random: () => number): FormPiece[] {
+  const body = bodyField('pepper', random);
+  // Squarer and lobed, like the pantry's pepper; a little slumped from roasting.
+  const lobed: Field = (x, y, z) => body(x * 0.95, y * 1.05, z * 0.95);
+  const shell: Field = (x, y, z) => {
+    const d = lobed(x, y, z);
+    return Math.max(d, -d - 0.32);
+  };
+  const g = cutBody(shell, [[new Vector3(0, 0, 1), 0.2]], { reach: 4.8, depth: 0.32, rounding: 0.12 });
+  const stem = new CylinderGeometry(0.32, 0.42, 1.6, 10);
+  stem.translate(0, 4.6, -0.6);
+  const pieces = posed(
+    [
+      { role, geometry: g },
+      { role: 'pepperStem', geometry: withFrame(stem, false) },
+    ],
+    turnOnto(new Vector3(0, 0, 1), new Vector3(0, 1, 0)),
+  );
+  return posed(pieces, { turn: Math.PI / 2 });
+}
+
+/**
+ * A roast chicken breast carved into slices (NEW): pale inside, golden at the crust, laid as a
+ * short fan of five slices leaning on each other so their faces show, like the carved steak.
+ */
+function slicedBreast(role: string, random: () => number): FormPiece[] {
+  const L = 6.2;
+  const body: Field = (x, y, z) => {
+    const t = Math.max(-1, Math.min(1, z / L));
+    const w = 3.1 * (1 - 0.28 * Math.max(0, t)) * (1 - 0.12 * t * t);
+    const h = 1.5 * (1 - 0.35 * Math.max(0, t)) * (1 - 0.1 * t * t);
+    const q = Math.hypot(x / w, Math.max(0, y) / h, Math.min(0, y) / (h * 0.55), z / L);
+    return (q - 1) * Math.min(w, h) + 0.05 * Math.sin(x * 1.7 + z * 0.9);
+  };
+  const n = 5;
+  const pieces: FormPiece[] = [];
+  const width = (2 * L) / n;
+  for (let k = 0; k < n; k++) {
+    const z0 = -L + k * width;
+    const z1 = z0 + width - 0.12;
+    const g = cutBody(body, [[new Vector3(0, 0, 1), z1], [new Vector3(0, 0, -1), -z0]], { reach: L + 0.6, depth: 1.4, rounding: 0.15 });
+    g.translate(0, 0, -(z0 + z1) / 2);
+    g.rotateX(-0.8 + signed(random) * 0.08);
+    g.translate(signed(random) * 0.25, 0, -4.6 + k * (width + 0.2));
+    pieces.push({ role, geometry: g });
+  }
+  return pieces;
+}
+
+/**
+ * A piece of torn roast chicken (NEW): an irregular pulled strip about 4 cm long, ridged along its
+ * fibres, golden where the crust was and pale where it was torn open (the flat top).
+ */
+function tornChicken(random: () => number): BufferGeometry {
+  const half = 1.6 + random() * 0.6;
+  const fat = 0.55 + random() * 0.15;
+  const ph = random() * 6;
+  const bend = signed(random) * 0.12;
+  const field: Field = (x0, y, z) => {
+    const x = x0 - bend * z * z;
+    const along = Math.max(0, Math.abs(z) - half);
+    const taper = 1 - 0.35 * (Math.abs(z) / (half + fat)) ** 2;
+    const a = Math.atan2(y, x);
+    const r = fat * taper * (1 + 0.12 * Math.sin(5 * a + z * 1.3 + ph) + 0.06 * Math.sin(11 * a - z * 2 + ph));
+    return Math.hypot(Math.hypot(x / 1.25, y), along) - r;
+  };
+  return cutBody(field, [[new Vector3(0, 1, 0), fat * 0.35]], { reach: half + fat + 0.4, depth: 0.5, rounding: 0.1 });
+}
+
+/**
  * A seared steak carved into thick slices, leaning on each other like fallen dominoes so their rosy
  * cut faces show: one rounded slab, cut five times across, each slice tipped a little.
  */
@@ -515,6 +623,7 @@ export function herbLeaf(random: () => number): FormPiece {
  */
 export function makeElement(part: Part, random: () => number, seed: number): FormPiece[] {
   const { ingredient, form } = part;
+  if (isComponent(ingredient)) return makeComponent(ingredient, form, random);
   const role = elementLooks(part, false)[0].role;
   switch (`${ingredient}:${form}`) {
     case 'salmon:fillet':
@@ -539,6 +648,14 @@ export function makeElement(part: Part, random: () => number, seed: number): For
       return settle(slicedSteak(role, random));
     case 'potato:wedge':
       return settle(posed(cutElement(part, role, random), { scale: 0.68 }));
+    case 'pepper:strip':
+      return settle([{ role, geometry: pepperStrip(random) }]);
+    case 'pepper:half':
+      return settle(pepperHalf(role, random));
+    case 'chicken:slice':
+      return settle(slicedBreast(role, random));
+    case 'chicken:torn':
+      return settle([{ role, geometry: tornChicken(random) }]);
     case 'chicken:drumstick':
       return settle(pantry(buildChicken({ state: 'whole', seed }), { meat_glow: 'chicken_meat_glow', knuckle: 'knuckle' }));
     case 'potato:whole':
@@ -757,5 +874,18 @@ export const BASE_FAMILY: Record<string, FamilyId> = {
   'drink:tomato': 'drink-red',
   'drink:green': 'drink-green',
   'drink:grape': 'drink-pale',
+  // Drinks from any juicable hero, and savoury glasses (the fix list, 2026-11-25).
+  'drink:apple': 'drink-gold',
+  'drink:pear': 'drink-pale',
+  'drink:peach': 'drink-orange',
+  'drink:lemon': 'drink-pale',
+  'drink:lime': 'drink-green',
+  'drink:pepper': 'drink-orange',
+  'drink:spinach': 'drink-green',
+  'drink:milk': 'cream',
+  'drink:horchata': 'cream',
+  'drink:consomme': 'drink-gold',
+  'drink:bloody': 'drink-red',
+  'pool:caramel': 'caramel',
   rice: 'cooked-rice',
 };

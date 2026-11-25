@@ -1,4 +1,4 @@
-import { BufferGeometry, CylinderGeometry, LatheGeometry, Vector2, Vector3 } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, CylinderGeometry, LatheGeometry, Vector2, Vector3 } from 'three';
 import { seededRandom, signed } from '../../ingredients/forms/kit/random';
 import { leafPiece } from '../../ingredients/forms/kit/stemLeaf';
 import type { FormBuilder, FormPiece } from '../../ingredients/forms/kit/piece';
@@ -12,11 +12,12 @@ import { pool, wobble } from '../kit/pool';
 import { DINNER_PLATE, PASTA_BOWL, ware } from '../kit/ware';
 import type { DishIdea } from '../catalog';
 import type { Dish } from '../dishes';
-import { readPart, type ComposedPlan, type Placed } from './layout';
+import { WARE_PLAN, readPart, type ComposedPlan, type Placed } from './layout';
 import { planFor, effectiveIdea, tracedParts, TRACES } from './traces';
 import { refFamilies, refRoom } from './refLook';
 import { layoutById } from './layouts';
 import { PLATFORM_FORMS } from './layoutPlan';
+import { GARNISH_KINDS, dot, garnishLook, isComponent, microherb } from './components';
 import { FAMILIES } from '../../ingredients/families';
 import { hexToOklch } from '../../utils/colour';
 import { BASE_FAMILY, PLATE_LOOK, elementLooks, herbLeaf, makeElement, shaving, type Look, type RoleLook } from './elements';
@@ -33,7 +34,7 @@ import { BASE_FAMILY, PLATE_LOOK, elementLooks, herbLeaf, makeElement, shaving, 
 /** Cooked dishes (mains, snacks) sear their pieces; fresh starters, desserts and drinks do not. */
 function isCooked(idea: DishIdea): boolean {
   if (idea.course === 'drink' || idea.course === 'dessert') return false;
-  return !/salad|crudo|slaw|poke|salsa|gazpacho|caprese|board|smoothie|cooler/i.test(idea.id + idea.title);
+  return !/salad|crudo|tartare|carpaccio|slaw|poke|salsa|gazpacho|caprese|board|smoothie|cooler/i.test(idea.id + idea.title);
 }
 
 /** Every role the dish uses, in order (the hero first: it takes the main highlight and the entry's skin). */
@@ -66,6 +67,7 @@ export function dishLooks(original: DishIdea): RoleLook[] {
     const supportRoles = new Set(idea.medium.flatMap((text) => elementLooks(readPart(text), seared).map((l) => l.role)));
     for (const look of looks) if (supportRoles.has(look.role) && look.skin) look.skin = { ...look.skin, drizzle: { colour, amount: 0.35 } };
   }
+  for (const c of idea.components ?? []) if (GARNISH_KINDS.includes(c.kind)) add(garnishLook(c));
   if (idea.ware !== 'glass') {
     // The garnish layer every dish ends with: shavings in three colours, then herbs.
     add({ role: 'shaving_gold', family: 'shaving-gold' });
@@ -75,6 +77,12 @@ export function dishLooks(original: DishIdea): RoleLook[] {
   }
   if (idea.ware === 'deep') {
     add({ role: 'rice', family: 'cooked-rice', skin: { kind: 'rice', size_mm: 5.5, amount: 0.9 } });
+    if (idea.layout) {
+      // Mixed rice: herbs, diced vegetables, corn.
+      add({ role: 'riceFleckGreen', family: 'leaf' });
+      add({ role: 'riceFleckOrange', family: 'pepper-flesh' });
+      add({ role: 'riceFleckYellow', family: 'yolk' });
+    }
     add({ role: 'bowl', family: 'glaze' });
   } else if (idea.ware !== 'glass') add(PLATE_LOOK[idea.ware]);
   return looks;
@@ -93,10 +101,21 @@ function makeWare(idea: DishIdea, seed: number): { pieces: FormPiece[]; floor: (
       return { pieces: [{ role: 'plate', geometry: w.geometry }], floor: w.floor };
     }
     case 'deep': {
-      const rice = riceBowlParts(seed, 0.45);
+      // A generated rice bowl is mixed rice, nearly level, so its toppings sit in the bowl rather
+      // than perched on a peak (the fix list, 2026-11-25).
+      const mixed = !!idea.layout;
+      const rice = riceBowlParts(seed, mixed ? 0.18 : 0.45, mixed);
+      const flecks: FormPiece[] = rice.flecks
+        ? [
+            { role: 'riceFleckGreen', geometry: rice.flecks.green },
+            { role: 'riceFleckOrange', geometry: rice.flecks.orange },
+            { role: 'riceFleckYellow', geometry: rice.flecks.yellow },
+          ]
+        : [];
       return {
         pieces: [
           { role: 'rice', geometry: rice.rice },
+          ...flecks,
           { role: 'bowl', geometry: rice.bowl },
         ],
         // The rice inside, the bowl's wall and rim round it (so nothing rolls out through the wall).
@@ -267,6 +286,10 @@ export interface Cohesion {
   offCentre?: number;
   /** Generated dishes: the share of garnish (shavings and herbs) that landed over food or its pool. */
   garnishOnFood?: number;
+  /** Generated dishes: pieces on their edge or piled on another loose piece (0 passes). */
+  towering?: number;
+  /** Generated dishes: the highest food point above the ware's floor or its base (cm; garnish left out). */
+  maxFoodHeight?: number;
 }
 
 /**
@@ -296,6 +319,38 @@ function cohesion(food: FormPiece[][]): Cohesion {
     if (nearest > 1) apart++;
   });
   return { widestGap, apart };
+}
+
+/** Forms that should lie flat (cut face or belly down): one tipped past 35 degrees is on its edge. */
+const LIES_FLAT = new Set(['wheel', 'slice', 'strip', 'fillet', 'half', 'wedge', 'leaf', 'chip', 'toast', 'mash', 'pancake', 'omelette', 'egg', 'steak', 'torn']);
+
+function boundsOf(pieces: FormPiece[]): Box3 {
+  const box = new Box3();
+  for (const p of pieces) {
+    p.geometry.computeBoundingBox();
+    box.union(p.geometry.boundingBox!);
+  }
+  return box;
+}
+
+function centreOf(pieces: FormPiece[]): [number, number] {
+  const b = boundsOf(pieces);
+  return [(b.min.x + b.max.x) / 2, (b.min.z + b.max.z) / 2];
+}
+
+/**
+ * How high a piece's lowest point sits above what it should rest on (cm), measured where its
+ * footprint is: near 0 when it lies on the plate or its base, a centimetre or more when it rests on
+ * another loose piece.
+ */
+function liftAbove(pieces: FormPiece[], base: Table): number {
+  let low = Infinity;
+  for (const p of pieces) {
+    const pos = p.geometry.getAttribute('position') as BufferAttribute;
+    const step = Math.max(1, Math.floor(pos.count / 600));
+    for (let i = 0; i < pos.count; i += step) low = Math.min(low, pos.getY(i) - base.height(pos.getX(i), pos.getZ(i)));
+  }
+  return low;
 }
 
 /**
@@ -393,12 +448,74 @@ export function composedBuilder(original: DishIdea): FormBuilder {
     let lost = 0;
     // The ground alone (ware, sauce, leaves, glass), for the support check after plating.
     const groundOnly = new Table(w.floor);
+    const groundList: FormPiece[] = [];
     // The ground the food falls onto: the ware, its sauce, its leaves, the glass, as one height field.
     physics?.addHeightfield((x, z) => table.height(x, z), 16, 0.2);
     // What the next layer lands on: the ground (sauce, leaves, glass) and every settled piece.
     const settled: FormPiece[] = [...parts, ...late.filter((p) => p.role !== 'plate' && p.role !== 'board')];
     groundOnly.add(settled);
+    groundList.push(...settled);
+    /** What a piece may rest on: the ware and its base, plus the hero for a platform's toppings. */
+    const baseUnder = (p: Placed) => {
+      const t = new Table(w.floor);
+      t.add(groundList);
+      if (platformDish && (p.layer ?? 0) > 0) t.add(heroPieces);
+      return t;
+    };
+    /** The planned stacks the layouts allow, with their most extra height (cm): fries in two layers. */
+    // Crispy garlic and crumbs are garnish-sized: like the shavings, they may lie over the food.
+    const stackAllowance = (p: Placed) => (p.part.form === 'fries' ? 2.6 : ['chip', 'crumble'].includes(p.part.form) ? 6 : 0.4);
+    /** A piece that stands on its edge (when it should lie flat) or is piled on another loose piece. */
+    const towers = (pieces: FormPiece[]): boolean => {
+      const p = placedOf.get(pieces);
+      if (!p || !physics) return false;
+      const dbg = (globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER;
+      // Face down is still lying flat (a chip or a slice that flipped): measure from whichever face is down.
+      const tilt = Math.min(physics.tiltOf(pieces), 180 - physics.tiltOf(pieces));
+      if (LIES_FLAT.has(p.part.form) && tilt > 35) {
+        if (dbg) console.log('edge', p.part.ingredient, p.part.form, tilt.toFixed(0));
+        return true;
+      }
+      const lift = liftAbove(pieces, baseUnder(p));
+      if (dbg && lift > stackAllowance(p)) console.log('piled', p.part.ingredient, p.part.form, lift.toFixed(2));
+      return lift > stackAllowance(p);
+    };
+    /** The nearest place touching the bunch where nothing loose lies under the piece's footprint. */
+    const freeSpot = (copy: FormPiece[], now: FormPiece[], here: Table, p: Placed): [number, number] | null => {
+      const base = baseUnder(p);
+      const box = boundsOf(copy);
+      const hx = (box.max.x - box.min.x) / 2;
+      const hz = (box.max.z - box.min.z) / 2;
+      const from = centreOf(now);
+      const planned: [number, number] = [(box.min.x + box.max.x) / 2, (box.min.z + box.max.z) / 2];
+      for (let r = 0; r <= 7; r += 0.35) {
+        for (let k = 0; k < 16; k++) {
+          const a = (k / 16) * Math.PI * 2;
+          const c: [number, number] = [from[0] + Math.cos(a) * r, from[1] + Math.sin(a) * r];
+          const probes: [number, number][] = [];
+          for (const u of [-0.85, 0, 0.85]) for (const v of [-0.85, 0, 0.85]) probes.push([c[0] + u * hx, c[1] + v * hz]);
+          const clear = probes.every(([x, z]) => here.height(x, z) - base.height(x, z) < 0.15);
+          // Touching the bunch: food just past its edge on at least one side (never a lonely island).
+          const reachOut = Math.max(hx, hz) + 0.6;
+          let touching = r === 0;
+          for (let j = 0; j < 12 && !touching; j++) {
+            const b = (j / 12) * Math.PI * 2;
+            const [x, z] = [c[0] + Math.cos(b) * reachOut, c[1] + Math.sin(b) * reachOut];
+            if (here.height(x, z) - base.height(x, z) > 0.2) touching = true;
+          }
+          const onWare = idea.ware === 'board' ? Math.abs(c[0]) + hx < 13.5 && Math.abs(c[1]) + hz < 9.5 : Math.hypot(c[0], c[1]) + Math.max(hx, hz) < Math.max(WARE_PLAN[idea.ware].reach + 0.5, WARE_PLAN[idea.ware].plate - 1.5);
+          // The shift from where the laid copy sits to the free spot.
+          if (clear && onWare && touching) return [c[0] - planned[0], c[1] - planned[1]];
+        }
+      }
+      return null;
+    };
     let heroFood = -1;
+    // Which plan entry each drop came from, and the hero's pieces (the base a platform's toppings rest on).
+    const placedOf = new Map<FormPiece[], Placed>();
+    const heroPieces: FormPiece[] = [];
+    const heroForm = readPart(idea.big).form;
+    const platformDish = !!idea.layout && (layoutById(idea.layout)?.packing === 'platform' || PLATFORM_FORMS.includes(heroForm) || readPart(idea.big).ingredient === 'tart');
     for (const group of groups) {
       if (!group) continue;
       // Food before the second layer is the hero.
@@ -418,7 +535,8 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         const turned = posed(element, { scale, turn: (-p.angle * Math.PI) / 180 });
         const lifted = posed(turned, { at: [p.at[0], 20, p.at[1]] });
         // On a drink, the hero garnish sits on the glass's rim.
-        if (kind === 'drink' && p.size === 'big') {
+        // (Only the first: an Unhinged heap of fruit sits on the table round the glass's foot.)
+        if (kind === 'drink' && p.size === 'big' && p.index === 0) {
           const rim = posed(turned, { at: [baseAt[0] + 3.2, 9.4, baseAt[1] + 0.8], tip: 0 });
           parts.push(...rim);
           continue;
@@ -442,12 +560,17 @@ export function composedBuilder(original: DishIdea): FormBuilder {
           // Platforms (a rösti, a pancake, a cake, toast, an omelette, a fried egg) fall flat and never
           // turn: they tipped onto their edges. On a platform layout their toppings keep the way they
           // were laid too, and fall straight down onto it rather than tumbling off.
-          const flatPlatform = ['mash', 'pancake', 'cake', 'pastry', 'toast', 'omelette', 'egg'].includes(p.part.form);
-          const heroForm = readPart(idea.big).form;
-          const onPlatform = (layoutById(idea.layout)?.packing === 'platform' || PLATFORM_FORMS.includes(heroForm)) && !!idea.layout && (p.layer ?? 0) > 0;
+          const flatPlatform = ['mash', 'pancake', 'cake', 'pastry', 'toast', 'omelette', 'egg'].includes(p.part.form) || p.part.ingredient === 'tart';
+          const onPlatform = platformDish && (p.layer ?? 0) > 0;
           // Skewers are rigid and round: left free they rolled apart; they fall as the bundle was laid.
           const skewer = p.part.form === 'skewer';
-          physics.drop(start, { lift: 1.0, noTurn: flatPlatform || onPlatform || skewer, straightDown: skewer });
+          // A generated dish's flat pieces (slices, wheels, wedges, halves, fillets, chips) keep the way
+          // they were laid as they fall, so they land flat, never on an edge (the fix list, P0).
+          // Library components (a tart, a quenelle, cream, a tuile, a smear) are set down as made.
+          const keepsFlat = !!idea.layout && (LIES_FLAT.has(p.part.form) || isComponent(p.part.ingredient));
+          physics.drop(start, { lift: 1.0, noTurn: flatPlatform || onPlatform || skewer || keepsFlat, straightDown: skewer });
+          placedOf.set(start, p);
+          if (p.size === 'big') heroPieces.push(...start);
           dropped.push(start);
           food.push(start);
           parts.push(...start);
@@ -494,6 +617,48 @@ export function composedBuilder(original: DishIdea): FormBuilder {
             parts.push(...copy);
           }
         }
+        // Flat, beside, never piled (the fix list, P0): a piece that ended on its edge, or resting on
+        // another loose piece instead of the plate, its sauce or its base, is lifted out and laid flat
+        // at the nearest free spot touching the bunch, straight down. If it fails again it leaves the
+        // dish (counted lost), never left as a tower.
+        if (idea.layout) {
+          const kept = dropped.filter((d) => !towers(d));
+          const bad = dropped.filter(towers);
+          for (const pieces of bad) {
+            physics.remove(pieces);
+            for (const piece of pieces) parts.splice(parts.indexOf(piece), 1);
+            food.splice(food.indexOf(pieces), 1);
+          }
+          const laid: FormPiece[][] = [];
+          for (const pieces of bad) {
+            const p = placedOf.get(pieces)!;
+            const copy = copies.get(pieces);
+            const here = new Table(w.floor);
+            here.add(settled);
+            for (const k of [...kept, ...laid]) here.add(k);
+            const spot = copy && freeSpot(copy, pieces, here, p);
+            if (!copy || !spot) {
+              if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('no spot', p.part.ingredient, p.part.form);
+              lost++;
+              continue;
+            }
+            const moved = here.rest(posed(copy, { at: [spot[0], 0, spot[1]] }), { tilt: 0 });
+            physics.drop(moved, { lift: 0.25, straightDown: true, noTurn: true });
+            placedOf.set(moved, p);
+            physics.settle();
+            physics.bakeNew();
+            if (towers(moved) || !onPlate(moved, rimFloor)) {
+              if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('failed again', p.part.ingredient, p.part.form);
+              physics.remove(moved);
+              lost++;
+              continue;
+            }
+            laid.push(moved);
+            food.push(moved);
+            parts.push(...moved);
+          }
+          dropped.splice(0, dropped.length, ...kept, ...laid);
+        }
         for (const pieces of dropped) {
           table.add(pieces);
           settled.push(...pieces);
@@ -501,7 +666,17 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       }
     }
     if (physics) {
-      LAST_QA.set(idea.id, { ...physics.check(), ...cohesion(food), ...support(food, groundOnly), lost, ...(idea.layout ? { offCentre: offCentre(food, heroFood) } : {}) });
+      const height = food.reduce((most, pieces) => {
+        const b = boundsOf(pieces);
+        return Math.max(most, b.max.y - w.floor((b.min.x + b.max.x) / 2, (b.min.z + b.max.z) / 2));
+      }, 0);
+      LAST_QA.set(idea.id, {
+        ...physics.check(),
+        ...cohesion(food),
+        ...support(food, groundOnly),
+        lost,
+        ...(idea.layout ? { offCentre: offCentre(food, heroFood), towering: food.filter(towers).length, maxFoodHeight: height } : {}),
+      });
       physics.free();
     }
 
@@ -566,6 +741,19 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         if (!at) break;
         count1(at[0], at[1]);
         parts.push(...posed([herbLeaf(random)], { scale: 1.9, turn: random() * Math.PI * 2, at: [at[0], table.height(at[0], at[1]) + 0.03, at[1]] }));
+      }
+      // The library's garnish (the fix list, P1): oil dots and gel beads on the sauce and round the
+      // food, microherbs over it.
+      for (const c of idea.components ?? []) {
+        if (!GARNISH_KINDS.includes(c.kind)) continue;
+        for (let i = 0; i < c.count; i++) {
+          const at = pick();
+          if (!at) break;
+          count1(at[0], at[1]);
+          const y = table.height(at[0], at[1]);
+          const made = c.kind === 'microherb' ? microherb(c.role, random) : [dot(c.kind as 'oil-dot' | 'gel', c.role, random)];
+          parts.push(...posed(made, { at: [at[0], y, at[1]], turn: random() * Math.PI * 2 }));
+        }
       }
       const qa = LAST_QA.get(idea.id);
       if (qa && idea.layout && dropped) qa.garnishOnFood = onFood / dropped;

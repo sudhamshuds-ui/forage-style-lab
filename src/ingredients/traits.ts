@@ -29,7 +29,7 @@ export interface IngredientTraits {
   slots: DishSlot[];
   /** Buildable forms by the slot they are used in. Base, sauce and liquid hold base strings
    * (`rice`, `pool:*`, `leaves:*`, `soup:*`, `mash:*`, `drink:*`), not pieces. */
-  forms: Partial<Record<DishSlot, string[]>>;
+  forms: Partial<Record<DishSlot | 'stew', string[]>>;
   /** Family on a raw or fresh cut. */
   family: FamilyId;
   /** Family when the dish is cooked; the same when it does not change. */
@@ -38,7 +38,8 @@ export interface IngredientTraits {
   sear: number;
   /** On the table, this ingredient becomes the base (rice, a leaf bed). */
   prefersBase?: boolean;
-  /** Forms never to use. Garlic is never a bulb (the user, 2026-11-25). */
+  /** Forms never to use. Garlic is never a bulb (the user, 2026-11-25); a pepper never a lone
+   * whole pepper, chicken never cubes outside skewers and stews (the fix list, 2026-11-25). */
   forbiddenForms?: string[];
 }
 
@@ -47,7 +48,7 @@ const t = (row: IngredientTraits): IngredientTraits => row;
 export const TRAITS: Record<string, IngredientTraits> = {
   steak: t({ id: 'steak', category: 'protein', taste: 'savoury', slots: ['hero', 'support'], forms: { hero: ['steak'], support: ['cube', 'skewer'] }, family: 'beef', cookedFamily: 'rare', sear: 0.9 }),
   salmon: t({ id: 'salmon', category: 'protein', taste: 'savoury', slots: ['hero', 'support', 'accent'], forms: { hero: ['fillet'], support: ['slice', 'cube', 'skewer'], accent: ['slice'] }, family: 'salmon', cookedFamily: 'cooked-salmon', sear: 0.95 }),
-  chicken: t({ id: 'chicken', category: 'protein', taste: 'savoury', slots: ['hero', 'support'], forms: { hero: ['drumstick'], support: ['cube', 'skewer'] }, family: 'poultry', cookedFamily: 'poultry', sear: 0.5 }),
+  chicken: t({ id: 'chicken', category: 'protein', taste: 'savoury', slots: ['hero', 'support'], forms: { hero: ['slice', 'drumstick', 'torn'], support: ['torn', 'slice', 'skewer'], stew: ['cube'] }, family: 'poultry', cookedFamily: 'poultry', sear: 0.5 }),
   eggs: t({ id: 'eggs', category: 'protein', taste: 'savoury', slots: ['hero', 'support'], forms: { hero: ['egg', 'omelette'], support: ['egg', 'half'] }, family: 'eggshell', cookedFamily: 'albumen', sear: 0 }),
   potato: t({ id: 'potato', category: 'starch', taste: 'savoury', slots: ['support', 'hero', 'base'], forms: { hero: ['mash', 'whole'], support: ['fries', 'wedge', 'cube', 'wheel'], base: ['mash:potato', 'soup:potato'] }, family: 'potato', cookedFamily: 'fries', sear: 0.45 }),
   // Rice has no piece form: it is always the base (a rice bowl).
@@ -64,7 +65,7 @@ export const TRAITS: Record<string, IngredientTraits> = {
   watermelon: t({ id: 'watermelon', category: 'produce', taste: 'both', slots: ['support', 'hero', 'liquid'], forms: { hero: ['cube'], support: ['cube'], liquid: ['drink:watermelon'] }, family: 'melon', cookedFamily: 'melon', sear: 0 }),
   tomato: t({ id: 'tomato', category: 'produce', taste: 'savoury', slots: ['support', 'accent', 'base', 'liquid'], forms: { support: ['wedge', 'half', 'wheel'], accent: ['wedge', 'wheel'], base: ['soup:tomato', 'pool:tomato-sauce'], liquid: ['drink:tomato'] }, family: 'tomato', cookedFamily: 'tomato-flesh', sear: 0.35 }),
   onion: t({ id: 'onion', category: 'produce', taste: 'savoury', slots: ['accent', 'support'], forms: { support: ['wheel'], accent: ['wheel'] }, family: 'onion', cookedFamily: 'onion-flesh', sear: 0 }),
-  pepper: t({ id: 'pepper', category: 'produce', taste: 'savoury', slots: ['support', 'accent', 'hero'], forms: { hero: ['half', 'whole'], support: ['slice'], accent: ['slice'] }, family: 'pepper', cookedFamily: 'pepper-flesh', sear: 0.4 }),
+  pepper: t({ id: 'pepper', category: 'produce', taste: 'savoury', slots: ['support', 'accent', 'hero'], forms: { hero: ['half', 'strip'], support: ['strip', 'slice'], accent: ['strip'] }, family: 'pepper', cookedFamily: 'pepper-flesh', sear: 0.4 }),
   avocado: t({ id: 'avocado', category: 'produce', taste: 'savoury', slots: ['support', 'hero', 'liquid'], forms: { hero: ['half'], support: ['slice'], liquid: ['drink:avocado'] }, family: 'avocado', cookedFamily: 'avocado-flesh', sear: 0 }),
   grapes: t({ id: 'grapes', category: 'produce', taste: 'both', slots: ['support', 'accent', 'liquid'], forms: { support: ['berry'], accent: ['berry'], liquid: ['drink:grape'] }, family: 'grape', cookedFamily: 'grape', sear: 0 }),
   blueberries: t({ id: 'blueberries', category: 'produce', taste: 'sweet', slots: ['support', 'accent', 'liquid'], forms: { support: ['berry'], accent: ['berry'], liquid: ['drink:blueberry'] }, family: 'blueberry', cookedFamily: 'blueberry', sear: 0 }),
@@ -107,5 +108,5 @@ export function heroPriority(id: string): number {
 /** Every form any trait may use as a piece (makeElement special cases plus the plain cuts). */
 export const BUILDABLE_FORMS = [
   'whole', 'half', 'wedge', 'wheel', 'slice', 'cube', 'fillet', 'steak', 'drumstick', 'egg', 'berry', 'leaf', 'crumble',
-  'toast', 'mash', 'skewer', 'roll', 'omelette', 'cake', 'pancake', 'pastry', 'fries', 'chip',
+  'toast', 'mash', 'skewer', 'roll', 'omelette', 'cake', 'pancake', 'pastry', 'fries', 'chip', 'strip', 'torn',
 ];

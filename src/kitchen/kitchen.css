@@ -809,3 +809,15 @@ body[data-mode='returning'] .bar-root {
   cursor: progress;
   opacity: 0.8;
 }
+
+/* A cook that failed says so under Cook, in a quiet line (never a silent click). */
+.cook-error {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #9a3b3b;
+}
+.cook-error:empty,
+.cook-error[hidden] {
+  display: none;
+}
