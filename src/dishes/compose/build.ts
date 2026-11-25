@@ -456,24 +456,32 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       table.add([{ role: 'pool', geometry }]);
       late.push({ role: 'pool', geometry });
     } else if (kind === 'leaves') {
-      // A bed of leaves fanned round the middle, tips out, each its own size and turn.
-      const n = 7;
-      for (let k = 0; k < n; k++) {
-        const a = (k / n) * Math.PI * 2 + signed(random) * 0.2;
-        const long = (what === 'romaine' ? 9 : what === 'cabbage' ? 7.5 : 6.5) * (0.85 + random() * 0.25);
-        const g = leafPiece({
-          base: new Vector3(baseAt[0] + Math.cos(a) * 1.2, 0, baseAt[1] + Math.sin(a) * 1.2),
-          turn: -a,
-          length: long,
-          width: long * (what === 'romaine' ? 0.42 : 0.62),
-          lift: (d) => 0.9 * (d / long) ** 2 + 0.15,
-          fold: 0.45,
-          twist: signed(random) * 0.25,
-          rows: 12,
-          cols: 6,
-        });
-        const leaf = table.rest([{ role: 'bed', geometry: g, doubleSided: true }], { tilt: 0.1 });
-        parts.push(...leaf);
+      // A tossed, mounded nest of leaves (item 8, never a flat star): three tiers, each set down on
+      // the ones below, the outer leaves lying low with their tips out, the inner ones shorter and
+      // cupped higher, every leaf its own size, turn, fold and twist.
+      const tiers = [
+        { n: 7, at: 1.5, size: 1, lift: 0.9, fold: 0.4 },
+        { n: 5, at: 0.8, size: 0.85, lift: 1.7, fold: 0.6 },
+        { n: 3, at: 0.25, size: 0.68, lift: 2.3, fold: 0.75 },
+      ];
+      for (const [t, tier] of tiers.entries()) {
+        for (let k = 0; k < tier.n; k++) {
+          const a = (k / tier.n) * Math.PI * 2 + t * 0.45 + signed(random) * 0.35;
+          const long = (what === 'romaine' ? 9 : what === 'cabbage' ? 7.5 : 6.5) * tier.size * (0.85 + random() * 0.3);
+          const g = leafPiece({
+            base: new Vector3(baseAt[0] + Math.cos(a) * tier.at, 0, baseAt[1] + Math.sin(a) * tier.at),
+            turn: -a + signed(random) * 0.3,
+            length: long,
+            width: long * (what === 'romaine' ? 0.42 : 0.62),
+            lift: (d) => tier.lift * (d / long) ** 1.6 + 0.15,
+            fold: tier.fold + signed(random) * 0.15,
+            twist: signed(random) * 0.45,
+            rows: 12,
+            cols: 6,
+          });
+          const leaf = table.rest([{ role: 'bed', geometry: g, doubleSided: true }], { tilt: 0.25 });
+          parts.push(...leaf);
+        }
       }
     } else if (kind === 'drink') {
       // The glass for this drink (item 12): picked by the drink, the drink inside it, ice when cold.

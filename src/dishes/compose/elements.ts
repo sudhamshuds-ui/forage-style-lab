@@ -70,7 +70,7 @@ const FLESH: Record<string, { family: FamilyId; core: string; skin: string; segm
   watermelon: { family: 'melon', core: '#ff8a96', skin: '#ff5a6e' },
   peachCube: { family: 'peach-flesh', core: '#ffb05a', skin: '#f6a040' },
   steak: { family: 'rare', core: '#e0606a', skin: '#7a3a22' },
-  chicken: { family: 'poultry', core: '#fff0e0', skin: '#d8904a' },
+  chicken: { family: 'roast-chicken', core: '#fff6e8', skin: '#b8692a' },
   baguette: { family: 'crumb', core: '#fff6e0', skin: '#b06a2c' },
   rice: { family: 'cooked-rice', core: '#fffaea', skin: '#d8a050' },
   salmon: { family: 'salmon', core: '#ff9a6a', skin: '#f07848' },
@@ -81,7 +81,7 @@ const FLESH: Record<string, { family: FamilyId; core: string; skin: string; segm
 /** Cooked elements take a sear (the DESIGN rule: seared, not charred). */
 const SEARED: Record<string, number> = {
   // Potatoes roast golden, not brown (the user, 2026-11-25: "golden brown bright").
-  potato: 0.45, chicken: 0.5, steak: 0.9, baguette: 0.7, rice: 0.8, peach: 0.5, pear: 0.4, garlic: 0.5, cabbage: 0.85, mushroom: 0.6, pepper: 0.4,
+  potato: 0.45, chicken: 0.85, steak: 0.9, baguette: 0.7, rice: 0.8, peach: 0.5, pear: 0.4, garlic: 0.5, cabbage: 0.85, mushroom: 0.6, pepper: 0.4,
 };
 
 /** The roles an element needs, decided from the idea alone (the entry lists its parts before building). */
@@ -89,7 +89,8 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
   const { ingredient, form } = part;
   if (isComponent(ingredient)) return componentLooks(ingredient, form as FamilyId);
   const id = `${ingredient}${form[0].toUpperCase()}${form.slice(1)}`;
-  const sear = seared ? (SEARED[ingredient] ?? 0) : 0;
+  // Chicken is never served raw: seared in a salad or a bowl too (item C).
+  const sear = seared || ingredient === 'chicken' ? (SEARED[ingredient] ?? 0) : 0;
   const flesh = FLESH[ingredient];
   switch (`${ingredient}:${form}`) {
     case 'salmon:fillet':

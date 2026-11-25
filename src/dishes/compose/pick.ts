@@ -420,7 +420,9 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
 
   if (!hero) {
     // The highest-ranking ingredient that can lead, in its signature cut.
-    const lead = byRank([...left].filter((id) => formFor(id, 'hero', 0, random, course === 'dessert')))[0];
+    // In a salad or a soup the bread is croutons, never the hero (a toast slab on the leaves).
+    const crouton = ['leaf-salad', 'soup-bowl'].includes(layout.id);
+    const lead = byRank([...left].filter((id) => !(crouton && id === 'baguette') && formFor(id, 'hero', 0, random, course === 'dessert')))[0];
     if (lead) {
       const form = formFor(lead, 'hero', wild, random, course === 'dessert')!;
       // Big single pieces lead alone (a cheese wedge, a cabbage wedge, a sliced chicken breast);
@@ -794,7 +796,7 @@ export function titleDish(slots: Slots, cooked: boolean, components: DishCompone
     case 'leaf-salad': {
       // Named after the leaves when the hero is only a scatter on them (romaine with crispy garlic).
       const leaves = base.startsWith('leaves:') ? NOUN[base.split(':')[1]] : '';
-      candidates = hero.form === 'chip' && leaves ? [`${leaves} salad with ${heroWords}`, `${leaves} salad`] : [`${heroWords} salad with ${side1 ?? 'croutons'}`, `${heroWords} salad`, `${star} green salad`];
+      candidates = hero.form === 'chip' && leaves ? [`${leaves} salad with ${heroWords}`, `${leaves} salad`] : [side1 ? `${heroWords} salad with ${side1}` : '', leaves ? `${heroWords} and ${leaves} salad` : '', `${heroWords} green salad`, `${star} green salad`];
       break;
     }
     case 'toast-board': {

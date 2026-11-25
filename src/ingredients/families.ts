@@ -126,6 +126,7 @@ export type FamilyId =
   | 'shaving-white'
   | 'porcelain'
   | 'caramel'
+  | 'roast-chicken'
   | 'ice'
   | 'glass-rim'
   | 'glass-glint'
@@ -680,6 +681,13 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   caramel: {
     name: 'Caramel',
     colours: { lit: '#ffc45e', base: '#d9822a', shadow: '#7a3a3c', glow: '#f08a2a', highlight: '#fff0cc' },
+    rooms: [],
+  },
+  // Cooked chicken (item C: the raw poultry pink read as ham, or as croutons when cubed): warm
+  // ivory meat, a golden-brown roast at its edges, a rose-plum shade.
+  'roast-chicken': {
+    name: 'Roast chicken',
+    colours: { lit: '#fff3de', base: '#f1d2a2', shadow: '#a46a6a', glow: '#f2a454', highlight: '#fffaf0' },
     rooms: [],
   },
   // Maple syrup over pancakes: a deep amber, redder than caramel, a wine shade.

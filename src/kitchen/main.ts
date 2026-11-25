@@ -1028,3 +1028,13 @@ Object.assign(window, {
     },
   },
 });
+
+/** Dev only: drive the kitchen from the console or a test page (kitchenDev.add('rice'), kitchenDev.cook({...})). */
+if (import.meta.env.DEV) {
+  (window as unknown as { kitchenDev: unknown }).kitchenDev = {
+    add: (id: string) => addIngredient(id, false),
+    clear: () => clearTable(),
+    cook: (choices: CookChoices) => cook(choices),
+    mode: () => mode,
+  };
+}

@@ -72,6 +72,7 @@ describe('pickDish (the P0 list)', () => {
       if (!idea.base.startsWith('leaves:') && !piecesOf(idea).some((p) => p.form === 'leaf')) expect(idea.description, where).not.toMatch(/leaves/);
       if (!ids.includes('baguette')) expect(piecesOf(idea).some((p) => p.ingredient === 'baguette' && p.form === 'cube'), where).toBe(false);
       if (choices.course === 'Main') expect(idea.layout, where).not.toBe('soup-bowl');
+      if (/crouton/i.test(idea.title + idea.description)) expect(piecesOf(idea).some((p) => p.ingredient === 'baguette' && p.form === 'cube'), where).toBe(true);
       if (idea.layout === 'leaf-salad') expect(idea.base, where).toMatch(/^leaves:/);
       if (idea.layout === 'pancake-stack' && !ids.includes('sauce')) expect(['pool:maple', 'pool:honey', 'pool:caramel'], where).toContain(idea.base === 'none' ? idea.sauce : idea.base);
       captions.add(idea.description.replace(/^[^,]*/, ''));

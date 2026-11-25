@@ -369,14 +369,29 @@ function dressSkin(material: ShaderMaterial, skin: Skin): void {
  * each group with its own spots following its footprint. Nothing under the parts in the air.
  */
 export function feetSpots(member: Group, most: number): { centre: Vector3; radius: number }[] {
-  const all: Vector3[] = [];
-  for (const object of member.children) {
-    if (!(object instanceof Mesh) || PROPS.includes(object.name)) continue;
-    const position = object.geometry.getAttribute('position') as BufferAttribute;
-    const step = Math.max(1, Math.floor(position.count / 1500));
-    const points: Vector3[] = [];
-    for (let i = 0; i < position.count; i += step) points.push(new Vector3().fromBufferAttribute(position, i));
-    all.push(...transformed(points, member));
+  const gather = (props: boolean): Vector3[] => {
+    const out: Vector3[] = [];
+    for (const object of member.children) {
+      if (!(object instanceof Mesh) || PROPS.includes(object.name) !== props) continue;
+      const position = object.geometry.getAttribute('position') as BufferAttribute;
+      const step = Math.max(1, Math.floor(position.count / 1500));
+      const points: Vector3[] = [];
+      for (let i = 0; i < position.count; i += step) points.push(new Vector3().fromBufferAttribute(position, i));
+      out.push(...transformed(points, member));
+    }
+    return out;
+  };
+  let all = gather(false);
+  // Food served in ware (a soup in its bowl, a dish on its plate) never touches the table: its
+  // spots come from the ware's foot (from the food, the soup's spot lay off to one side, item F).
+  const ware = gather(true);
+  if (ware.length && all.length) {
+    const wareLow = Math.min(...ware.map((p) => p.y));
+    const foodLow = Math.min(...all.map((p) => p.y));
+    const box = new Box3().setFromPoints(ware).getSize(new Vector3());
+    // Ware stands up from the table (a plate's rim, a bowl); a flat prop (the butter's paper) does not.
+    const standing = box.y > Math.max(box.x, box.z) * 0.04;
+    if (standing && foodLow - wareLow > box.y * 0.15) all = ware;
   }
   const low = Math.min(...all.map((p) => p.y));
   const size = new Box3().setFromPoints(all).getSize(new Vector3());
