@@ -11,7 +11,7 @@ Written by `npm run qa:generated`. Each row is a table of ingredients and cookin
 | lemon (Starter, Sweet, wild 0) | composed-plate | Lemon carpaccio with citrus oil | 0.15 | 0 | 0.12 | 1 | 0 | 0 | 100% | 1 moving |
 | lime + pepper (Dessert, Both, wild 100) | pancake-stack | Pancakes with limes | 0.30 | 0 | 0.32 | 0 | 0 | 0 | 100% | pass |
 | chicken + rice (Main, Savoury, wild 0) | rice-bowl | Chicken rice bowl | 0.00 | 0 | 0.00 | 0 | 0 | 0 | 100% | pass |
-| apple (Drink, Sweet, wild 100) | glass-drink | Apple cider cooler | 0.15 | 0 | 0.00 | 0 | 0 | 0 | 100% | pass |
+| apple (Drink, Sweet, wild 100) | glass-drink | Apple cider cooler | 0.15 | 0 | 0.20 | 0 | 0 | 0 | 100% | pass |
 | apple (Starter, Sweet, wild 60) | tartare-crudo | Apple crudo with citrus oil | 0.31 | 0 | 0.80 | 0 | 0 | 0 | 100% | pass |
 | apple (Main, Savoury, wild 60) | circular-plate | Apple with herb oil | 0.30 | 0 | 0.05 | 1 | 0 | 0 | 100% | 1 moving |
 | apple (Dessert, Sweet, wild 0) | tart | Apple tart with ice cream | 0.34 | 0 | 0.40 | 0 | 0 | 0 | 100% | pass |
@@ -28,7 +28,7 @@ Written by `npm run qa:generated`. Each row is a table of ingredients and cookin
 | potato + salmon + onion (Starter, Savoury, wild 10) | tartare-crudo | Salmon crudo with cream sauce | 0.25 | 0 | 0.57 | 1 | 0 | 0 | 100% | 1 moving |
 | peach + milk + strawberry (Dessert, Sweet, wild 20) | tart | Peach tart with ice cream | 0.31 | 0 | 0.38 | 0 | 0 | 0 | 100% | pass |
 | potato + onion + milk (Starter, Savoury, wild 10) | soup-bowl | Creamy potato soup | 1.15 | 0 | 0.26 | 1 | 0 | 0 | 100% | 1 apart, gap 1.2 cm, 1 moving |
-| strawberry + milk + blueberries (Drink, Sweet, wild 30) | glass-drink | Thick strawberry milkshake | 0.15 | 0 | 0.37 | 0 | 0 | 0 | 100% | pass |
+| strawberry + milk + blueberries (Drink, Sweet, wild 30) | glass-drink | Thick strawberry milkshake | 0.39 | 0 | 0.15 | 0 | 0 | 0 | 100% | pass |
 | broccoli + cheese + milk (Main, Savoury, wild 20) | skillet-bake | Broccoli cheese bake | 0.20 | 0 | 0.31 | 0 | 0 | 0 | 100% | pass |
 | chicken + lemon + spinach (Main, Savoury, wild 30) | circular-plate | Pulled chicken with spinach | 0.32 | 0 | 0.33 | 0 | 0 | 0 | 100% | pass |
 | steak (Main, Savoury, wild 100) | circular-plate | Seared steak with crispy garlic | 0.21 | 0 | 0.20 | 5 | 0 | 0 | 100% | 5 moving |

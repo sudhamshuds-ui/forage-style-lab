@@ -1,4 +1,5 @@
-import { BufferAttribute, BufferGeometry, LatheGeometry, TorusGeometry, Vector2 } from 'three';
+import { BufferAttribute, BufferGeometry, LatheGeometry, SplineCurve, TorusGeometry, Vector2 } from 'three';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { FormPiece } from '../../ingredients/forms/kit/piece';
 import { withFrame } from './cut';
 
@@ -78,21 +79,66 @@ export interface Glass {
   kind: GlassKind;
 }
 
+/** A glass's widest radius (for setting fruit down beside it, clear of its bowl). */
+export function glassRadius(kind: GlassKind): number {
+  return Math.max(...SHAPES[kind].outer.map(([r]) => r));
+}
+
+const STEMMED: GlassKind[] = ['coupe', 'wine', 'nick-and-nora'];
+
+/**
+ * The outside profile made smooth (Group 3: no facet lines): a stemmed glass's bowl through a
+ * spline, a tumbler's straight wall cut into many short rows, so the light turns evenly.
+ */
+function smoothProfile(kind: GlassKind): { outer: [number, number][]; stem: number } {
+  const raw = SHAPES[kind].outer;
+  if (STEMMED.includes(kind)) {
+    const bowlFrom = raw.findIndex(([r], i) => i > 3 && r >= 0.45);
+    const stem = raw[bowlFrom][1];
+    const curve = new SplineCurve(raw.slice(bowlFrom).map(([r, y]) => new Vector2(r, y)));
+    const bowl = curve.getSpacedPoints(36).map((v) => [v.x, v.y] as [number, number]);
+    return { outer: [...raw.slice(0, bowlFrom), ...bowl], stem };
+  }
+  const out: [number, number][] = [raw[0]];
+  for (let i = 1; i < raw.length; i++) {
+    const [r0, y0] = raw[i - 1];
+    const [r1, y1] = raw[i];
+    const n = Math.max(1, Math.round((y1 - y0) / 0.35));
+    for (let k = 1; k <= n; k++) out.push([r0 + ((r1 - r0) * k) / n, y0 + ((y1 - y0) * k) / n]);
+  }
+  return { outer: out, stem: 0 };
+}
+
+/** A lathe turned with 128 segments, its seam welded and its normals shared (no seam line). */
+function smoothLathe(points: Vector2[], at: [number, number]): BufferGeometry {
+  const g = new LatheGeometry(points, 128);
+  g.deleteAttribute('normal');
+  g.deleteAttribute('uv');
+  const welded = mergeVertices(g, 1e-4);
+  welded.computeVertexNormals();
+  welded.translate(at[0], 0, at[1]);
+  return withFrame(welded, false);
+}
+
 export function glass(kind: GlassKind, at: [number, number], random: () => number, ice: boolean): Glass {
   const s = SHAPES[kind];
-  const outer = s.outer;
+  const { outer, stem } = smoothProfile(kind);
   const top = outer[outer.length - 1][1];
   const rimR = outer[outer.length - 1][0];
   const inner = (y: number) => Math.max(0.05, radiusAt(outer, y) - s.wall);
   const level = s.floor + (top - s.floor) * s.fill;
 
-  // The shell: up the outside, over a rounded lip, down the inside to the floor.
-  const shell: Vector2[] = [new Vector2(0.001, 0), ...outer.map(([r, y]) => new Vector2(r, y))];
+  // The shell: up the outside, over a rounded lip, down the inside to the floor. A stemmed glass's
+  // shell is its bowl only; the stem and foot are their own piece, so the two never overlap (where
+  // they did, the doubled glass showed as a grey pebble at the stem's foot).
+  const stemmed = STEMMED.includes(kind);
+  const shellOuter = stemmed ? outer.filter(([, y]) => y >= stem) : outer;
+  const shell: Vector2[] = [new Vector2(0.001, stemmed ? stem : 0), ...shellOuter.map(([r, y]) => new Vector2(r, y))];
   for (let i = 1; i < 5; i++) {
     const a = (Math.PI * i) / 5;
     shell.push(new Vector2(rimR - s.wall / 2 + (Math.cos(a) * s.wall) / 2, top + (Math.sin(a) * s.wall) / 2));
   }
-  const steps = 18;
+  const steps = 40;
   for (let i = steps; i >= 0; i--) {
     const y = s.floor + ((top - s.floor) * i) / steps;
     shell.push(new Vector2(inner(y), y));
@@ -102,21 +148,19 @@ export function glass(kind: GlassKind, at: [number, number], random: () => numbe
   // The drink: the inside up to its level, a meniscus that climbs the wall, a soft dip to the middle.
   const r0 = inner(level);
   const drinkProfile: Vector2[] = [new Vector2(0.001, s.floor + 0.02)];
-  for (let i = 0; i <= 12; i++) {
-    const y = s.floor + 0.02 + ((level - s.floor - 0.02) * i) / 12;
+  for (let i = 0; i <= 30; i++) {
+    const y = s.floor + 0.02 + ((level - s.floor - 0.02) * i) / 30;
     drinkProfile.push(new Vector2(inner(y) - 0.03, y));
   }
   drinkProfile.push(new Vector2(r0 - 0.03, level + 0.12), new Vector2(r0 * 0.9, level + 0.02), new Vector2(r0 * 0.5, level), new Vector2(0.001, level));
 
-  const lathe = (points: Vector2[]) => {
-    const g = new LatheGeometry(points, 72);
-    g.translate(at[0], 0, at[1]);
-    return withFrame(g, false);
-  };
-  const pieces: FormPiece[] = [{ role: 'drink', geometry: lathe(drinkProfile) }];
+  const lathe = (points: Vector2[]) => smoothLathe(points, at);
+  // In a stemmed glass the drink casts no shadow of its own: the glass's foot and stem do, so the
+  // shadow starts at the foot instead of a separate disc beside it (Group 3).
+  const pieces: FormPiece[] = [{ role: 'drink', geometry: lathe(drinkProfile), noShadow: STEMMED.includes(kind) || undefined }];
 
   // A thin rim line in the glass's own tint (never a white band).
-  const rimLine = new TorusGeometry(rimR - s.wall / 2, 0.045, 6, 96);
+  const rimLine = new TorusGeometry(rimR - s.wall / 2, 0.045, 8, 160);
   rimLine.rotateX(Math.PI / 2);
   rimLine.translate(at[0], top + s.wall * 0.3, at[1]);
   pieces.push({ role: 'glassRim', geometry: withFrame(rimLine, false) });
@@ -131,26 +175,36 @@ export function glass(kind: GlassKind, at: [number, number], random: () => numbe
     pieces.push({ role: 'glassGlint', geometry: streak(outer, angle, y0, y1, 0.09 + 0.05 * (k === 0 ? 1 : 0), at) });
   }
 
-  // Ice: two or three rounded cubes in the drink, their tops just above it.
+  // A faint etched band round a tumbler or highball, a third of the way up: a little more glass.
+  if (kind === 'highball' || kind === 'rocks') {
+    const y0 = s.floor + (top - s.floor) * 0.28;
+    const band: Vector2[] = [];
+    for (let i = 0; i <= 6; i++) {
+      const y = y0 + (0.55 * i) / 6;
+      band.push(new Vector2(radiusAt(outer, y) + 0.02, y));
+    }
+    pieces.push({ role: 'glassBand', geometry: lathe(band), doubleSided: true, seeThrough: 0.14 });
+  }
+
+  // Ice: two small, clear cubes in the drink, their tops showing above it.
   if (ice) {
-    const n = 2 + Math.floor(random() * 2);
+    const n = 2;
     for (let k = 0; k < n; k++) {
-      const size = Math.min(1.6, r0 * 0.55);
+      const size = Math.min(1.15, r0 * 0.42);
       const a = (k / n) * Math.PI * 2 + random();
       const d = (r0 - size * 0.75) * (0.35 + random() * 0.3);
       const cube = iceCube(size);
       cube.rotateY(random() * Math.PI);
       cube.rotateX((random() - 0.5) * 0.5);
-      cube.translate(at[0] + Math.cos(a) * d, level - size * 0.3 - k * size * 0.45, at[1] + Math.sin(a) * d);
-      pieces.push({ role: 'ice', geometry: withFrame(cube, false), seeThrough: 0.45 });
+      cube.translate(at[0] + Math.cos(a) * d, level - size * 0.15 - k * size * 0.2, at[1] + Math.sin(a) * d);
+      pieces.push({ role: 'ice', geometry: withFrame(cube, false), seeThrough: 0.3 });
     }
   }
   // A stemmed glass's foot and stem as their own piece: see-through, but casting, so the shadow
   // starts at the glass's foot rather than floating off beside it.
-  if (kind === 'coupe' || kind === 'wine' || kind === 'nick-and-nora') {
-    const stemTop = s.floor - 0.5;
-    const foot = outer.filter(([, y]) => y <= stemTop).map(([r, y]) => new Vector2(r, y));
-    pieces.push({ role: 'glassFoot', geometry: lathe([new Vector2(0.001, 0), ...foot, new Vector2(0.001, stemTop)]), seeThrough: 0.2 });
+  if (stemmed) {
+    const foot = outer.filter(([, y]) => y <= stem).map(([r, y]) => new Vector2(r, y));
+    pieces.push({ role: 'glassFoot', geometry: lathe([new Vector2(0.001, 0), ...foot, new Vector2(0.001, stem)]), seeThrough: 0.2 });
   }
   // The shell last: drawn over the drink, see-through.
   pieces.push({ role: 'glass', geometry: lathe(shell), doubleSided: true, seeThrough: 0.2 });

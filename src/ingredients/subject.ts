@@ -232,7 +232,8 @@ class FormSubject implements Subject {
         if (entry.playfulHide?.includes(piece.role)) this.playfulHidden.push(mesh);
         // See-through pieces cast none, nor do a glass's painted rim line and streaks (they cast a
         // thin ring on the table); a glass's foot and stem do, so its shadow meets its base.
-        mesh.castShadow = piece.role === 'glassFoot' || (!piece.seeThrough && piece.role !== 'glassRim' && piece.role !== 'glassGlint');
+        // (A glass's stem cast a grey pebble at its foot: only the soft contact spot stays there.)
+        mesh.castShadow = !piece.noShadow && !piece.seeThrough && piece.role !== 'glassRim' && piece.role !== 'glassGlint';
         // Catch shadows too: sepals on their berry, berries on each other.
         mesh.receiveShadow = true;
         member.add(mesh);
@@ -395,7 +396,26 @@ export function feetSpots(member: Group, most: number): { centre: Vector3; radiu
   }
   const low = Math.min(...all.map((p) => p.y));
   const size = new Box3().setFromPoints(all).getSize(new Vector3());
-  const foot = all.filter((p) => p.y < low + Math.max(size.x, size.y, size.z) * 0.03);
+  let foot = all.filter((p) => p.y < low + Math.max(size.x, size.y, size.z) * 0.03);
+  // A glass stands on a round foot: one soft spot centred under it (sampled as a ring it broke into
+  // small grey blobs round the stem, Group 3). Fruit beside it keeps its own spots.
+  const glassMesh = member.children.find((o): o is Mesh => o instanceof Mesh && (o.name === 'glassFoot' || o.name === 'glass'));
+  const spots: { centre: Vector3; radius: number }[] = [];
+  if (glassMesh) {
+    const position = glassMesh.geometry.getAttribute('position') as BufferAttribute;
+    const pts: Vector3[] = [];
+    const step = Math.max(1, Math.floor(position.count / 1500));
+    for (let i = 0; i < position.count; i += step) pts.push(new Vector3().fromBufferAttribute(position, i));
+    const base = transformed(pts, member).filter((p) => p.y < low + size.y * 0.02);
+    if (base.length) {
+      const c = base.reduce((sum, p) => sum.add(p), new Vector3()).multiplyScalar(1 / base.length);
+      const r = Math.max(...base.map((p) => Math.hypot(p.x - c.x, p.z - c.z)));
+      spots.push({ centre: new Vector3(c.x, low, c.z), radius: r * 1.15 });
+      foot = foot.filter((p) => Math.hypot(p.x - c.x, p.z - c.z) > r * 1.1);
+      most -= 1;
+      if (!foot.length || most <= 0) return spots;
+    }
+  }
   // Group the foot points: each joins the first group with a point near it on the table.
   const near = Math.max(size.x, size.z) * 0.12;
   const groups: Vector3[][] = [];
@@ -407,5 +427,5 @@ export function feetSpots(member: Group, most: number): { centre: Vector3; radiu
   // The biggest places first; each gets at least one spot.
   groups.sort((a, b) => b.length - a.length);
   const kept = groups.slice(0, most);
-  return kept.flatMap((g, i) => footprintSpots(g, i === 0 ? most - kept.length + 1 : 1));
+  return [...spots, ...kept.flatMap((g, i) => footprintSpots(g, i === 0 ? most - kept.length + 1 : 1))];
 }

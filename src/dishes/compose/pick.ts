@@ -4,6 +4,7 @@ import type { FamilyId } from '../../ingredients/families';
 import type { DishIdea } from '../catalog';
 import { componentGarnish, componentPiece, isComponent, type DishComponent } from './components';
 import { SKEWERS } from './elements';
+import { glassFor, takesIce } from '../kit/glass';
 import { layoutById, type LayoutId, type LayoutSpec } from './layouts';
 
 /**
@@ -809,7 +810,7 @@ function piecePhrase(p: Piece): string {
     case 'slice': return p.id === 'avocado' ? 'a fan of avocado slices' : p.id === 'chicken' ? 'sliced roast chicken' : p.id === 'steak' ? 'sliced steak' : many ? `${n} slices` : `a slice of ${n}`;
     case 'steak': return p.id === 'chicken' ? 'a carved chicken breast' : 'a seared steak, sliced';
     case 'fillet': return `a ${p.id === 'salmon' ? 'salmon' : n} fillet with a seared top`;
-    case 'wheel': return p.id === 'onion' ? 'rings of red onion' : `${n} wheels`;
+    case 'wheel': return p.id === 'onion' ? 'rings of red onion' : many ? `${n} wheels` : `a ${n} wheel`;
     case 'wedge': return `${n} wedges`;
     case 'half': return many ? `${n} halves` : `half a ${n}`;
     case 'cube': return p.id === 'baguette' ? 'golden croutons' : `diced ${n}`;
@@ -851,7 +852,11 @@ function describeDish(slots: Slots, components: DishComponent[], random: () => n
   const sides = (platform ? toppings.slice(1) : toppings).map(piecePhrase);
   if (layout.id === 'glass-drink') {
     const glass = DRINK_WORDS[base] ?? 'A cold drink';
-    return pick([`${glass}, poured cold, ${lead} on the rim.`, `${glass} over ice, finished with ${lead}.`, `${glass}, served chilled with ${lead}.`]);
+    // "Over ice" only when the glass has ice in it (Group 3).
+    const kind = glassFor(base);
+    return takesIce(base, kind)
+      ? pick([`${glass} over ice, ${lead} on the rim.`, `${glass}, poured over ice and finished with ${lead}.`])
+      : pick([`${glass}, poured cold, ${lead} on the rim.`, `${glass}, served chilled with ${lead}.`]);
   }
   // Where it sits: only what is really under it.
   let where = '';

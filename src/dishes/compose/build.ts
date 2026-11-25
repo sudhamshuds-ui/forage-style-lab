@@ -9,7 +9,7 @@ import { withFrame } from '../kit/cut';
 import { Table, clearance, plate, posed } from '../kit/place';
 import { PhysicsPlate, physicsReady, type PhysicsReport } from '../kit/physics';
 import { pool, wobble } from '../kit/pool';
-import { glass, glassFor, takesIce, type Glass } from '../kit/glass';
+import { glass, glassFor, glassRadius, takesIce, type Glass } from '../kit/glass';
 import { DINNER_PLATE, PASTA_BOWL, SOUP_BOWL, innerRadiusAt, ware } from '../kit/ware';
 import type { DishIdea } from '../catalog';
 import type { Dish } from '../dishes';
@@ -59,6 +59,7 @@ export function dishLooks(original: DishIdea): RoleLook[] {
     add({ role: 'ice', family: 'ice', glossy: true });
     add({ role: 'glassRim', family: 'glass-rim' });
     add({ role: 'glassGlint', family: 'glass-glint' });
+    add({ role: 'glassBand', family: 'glass-glint' });
     add({ role: 'glassFoot', family: 'glass', glossy: true });
     add({ role: 'glass', family: 'glass', glossy: true });
   }
@@ -616,22 +617,27 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         // On a drink, the hero garnish sits on the glass's rim.
         // (Only the first: an Unhinged heap of fruit sits on the table round the glass's foot.)
         if (kind === 'drink' && served && p.size === 'big' && p.index === 0) {
-          const onRim = ['wheel', 'slice', 'wedge', 'half', 'strip'].includes(p.part.form);
+          // Every garnish stands upright on the rim through a slit (Group 3): the rim runs two fifths
+          // of the way into it, half of it hangs outside the glass, and it leans about 12 degrees out.
+          // Only a leaf floats in the drink.
+          const onRim = p.part.form !== 'leaf';
           const a = Math.PI * 1.15;
-          // A wheel or slice stands up across the rim, its face to the side (lying flat it read as a
-          // lid on the glass): turned a quarter round the line from the glass's middle to the rim.
-          const upright = onRim && ['wheel', 'slice'].includes(p.part.form) ? posed(turned, new Matrix4().makeRotationAxis(new Vector3(Math.cos(a), 0, Math.sin(a)), Math.PI / 2)) : turned;
+          const radial = new Vector3(Math.cos(a), 0, Math.sin(a));
+          const tangent = new Vector3(-Math.sin(a), 0, Math.cos(a));
+          // Flat cuts are stood up, their face to the side (turned a quarter round the radial line).
+          const standUp = ['wheel', 'slice', 'wedge', 'half', 'strip'].includes(p.part.form);
+          const stood = onRim && standUp ? posed(turned, new Matrix4().makeRotationAxis(radial, Math.PI / 2)) : turned;
+          // Then tipped outward (a turn about the tangent moves the top out for a negative angle).
+          const upright = onRim ? posed(stood, new Matrix4().makeRotationAxis(tangent, (-12 * Math.PI) / 180)) : stood;
           const box = boundsOf(upright);
           const [cx, cz] = [(box.min.x + box.max.x) / 2, (box.min.z + box.max.z) / 2];
           const height = box.max.y - box.min.y;
-          // Flat cuts (a wheel, a slice, a wedge, a half) are slit and pushed onto the rim on the
-          // lit side, the rim running two fifths of the way into them; small round things (berries,
-          // cubes, a leaf) float in the drink, half under its surface. Never hovering.
           const spot: [number, number] = onRim
-            ? [baseAt[0] + Math.cos(a) * served.rim.r, baseAt[1] + Math.sin(a) * served.rim.r]
+            ? [baseAt[0] + radial.x * served.rim.r, baseAt[1] + radial.z * served.rim.r]
             : [baseAt[0] + served.level.r * 0.25, baseAt[1] + served.level.r * 0.2];
           const y = onRim ? served.rim.y - box.min.y - 0.42 * height : served.level.y - box.min.y - 0.45 * height;
-          const rim = posed(upright, { at: [spot[0] - cx, y, spot[1] - cz] });
+          // Its shadow under the high light fell at the glass's foot like a grey pebble: none.
+          const rim = posed(upright, { at: [spot[0] - cx, y, spot[1] - cz] }).map((piece) => ({ ...piece, noShadow: true }));
           parts.push(...rim);
           rimServed.push(p.part.ingredient);
           continue;
@@ -860,14 +866,18 @@ export function composedBuilder(original: DishIdea): FormBuilder {
             // Nearer on later rounds, in case a full slide was refused.
             const k = (best - (pass < 3 ? 0.15 : 0.3)) / best;
             shift(pieces, dx * k, 0, dz * k);
-            const under = new Table(groundOnly.height.bind(groundOnly));
+            // Beside a glass, pieces slide on the table only, and never into the glass (they were
+            // set down on its top, Group 3).
+            const under = served ? new Table(w.floor) : new Table(groundOnly.height.bind(groundOnly));
             food.forEach((other, j) => j !== i && under.add(other));
             const lift = clearance(pieces, (x, z) => under.height(x, z));
             shift(pieces, 0, -lift, 0);
+            const clearOfGlass = (list: FormPiece[]) =>
+              !served || outline(list).every(([x, z]) => Math.hypot(x - baseAt[0], z - baseAt[1]) > glassRadius(served!.kind) + 0.15);
             const p = placedOf.get(pieces);
             const box = boundsOf(pieces);
             const centre: [number, number] = [(box.min.x + box.max.x) / 2, (box.min.z + box.max.z) / 2];
-            const ok = onPlate(pieces, idea.ware === 'glass' ? undefined : w.floor) && (idea.ware === 'glass' || idea.ware === 'deep' || onTheWare(centre, 0, 0)) && (!p || liftAbove(pieces, baseUnder(p)) <= stackAllowance(p));
+            const ok = clearOfGlass(pieces) && onPlate(pieces, idea.ware === 'glass' ? undefined : w.floor) && (idea.ware === 'glass' || idea.ware === 'deep' || onTheWare(centre, 0, 0)) && (!p || liftAbove(pieces, baseUnder(p)) <= stackAllowance(p));
             // Nothing else may end up on it or hanging over it: every other piece still lies as before.
             const box2 = boundsOf(pieces);
             const near = food.filter((other, j) => {
@@ -892,11 +902,11 @@ export function composedBuilder(original: DishIdea): FormBuilder {
               const mx = ((mid[0] - cx) / len) * step;
               const mz = ((mid[1] - cz) / len) * step;
               shift(pieces, mx, 0, mz);
-              const under2 = new Table(groundOnly.height.bind(groundOnly));
+              const under2 = served ? new Table(w.floor) : new Table(groundOnly.height.bind(groundOnly));
               food.forEach((other, j) => j !== i && under2.add(other));
               const lift2 = clearance(pieces, (x, z) => under2.height(x, z));
               shift(pieces, 0, -lift2, 0);
-              const fine = onPlate(pieces, idea.ware === 'glass' ? undefined : w.floor) && (!p || liftAbove(pieces, baseUnder(p)) <= stackAllowance(p));
+              const fine = clearOfGlass(pieces) && onPlate(pieces, idea.ware === 'glass' ? undefined : w.floor) && (!p || liftAbove(pieces, baseUnder(p)) <= stackAllowance(p));
               if (!fine) shift(pieces, -mx, lift2, -mz);
               else outlines[i] = outline(pieces);
             } else outlines[i] = outline(pieces);

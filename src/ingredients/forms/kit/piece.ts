@@ -27,6 +27,8 @@ export interface FormPiece {
    * and drawn after the solid pieces. It casts no shadow.
    */
   seeThrough?: number;
+  /** Casts no shadow (a drink in a stemmed glass: its glass foot does, Group 3). */
+  noShadow?: boolean;
 }
 
 /** Which state to build (`whole`, `half`, ...) and the seed from the ingredient id. */
