@@ -6,7 +6,7 @@ import type { FamilyId } from '../../ingredients/families';
 import { riceBowlParts } from '../../ingredients/forms/rice';
 import { SAUCE_SKIN, CERAMIC_SKIN } from '../../shading/effects/skinTexture';
 import { withFrame } from '../kit/cut';
-import { Table, plate, posed } from '../kit/place';
+import { Table, clearance, plate, posed } from '../kit/place';
 import { PhysicsPlate, physicsReady, type PhysicsReport } from '../kit/physics';
 import { pool, wobble } from '../kit/pool';
 import { DINNER_PLATE, PASTA_BOWL, SOUP_BOWL, innerRadiusAt, ware } from '../kit/ware';
@@ -703,6 +703,15 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       }
     }
     if (physics) {
+      // A piece frozen while still sliding (the engine stops after a few seconds) can be held a few
+      // millimetres in the air: each is set straight down onto what is under it, bottom layer first
+      // (the P0 list: nothing floating).
+      food.forEach((pieces, i) => {
+        const under = new Table(groundOnly.height.bind(groundOnly));
+        food.forEach((other, j) => j !== i && under.add(other));
+        const gap = clearance(pieces, (x, z) => under.height(x, z));
+        if (gap > 0.1 && gap < 3) for (const piece of pieces) piece.geometry.translate(0, -gap, 0);
+      });
       const height = food.reduce((most, pieces) => {
         const b = boundsOf(pieces);
         return Math.max(most, b.max.y - w.floor((b.min.x + b.max.x) / 2, (b.min.z + b.max.z) / 2));
