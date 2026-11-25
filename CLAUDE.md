@@ -852,6 +852,10 @@ AI model. Built in the spec's order:
   honey for citrus and peach, berry sauce only with berries; citrus oil with lemon or lime.
 - **Titles**: dish names, at least two words, at most 32 characters (`TITLE_MAX`, tested), one line.
 - New families: `caramel`, `drink-gold`, `pastry`, `ice-cream`.
+- **The older catalogue QA is set aside** (the user, 2026-11-25: "lets just focus on building on top of
+  what fixes md i give u"): `qa.test.ts` on the 100 catalogue dishes keeps failing as before (61 of 100
+  had problems before the fix list); leave it. Work goes into each new fixes file the user hands over,
+  built on top of the generated dishes (`pick.ts`, `components.ts`, `generated.qa.test.ts`).
 
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one
