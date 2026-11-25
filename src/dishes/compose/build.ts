@@ -186,7 +186,9 @@ function support(food: FormPiece[][], ground: Table): { floating: number; deepes
     const pts: [number, number, number][] = [];
     for (const p of pieces) {
       const pos = p.geometry.getAttribute('position');
-      const step = Math.max(1, Math.floor(pos.count / 500));
+      // Dense enough that a wide piece (a tart, a pancake) has a sample under every cell a topping
+      // rests on; with 500 the cells went empty and toppings read as floating.
+      const step = Math.max(1, Math.floor(pos.count / 4000));
       for (let i = 0; i < pos.count; i += step) pts.push([pos.getX(i), pos.getY(i), pos.getZ(i)]);
     }
     return pts;
@@ -220,6 +222,7 @@ function support(food: FormPiece[][], ground: Table): { floating: number; deepes
       lowestGap = Math.min(lowestGap, y - under);
     }
     if (lowestGap > 0.2) floating++;
+    if (lowestGap > 0.2 && (globalThis as { DEBUG_FLOAT?: boolean }).DEBUG_FLOAT) console.log('floating', food[i].map((p) => p.role).join('+'), lowestGap.toFixed(2));
   });
   return { floating, deepest };
 }
@@ -381,9 +384,11 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         if (physics && p.part.form === 'leaf') {
           // A leaf drapes over what is under it (the earlier leaves of its layer included) and is
           // held there, like a leaf laid down by hand.
-          const start = spawn.rest(lifted, { tilt: 0.15, sink: 0.03, add: true });
-          physics.hold(start);
-          held.push(start);
+          // It falls straight down without turning, so it lands touching what is under it (draped by
+          // height map it hovered up to a centimetre over cubes and mushrooms).
+          const start = spawn.rest(lifted, { tilt: 0.15, add: true });
+          physics.drop(start, { lift: 0.4, straightDown: true, noTurn: true });
+          dropped.push(start);
           food.push(start);
           parts.push(...start);
         } else if (physics) {

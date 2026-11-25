@@ -139,7 +139,7 @@ export class PhysicsPlate {
   }
 
   /** Drop one piece (its parts move together): a solid of its convex outline, at its current place. */
-  drop(pieces: FormPiece[], options: { lift?: number; straightDown?: boolean } = {}): void {
+  drop(pieces: FormPiece[], options: { lift?: number; straightDown?: boolean; noTurn?: boolean } = {}): void {
     const R = RAPIER!;
     const points = samplePoints(pieces.map((p) => p.geometry));
     const centre = new Vector3();
@@ -159,6 +159,8 @@ export class PhysicsPlate {
     // tilt (it leans, tips onto its side, slips off a peak) while it moves only a little across the
     // plate. Holding it to straight down made pieces balance on an edge, like a fried egg standing up.
     if (options.straightDown) desc.enabledTranslations(false, true, false);
+    // A leaf keeps the way it was laid: it falls until it touches, never tumbling onto its edge.
+    if (options.noTurn) desc.lockRotations();
     const body = this.world.createRigidBody(desc);
     const shape = R.ColliderDesc.convexHull(local);
     if (!shape) return;
