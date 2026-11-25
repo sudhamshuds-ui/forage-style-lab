@@ -35,6 +35,41 @@ const piecesOf = (idea: ReturnType<typeof pickDish>) => [idea.big, ...idea.mediu
 const LIBRARY = new Set(['milk:pancake', 'baguette:toast', 'baguette:cube', 'potato:mash', 'lemon:wheel']);
 const isLibrary = (p: { ingredient: string; form: string }, ids: string[]) => isComponent(p.ingredient) || (!ids.includes(p.ingredient) && LIBRARY.has(`${p.ingredient}:${p.form}`));
 
+describe('pickDish (the P0 list)', () => {
+  it('never drops a table ingredient', () => {
+    for (const { ids, choices, seed } of everyCook()) {
+      const idea = pickDish(ids, choices, seed);
+      const parts = piecesOf(idea).map((p) => p.ingredient);
+      for (const id of ids) expect(parts.includes(id) || idea.blended?.includes(id), `${ids.join('+')} ${choices.course} ${choices.taste} ${choices.wild}: ${id} missing from ${idea.title}`).toBe(true);
+    }
+  });
+
+  it('never invents a mash, and every course picks a legal dish type', () => {
+    for (const { ids, choices, seed } of everyCook()) {
+      const idea = pickDish(ids, choices, seed);
+      const where = `${ids.join('+')} ${choices.course} ${choices.taste} ${choices.wild}: ${idea.title}`;
+      const pieces = piecesOf(idea);
+      if (!ids.includes('potato')) {
+        expect(idea.layout, where).not.toBe('mash-plate');
+        expect(pieces.some((p) => p.form === 'mash' || (p.ingredient === 'puree' && p.form === 'mash')), where).toBe(false);
+      }
+      if (choices.course === 'Drink') expect(idea.layout, where).toBe('glass-drink');
+      if (choices.course === 'Starter' || choices.course === 'Main') {
+        expect(idea.layout, where).not.toBe('pancake-stack');
+        expect(pieces.some((p) => p.form === 'pancake'), where).toBe(false);
+      }
+    }
+  });
+
+  it('never shows an avocado half or its seed', () => {
+    for (const { ids, choices, seed } of everyCook()) {
+      if (!ids.includes('avocado')) continue;
+      const idea = pickDish(ids, choices, seed);
+      for (const p of piecesOf(idea)) if (p.ingredient === 'avocado') expect(['half', 'pit', 'whole'], `${ids.join('+')} ${choices.course}: ${p.form}`).not.toContain(p.form);
+    }
+  });
+});
+
 describe('pickDish', () => {
   it('always cooks a dish the composer can build', () => {
     for (const { ids, choices, seed } of everyCook()) {

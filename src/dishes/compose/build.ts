@@ -9,7 +9,7 @@ import { withFrame } from '../kit/cut';
 import { Table, plate, posed } from '../kit/place';
 import { PhysicsPlate, physicsReady, type PhysicsReport } from '../kit/physics';
 import { pool, wobble } from '../kit/pool';
-import { DINNER_PLATE, PASTA_BOWL, ware } from '../kit/ware';
+import { DINNER_PLATE, PASTA_BOWL, SOUP_BOWL, innerRadiusAt, ware } from '../kit/ware';
 import type { DishIdea } from '../catalog';
 import type { Dish } from '../dishes';
 import { WARE_PLAN, readPart, type ComposedPlan, type Placed } from './layout';
@@ -89,7 +89,10 @@ export function dishLooks(original: DishIdea): RoleLook[] {
 }
 
 /** Ware: its geometry and the height of its top surface. */
-function makeWare(idea: DishIdea, seed: number): { pieces: FormPiece[]; floor: (x: number, z: number) => number; rice?: ReturnType<typeof riceBowlParts> } {
+/** How high the soup stands in its bowl (cm). */
+const SOUP_LEVEL = 5;
+
+function makeWare(idea: DishIdea, seed: number): { pieces: FormPiece[]; floor: (x: number, z: number) => number; rice?: ReturnType<typeof riceBowlParts>; soup?: { level: number; radius: number; under: (x: number, z: number) => number } } {
   switch (idea.ware) {
     case 'plate':
     case 'slate': {
@@ -97,6 +100,13 @@ function makeWare(idea: DishIdea, seed: number): { pieces: FormPiece[]; floor: (
       return { pieces: [{ role: 'plate', geometry: w.geometry }], floor: w.floor };
     }
     case 'bowl': {
+      if (idea.base.startsWith('soup:')) {
+        // Soup: always a big deep bowl, the soup a level surface well up its side (the P0 and P1
+        // lists: a shallow pasta bowl read as a plate floating over an oversized shadow).
+        const w = ware(SOUP_BOWL);
+        const edge = innerRadiusAt(SOUP_BOWL, SOUP_LEVEL);
+        return { pieces: [{ role: 'plate', geometry: w.geometry }], floor: (x, z) => (Math.hypot(x, z) < edge ? SOUP_LEVEL : w.floor(x, z)), soup: { level: SOUP_LEVEL, radius: edge, under: w.floor } };
+      }
       const w = ware(PASTA_BOWL);
       return { pieces: [{ role: 'plate', geometry: w.geometry }], floor: w.floor };
     }
@@ -105,6 +115,8 @@ function makeWare(idea: DishIdea, seed: number): { pieces: FormPiece[]; floor: (
       // than perched on a peak (the fix list, 2026-11-25).
       const mixed = !!idea.layout;
       const rice = riceBowlParts(seed, mixed ? 0.18 : 0.45, mixed);
+      const wall = new Table(() => 0);
+      wall.add([{ role: 'bowl', geometry: rice.bowl }]);
       const flecks: FormPiece[] = rice.flecks
         ? [
             { role: 'riceFleckGreen', geometry: rice.flecks.green },
@@ -118,11 +130,9 @@ function makeWare(idea: DishIdea, seed: number): { pieces: FormPiece[]; floor: (
           ...flecks,
           { role: 'bowl', geometry: rice.bowl },
         ],
-        // The rice inside, the bowl's wall and rim round it (so nothing rolls out through the wall).
-        floor: (x, z) => {
-          const r = Math.hypot(x, z);
-          return r < rice.radius ? rice.surfaceAt(x, z) : r < 7.2 ? 8 : 0;
-        },
+        // The rice inside, the bowl's real wall and rim round it. (A flat ring at 8 cm stood 1.6 cm over
+        // the real rim: pieces landing on it hovered beside the bowl, the P0 list.)
+        floor: (x, z) => (Math.hypot(x, z) < rice.radius ? rice.surfaceAt(x, z) : wall.height(x, z)),
         rice,
       };
     }
@@ -290,6 +300,8 @@ export interface Cohesion {
   towering?: number;
   /** Generated dishes: the highest food point above the ware's floor or its base (cm; garnish left out). */
   maxFoodHeight?: number;
+  /** The ingredients of every food piece that ended on the dish (after physics and replating). */
+  served?: string[];
 }
 
 /**
@@ -394,7 +406,12 @@ export function composedBuilder(original: DishIdea): FormBuilder {
 
     // The base.
     const { kind, what, at: baseAt, r: baseR } = composed.base;
-    if (kind === 'pool' || kind === 'soup' || kind === 'mash') {
+    if (kind === 'soup' && w.soup) {
+      // The soup's surface: a level disc meeting the bowl's side, a soft meniscus at its edge.
+      const { level, radius } = w.soup;
+      const geometry = pool({ outline: () => radius + 0.05, at: [0, 0], depth: 0.35, edge: 0.12, floor: () => level - 0.35, rings: 36, segments: 110 });
+      late.push({ role: 'pool', geometry });
+    } else if (kind === 'pool' || kind === 'soup' || kind === 'mash') {
       const depth = kind === 'soup' ? 1.4 : kind === 'mash' ? 0.9 : 0.32;
       const geometry = pool({
         outline: wobble(baseR, [[3, 0.025, random() * 6], [5, 0.02, random() * 6], [7, 0.012, random() * 6]]),
@@ -488,6 +505,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       const hz = (box.max.z - box.min.z) / 2;
       const from = centreOf(now);
       const planned: [number, number] = [(box.min.x + box.max.x) / 2, (box.min.z + box.max.z) / 2];
+      const dbgCount = [0, 0, 0, 0, 0, 0, 0, 0];
       for (let r = 0; r <= 7; r += 0.35) {
         for (let k = 0; k < 16; k++) {
           const a = (k / 16) * Math.PI * 2;
@@ -505,12 +523,16 @@ export function composedBuilder(original: DishIdea): FormBuilder {
           }
           const onWare = idea.ware === 'board' ? Math.abs(c[0]) + hx < 13.5 && Math.abs(c[1]) + hz < 9.5 : Math.hypot(c[0], c[1]) + Math.max(hx, hz) < Math.max(WARE_PLAN[idea.ware].reach + 0.5, WARE_PLAN[idea.ware].plate - 1.5);
           // The shift from where the laid copy sits to the free spot.
+          if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) dbgCount[(clear ? 1 : 0) + (onWare ? 2 : 0) + (touching ? 4 : 0)]++;
           if (clear && onWare && touching) return [c[0] - planned[0], c[1] - planned[1]];
         }
       }
+      if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('freeSpot', JSON.stringify(dbgCount), hx.toFixed(1), hz.toFixed(1));
       return null;
     };
     let heroFood = -1;
+    /** Ingredients set straight onto a glass's rim (outside the physics). */
+    const rimServed: string[] = [];
     // Which plan entry each drop came from, and the hero's pieces (the base a platform's toppings rest on).
     const placedOf = new Map<FormPiece[], Placed>();
     const heroPieces: FormPiece[] = [];
@@ -537,8 +559,13 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         // On a drink, the hero garnish sits on the glass's rim.
         // (Only the first: an Unhinged heap of fruit sits on the table round the glass's foot.)
         if (kind === 'drink' && p.size === 'big' && p.index === 0) {
-          const rim = posed(turned, { at: [baseAt[0] + 3.2, 9.4, baseAt[1] + 0.8], tip: 0 });
+          // Slit and pushed onto the rim: the rim runs into it two fifths of the way up, half of it
+          // over the drink, half outside (balanced on the lip it read as hovering, the P0 list).
+          const box = boundsOf(turned);
+          const rimTop = table.height(baseAt[0] + 3.6, baseAt[1]);
+          const rim = posed(turned, { at: [baseAt[0] + 3.6 - (box.min.x + box.max.x) / 2, rimTop - box.min.y - 0.42 * (box.max.y - box.min.y), baseAt[1] - (box.min.z + box.max.z) / 2] });
           parts.push(...rim);
+          rimServed.push(p.part.ingredient);
           continue;
         }
         const flat = ['wheel', 'slice', 'leaf', 'egg', 'toast', 'mash'].includes(p.part.form);
@@ -596,6 +623,10 @@ export function composedBuilder(original: DishIdea): FormBuilder {
           for (const piece of dropped[i]) parts.splice(parts.indexOf(piece), 1);
           food.splice(food.indexOf(dropped[i]), 1);
           const copy = copies.get(dropped[i]);
+          const plan = placedOf.get(dropped[i]);
+          if (copy && plan) placedOf.set(copy, plan);
+          // Keep a clean copy of it too, in case it then lands on its edge and is laid again.
+          if (copy) copies.set(copy, copy.map((piece) => ({ ...piece, geometry: piece.geometry.clone() })));
           dropped.splice(i, 1);
           if (!copy) {
             lost++;
@@ -636,20 +667,26 @@ export function composedBuilder(original: DishIdea): FormBuilder {
             const here = new Table(w.floor);
             here.add(settled);
             for (const k of [...kept, ...laid]) here.add(k);
-            const spot = copy && freeSpot(copy, pieces, here, p);
-            if (!copy || !spot) {
-              if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('no spot', p.part.ingredient, p.part.form);
-              lost++;
-              continue;
+            // Up to three spots: a spot where it still lands badly is marked taken and the next tried.
+            let moved: FormPiece[] | null = null;
+            for (let attempt = 0; attempt < 3 && copy && !moved; attempt++) {
+              const spot = freeSpot(copy, pieces, here, p);
+              if (!spot) break;
+              const tried = here.rest(posed(copy, { at: [spot[0], 0, spot[1]] }), { tilt: 0, add: false });
+              physics.drop(tried, { lift: 0.25, straightDown: true, noTurn: true });
+              placedOf.set(tried, p);
+              physics.settle();
+              physics.bakeNew();
+              if (towers(tried) || !onPlate(tried, rimFloor)) {
+                if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('failed again', p.part.ingredient, p.part.form);
+                physics.remove(tried);
+                here.add(tried);
+                continue;
+              }
+              moved = tried;
             }
-            const moved = here.rest(posed(copy, { at: [spot[0], 0, spot[1]] }), { tilt: 0 });
-            physics.drop(moved, { lift: 0.25, straightDown: true, noTurn: true });
-            placedOf.set(moved, p);
-            physics.settle();
-            physics.bakeNew();
-            if (towers(moved) || !onPlate(moved, rimFloor)) {
-              if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('failed again', p.part.ingredient, p.part.form);
-              physics.remove(moved);
+            if (!moved) {
+              if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('no spot', p.part.ingredient, p.part.form);
               lost++;
               continue;
             }
@@ -676,12 +713,13 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         ...support(food, groundOnly),
         lost,
         ...(idea.layout ? { offCentre: offCentre(food, heroFood), towering: food.filter(towers).length, maxFoodHeight: height } : {}),
+        served: [...new Set([...food.map((f) => placedOf.get(f)?.part.ingredient), ...rimServed])].filter((id): id is string => !!id),
       });
       physics.free();
     }
 
-    // Herbs last, over everything.
-    for (const [x, z] of composed.herbs) {
+    // Herbs last, over everything (never round a glass: they lay on the table as stray dots).
+    for (const [x, z] of idea.ware === 'glass' ? [] : composed.herbs) {
       const h = herbLeaf(random);
       parts.push(...posed([h], { at: [x, table.height(x, z) + 0.02, z] }));
     }

@@ -134,7 +134,7 @@ export function layoutCandidates(ids: string[], course: Course, taste: string): 
   if (course === 'snack') {
     if (threaded) add('skewer-platter');
     add('toast-board');
-    if (has('milk') || taste === 'Sweet') add('pancake-stack');
+    if (taste !== 'Savoury' && ids.some((id) => TART_FILLING.includes(id))) add('pancake-stack');
     return out;
   }
   // Main.
@@ -142,7 +142,8 @@ export function layoutCandidates(ids: string[], course: Course, taste: string): 
   if (has('baguette') && !protein) add('toast-board');
   add('circular-plate');
   if (ids.some((id) => LEAFY.includes(id)) && protein) add('leaf-salad');
-  add('mash-plate');
+  // Mash only when the table brings the potato (never a library mash: the P0 list).
+  if (has('potato')) add('mash-plate');
   if (threaded) add('skewer-platter');
   if (soupy) add('soup-bowl');
   return out;
@@ -214,7 +215,7 @@ const GLASS_CUT: Record<string, string> = {
 };
 
 /** Unhinged's other cut by the glass. */
-const GLASS_CUT_WILD: Record<string, string> = { orange: 'wedge', apple: 'wedge', pear: 'half', peach: 'wedge', lime: 'wedge', lemon: 'wedge', strawberry: 'slice', avocado: 'half', pepper: 'slice' };
+const GLASS_CUT_WILD: Record<string, string> = { orange: 'wedge', apple: 'wedge', pear: 'half', peach: 'wedge', lime: 'wedge', lemon: 'wedge', strawberry: 'slice', pepper: 'slice' };
 
 /** The cut a fruit takes on a tart or pancakes. */
 const TOPPING_CUT: Record<string, string> = {
@@ -231,10 +232,21 @@ function toppingCount(form: string, random: () => number): number {
   return odd(between(random, [5, 7]));
 }
 
+/** True when the slots serve this table ingredient: as a piece, the vehicle (toast, mash) or in the base. */
+export function servedBy(slots: Pick<Slots, 'hero' | 'support' | 'accent' | 'inBase' | 'layout'>, id: string): boolean {
+  if (slots.hero.id === id || slots.support.some((p) => p.id === id) || slots.accent.some((p) => p.id === id) || slots.inBase.includes(id)) return true;
+  return id === 'baguette' && slots.layout.id === 'toast-board';
+}
+
+/** Forms only an archetype may use: skewers, pancakes and mash. */
+const ARCHETYPE_FORMS = ['skewer', 'pancake', 'mash'];
+
 /** A table ingredient's cut for a role, from its traits (skewers only as a skewer hero). */
 function formFor(id: string, slot: 'hero' | 'support' | 'accent', wild: number, random: () => number, dessert = false): string | undefined {
   // A tall cheesecake only for dessert (the fix list: a savoury cheese is a wedge or a melt).
-  const forms = (TRAITS[id]?.forms[slot] ?? []).filter((f) => f !== 'skewer' && (dessert || !(id === 'cheese' && f === 'cake')));
+  // Platform forms belong to their own archetype (pancakes to the stack, mash to the mash plate):
+  // never picked as a plain cut, so a savoury starter never becomes pancakes (the P0 list).
+  const forms = (TRAITS[id]?.forms[slot] ?? []).filter((f) => !ARCHETYPE_FORMS.includes(f) && (dessert || !['cake', 'pastry'].includes(f)));
   if (!forms.length) return undefined;
   // Classic takes the first (the signature cut); higher Wild may take another.
   return wild >= 30 && forms.length > 1 && random() < (wild >= 70 ? 0.7 : 0.4) ? forms[1 + Math.floor(random() * (forms.length - 1))] : forms[0];
@@ -345,10 +357,8 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
       break;
     }
     case 'mash-plate': {
+      // Only cooked when the table has a potato (layoutCandidates).
       if (left.has('potato')) heroFrom('potato', 'mash', 1);
-      else if (left.has('milk')) heroFrom('milk', 'mash', 1);
-      // No potato or milk: a library mash carries the table's food.
-      else hero = { id: 'potato', form: 'mash', count: 1 };
       break;
     }
     case 'skillet-bake': {
@@ -401,7 +411,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
 
   if (!hero) {
     // The highest-ranking ingredient that can lead, in its signature cut.
-    const lead = byRank([...left].filter((id) => TRAITS[id]?.forms.hero?.length))[0];
+    const lead = byRank([...left].filter((id) => formFor(id, 'hero', 0, random, course === 'dessert')))[0];
     if (lead) {
       const form = formFor(lead, 'hero', wild, random, course === 'dessert')!;
       // Big single pieces lead alone (a cheese wedge, a cabbage wedge, a sliced chicken breast);
@@ -479,6 +489,15 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
 
   // The ware: Unhinged always takes the layout's alternative; a step out sometimes does.
   const ware = layout.wildWare && (b === 2 || (b === 1 && random() < 0.3)) ? layout.wildWare : layout.ware;
+  // Never drop an ingredient (the P0 list): one that found no part above joins as an accent in any
+  // cut it has, or goes into the sauce.
+  for (const id of ids) {
+    if (servedBy({ hero, support, accent, inBase, layout } as Slots, id)) continue;
+    const forms = TRAITS[id]?.forms;
+    const form = forms && [...(forms.accent ?? []), ...(forms.support ?? []), ...(forms.hero ?? [])].find((f) => !ARCHETYPE_FORMS.includes(f) && f !== 'cake' && f !== 'pastry');
+    if (form) accent.push({ id, form, count: Math.max(3, odd(between(random, layout.accent))) });
+    else inBase.push(id);
+  }
   const dishCourse: Course = course === 'drink' ? 'snack' : course;
   const sauce = base.startsWith('pool:') ? base : chooseSauce(layout, ids, star, choices.taste, wild);
   return { layout, hero, support, accent, base, inBase, ware, course: dishCourse, star, sauce };
@@ -544,6 +563,13 @@ export function chooseComponents(slots: Slots, wild: number, random: () => numbe
       if (b >= 1) out.push(componentGarnish('microherb', 'leaf', 7));
       if (b === 2) out.push(componentGarnish('gel', savouryGel, 5));
       break;
+    case 'rice-bowl':
+      // In the rice, never beside it: herbs and oil, gel beads for Unhinged (a puree or a tuile slid
+      // off the rice and was lost).
+      out.push(componentGarnish('microherb', 'leaf', 7));
+      if (b >= 1) out.push(componentGarnish('oil-dot', oil, 7));
+      if (b === 2) out.push(componentGarnish('gel', savouryGel, 5));
+      break;
     case 'glass-drink':
       // The drink's froth or meniscus is its finish (the glass itself is the vehicle).
       out.push({ kind: 'foam', family: 'foam', role: 'drink', count: 1, place: 'on-base' });
@@ -560,7 +586,8 @@ export function chooseComponents(slots: Slots, wild: number, random: () => numbe
     default:
       // Mains: a real accompaniment beside the hero (a puree when the table brings none), oil dots
       // and microherbs; Unhinged adds a crisp tuile and gel beads.
-      if (slots.support.length === 0 && slots.layout.id !== 'mash-plate') out.push(componentPiece('puree', PROTEINS.includes(slots.hero.id) ? 'mash' : 'cream', 1, 'beside'));
+      // Never a mash puree unless the table brought the potato (the P0 list: no invented mash).
+      if (slots.support.length === 0 && !['mash-plate', 'rice-bowl'].includes(slots.layout.id)) out.push(componentPiece('puree', hasTable('potato') ? 'mash' : 'cream', 1, 'beside'));
       out.push(componentGarnish('oil-dot', oil, 7));
       // A step out varies the finish from dish to dish (the fix list: not the same herb-and-shaving
       // stamp on every main): microherbs, a smear of the sauce, or a crisp tuile.
@@ -733,5 +760,7 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number): Dis
     seed,
     archetype: slots.layout.id,
     components,
+    table,
+    blended: [...new Set(slots.inBase)],
   };
 }

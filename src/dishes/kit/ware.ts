@@ -88,3 +88,13 @@ export const DINNER_PLATE: WareShape = { radius: 13.5, well: 8.2, rim: 2.1, floo
 /** A wide, shallow pasta bowl: a small well, sides that rise in a soft curve (about 25 cm). */
 export const PASTA_BOWL: WareShape = { radius: 12.5, well: 4.5, rim: 4.6, floor: 0.8, foot: 5, wall: 0.45, curve: 1.6 };
 
+
+/** A big deep soup bowl (about 19 cm across, 7 cm tall): a small well and steep, gently curved sides. */
+export const SOUP_BOWL: WareShape = { radius: 9.5, well: 3.6, rim: 6.8, floor: 0.9, foot: 4.2, wall: 0.5, curve: 1.25 };
+
+/** The inside radius of ware at a height (where a liquid at that level meets its side). */
+export function innerRadiusAt(s: WareShape, y: number): number {
+  const span = s.rim - s.wall * 0.5 - s.floor;
+  const t = Math.min(1, Math.max(0, (y - s.floor) / span)) ** (1 / s.curve);
+  return s.well + t * (s.radius - s.wall * 0.5 - s.well);
+}

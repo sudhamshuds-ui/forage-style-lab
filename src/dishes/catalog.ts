@@ -31,6 +31,9 @@ export interface DishIdea {
    * components that complete it (src/dishes/compose/components.ts). Never heroes. */
   archetype?: string;
   components?: import('./compose/components').DishComponent[];
+  /** Generated dishes: the table's ingredients, and those cooked into the base (rice, soup, sauce, drink). */
+  table?: string[];
+  blended?: string[];
 }
 
 const d = (id: string, title: string, heroes: [string, string, string], course: DishIdea['course'], ware: DishIdea['ware'], base: string, big: string, medium: string[], small: string[], description: string): DishIdea => ({ id, title, heroes, course, ware, base, big, medium, small, description });

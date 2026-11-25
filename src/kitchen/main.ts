@@ -449,6 +449,15 @@ function addIngredient(id: string, animate = true): boolean {
 }
 
 /** Take an ingredient off the table: it shrinks away, then the others re-centre. */
+/** Take an item off the stage. If its tile is still in the tray it goes back to the ready-made
+ * ones, so dropping it again is instant. */
+function detach(item: Item): void {
+  framed.remove(item.subject.group);
+  items.splice(items.indexOf(item), 1);
+  if (wanted.has(item.id)) ready.set(item.id, item);
+  else item.subject.dispose();
+}
+
 function removeIngredient(id: string): void {
   if (mode !== 'table') return;
   const item = staying().find((entry) => entry.id === id);
@@ -458,13 +467,9 @@ function removeIngredient(id: string): void {
   if (hovered === item) hovered = null;
   gsap.killTweensOf(item);
   gsap.killTweensOf(item.position);
-  // It fades away (the crossfade) and the others re-centre. If its tile is still in the tray it
-  // goes back to the ready-made ones, so dropping it again is instant.
+  // It fades away (the crossfade) and the others re-centre.
   const change = () => {
-    framed.remove(item.subject.group);
-    items.splice(items.indexOf(item), 1);
-    if (wanted.has(item.id)) ready.set(item.id, item);
-    else item.subject.dispose();
+    detach(item);
     applyRoom();
     relayout();
   };
@@ -613,7 +618,26 @@ const cookPanel = mountCookPanel(document.getElementById('cook-panel') as HTMLEl
 /** Reset (the fix list, P3.5): the choices go back to their defaults and the table is cleared. */
 function clearTable(): void {
   if (mode !== 'table' || cooking) return;
-  for (const item of staying()) removeIngredient(item.id);
+  // Everything leaves together in one short fade (removing them one by one ran three crossfades
+  // and three re-zooms back to back: a slow "shatter" that held the page for seconds, the P0 list).
+  const leaving = staying();
+  if (leaving.length) {
+    select(null);
+    hovered = null;
+    for (const item of leaving) {
+      item.leaving = true;
+      gsap.killTweensOf(item);
+      gsap.killTweensOf(item.position);
+    }
+    const change = () => {
+      for (const item of leaving) detach(item);
+      applyRoom();
+      relayout(false);
+    };
+    if (prefersReducedMotion()) change();
+    else crossfade(change, 0.22);
+  }
+  changed();
   cookPanel.showError('');
 }
 
