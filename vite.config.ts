@@ -6,7 +6,11 @@ export default defineConfig({
   plugins: [react()],
   // Small files (the Geist Serif font, 47 KB) are built into the page itself, so the
   // single-file previews work too.
-  build: { assetsInlineLimit: 65536 },
+  build: {
+    assetsInlineLimit: 65536,
+    // Two pages on one site: the Style Lab at the address itself, the kitchen at /kitchen.html.
+    rollupOptions: { input: { main: 'index.html', kitchen: 'kitchen.html' } },
+  },
   server: {
     // Use the port we are given (so several dev servers can run side by side), else 5173.
     port: Number(process.env.PORT) || 5173,
