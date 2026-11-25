@@ -828,7 +828,8 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       // from every other slides toward its nearest neighbour until about 0.2 cm off, then is set down
       // on what is under it. Kept only if it still lies flat on the plate, its sauce or its base (never
       // piled, never off the ware); otherwise it goes back where it was.
-      if (idea.layout && food.length > 1 && ['plate', 'slate', 'board', 'round'].includes(idea.ware)) {
+      // (Not in a soup: its pieces float in it.)
+      if (idea.layout && food.length > 1 && !idea.base.startsWith('soup:')) {
         const outline = (pieces: FormPiece[]): [number, number][] => {
           const pts: [number, number][] = [];
           for (const piece of pieces) {
