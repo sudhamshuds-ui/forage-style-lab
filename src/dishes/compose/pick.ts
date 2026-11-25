@@ -473,8 +473,9 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
   if (inBase.includes('milk') && sauceable && !inBase.includes('sauce') && !['tart', 'pancake-stack'].includes(layout.id)) base = 'pool:cream';
   else if (inBase.includes('butter') && sauceable && !inBase.includes('sauce') && !['tart', 'pancake-stack'].includes(layout.id)) base = 'pool:brown-butter';
 
-  // A savoury seared main gets a small scatter of garlic chips (never a bulb), out of the classic.
-  if (!ids.includes('garlic') && layout.id === 'circular-plate' && course === 'main' && b >= 1 && accent.length < 2) accent.push({ id: 'garlic', form: 'chip', count: 7 });
+  // A savoury seared main gets a small scatter of garlic chips (never a bulb), out of the classic;
+  // never on fruit (strawberries with crispy garlic, the first smoke test).
+  if (!ids.includes('garlic') && layout.id === 'circular-plate' && course === 'main' && b >= 1 && accent.length < 2 && TRAITS[hero.id]?.taste === 'savoury') accent.push({ id: 'garlic', form: 'chip', count: 7 });
 
   // The ware: Unhinged always takes the layout's alternative; a step out sometimes does.
   const ware = layout.wildWare && (b === 2 || (b === 1 && random() < 0.3)) ? layout.wildWare : layout.ware;
