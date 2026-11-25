@@ -126,6 +126,9 @@ export type FamilyId =
   | 'shaving-white'
   | 'porcelain'
   | 'caramel'
+  | 'ice'
+  | 'glass-rim'
+  | 'glass-glint'
   | 'cream-sauce'
   | 'maple'
   | 'drink-gold'
@@ -220,6 +223,23 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   },
   // Not a board 04 family: only for parts (a bottle's thick glass base, later jars). Pale and
   // cool, a hint of lilac, the shadow a soft mauve, never grey.
+  // Glassware's painted details (item 12): ice, a thin rim line in a cool sea-glass tint (never a
+  // white band), and the highlight streaks, warm white.
+  ice: {
+    name: 'Ice',
+    colours: { lit: '#ffffff', base: '#e4f0fa', shadow: '#9fb0d6', glow: '#f2f8ff', highlight: '#ffffff' },
+    rooms: [],
+  },
+  'glass-rim': {
+    name: 'Glass rim',
+    colours: { lit: '#d8ece8', base: '#9fc2c0', shadow: '#5e7a92', glow: '#cfe6e2', highlight: '#ffffff' },
+    rooms: [],
+  },
+  'glass-glint': {
+    name: 'Glass glint',
+    colours: { lit: '#fffdf6', base: '#fff8ea', shadow: '#e8e0f0', glow: '#fffaf0', highlight: '#ffffff' },
+    rooms: [],
+  },
   glass: {
     name: 'Glass',
     colours: { lit: '#f4eff3', base: '#ddd3de', shadow: '#97849a', glow: '#f1e6ee', highlight: '#ffffff' },

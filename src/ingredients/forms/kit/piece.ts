@@ -22,6 +22,11 @@ export interface FormPiece {
    * rind), so it shades exactly like the surface under it, with no seam at its edge.
    */
   keepNormals?: boolean;
+  /**
+   * See-through (glass, ice): painted over what lies behind it at this opacity, without hiding it,
+   * and drawn after the solid pieces. It casts no shadow.
+   */
+  seeThrough?: number;
 }
 
 /** Which state to build (`whole`, `half`, ...) and the seed from the ingredient id. */

@@ -1,4 +1,4 @@
-import { Box3, Color, Group, Mesh, Sphere, Vector3, type BufferAttribute, type ShaderMaterial } from 'three';
+import { AddEquation, Box3, Color, ConstantAlphaFactor, CustomBlending, Group, Mesh, OneFactor, OneMinusConstantAlphaFactor, Sphere, Vector3, ZeroFactor, type BufferAttribute, type ShaderMaterial } from 'three';
 import type { Settings } from '../params';
 import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
@@ -215,8 +215,24 @@ class FormSubject implements Subject {
         else if (piece.geometry.getAttribute('uv')) setSkin(material, LEAF_SKIN);
         const mesh = new Mesh(piece.geometry, material);
         mesh.name = piece.role;
+        if (piece.seeThrough) {
+          // Glass and ice: their colour laid over what is behind at a low opacity, the painting's
+          // label (alpha) left as it was underneath, drawn after the solid pieces, no depth write.
+          material.transparent = true;
+          material.depthWrite = false;
+          material.blending = CustomBlending;
+          material.blendEquation = AddEquation;
+          material.blendSrc = ConstantAlphaFactor;
+          material.blendDst = OneMinusConstantAlphaFactor;
+          material.blendSrcAlpha = ZeroFactor;
+          material.blendDstAlpha = OneFactor;
+          material.blendAlpha = piece.seeThrough;
+          mesh.renderOrder = 10;
+        }
         if (entry.playfulHide?.includes(piece.role)) this.playfulHidden.push(mesh);
-        mesh.castShadow = true;
+        // See-through pieces cast none, nor do a glass's painted rim line and streaks (they cast a
+        // thin ring on the table); a glass's foot and stem do, so its shadow meets its base.
+        mesh.castShadow = piece.role === 'glassFoot' || (!piece.seeThrough && piece.role !== 'glassRim' && piece.role !== 'glassGlint');
         // Catch shadows too: sepals on their berry, berries on each other.
         mesh.receiveShadow = true;
         member.add(mesh);

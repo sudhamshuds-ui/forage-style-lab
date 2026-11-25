@@ -1,4 +1,4 @@
-import { Box3, BufferAttribute, BufferGeometry, CylinderGeometry, LatheGeometry, Vector2, Vector3 } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, CylinderGeometry, Matrix4, Vector3 } from 'three';
 import { seededRandom, signed } from '../../ingredients/forms/kit/random';
 import { leafPiece } from '../../ingredients/forms/kit/stemLeaf';
 import type { FormBuilder, FormPiece } from '../../ingredients/forms/kit/piece';
@@ -9,6 +9,7 @@ import { withFrame } from '../kit/cut';
 import { Table, clearance, plate, posed } from '../kit/place';
 import { PhysicsPlate, physicsReady, type PhysicsReport } from '../kit/physics';
 import { pool, wobble } from '../kit/pool';
+import { glass, glassFor, takesIce, type Glass } from '../kit/glass';
 import { DINNER_PLATE, PASTA_BOWL, SOUP_BOWL, innerRadiusAt, ware } from '../kit/ware';
 import type { DishIdea } from '../catalog';
 import type { Dish } from '../dishes';
@@ -55,6 +56,10 @@ export function dishLooks(original: DishIdea): RoleLook[] {
   if (kind === 'leaves') add({ role: 'bed', family: BASE_FAMILY[idea.base] ?? 'leaf' });
   if (kind === 'drink') {
     add({ role: 'drink', family: BASE_FAMILY[idea.base] ?? 'drink-pale', skin: { ...SAUCE_SKIN, amount: 0.5 }, glossy: true });
+    add({ role: 'ice', family: 'ice', glossy: true });
+    add({ role: 'glassRim', family: 'glass-rim' });
+    add({ role: 'glassGlint', family: 'glass-glint' });
+    add({ role: 'glassFoot', family: 'glass', glossy: true });
     add({ role: 'glass', family: 'glass', glossy: true });
   }
   // Sauce on top (generated dishes whose layout asks for it): the pool's own sauce drizzled over the
@@ -215,33 +220,6 @@ function boardGeometry(w: number, h: number, d: number): BufferGeometry {
   }
   g.computeVertexNormals();
   return withFrame(g, false);
-}
-
-/** A glass tumbler with a drink in it: the drink's column, a glass base and a lip above it. */
-function drinkPieces(at: [number, number], random: () => number): FormPiece[] {
-  const R = 3.6;
-  // Only a thin lip stands above the drink: the painting cannot see through glass, so a tall clear
-  // wall would read as an opaque white band.
-  const height = 8.4;
-  const fill = 7.8;
-  // The drink: a column, its top a soft dome (froth, a meniscus), its sides a touch tapered.
-  const drink = new LatheGeometry(
-    [new Vector2(0.001, 0.9), new Vector2(R * 0.9, 0.9), new Vector2(R * 0.97, fill * 0.6), new Vector2(R * 0.985, fill), new Vector2(R * 0.7, fill + 0.35), new Vector2(0.001, fill + 0.45)],
-    64,
-  );
-  // The glass: a thick clear base and the rim standing above the drink.
-  const glass = new LatheGeometry(
-    [new Vector2(0.001, 0), new Vector2(R * 0.92, 0), new Vector2(R * 0.95, 0.9), new Vector2(R * 0.9, 0.95), new Vector2(0.001, 0.95)],
-    64,
-  );
-  const rim = new LatheGeometry([new Vector2(R * 0.985, fill), new Vector2(R, height), new Vector2(R * 1.02, height + 0.08), new Vector2(R * 0.96, height), new Vector2(R * 0.95, fill + 0.1)], 64);
-  for (const g of [drink, glass, rim]) g.translate(at[0], 0, at[1]);
-  void random;
-  return [
-    { role: 'drink', geometry: withFrame(drink, false) },
-    { role: 'glass', geometry: withFrame(glass, false) },
-    { role: 'glass', geometry: withFrame(rim, false), doubleSided: true },
-  ];
 }
 
 /** True while pieces lie on the dish: within 17 cm of its middle and not below the table. */
@@ -452,6 +430,8 @@ export function composedBuilder(original: DishIdea): FormBuilder {
     const physics = physicsReady() ? new PhysicsPlate() : null;
 
     const parts: FormPiece[] = [];
+    /** The drink's glass, when the dish is a drink. */
+    let served: Glass | undefined;
     const late: FormPiece[] = [...w.pieces];
 
     // The base.
@@ -496,9 +476,11 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         parts.push(...leaf);
       }
     } else if (kind === 'drink') {
-      const glassParts = drinkPieces(baseAt, random);
-      table.add(glassParts);
-      late.push(...glassParts);
+      // The glass for this drink (item 12): picked by the drink, the drink inside it, ice when cold.
+      const kindOfGlass = glassFor(idea.base);
+      served = glass(kindOfGlass, baseAt, random, takesIce(idea.base, kindOfGlass));
+      table.add(served.pieces.filter((piece) => !['glassGlint', 'ice'].includes(piece.role)));
+      late.push(...served.pieces);
     }
 
     // Plated tier by tier, like by hand: the hero, then the medium pieces, then the small ones.
@@ -610,12 +592,23 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         const lifted = posed(turned, { at: [p.at[0], 20, p.at[1]] });
         // On a drink, the hero garnish sits on the glass's rim.
         // (Only the first: an Unhinged heap of fruit sits on the table round the glass's foot.)
-        if (kind === 'drink' && p.size === 'big' && p.index === 0) {
-          // Slit and pushed onto the rim: the rim runs into it two fifths of the way up, half of it
-          // over the drink, half outside (balanced on the lip it read as hovering, the P0 list).
-          const box = boundsOf(turned);
-          const rimTop = table.height(baseAt[0] + 3.6, baseAt[1]);
-          const rim = posed(turned, { at: [baseAt[0] + 3.6 - (box.min.x + box.max.x) / 2, rimTop - box.min.y - 0.42 * (box.max.y - box.min.y), baseAt[1] - (box.min.z + box.max.z) / 2] });
+        if (kind === 'drink' && served && p.size === 'big' && p.index === 0) {
+          const onRim = ['wheel', 'slice', 'wedge', 'half', 'strip'].includes(p.part.form);
+          const a = Math.PI * 1.15;
+          // A wheel or slice stands up across the rim, its face to the side (lying flat it read as a
+          // lid on the glass): turned a quarter round the line from the glass's middle to the rim.
+          const upright = onRim && ['wheel', 'slice'].includes(p.part.form) ? posed(turned, new Matrix4().makeRotationAxis(new Vector3(Math.cos(a), 0, Math.sin(a)), Math.PI / 2)) : turned;
+          const box = boundsOf(upright);
+          const [cx, cz] = [(box.min.x + box.max.x) / 2, (box.min.z + box.max.z) / 2];
+          const height = box.max.y - box.min.y;
+          // Flat cuts (a wheel, a slice, a wedge, a half) are slit and pushed onto the rim on the
+          // lit side, the rim running two fifths of the way into them; small round things (berries,
+          // cubes, a leaf) float in the drink, half under its surface. Never hovering.
+          const spot: [number, number] = onRim
+            ? [baseAt[0] + Math.cos(a) * served.rim.r, baseAt[1] + Math.sin(a) * served.rim.r]
+            : [baseAt[0] + served.level.r * 0.25, baseAt[1] + served.level.r * 0.2];
+          const y = onRim ? served.rim.y - box.min.y - 0.42 * height : served.level.y - box.min.y - 0.45 * height;
+          const rim = posed(upright, { at: [spot[0] - cx, y, spot[1] - cz] });
           parts.push(...rim);
           rimServed.push(p.part.ingredient);
           continue;
