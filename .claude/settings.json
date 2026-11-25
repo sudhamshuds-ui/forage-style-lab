@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./docs/ingredients/**)",
+      "Read(./docs/process/**)",
+      "Read(./docs/superpowers/**)",
+      "Read(./references/**)",
+      "Read(./catalog-plans.json)",
+      "Read(./package-lock.json)"
+    ]
+  }
+}
