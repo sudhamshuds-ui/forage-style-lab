@@ -2,7 +2,7 @@
 
 Written by `npm run qa:generated`. Each row is a table of ingredients and cooking choices, cooked by `pickDish` and built with physics. The contract (the composable dishes spec): widest gap at most 0.5 cm, nothing floating, overlap at most 1 cm, nothing moving or lost, every piece near the hero (off centre 0), at least 70% of the garnish over food or its pool.
 
-6 of 20 pass.
+7 of 20 pass.
 
 | Table | Layout | Dish | Widest gap | Floating | Overlap | Moving | Off centre | Garnish on food | Result |
 |---|---|---|---|---|---|---|---|---|---|
@@ -11,7 +11,7 @@ Written by `npm run qa:generated`. Each row is a table of ingredients and cookin
 | baguette + avocado + tomato (Snack, Savoury, wild 10) | toast-board | Avocado and tomato toast | 0.02 | 0 | 0.14 | 0 | 0 | 100% | pass |
 | steak + romaine + tomato (Starter, Savoury, wild 20) | leaf-salad | Steak salad with tomato | 1.32 | 0 | 0.63 | 0 | 1 | 100% | 1 apart, gap 1.3 cm, 1 off centre |
 | eggs + tomato + pepper (Main, Savoury, wild 20) | skillet-bake | Baked eggs with tomato and pepper | 0.33 | 0 | 1.33 | 0 | 0 | 100% | overlap 1.3 cm |
-| chicken + grapes + pepper (Main, Savoury, wild 50) | skewer-platter | Chicken skewers with pepper and grape | 2.24 | 0 | 0.00 | 0 | 0 | 100% | 2 apart, gap 2.2 cm |
+| chicken + grapes + pepper (Main, Savoury, wild 50) | skewer-platter | Chicken skewers with pepper and grape | 0.01 | 0 | 0.13 | 0 | 0 | 100% | pass |
 | potato + salmon + onion (Starter, Savoury, wild 10) | mash-plate | Salmon and red onion rings on potato rösti | 0.01 | 0 | 0.15 | 0 | 0 | 100% | pass |
 | peach + milk + strawberry (Dessert, Sweet, wild 20) | dessert-bowl | Pancakes with peach and strawberry | 0.02 | 0 | 0.14 | 0 | 0 | 100% | pass |
 | potato + onion + milk (Starter, Savoury, wild 10) | soup-bowl | Potato soup with potato and red onion rings | 0.49 | 0 | 0.80 | 0 | 0 | 100% | pass |
