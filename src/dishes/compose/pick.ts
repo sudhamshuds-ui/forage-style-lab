@@ -5,6 +5,7 @@ import type { DishIdea } from '../catalog';
 import { componentGarnish, componentPiece, isComponent, type DishComponent } from './components';
 import { SKEWERS } from './elements';
 import { glassFor, takesIce } from '../kit/glass';
+import { pickWorldDish, worldComponents } from './world';
 import { layoutById, type LayoutId, type LayoutSpec } from './layouts';
 
 /**
@@ -230,9 +231,9 @@ export const pickLayout = pickArchetype;
  * The sauce, chosen for the dish (the fix list: never the berry sauce on every fruit dish). The
  * table's own sauce first; then by archetype, taste and who the heroes are.
  */
-function chooseSauce(layout: LayoutSpec, ids: string[], lead: string, taste: string, wild: number): string {
+function chooseSauce(layout: LayoutSpec, ids: string[], lead: string, taste: string, wild: number, sweetDish = false): string {
   const has = (id: string) => ids.includes(id);
-  const sweet = ['tart', 'plated-dessert', 'dessert-bowl', 'pancake-stack'].includes(layout.id);
+  const sweet = sweetDish || ['tart', 'plated-dessert', 'dessert-bowl', 'pancake-stack'].includes(layout.id);
   if (has('sauce') && !sweet) return has('tomato') ? 'pool:tomato-sauce' : 'pool:chili';
   // Pancakes take a syrup, never a fruit sauce (item 5): maple, honey or caramel.
   if (layout.id === 'pancake-stack') return wild < 30 ? 'pool:maple' : wild < 70 ? (CITRUS.includes(lead) || lead === 'peach' ? 'pool:honey' : 'pool:maple') : 'pool:caramel';
@@ -344,7 +345,10 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
   }
   if (layout.id === 'soup-bowl') {
     const soup = ['potato', 'tomato', 'pepper'].find((id) => left.has(id));
-    base = soup ? `soup:${soup}` : 'pool:cream';
+    // No soup ingredient on the table: a cream soup, still in the deep soup bowl.
+    base = soup ? `soup:${soup}` : 'soup:cream';
+    // The soup's own ingredient is the soup (not fries floating in it), when something else can go in.
+    if (soup && [...left].some((id) => id !== soup && id !== 'milk')) take(soup), inBase.push(soup);
     if (left.has('milk')) take('milk'), inBase.push('milk');
   }
   if (layout.id === 'dessert-bowl' && left.has('rice')) (base = 'mash:risotto'), take('rice'), inBase.push('rice');
@@ -418,7 +422,8 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
     case 'skewer-platter': {
       const p = ['chicken', 'steak', 'salmon'].find((id) => left.has(id) && SKEWERS[id].some((bd) => bd.ingredient !== id && left.has(bd.ingredient)));
       if (p) {
-        heroFrom(p, 'skewer', between(random, [2, 3]));
+        // Two skewers: a third crowded the plate and rolled off it.
+        heroFrom(p, 'skewer', 2);
         // Its partners are already threaded on the stick: they are in the dish, not a second heap.
         for (const bead of SKEWERS[p]) if (left.has(bead.ingredient)) take(bead.ingredient), inBase.push(bead.ingredient);
         star = p;
@@ -467,18 +472,20 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
     }
     case 'tartare-crudo': {
       // Cut small or thin and packed as one mound (raw: a crudo is never seared).
-      const lead = byRank([...left].filter((id) => CRUDO.includes(id)))[0] ?? byRank([...left])[0];
+      // (Only an ingredient that can be cut into pieces leads; milk alone goes into the sauce.)
+      const cuttable = (id: string) => !!(formFor(id, 'support', 0, random) ?? formFor(id, 'hero', 0, random) ?? TRAITS[id]?.forms.accent?.[0]);
+      const lead = byRank([...left].filter((id) => CRUDO.includes(id)))[0] ?? byRank([...left].filter(cuttable))[0];
       if (lead) {
         const cut = lead === 'salmon' ? (b === 0 ? 'slice' : 'cube') : lead === 'avocado' ? 'slice' : lead === 'tomato' ? 'wedge' : 'cube';
         const allowed = Object.values(TRAITS[lead]?.forms ?? {}).flat();
-        heroFrom(lead, allowed.includes(cut) ? cut : formFor(lead, 'support', wild, random) ?? formFor(lead, 'hero', wild, random) ?? 'cube', cut === 'slice' ? 5 : odd(between(random, [7, 9])));
+        heroFrom(lead, allowed.includes(cut) ? cut : formFor(lead, 'support', wild, random) ?? formFor(lead, 'hero', wild, random) ?? TRAITS[lead]?.forms.accent?.[0] ?? 'cube', cut === 'slice' ? 5 : odd(between(random, [7, 9])));
       }
       break;
     }
     case 'composed-plate': {
       // The hero cut properly: citrus in thin wheels (a carpaccio), the rest in its signature cut.
       const lead = byRank([...left])[0];
-      if (lead && ['lemon', 'lime', 'orange'].includes(lead)) heroFrom(lead, 'wheel', 7);
+      if (lead && ['lemon', 'lime', 'orange'].includes(lead)) heroFrom(lead, 'wheel', 5);
       break;
     }
     default:
@@ -512,7 +519,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
     const any = byRank([...left]).find((id) => TRAITS[id]?.forms.accent?.length || TRAITS[id]?.forms.support?.length);
     if (any) {
       const form = (TRAITS[any].forms.accent ?? TRAITS[any].forms.support!)[0];
-      heroFrom(any, form, any === 'garlic' ? 9 : form === 'wheel' ? 7 : 5);
+      heroFrom(any, form, any === 'garlic' ? 9 : 5);
     } else if (course === 'dessert') hero = { id: 'whip', form: 'cream', count: 3 };
     else hero = { id: 'garlic', form: 'chip', count: 9 };
   }
@@ -556,8 +563,8 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
 
   // ---- The sauce ----
   const wantsPool = layout.wantsUnderPool || layout.id === 'circular-plate';
-  if (wantsPool && (base === 'none' || base === 'pool:chili') && !inBase.includes('sauce')) base = chooseSauce(layout, ids, star, choices.taste, wild);
-  if (base === 'none' && wantsPool) base = chooseSauce(layout, ids, star, choices.taste, wild);
+  if (wantsPool && (base === 'none' || base === 'pool:chili') && !inBase.includes('sauce')) base = chooseSauce(layout, ids, star, choices.taste, wild, isSweetDish(layout.id, course, choices.taste));
+  if (base === 'none' && wantsPool) base = chooseSauce(layout, ids, star, choices.taste, wild, isSweetDish(layout.id, course, choices.taste));
   // Milk or butter that went into the sauce is the sauce (it must be on the plate, as the caption says).
   // A toast board has no pool (a cream pool spread over the board, item 6): milk and butter are in the toast.
   const sauceable = (base === 'none' || base.startsWith('pool:')) && layout.id !== 'toast-board';
@@ -621,7 +628,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
     else inBase.push(id);
   }
   const dishCourse: Course = course === 'drink' ? 'snack' : course;
-  const sauce = base.startsWith('pool:') ? base : chooseSauce(layout, ids, star, choices.taste, wild);
+  const sauce = base.startsWith('pool:') ? base : chooseSauce(layout, ids, star, choices.taste, wild, isSweetDish(layout.id, course, choices.taste));
   return { layout, hero, support, accent, base, inBase, ware, course: dishCourse, star, sauce, sweet, made, twist };
 }
 
@@ -743,7 +750,7 @@ const NOUN: Record<string, string> = {
   steak: 'steak', salmon: 'salmon', chicken: 'chicken', eggs: 'egg', potato: 'potato', rice: 'rice', baguette: 'bread', broccoli: 'broccoli',
   apple: 'apple', pear: 'pear', peach: 'peach', orange: 'orange', lemon: 'lemon', lime: 'lime', strawberry: 'strawberry', watermelon: 'watermelon',
   tomato: 'tomato', onion: 'red onion', pepper: 'pepper', avocado: 'avocado', grapes: 'grape', blueberries: 'blueberry', mushroom: 'mushroom',
-  cabbage: 'cabbage', spinach: 'spinach', romaine: 'romaine', cheese: 'cheese', butter: 'butter', milk: 'milk', sauce: 'chili', garlic: 'garlic',
+  cabbage: 'cabbage', spinach: 'spinach', romaine: 'romaine', cheese: 'cheese', butter: 'butter', milk: 'milk', sauce: 'chili', garlic: 'garlic', cream: 'cream',
 };
 const PLURAL: Record<string, string> = {
   strawberry: 'strawberries', blueberries: 'blueberries', grapes: 'grapes', peach: 'peaches', tomato: 'tomatoes', potato: 'potatoes', mushroom: 'mushrooms',
@@ -963,12 +970,20 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number): Dis
   const table = [...new Set(ids)].filter((id) => TRAITS[id]).slice(0, 3);
   if (!table.length) table.push('apple');
   const random = seededRandom(seed);
-  const layout = pickArchetype(table, choices, random);
+  // A real world dish first (world-dishes-brief.md): it lends the name, the layout and its finishing
+  // touches; the table's ingredients still fill the plate. Otherwise the templates cook.
+  const world = pickWorldDish(table, choices, seed);
+  const archetype = pickArchetype(table, choices, random);
+  const layout = (world && layoutById(world.layout)) || archetype;
   const slots = assignSlots(table, choices, layout, random);
   const components = chooseComponents(slots, choices.wild, random);
+  if (world) for (const c of worldComponents(world, table, !!slots.sweet)) if (!components.some((o) => o.kind === c.kind && o.family === c.family)) components.push(c);
   const part = (p: Piece) => `${p.id}:${p.form}${p.count > 1 ? `*${p.count}` : ''}`;
   const raw = ['tartare-crudo', 'leaf-salad', 'glass-drink'].includes(layout.id) || slots.course === 'dessert';
-  const { title, description } = titleDish(slots, !raw, components, seededRandom(seed ^ 0x7e57));
+  const made = titleDish(slots, !raw, components, seededRandom(seed ^ 0x7e57));
+  // A world dish keeps its real name; its caption still says what is on the plate, and where from.
+  const title = world ? world.name : made.title;
+  const description = world ? `${made.description.replace(/\.$/, '')}, the ${world.cuisine} way.` : made.description;
   const heroes = [...table, ...table, ...table].slice(0, 3) as [string, string, string];
   const pieces = components.filter((c) => c.part).map((c) => c.part!);
   // On a platform, library cream sits with the toppings (on it); everything else beside.
@@ -992,5 +1007,6 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number): Dis
     blended: [...new Set(slots.inBase)],
     sauce: slots.sauce,
     sweet: slots.sweet,
+    world: world ? { id: world.id, cuisine: world.cuisine, region: world.region } : undefined,
   };
 }

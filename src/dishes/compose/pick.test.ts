@@ -68,7 +68,8 @@ describe('pickDish (the P0 list)', () => {
       const where = `${ids.join('+')} ${choices.course} ${choices.taste} ${choices.wild}: ${idea.title} / ${idea.description}`;
       expect(idea.title, where).not.toMatch(/ on /i);
       expect(idea.title.split(/\s+/).length, where).toBeLessThanOrEqual(5);
-      expect(idea.title.split(/\s+/).length, where).toBeGreaterThanOrEqual(3);
+      // Template names are 3 to 5 words; a real world dish keeps its own name (Salmorejo, Chawanmushi).
+      if (!idea.world) expect(idea.title.split(/\s+/).length, where).toBeGreaterThanOrEqual(3);
       if (!idea.base.startsWith('leaves:') && !piecesOf(idea).some((p) => p.form === 'leaf')) expect(idea.description, where).not.toMatch(/leaves/);
       if (!ids.includes('baguette')) expect(piecesOf(idea).some((p) => p.ingredient === 'baguette' && p.form === 'cube'), where).toBe(false);
       if (choices.course === 'Main') expect(idea.layout, where).not.toBe('soup-bowl');
@@ -150,7 +151,7 @@ describe('pickDish', () => {
       expect(idea.description, where).not.toMatch(/—/);
       // The title fits on one line and is a dish name, never one ingredient word (the fix list).
       expect(idea.title.length, `${where}: ${idea.title}`).toBeLessThanOrEqual(TITLE_MAX);
-      expect(idea.title.trim().split(/\s+/).length, `${where}: ${idea.title}`).toBeGreaterThanOrEqual(2);
+      if (!idea.world) expect(idea.title.trim().split(/\s+/).length, `${where}: ${idea.title}`).toBeGreaterThanOrEqual(2);
       // No word twice ("Roast roast pepper", "Potato soup with potato").
       const words = idea.title.toLowerCase().split(/\s+/).filter((w) => !['with', 'and', 'on', 'a'].includes(w));
       expect(new Set(words).size, `${where}: ${idea.title}`).toBe(words.length);
@@ -188,9 +189,9 @@ describe('pickDish', () => {
         if (p.ingredient === 'garlic') expect(p.form).toBe('chip');
         expect(p.ingredient).not.toBe('sauce');
         // Romaine is a leaf bed, or wilted leaves beside a main (Group 1b: a main is never a salad).
-        if (p.ingredient === 'romaine') expect([p.form, choices.course]).toEqual(['leaf', 'Main']);
+        if (p.ingredient === 'romaine') expect([p.form, idea.layout === 'leaf-salad']).toEqual(['leaf', false]);
       }
-      if (ids.includes('romaine') && !ids.includes('rice') && idea.ware !== 'glass' && choices.course !== 'Main' && !idea.sweet) expect(idea.base).toBe('leaves:romaine');
+      if (idea.layout === 'leaf-salad' && ids.includes('romaine')) expect(idea.base).toBe('leaves:romaine');
     }
   });
 
@@ -231,13 +232,16 @@ describe('pickDish', () => {
       expect([juice.ware, juice.base, juice.big.split(':')[0]]).toEqual(['glass', 'drink:apple', 'apple']);
     }
     const classic = pickDish(['apple'], { course: 'Dessert', taste: 'Sweet', wild: 0 }, 3);
-    expect([classic.layout, classic.title]).toEqual(['tart', 'Apple tart with ice cream']);
+    // (A real apple tart from the world library, or the template's.)
+    expect(classic.layout).toBe('tart');
+    expect(classic.title).toMatch(/apple/i);
     const main = pickDish(['apple'], { course: 'Main', taste: 'Savoury', wild: 0 }, 3);
     expect(main.layout).not.toBe(classic.layout);
   });
 
   it('makes Wild visible: Wild 0 and 100 differ for the same table', () => {
-    const sig = (i: ReturnType<typeof pickDish>) => JSON.stringify([i.layout, i.ware, i.big, (i.components ?? []).map((c) => c.kind).sort(), i.medium.map((m) => readPart(m).form)]);
+    // A different dish: another real dish (its name), or another plating.
+    const sig = (i: ReturnType<typeof pickDish>) => JSON.stringify([i.title, i.layout, i.ware, i.big, (i.components ?? []).map((c) => c.kind).sort(), i.medium.map((m) => readPart(m).form)]);
     let same = 0;
     for (const ids of TABLES) for (const course of COURSES) {
       const a = pickDish(ids, { course, taste: 'Savoury', wild: 0 }, cookSeed(ids, { course, taste: 'Savoury', wild: 0 }));

@@ -1,0 +1,6628 @@
+[
+  {
+    "id": "nargesi-esfenaj",
+    "name": "Nargesi Esfenaj",
+    "cuisine": "Persian",
+    "region": "Middle East",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "spinach",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "spinach",
+      "eggs",
+      "onion",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "turmeric oil drizzle",
+      "flatbread wedges",
+      "microherbs"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Wilted spinach bed in pan with fried eggs nestled in wells and turmeric oil drizzle.",
+    "blurb": "Iranian saut\u00e9ed spinach and garlic crowned with sunny eggs and warm turmeric oil.",
+    "sourceUrl": "https://cooking.nytimes.com/recipes/793031226-Nargesi-Esfenaj-Spinach-and-Eggs-With-Turmeric"
+  },
+  {
+    "id": "borani-esfenaj",
+    "name": "Borani Esfenaj",
+    "cuisine": "Persian",
+    "region": "Middle East",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "spinach",
+      "milk"
+    ],
+    "coreIngredients": [
+      "spinach",
+      "milk",
+      "garlic",
+      "onion",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "yogurt swirl",
+      "pita crisps",
+      "fried onion threads",
+      "sumac dust"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Yogurt-spinach smear centred on plate, topped with crisp onion and pita crisps.",
+    "blurb": "Creamy Persian spinach and yogurt mezze finished with sweet fried shallots and garlic.",
+    "sourceUrl": "https://cooking.nytimes.com/recipes/1023209-borani-yeh-esfenaj-spinach-yogurt-dip"
+  },
+  {
+    "id": "tahchin-esfenaj",
+    "name": "Tahchin-e Esfenaj",
+    "cuisine": "Persian",
+    "region": "Middle East",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "spinach",
+      "chicken"
+    ],
+    "coreIngredients": [
+      "rice",
+      "spinach",
+      "chicken",
+      "eggs",
+      "milk"
+    ],
+    "supportingComponents": [
+      "saffron crisp crust",
+      "barberry scatter",
+      "herb oil dots"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed saffron-herb rice dome with golden tahdig crust, chicken slices and spinach.",
+    "blurb": "Iranian baked saffron rice cake layered with spiced chicken and wilted spinach.",
+    "sourceUrl": "https://persianrecipes.com/recipe/tahchin-e-esfenaj/"
+  },
+  {
+    "id": "baghali-polo",
+    "name": "Baghali Polo",
+    "cuisine": "Persian",
+    "region": "Middle East",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "butter",
+      "chicken"
+    ],
+    "coreIngredients": [
+      "rice",
+      "butter",
+      "chicken"
+    ],
+    "supportingComponents": [
+      "fava bean flecks",
+      "dill herb scatter",
+      "saffron butter glaze"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed herb-flecked rice with fava beans and roast chicken laid flat in brown butter.",
+    "blurb": "Fragrant Persian dill and fava bean rice glazed with saffron butter and chicken.",
+    "sourceUrl": "https://intercontinentalchef.com/cuisines/iran/"
+  },
+  {
+    "id": "joojeh-kabab",
+    "name": "Joojeh Kabab",
+    "cuisine": "Persian",
+    "region": "Middle East",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "chicken",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "lemon",
+      "onion",
+      "butter",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "saffron marinade glaze",
+      "sumac dust",
+      "charred flatbread"
+    ],
+    "vessel": "plate",
+    "layout": "skewer-platter",
+    "platingNotes": "Fanned saffron-lemon chicken skewers overlapping on plate with butter glaze and lemon.",
+    "blurb": "Chargrilled Persian chicken skewers marinated in saffron, lemon juice and onion.",
+    "sourceUrl": "https://intercontinentalchef.com/cuisines/iran/"
+  },
+  {
+    "id": "khoresh-fesenjan",
+    "name": "Khoresh Fesenjan",
+    "cuisine": "Persian",
+    "region": "Middle East",
+    "course": "main",
+    "taste": "both",
+    "heroes": [
+      "chicken",
+      "rice"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "rice",
+      "onion"
+    ],
+    "supportingComponents": [
+      "pomegranate walnut sauce",
+      "ruby pomegranate seeds",
+      "saffron rice mound"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed saffron rice beside braised chicken slices glazed in dark pomegranate-walnut jus.",
+    "blurb": "Classic Iranian sweet-tart stew of slow-simmered chicken in toasted walnut and pomegranate.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Fesenj%C4%81n"
+  },
+  {
+    "id": "zereshk-polo",
+    "name": "Zereshk Polo",
+    "cuisine": "Persian",
+    "region": "Middle East",
+    "course": "main",
+    "taste": "both",
+    "heroes": [
+      "rice",
+      "chicken",
+      "butter"
+    ],
+    "coreIngredients": [
+      "rice",
+      "chicken",
+      "butter",
+      "onion"
+    ],
+    "supportingComponents": [
+      "jewelled barberry scatter",
+      "saffron butter drizzle",
+      "pistachio slivers"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed golden-flecked rice with sliced saffron chicken and bright tart barberry scatter.",
+    "blurb": "Iranian celebratory saffron rice studded with tart barberries and buttered chicken.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Zereshk_polo"
+  },
+  {
+    "id": "kuku-sabzi",
+    "name": "Kuku Sabzi",
+    "cuisine": "Persian",
+    "region": "Middle East",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "eggs",
+      "spinach"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "spinach",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "herb frittata wedge",
+      "walnut crumble",
+      "barberry dots",
+      "yogurt smear"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Thick emerald herb-egg wedge centred on yogurt smear with walnut and barberry accents.",
+    "blurb": "Persian herbed frittata packed with leafy greens, garlic and jewels of barberry.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Kuku_%28food%29"
+  },
+  {
+    "id": "persian-doogh",
+    "name": "Persian Doogh",
+    "cuisine": "Persian",
+    "region": "Middle East",
+    "course": "drink",
+    "taste": "savoury",
+    "heroes": [
+      "milk",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "milk",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "dried mint dust",
+      "rose petal fleck",
+      "ice cubes"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Chilled pale yogurt drink in glass with crushed ice, mint fleck and lemon wheel beside.",
+    "blurb": "Refreshing Iranian salted yogurt drink infused with mint and bright citrus.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Iranian_cuisine"
+  },
+  {
+    "id": "gibna-wa-bateeikh",
+    "name": "Gibna wa Bateeikh",
+    "cuisine": "Egyptian",
+    "region": "North Africa",
+    "course": "starter",
+    "taste": "both",
+    "heroes": [
+      "watermelon",
+      "cheese"
+    ],
+    "coreIngredients": [
+      "watermelon",
+      "cheese",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "mint leaves",
+      "olive oil dots",
+      "nigella seed scatter"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Neat watermelon cubes and crumbled white cheese clustered together on citrus-herb oil.",
+    "blurb": "Beloved Egyptian summer pairing of sweet chilled watermelon and salty white cheese.",
+    "sourceUrl": "https://www.food.com/recipe/gibna-wi-bateegh-cheese-and-watermelon-387733"
+  },
+  {
+    "id": "egyptian-koshari",
+    "name": "Egyptian Koshari",
+    "cuisine": "Egyptian",
+    "region": "North Africa",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "tomato",
+      "sauce"
+    ],
+    "coreIngredients": [
+      "rice",
+      "tomato",
+      "onion",
+      "garlic",
+      "sauce"
+    ],
+    "supportingComponents": [
+      "crispy fried shallots",
+      "lentil flecks",
+      "chili garlic vinegar"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed rice and lentils in deep bowl crowned with spiced tomato sauce and crisp onions.",
+    "blurb": "Egypt's national street dish layering rice, lentils, crisp onions and garlicky tomato sauce.",
+    "sourceUrl": "https://travelfoodatlas.com/egyptian-food"
+  },
+  {
+    "id": "rozz-meammar",
+    "name": "Rozz Me'ammar",
+    "cuisine": "Egyptian",
+    "region": "North Africa",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "milk",
+      "butter"
+    ],
+    "coreIngredients": [
+      "rice",
+      "milk",
+      "butter"
+    ],
+    "supportingComponents": [
+      "golden baked cream crust",
+      "herb garnish"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Creamy baked rice dome in baking bowl with blistered golden butter-milk crust.",
+    "blurb": "Egyptian oven-baked rice cooked slowly in milk, cream and butter until golden on top.",
+    "sourceUrl": "https://showtheworking.com/recipes-egypt"
+  },
+  {
+    "id": "egyptian-hawawshi",
+    "name": "Egyptian Hawawshi",
+    "cuisine": "Egyptian",
+    "region": "North Africa",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "onion",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "steak",
+      "onion",
+      "pepper",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "spiced pita pocket",
+      "tahini drizzle",
+      "sumac dust"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two crisp toasted bread halves filled neatly with spiced beef, pepper and onion.",
+    "blurb": "Crispy Egyptian meat-stuffed bread baked in spiced beef fat with onion and pepper.",
+    "sourceUrl": "https://showtheworking.com/recipes-egypt"
+  },
+  {
+    "id": "batates-mahshia",
+    "name": "Batates Mahshia",
+    "cuisine": "Egyptian",
+    "region": "North Africa",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "steak",
+      "tomato"
+    ],
+    "coreIngredients": [
+      "potato",
+      "steak",
+      "tomato",
+      "rice"
+    ],
+    "supportingComponents": [
+      "spiced tomato jus",
+      "pine nut scatter",
+      "parsley leaves"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Golden potato cups stuffed with savoury spiced beef and nestled in tomato-cumin sauce.",
+    "blurb": "Egyptian baked potatoes hollowed and filled with spiced meat in a cumin tomato sauce.",
+    "sourceUrl": "https://travelfoodatlas.com/egyptian-food"
+  },
+  {
+    "id": "roz-bel-laban",
+    "name": "Roz Bel Laban",
+    "cuisine": "Egyptian",
+    "region": "North Africa",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "rice",
+      "milk"
+    ],
+    "coreIngredients": [
+      "rice",
+      "milk"
+    ],
+    "supportingComponents": [
+      "pistachio crumble",
+      "cinnamon dust",
+      "rosewater cream"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Silky rice pudding in bowl topped with crushed pistachios and light cream swirl.",
+    "blurb": "Classic Egyptian creamy rice pudding scented with vanilla, mastic and pistachio.",
+    "sourceUrl": "https://travelfoodatlas.com/egyptian-food"
+  },
+  {
+    "id": "om-ali",
+    "name": "Egyptian Om Ali",
+    "cuisine": "Egyptian",
+    "region": "North Africa",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "milk",
+      "butter",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "milk",
+      "butter",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "flaked pastry shards",
+      "pistachio scatter",
+      "whipped cream quenelle"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Baked golden pastry soaked in sweet milk and butter, topped with pistachios and cream.",
+    "blurb": "Egypt's warm bread pudding of crisp pastry baked in sweetened milk, butter and nuts.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Om_Ali"
+  },
+  {
+    "id": "saneyet-batates",
+    "name": "Saneyet Batates",
+    "cuisine": "Egyptian",
+    "region": "North Africa",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "tomato",
+      "chicken"
+    ],
+    "coreIngredients": [
+      "potato",
+      "tomato",
+      "onion",
+      "chicken",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "cumin tomato glaze",
+      "coriander leaves"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Sliced potato rounds layered under roast chicken and tomato-onion sauce in baking dish.",
+    "blurb": "Egyptian home-style traybake of sliced potatoes roasted with chicken in tomato and cumin.",
+    "sourceUrl": "https://www.seriouseats.com/egyptian-cuisine-guides-5117170"
+  },
+  {
+    "id": "salatet-batates",
+    "name": "Salatet Batates",
+    "cuisine": "Egyptian",
+    "region": "North Africa",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "garlic",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "potato",
+      "garlic",
+      "lemon",
+      "onion"
+    ],
+    "supportingComponents": [
+      "cumin herb oil",
+      "parsley scatter",
+      "chili flakes"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Warm potato cubes clustered in golden cumin-garlic oil with lemon wheels beside.",
+    "blurb": "Egyptian warm potato salad tossed in bright lemon, garlic, cumin and fresh herbs.",
+    "sourceUrl": "https://www.seriouseats.com/egyptian-cuisine-guides-5117170"
+  },
+  {
+    "id": "shakshouka",
+    "name": "Shakshouka",
+    "cuisine": "North African",
+    "region": "North Africa",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "eggs",
+      "tomato",
+      "pepper"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "tomato",
+      "pepper",
+      "onion",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "spiced tomato pool",
+      "pita wedges",
+      "cilantro microherbs"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Eggs poached in rich red tomato-pepper sauce in pan with crisp bread on the side.",
+    "blurb": "Maghrebi and Levantine dish of eggs gently poached in spiced tomato and pepper sauce.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Shakshouka"
+  },
+  {
+    "id": "turkish-menemen",
+    "name": "Turkish Menemen",
+    "cuisine": "Turkish",
+    "region": "Middle East",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "eggs",
+      "tomato",
+      "pepper"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "tomato",
+      "pepper",
+      "cheese"
+    ],
+    "supportingComponents": [
+      "pul biber chili flakes",
+      "toasted pide slices",
+      "white cheese crumble"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Soft curds of egg folded into blistered green pepper and tomato in skillet with cheese.",
+    "blurb": "Turkish breakfast scramble of soft eggs cooked gently with sweet peppers and tomatoes.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Menemen_(food)"
+  },
+  {
+    "id": "turkish-cilbir",
+    "name": "Turkish Cilbir",
+    "cuisine": "Turkish",
+    "region": "Middle East",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "eggs",
+      "milk",
+      "butter"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "milk",
+      "butter",
+      "garlic",
+      "sauce"
+    ],
+    "supportingComponents": [
+      "garlic yogurt base",
+      "aleppo chili butter",
+      "dill fronds",
+      "crusty bread"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Poached eggs resting on cool garlic yogurt pool drizzled with warm red chili butter.",
+    "blurb": "Ottoman poached eggs served over garlicky strained yogurt and sizzling chili butter.",
+    "sourceUrl": "https://grantourismotravels.com/best-mediterranean-recipes/"
+  },
+  {
+    "id": "turkish-sutlac",
+    "name": "Turkish Sutlac",
+    "cuisine": "Turkish",
+    "region": "Middle East",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "milk",
+      "rice"
+    ],
+    "coreIngredients": [
+      "milk",
+      "rice"
+    ],
+    "supportingComponents": [
+      "caramelized custard skin",
+      "hazelnut crumble",
+      "cinnamon dust"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Baked creamy rice pudding in bowl with blistered golden skin and crushed hazelnuts.",
+    "blurb": "Traditional Turkish oven-baked milk and rice pudding with a caramelized top.",
+    "sourceUrl": "https://cookwithtara.com/cuisine/turkish"
+  },
+  {
+    "id": "lebanese-fattoush",
+    "name": "Lebanese Fattoush",
+    "cuisine": "Lebanese",
+    "region": "Middle East",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "romaine",
+      "tomato",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "romaine",
+      "tomato",
+      "onion",
+      "lemon",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "crispy pita croutons",
+      "sumac vinaigrette",
+      "pomegranate jewels"
+    ],
+    "vessel": "bowl",
+    "layout": "leaf-salad",
+    "platingNotes": "Mounded nest of crisp romaine, tomatoes and toasted pita chips with sumac dressing.",
+    "blurb": "Crisp Levantine bread salad tossed with romaine, ripe tomatoes, lemon and tangy sumac.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Fattoush"
+  },
+  {
+    "id": "lebanese-toum",
+    "name": "Lebanese Toum",
+    "cuisine": "Lebanese",
+    "region": "Middle East",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "garlic",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "garlic",
+      "lemon",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "whipped garlic cloud",
+      "warm pita triangles",
+      "mint garnish"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Whipped ivory garlic emulsion swirled on plate with warm toasted bread and lemon.",
+    "blurb": "Fluffy Lebanese whipped garlic sauce emulsified with bright lemon juice.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Toum"
+  },
+  {
+    "id": "batata-harra",
+    "name": "Lebanese Batata Harra",
+    "cuisine": "Lebanese",
+    "region": "Middle East",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "garlic",
+      "sauce"
+    ],
+    "coreIngredients": [
+      "potato",
+      "garlic",
+      "sauce",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "aleppo chili oil",
+      "cilantro leaves",
+      "lemon wedge"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Crisp golden fried potato cubes clustered in red chili-garlic oil with cilantro.",
+    "blurb": "Lebanese spicy crispy potatoes tossed with sizzling garlic, chili, lemon and cilantro.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Batata_harra"
+  },
+  {
+    "id": "shish-taouk",
+    "name": "Shish Taouk",
+    "cuisine": "Lebanese",
+    "region": "Middle East",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "chicken",
+      "garlic",
+      "pepper"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "garlic",
+      "lemon",
+      "pepper"
+    ],
+    "supportingComponents": [
+      "toum garlic smear",
+      "sumac onion",
+      "flatbread wrap"
+    ],
+    "vessel": "plate",
+    "layout": "skewer-platter",
+    "platingNotes": "Overlapping bundle of grilled marinated chicken skewers beside a neat garlic toum smear.",
+    "blurb": "Levantine yogurt-and-garlic marinated chicken skewers charred and served with toum.",
+    "sourceUrl": "https://suhtayn.com/en/recipes"
+  },
+  {
+    "id": "lebanese-muhallabieh",
+    "name": "Muhallabieh",
+    "cuisine": "Lebanese",
+    "region": "Middle East",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "milk"
+    ],
+    "coreIngredients": [
+      "milk"
+    ],
+    "supportingComponents": [
+      "pistachio crumble",
+      "rosewater syrup",
+      "orange blossom glaze"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Silky snow-white milk pudding centred in bowl with rose syrup and green pistachios.",
+    "blurb": "Delicate Levantine milk pudding infused with orange blossom and crushed pistachios.",
+    "sourceUrl": "https://lbcooking.com/lebanese-recipes/"
+  },
+  {
+    "id": "mint-limonana",
+    "name": "Mint Limonana",
+    "cuisine": "Levantine",
+    "region": "Middle East",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "lemon",
+      "lime"
+    ],
+    "coreIngredients": [
+      "lemon",
+      "lime"
+    ],
+    "supportingComponents": [
+      "crushed mint ice",
+      "mint sprig",
+      "sugar rim"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Frothy pale-green minted lemonade in glass with crushed ice and lemon wheel beside.",
+    "blurb": "Refreshing Middle Eastern blended lemon and fresh mint cooler served icy cold.",
+    "sourceUrl": "https://www.epicurious.com/recipes/food/views/middle-eastern-limonana-mint-lemonade"
+  },
+  {
+    "id": "preserved-lemon-chicken",
+    "name": "Moroccan Lemon Chicken",
+    "cuisine": "Moroccan",
+    "region": "North Africa",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "chicken",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "lemon",
+      "onion",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "saffron olive jus",
+      "green olives",
+      "herb scatter"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Braised chicken legs nestled in golden saffron-lemon jus with lemon wheels and olives.",
+    "blurb": "Classic Moroccan tagine of tender chicken braised with preserved lemons and olives.",
+    "sourceUrl": "https://grantourismotravels.com/best-mediterranean-recipes/"
+  },
+  {
+    "id": "chicken-pastilla",
+    "name": "Chicken Pastilla",
+    "cuisine": "Moroccan",
+    "region": "North Africa",
+    "course": "main",
+    "taste": "both",
+    "heroes": [
+      "chicken",
+      "butter",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "eggs",
+      "butter",
+      "onion"
+    ],
+    "supportingComponents": [
+      "crisp warqa pastry",
+      "cinnamon sugar dust",
+      "toasted almond scatter"
+    ],
+    "vessel": "tart",
+    "layout": "tart",
+    "platingNotes": "Crisp golden round pastry parcel dusted with cinnamon sugar over spiced chicken.",
+    "blurb": "Moroccan sweet-and-savoury pie of spiced chicken and egg wrapped in flaky pastry.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Pastilla"
+  },
+  {
+    "id": "moroccan-taktouka",
+    "name": "Moroccan Taktouka",
+    "cuisine": "Moroccan",
+    "region": "North Africa",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "pepper",
+      "tomato",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "pepper",
+      "tomato",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "cumin paprika oil",
+      "crusty khobz bread",
+      "parsley scatter"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Silky roasted pepper and tomato compote centred on plate with cumin oil and bread.",
+    "blurb": "Moroccan smoky salad of charred sweet peppers and stewed tomatoes with garlic.",
+    "sourceUrl": "https://suhtayn.com/en/recipes"
+  },
+  {
+    "id": "slata-mechouia",
+    "name": "Slata Mechouia",
+    "cuisine": "Tunisian",
+    "region": "North Africa",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "pepper",
+      "tomato",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "pepper",
+      "tomato",
+      "garlic",
+      "eggs",
+      "onion"
+    ],
+    "supportingComponents": [
+      "harissa olive oil",
+      "black olives",
+      "capers"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Charred pepper and tomato salad mounded at centre with egg halves and olive oil.",
+    "blurb": "Tunisian flame-grilled pepper and tomato salad dressed with olive oil and eggs.",
+    "sourceUrl": "https://www.ourtunisiantable.com/home/2017/7/29/tunisian-slata-mechouia-recipe"
+  },
+  {
+    "id": "butter-chicken",
+    "name": "Butter Chicken",
+    "cuisine": "Indian",
+    "region": "South Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "chicken",
+      "butter",
+      "tomato"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "butter",
+      "tomato",
+      "garlic",
+      "milk"
+    ],
+    "supportingComponents": [
+      "velvety makhani sauce",
+      "cream swirl",
+      "fenugreek leaf dust",
+      "naan wedge"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Charred chicken pieces bathed in rich orange butter-tomato gravy with cream swirl.",
+    "blurb": "Delhi classic of tandoor-style chicken simmered in spiced tomato, butter and cream.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Butter_chicken"
+  },
+  {
+    "id": "palak-paneer",
+    "name": "Palak Paneer",
+    "cuisine": "Indian",
+    "region": "South Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "spinach",
+      "cheese"
+    ],
+    "coreIngredients": [
+      "spinach",
+      "cheese",
+      "tomato",
+      "onion",
+      "garlic",
+      "butter"
+    ],
+    "supportingComponents": [
+      "spiced spinach puree",
+      "ginger julienne",
+      "cream drizzle"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Golden paneer cheese cubes nestled in vibrant emerald spinach puree with cream swirl.",
+    "blurb": "North Indian dish of soft paneer cheese simmered in silky spiced spinach gravy.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Palak_paneer"
+  },
+  {
+    "id": "aloo-gobi",
+    "name": "Aloo Gobi",
+    "cuisine": "Indian",
+    "region": "South Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "onion",
+      "tomato"
+    ],
+    "coreIngredients": [
+      "potato",
+      "onion",
+      "tomato",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "cauliflower florets",
+      "turmeric cumin oil",
+      "cilantro leaves"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Golden turmeric-roasted potato cubes and cauliflower florets clustered on spiced oil.",
+    "blurb": "Classic North Indian dry curry of tender potatoes, cauliflower and warm cumin.",
+    "sourceUrl": "https://www.bbc.co.uk/food/recipes/aloo_gobi_and_jeera_rice_60396"
+  },
+  {
+    "id": "aloo-paratha",
+    "name": "Aloo Paratha",
+    "cuisine": "Indian",
+    "region": "South Asia",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "butter"
+    ],
+    "coreIngredients": [
+      "potato",
+      "butter",
+      "onion"
+    ],
+    "supportingComponents": [
+      "griddled flatbread",
+      "cultured butter pat",
+      "yogurt bowl"
+    ],
+    "vessel": "plate",
+    "layout": "mash-plate",
+    "platingNotes": "Crisp golden stuffed flatbread topped with melting butter pat and spiced mash edge.",
+    "blurb": "Flaky Punjabi wheat flatbread stuffed with spiced mashed potatoes and topped with butter.",
+    "sourceUrl": "https://en.m.wikipedia.org/wiki/Aloo_paratha"
+  },
+  {
+    "id": "mumbai-pav-bhaji",
+    "name": "Mumbai Pav Bhaji",
+    "cuisine": "Indian",
+    "region": "South Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "butter",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "potato",
+      "butter",
+      "tomato",
+      "pepper",
+      "onion",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "buttered toasted buns",
+      "red onion rings",
+      "lime wedge"
+    ],
+    "vessel": "plate",
+    "layout": "mash-plate",
+    "platingNotes": "Spiced red vegetable mash dome topped with butter pat beside two buttered toasted rolls.",
+    "blurb": "Mumbai street-food staple of buttery spiced vegetable mash served with toasted bread.",
+    "sourceUrl": "https://www.indianhealthyrecipes.com/pav-bhaji-recipe-how-to-make-pav-bhaji-step-by-step-pictures/"
+  },
+  {
+    "id": "chicken-biryani",
+    "name": "Chicken Biryani",
+    "cuisine": "Indian",
+    "region": "South Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "chicken",
+      "onion"
+    ],
+    "coreIngredients": [
+      "rice",
+      "chicken",
+      "onion",
+      "garlic",
+      "butter"
+    ],
+    "supportingComponents": [
+      "saffron rice streaks",
+      "crispy fried onions",
+      "mint raita swirl"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed saffron-streaked rice in deep bowl with spiced chicken and crispy fried onions.",
+    "blurb": "Aromatic South Asian layered rice cooked with spiced chicken, saffron and fried onions.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Biryani"
+  },
+  {
+    "id": "chitranna-lemon-rice",
+    "name": "Chitranna Lemon Rice",
+    "cuisine": "Indian",
+    "region": "South Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "rice",
+      "lemon",
+      "onion"
+    ],
+    "supportingComponents": [
+      "mustard seed temper",
+      "curry leaves",
+      "roasted peanuts"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Turmeric-gold mixed rice studded with peanuts and curry leaves, lemon wheel beside.",
+    "blurb": "South Indian bright turmeric rice tempered with mustard seeds, peanuts and lemon.",
+    "sourceUrl": "https://www.nithyas-kitchen.com/lemon-ricenimbu-chawallunch-box-idearice-variety-recipe/"
+  },
+  {
+    "id": "indian-rice-kheer",
+    "name": "Indian Rice Kheer",
+    "cuisine": "Indian",
+    "region": "South Asia",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "rice",
+      "milk"
+    ],
+    "coreIngredients": [
+      "rice",
+      "milk",
+      "butter"
+    ],
+    "supportingComponents": [
+      "cardamom saffron cream",
+      "pistachio almond slivers",
+      "rose petals"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Creamy cardamom-scented milk rice pudding in bowl garnished with pistachios and saffron.",
+    "blurb": "Slow-simmered Indian rice pudding perfumed with green cardamom, saffron and nuts.",
+    "sourceUrl": "https://www.cookwithmanali.com/rice-kheer/"
+  },
+  {
+    "id": "indian-rasmalai",
+    "name": "Indian Rasmalai",
+    "cuisine": "Indian",
+    "region": "South Asia",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "milk",
+      "cheese"
+    ],
+    "coreIngredients": [
+      "milk",
+      "cheese"
+    ],
+    "supportingComponents": [
+      "saffron milk pool",
+      "pistachio slivers",
+      "rose petal dust"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Soft pale paneer discs soaking in golden saffron milk topped with crushed pistachios.",
+    "blurb": "Bengali dessert of tender milk-cheese dumplings steeped in chilled saffron cream.",
+    "sourceUrl": "http://www.malas-kitchen.com/2012/11/rasmalai-indian-dessert.html"
+  },
+  {
+    "id": "nimbu-pani",
+    "name": "Indian Nimbu Pani",
+    "cuisine": "Indian",
+    "region": "South Asia",
+    "course": "drink",
+    "taste": "both",
+    "heroes": [
+      "lemon",
+      "lime"
+    ],
+    "coreIngredients": [
+      "lemon",
+      "lime"
+    ],
+    "supportingComponents": [
+      "cumin black salt rim",
+      "mint sprig",
+      "ice cubes"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Cloudy chilled citrus cooler in glass with mint and lime wedge perched beside.",
+    "blurb": "Zesty Indian street-style spiced limeade brightened with black salt and roasted cumin.",
+    "sourceUrl": "https://cooking.nytimes.com/recipes/1023202-nimbu-pani-limeade"
+  },
+  {
+    "id": "strawberry-lassi",
+    "name": "Strawberry Lassi",
+    "cuisine": "Indian",
+    "region": "South Asia",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "strawberry",
+      "milk"
+    ],
+    "coreIngredients": [
+      "strawberry",
+      "milk"
+    ],
+    "supportingComponents": [
+      "cardamom yogurt foam",
+      "strawberry half"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Blush-pink yogurt smoothie in glass with halved strawberry resting at the glass base.",
+    "blurb": "Creamy blended Punjabi yogurt and fresh strawberry drink lightly kissed with cardamom.",
+    "sourceUrl": "https://www.allrecipes.com/recipe/141367/strawberry-lassi/"
+  },
+  {
+    "id": "sweet-lassi",
+    "name": "Punjabi Sweet Lassi",
+    "cuisine": "Indian",
+    "region": "South Asia",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "milk",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "milk",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "frothy cream cap",
+      "cardamom dust",
+      "pistachio crumble"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Velvety white yogurt drink in glass with frothy cap, pistachio scatter and citrus.",
+    "blurb": "Classic North Indian chilled whipped yogurt drink scented with cardamom and citrus.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Lassi"
+  },
+  {
+    "id": "broccoli-masala-omelette",
+    "name": "Broccoli Masala Omelette",
+    "cuisine": "Indian",
+    "region": "South Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "broccoli",
+      "eggs",
+      "tomato"
+    ],
+    "coreIngredients": [
+      "broccoli",
+      "eggs",
+      "tomato",
+      "onion",
+      "pepper"
+    ],
+    "supportingComponents": [
+      "cilantro leaves",
+      "chili butter toast"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Golden folded spiced omelette studded with tender broccoli florets, tomato and onion.",
+    "blurb": "Indian street-style masala omelette packed with green broccoli, tomato and warm spices.",
+    "sourceUrl": "https://www.archanaskitchen.com/recipe/masala-omelette-waffles-recipe"
+  },
+  {
+    "id": "tamago-kake-gohan",
+    "name": "Tamago Kake Gohan",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "rice",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "soy dashi glaze",
+      "nori strips",
+      "sesame furikake"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Warm golden egg-whipped mixed rice in celadon bowl topped with yolk and nori flecks.",
+    "blurb": "Japanese comfort bowl of steaming rice whipped with silky egg, soy and furikake.",
+    "sourceUrl": "https://www.seriouseats.com/tamago-kake-gohan-egg-rice-tkg-recipe-breakfast"
+  },
+  {
+    "id": "oyakodon",
+    "name": "Japanese Oyakodon",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "chicken",
+      "eggs",
+      "rice"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "eggs",
+      "rice",
+      "onion"
+    ],
+    "supportingComponents": [
+      "dashi soy glaze",
+      "mitsuba herb leaves",
+      "scallion rings"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed rice bowl blanketed in simmered sliced chicken, sweet onion and soft set egg.",
+    "blurb": "Classic Japanese donburi of tender chicken and onions bound in silky egg over rice.",
+    "sourceUrl": "https://www.seriouseats.com/japanese-recipes"
+  },
+  {
+    "id": "salmon-ochazuke",
+    "name": "Salmon Ochazuke",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "salmon",
+      "rice"
+    ],
+    "coreIngredients": [
+      "salmon",
+      "rice"
+    ],
+    "supportingComponents": [
+      "green tea dashi broth",
+      "nori strips",
+      "rice cracker pearls"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed rice resting in pale green tea broth topped with flaked seared salmon and nori.",
+    "blurb": "Soothing Japanese rice bowl steeped in hot green tea broth with flaked salted salmon.",
+    "sourceUrl": "https://sudachirecipes.com/japanese-rice-recipes/"
+  },
+  {
+    "id": "teriyaki-salmon-bowl",
+    "name": "Teriyaki Salmon Bowl",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "both",
+    "heroes": [
+      "salmon",
+      "avocado",
+      "rice"
+    ],
+    "coreIngredients": [
+      "salmon",
+      "avocado",
+      "rice"
+    ],
+    "supportingComponents": [
+      "teriyaki lacquer glaze",
+      "sesame seed scatter",
+      "scallion ribbons"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed rice bowl with glazed salmon fillet, fanned avocado slices (no pit) and sesame.",
+    "blurb": "Glazed teriyaki salmon served over warm rice with creamy sliced avocado and sesame.",
+    "sourceUrl": "https://www.seriouseats.com/japanese-recipes"
+  },
+  {
+    "id": "ichigo-sando",
+    "name": "Ichigo Sando",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "strawberry",
+      "milk",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "strawberry",
+      "milk",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "whipped chantilly cream",
+      "soft milk bread slices"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two neat crustless bread slices filled cleanly with whipped cream and halved strawberries.",
+    "blurb": "Japanese cafe fruit sandwich layering sweet whole strawberries in fluffy whipped cream.",
+    "sourceUrl": "https://japan.recipetineats.com/ichigo-sando-strawberry-and-cream-sandwich/"
+  },
+  {
+    "id": "kinoko-gohan",
+    "name": "Kinoko Gohan",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "mushroom",
+      "rice",
+      "cabbage"
+    ],
+    "coreIngredients": [
+      "mushroom",
+      "rice",
+      "cabbage"
+    ],
+    "supportingComponents": [
+      "soy mirin broth",
+      "scallion rings",
+      "sesame scatter"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed rice richly flecked with saut\u00e9ed mushrooms and wilted cabbage in deep bowl.",
+    "blurb": "Fragrant Japanese rice steamed with earthy mushrooms, cabbage and savoury dashi.",
+    "sourceUrl": "https://japanesecooking101.com/kinoko-gohan-recipe/"
+  },
+  {
+    "id": "okonomiyaki",
+    "name": "Osaka Okonomiyaki",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "cabbage",
+      "eggs",
+      "sauce"
+    ],
+    "coreIngredients": [
+      "cabbage",
+      "eggs",
+      "sauce",
+      "onion"
+    ],
+    "supportingComponents": [
+      "savory pancake base",
+      "mayo lattice",
+      "aonori seaweed flakes"
+    ],
+    "vessel": "plate",
+    "layout": "mash-plate",
+    "platingNotes": "Golden cabbage-studded pancake round latticed with sweet-savory sauce and mayo.",
+    "blurb": "Crisp-edged Japanese savoury cabbage pancake topped with tangy sauce and seaweed.",
+    "sourceUrl": "https://www.seriouseats.com/okonomiyaki-japanese-pancake-cabbage-recipe"
+  },
+  {
+    "id": "spinach-gomaae",
+    "name": "Spinach Goma-ae",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "spinach",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "spinach",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "toasted sesame dressing",
+      "sesame seed scatter"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Neat mounded bundle of blanched spinach dressed in nutty sesame paste at plate centre.",
+    "blurb": "Japanese blanched spinach salad tossed in a rich roasted sesame and garlic dressing.",
+    "sourceUrl": "https://iheartumami.com/gomaae-japanese-spinach/"
+  },
+  {
+    "id": "tamagoyaki",
+    "name": "Tamagoyaki",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "snack",
+    "taste": "both",
+    "heroes": [
+      "eggs"
+    ],
+    "coreIngredients": [
+      "eggs"
+    ],
+    "supportingComponents": [
+      "grated daikon mound",
+      "soy glaze drizzle",
+      "scallion curl"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Thick golden rolled omelette slices shingled neatly at centre with light soy glaze.",
+    "blurb": "Sweet-savoury Japanese layered rolled omelette served in neat bite-sized slices.",
+    "sourceUrl": "https://www.seriouseats.com/home-style-tamagoyaki-japanese-rolled-omelette"
+  },
+  {
+    "id": "chicken-yakitori",
+    "name": "Chicken Yakitori",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "snack",
+    "taste": "both",
+    "heroes": [
+      "chicken",
+      "onion"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "onion"
+    ],
+    "supportingComponents": [
+      "tare soy glaze",
+      "shichimi chili dust",
+      "charred negi scallion"
+    ],
+    "vessel": "plate",
+    "layout": "skewer-platter",
+    "platingNotes": "Fanned bundle of glazed chicken and scallion skewers overlapping on plate.",
+    "blurb": "Charcoal-grilled Japanese chicken skewers lacquered in sweet soy tare glaze.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Yakitori"
+  },
+  {
+    "id": "chicken-karaage",
+    "name": "Chicken Karaage",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "chicken",
+      "lemon",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "garlic",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "crisp potato starch crust",
+      "cabbage slaw nest",
+      "kewpie mayo dot"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Crisp golden fried chicken bites clustered tightly beside lemon wedges and shredded slaw.",
+    "blurb": "Juicy Japanese ginger-garlic marinated fried chicken served crisp with fresh lemon.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Karaage"
+  },
+  {
+    "id": "chawanmushi",
+    "name": "Chawanmushi",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "eggs",
+      "chicken",
+      "mushroom"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "chicken",
+      "mushroom"
+    ],
+    "supportingComponents": [
+      "dashi custard base",
+      "mitsuba leaf",
+      "ginkgo accent"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Silky pale steamed egg custard in bowl inlaid with mushroom cap and tender chicken.",
+    "blurb": "Delicate Japanese savoury egg custard steamed with shiitake mushroom and chicken.",
+    "sourceUrl": "https://www.maff.go.jp/e/policies/market/japan-cuisine/japan/19/index.html"
+  },
+  {
+    "id": "broccoli-chawanmushi",
+    "name": "Broccoli Chawanmushi",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "broccoli",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "broccoli",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "dashi custard base",
+      "herb oil dots"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Pale-green steamed savoury egg custard in bowl inlaid with tender broccoli florets.",
+    "blurb": "Silky Japanese steamed egg custard infused with sweet broccoli puree and dashi.",
+    "sourceUrl": "https://cook1cook.com/en/recipe/19685"
+  },
+  {
+    "id": "salmon-takikomi",
+    "name": "Salmon Takikomi Gohan",
+    "cuisine": "Japanese",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "salmon",
+      "rice",
+      "mushroom"
+    ],
+    "coreIngredients": [
+      "salmon",
+      "rice",
+      "mushroom"
+    ],
+    "supportingComponents": [
+      "dashi soy infusion",
+      "ginger julienne",
+      "scallion flecks"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Seasoned mixed rice cooked with mushrooms and topped with flaked seared salmon.",
+    "blurb": "Japanese mixed rice cooked in dashi stock with flaky salmon and earthy mushrooms.",
+    "sourceUrl": "https://recipin.jp/en"
+  },
+  {
+    "id": "bibimbap",
+    "name": "Korean Bibimbap",
+    "cuisine": "Korean",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "steak",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "rice",
+      "steak",
+      "spinach",
+      "mushroom",
+      "eggs",
+      "sauce"
+    ],
+    "supportingComponents": [
+      "gochujang chili swirl",
+      "sesame oil drizzle",
+      "toasted sesame seeds"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed rice bowl arranged in neat wedges of beef, spinach, mushrooms and fried egg.",
+    "blurb": "Iconic Korean warm rice bowl crowned with seasoned vegetables, beef, egg and gochujang.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Bibimbap"
+  },
+  {
+    "id": "kimchi-bokkeumbap",
+    "name": "Kimchi Bokkeumbap",
+    "cuisine": "Korean",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "cabbage",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "rice",
+      "cabbage",
+      "eggs",
+      "sauce",
+      "onion"
+    ],
+    "supportingComponents": [
+      "nori seaweed shreds",
+      "sesame oil gloss",
+      "scallion flecks"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Spicy red fried rice mixed with caramelized cabbage kimchi and topped with sunny egg.",
+    "blurb": "Vibrant Korean kimchi fried rice finished with toasted sesame and a fried egg.",
+    "sourceUrl": "https://insanelygoodrecipes.com/korean-recipes/"
+  },
+  {
+    "id": "korean-bulgogi",
+    "name": "Korean Beef Bulgogi",
+    "cuisine": "Korean",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "both",
+    "heroes": [
+      "steak",
+      "pear",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "steak",
+      "pear",
+      "onion",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "pear soy glaze",
+      "toasted sesame seeds",
+      "scallion ribbons"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Caramelized thin beef slices shingled on plate with sweet onion rings and sesame.",
+    "blurb": "Tender Korean marinated beef tenderized with sweet pear, garlic and sesame soy.",
+    "sourceUrl": "https://www.ohmyfoodrecipes.com/bulgogi-beef/"
+  },
+  {
+    "id": "yangnyeom-chicken",
+    "name": "Yangnyeom Chicken",
+    "cuisine": "Korean",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "both",
+    "heroes": [
+      "chicken",
+      "sauce",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "sauce",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "sticky gochujang glaze",
+      "crushed peanuts",
+      "sesame seeds"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Crisp double-fried chicken pieces lacquered in glossy red chili-garlic glaze.",
+    "blurb": "Korean crispy fried chicken coated in sweet, tangy and spicy gochujang-garlic glaze.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Yangnyeom_chicken"
+  },
+  {
+    "id": "kimchi-chicken-cabbage",
+    "name": "Kimchi Chicken Stir-Fry",
+    "cuisine": "Korean",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "chicken",
+      "cabbage",
+      "sauce"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "cabbage",
+      "sauce",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "gochujang chili glaze",
+      "sesame seeds",
+      "scallion ribbons"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Seared chicken strips tossed with charred napa cabbage in crimson gochujang glaze.",
+    "blurb": "Savory Korean skillet stir-fry uniting tender chicken, napa cabbage and chili paste.",
+    "sourceUrl": "https://www.seriouseats.com/kimchi-chicken-cabbage-stir-fry"
+  },
+  {
+    "id": "gyeran-jjim",
+    "name": "Korean Gyeran-jjim",
+    "cuisine": "Korean",
+    "region": "East Asia",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "eggs",
+      "onion"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "onion"
+    ],
+    "supportingComponents": [
+      "toasted sesame drizzle",
+      "scallion rings",
+      "gochugaru fleck"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Puffed golden steamed egg dome in earthen bowl topped with scallion and chili flecks.",
+    "blurb": "Fluffy, cloud-like Korean steamed eggs finished with sesame oil and green onion.",
+    "sourceUrl": "https://www.beyondkimchee.com/best-korean-recipes/"
+  },
+  {
+    "id": "subak-hwachae",
+    "name": "Subak Hwachae",
+    "cuisine": "Korean",
+    "region": "East Asia",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "watermelon",
+      "milk"
+    ],
+    "coreIngredients": [
+      "watermelon",
+      "milk"
+    ],
+    "supportingComponents": [
+      "sparkling cream milk",
+      "mint sprig",
+      "watermelon spheres"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Chilled pink milk punch in glass with watermelon wedge resting tightly against glass.",
+    "blurb": "Refreshing Korean summer punch of sweet watermelon cubes in chilled milky soda.",
+    "sourceUrl": "https://www.beyondkimchee.com/best-korean-recipes/"
+  },
+  {
+    "id": "gamja-jeon",
+    "name": "Korean Gamja-jeon",
+    "cuisine": "Korean",
+    "region": "East Asia",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "onion",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "potato",
+      "onion",
+      "eggs",
+      "pear"
+    ],
+    "supportingComponents": [
+      "crisp potato lace cake",
+      "soy vinegar dip",
+      "sesame scatter"
+    ],
+    "vessel": "plate",
+    "layout": "mash-plate",
+    "platingNotes": "Crisp golden pan-fried potato pancake centred on plate with dipping sauce beside.",
+    "blurb": "Crispy Korean grated potato and onion pancake with a tender, chewy interior.",
+    "sourceUrl": "https://www.judyjoo.com/recipes/potato-pancakes-with-asian-pear-compote-gamja-jeon-71/"
+  },
+  {
+    "id": "korean-baesuk",
+    "name": "Korean Baesuk",
+    "cuisine": "Korean",
+    "region": "East Asia",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "pear",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "pear",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "spiced ginger syrup",
+      "pine nut scatter",
+      "cinnamon stick"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Poached pear halves bathed in clear amber ginger-cinnamon syrup with pine nuts.",
+    "blurb": "Traditional Korean spiced poached pear dessert infused with ginger and citrus.",
+    "sourceUrl": "https://www.judyjoo.com/recipes/potato-pancakes-with-asian-pear-compote-gamja-jeon-71/"
+  },
+  {
+    "id": "korean-strawberry-milk",
+    "name": "Korean Strawberry Milk",
+    "cuisine": "Korean",
+    "region": "East Asia",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "strawberry",
+      "milk"
+    ],
+    "coreIngredients": [
+      "strawberry",
+      "milk"
+    ],
+    "supportingComponents": [
+      "ruby berry compote swirl",
+      "strawberry half"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Layered pink-and-white strawberry milk in glass with fresh strawberry beside.",
+    "blurb": "Korean cafe favorite of fresh crushed strawberry compote swirled into cold milk.",
+    "sourceUrl": "https://drivemehungry.com/homemade-korean-strawberry-milk/"
+  },
+  {
+    "id": "samgyetang",
+    "name": "Korean Samgyetang",
+    "cuisine": "Korean",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "chicken",
+      "rice",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "rice",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "ginseng chicken broth",
+      "toasted garlic toast",
+      "scallion rings"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl with aromatic broth, chicken and rice, garlic bread on the side.",
+    "blurb": "Nourishing Korean chicken soup simmered with sweet rice, whole garlic and ginseng.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Samgye-tang"
+  },
+  {
+    "id": "yangzhou-fried-rice",
+    "name": "Yangzhou Fried Rice",
+    "cuisine": "Chinese",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "eggs",
+      "onion"
+    ],
+    "coreIngredients": [
+      "rice",
+      "eggs",
+      "onion"
+    ],
+    "supportingComponents": [
+      "mixed veg flecks",
+      "scallion greens",
+      "sesame oil gloss"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Fluffy golden mixed fried rice studded with egg ribbons and bright vegetable flecks.",
+    "blurb": "Celebrated Cantonese fried rice tossed with egg, scallions and colourful mixed veg.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Yangzhou_fried_rice"
+  },
+  {
+    "id": "tomato-egg-stir-fry",
+    "name": "Tomato Egg Stir-Fry",
+    "cuisine": "Chinese",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "both",
+    "heroes": [
+      "tomato",
+      "eggs",
+      "rice"
+    ],
+    "coreIngredients": [
+      "tomato",
+      "eggs",
+      "rice",
+      "onion"
+    ],
+    "supportingComponents": [
+      "glossy tomato glaze",
+      "scallion scatter",
+      "mixed rice base"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed rice topped with velvety scrambled eggs and juicy red tomato wedges in glaze.",
+    "blurb": "Iconic Chinese home dish of soft scrambled eggs folded with sweet-tangy tomatoes.",
+    "sourceUrl": "https://pupswithchopsticks.com/delicious-asian-recipes-that-takes-30-minutes-or-less/"
+  },
+  {
+    "id": "beef-and-broccoli",
+    "name": "Beef and Broccoli",
+    "cuisine": "Chinese",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "broccoli",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "steak",
+      "broccoli",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "velvet oyster glaze",
+      "toasted sesame seeds",
+      "scallion curls"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Glossy seared steak slices nestled tightly with emerald broccoli heads in savoury glaze.",
+    "blurb": "Savory Cantonese wok-seared beef and crisp broccoli coated in garlic oyster sauce.",
+    "sourceUrl": "https://www.seriouseats.com/chinese-american-beef-and-broccoli-with-oyster-sauce-recipe"
+  },
+  {
+    "id": "youmai-cai",
+    "name": "Garlic Stir-Fry Romaine",
+    "cuisine": "Chinese",
+    "region": "East Asia",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "romaine",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "romaine",
+      "garlic",
+      "sauce"
+    ],
+    "supportingComponents": [
+      "oyster chili glaze",
+      "crispy garlic chips"
+    ],
+    "vessel": "plate",
+    "layout": "leaf-salad",
+    "platingNotes": "Mounded bed of wok-kissed romaine leaves glossed with garlic sauce and crisp garlic.",
+    "blurb": "Crisp Chinese stir-fried romaine dressed in sizzling garlic and savoury sauce.",
+    "sourceUrl": "https://thewoksoflife.com/a-choy-garlic-oyster-sauce/"
+  },
+  {
+    "id": "sichuan-chili-wontons",
+    "name": "Sichuan Chili Oil Dish",
+    "cuisine": "Chinese",
+    "region": "East Asia",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "sauce",
+      "garlic",
+      "onion"
+    ],
+    "coreIngredients": [
+      "sauce",
+      "garlic",
+      "onion"
+    ],
+    "supportingComponents": [
+      "steamed dumplings",
+      "red chili oil pool",
+      "sesame scatter",
+      "cilantro"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Folded dumplings resting in vivid crimson chili-garlic oil with sesame and scallions.",
+    "blurb": "Sichuan Zhong-style dumplings bathed in aromatic spiced chili oil and sweet soy.",
+    "sourceUrl": "https://www.seriouseats.com/sichuan-wonton-chili-oil-suanla-chaoshou-recipe"
+  },
+  {
+    "id": "cabbage-chicken-stir-fry",
+    "name": "Wok Cabbage Chicken",
+    "cuisine": "Chinese",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "cabbage",
+      "chicken",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "cabbage",
+      "chicken",
+      "garlic",
+      "mushroom",
+      "broccoli"
+    ],
+    "supportingComponents": [
+      "soy chili glaze",
+      "scallion greens",
+      "sesame seeds"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Sliced chicken nestled with crisp charred cabbage strips, mushrooms and broccoli.",
+    "blurb": "Fast Chinese wok stir-fry tossing tender chicken with crunchy cabbage and garlic.",
+    "sourceUrl": "https://vegetablerecipes.com/cabbage-stir-fry-chicken/"
+  },
+  {
+    "id": "egg-fried-rice",
+    "name": "Chinese Egg Fried Rice",
+    "cuisine": "Chinese",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "eggs",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "rice",
+      "eggs",
+      "garlic",
+      "onion"
+    ],
+    "supportingComponents": [
+      "scallion flecks",
+      "white pepper soy gloss"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Golden wok-tossed mixed fried rice in deep bowl with egg curds, garlic and scallions.",
+    "blurb": "Timeless Chinese wok-fried rice fragrant with toasted garlic, scallions and fluffy egg.",
+    "sourceUrl": "https://www.wokandskillet.com/classic-and-unique-fried-rice-recipes/"
+  },
+  {
+    "id": "broccoli-garlic-rice",
+    "name": "Garlic Broccoli Rice",
+    "cuisine": "Chinese",
+    "region": "East Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "broccoli",
+      "rice",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "broccoli",
+      "rice",
+      "garlic",
+      "butter"
+    ],
+    "supportingComponents": [
+      "crispy garlic chips",
+      "toasted sesame seeds",
+      "soy glaze"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed vegetable-flecked rice in deep bowl topped with crisp broccoli and garlic chips.",
+    "blurb": "Fragrant wok-tossed rice packed with tender broccoli florets and crispy toasted garlic.",
+    "sourceUrl": "https://thewoksoflife.com/a-choy-garlic-oyster-sauce/"
+  },
+  {
+    "id": "thai-khao-pad",
+    "name": "Thai Khao Pad",
+    "cuisine": "Thai",
+    "region": "Southeast Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "eggs",
+      "lime"
+    ],
+    "coreIngredients": [
+      "rice",
+      "eggs",
+      "lime",
+      "garlic",
+      "chicken"
+    ],
+    "supportingComponents": [
+      "cucumber slices",
+      "chili fish sauce",
+      "cilantro scatter"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed jasmine fried rice with chicken slices, scrambled egg and fresh lime wedge.",
+    "blurb": "Classic Thai wok-fried jasmine rice finished with bright lime, garlic and herbs.",
+    "sourceUrl": "https://www.thaifoodguide.com/recipes/khao-pad"
+  },
+  {
+    "id": "tom-kha-gai",
+    "name": "Thai Tom Kha Gai",
+    "cuisine": "Thai",
+    "region": "Southeast Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "chicken",
+      "mushroom",
+      "milk"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "mushroom",
+      "lime",
+      "milk"
+    ],
+    "supportingComponents": [
+      "coconut galangal broth",
+      "chili oil dots",
+      "toasted flatbread",
+      "cilantro"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of creamy coconut broth, chicken slices, mushrooms and crisp bread side.",
+    "blurb": "Aromatic Thai coconut chicken soup infused with galangal, mushroom and fresh lime.",
+    "sourceUrl": "https://roblash.com/hotthai/HTK_Popular_Classic_Thai_Recipes.pdf"
+  },
+  {
+    "id": "pla-haeng-tangmo",
+    "name": "Pla Haeng Tangmo",
+    "cuisine": "Thai",
+    "region": "Southeast Asia",
+    "course": "snack",
+    "taste": "both",
+    "heroes": [
+      "watermelon",
+      "salmon",
+      "onion"
+    ],
+    "coreIngredients": [
+      "watermelon",
+      "salmon",
+      "onion"
+    ],
+    "supportingComponents": [
+      "crispy fried shallots",
+      "flaked smoked fish",
+      "mint leaves"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Chilled crimson watermelon cubes clustered neatly with crispy shallots and fish floss.",
+    "blurb": "Royal Thai summer refresher pairing cold juicy watermelon with savoury fish and shallots.",
+    "sourceUrl": "https://www.coba-grills.hk/blogs/recipes/how-to-prepare-pla-haeng-tang-mo-watermelon-with-dried-fish"
+  },
+  {
+    "id": "nam-tok-beef",
+    "name": "Thai Nam Tok Beef",
+    "cuisine": "Thai",
+    "region": "Southeast Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "lime",
+      "romaine"
+    ],
+    "coreIngredients": [
+      "steak",
+      "lime",
+      "onion",
+      "romaine"
+    ],
+    "supportingComponents": [
+      "toasted rice powder",
+      "chili lime dressing",
+      "mint leaves"
+    ],
+    "vessel": "plate",
+    "layout": "leaf-salad",
+    "platingNotes": "Sliced charred beef nestled in mounded romaine bed with lime, red onion and mint.",
+    "blurb": "Isan Thai waterfall beef salad tossed with fiery chili, lime juice and toasted rice.",
+    "sourceUrl": "https://seonkyounglongest.com/nam-tok/"
+  },
+  {
+    "id": "thai-tom-yum",
+    "name": "Thai Tom Yum",
+    "cuisine": "Thai",
+    "region": "Southeast Asia",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "lime",
+      "mushroom",
+      "tomato"
+    ],
+    "coreIngredients": [
+      "lime",
+      "mushroom",
+      "tomato",
+      "sauce"
+    ],
+    "supportingComponents": [
+      "lemongrass chili broth",
+      "tomato bread toast",
+      "cilantro leaves"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of vivid red hot-and-sour broth, mushrooms and tomatoes with bread.",
+    "blurb": "Iconic Thai hot-and-sour broth brimming with lemongrass, mushrooms, tomato and lime.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Tom_yum"
+  },
+  {
+    "id": "banh-mi-op-la",
+    "name": "Vietnamese Banh Mi",
+    "cuisine": "Vietnamese",
+    "region": "Southeast Asia",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "baguette",
+      "eggs",
+      "pepper"
+    ],
+    "coreIngredients": [
+      "baguette",
+      "eggs",
+      "pepper",
+      "sauce"
+    ],
+    "supportingComponents": [
+      "pickled carrot daikon",
+      "cilantro sprigs",
+      "chili mayo drizzle"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two neat toasted baguette halves topped cleanly with fried egg, pepper and pickles.",
+    "blurb": "Crisp Vietnamese baguette layered with sunny egg, pickled veg, herbs and chili.",
+    "sourceUrl": "https://www.seriouseats.com/vietnamese-recipes-8681536"
+  },
+  {
+    "id": "sinh-to-bo",
+    "name": "Vietnamese Sinh To Bo",
+    "cuisine": "Vietnamese",
+    "region": "Southeast Asia",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "avocado",
+      "milk"
+    ],
+    "coreIngredients": [
+      "avocado",
+      "milk"
+    ],
+    "supportingComponents": [
+      "condensed milk swirl",
+      "crushed ice"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Velvety jade avocado-milk shake in glass with thin avocado fan beside (never half/seed).",
+    "blurb": "Lush Vietnamese blended ripe avocado and sweetened milk shake served frosty cold.",
+    "sourceUrl": "https://veggiedesserts.com/sinh-to-bo-vietnamese-avocado-shake/"
+  },
+  {
+    "id": "ca-phe-trung",
+    "name": "Vietnamese Ca Phe Trung",
+    "cuisine": "Vietnamese",
+    "region": "Southeast Asia",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "eggs",
+      "milk"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "milk"
+    ],
+    "supportingComponents": [
+      "dark espresso base",
+      "whipped egg foam cap",
+      "cocoa dust"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Rich dark coffee layered under thick golden custard egg foam in glass.",
+    "blurb": "Hanoi specialty of strong coffee crowned with whipped sweetened egg yolk cream.",
+    "sourceUrl": "https://www.thekitchn.com/vietnamese-egg-coffee-recipe-23779328"
+  },
+  {
+    "id": "vietnamese-pho-ga",
+    "name": "Vietnamese Pho Ga",
+    "cuisine": "Vietnamese",
+    "region": "Southeast Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "chicken",
+      "onion",
+      "lime"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "onion",
+      "lime",
+      "rice"
+    ],
+    "supportingComponents": [
+      "star anise broth",
+      "rice noodle nest",
+      "crispy baguette side",
+      "thai basil"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of clear golden chicken broth, sliced chicken, lime and bread on side.",
+    "blurb": "Fragrant Vietnamese chicken noodle soup simmered with charred onion, ginger and lime.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Pho"
+  },
+  {
+    "id": "filipino-sinangag",
+    "name": "Filipino Sinangag",
+    "cuisine": "Filipino",
+    "region": "Southeast Asia",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "garlic",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "rice",
+      "garlic",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "crispy golden garlic chips",
+      "fried egg crown",
+      "scallion flecks"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed golden garlic fried rice in bowl topped with fried egg and crisp garlic chips.",
+    "blurb": "Beloved Filipino breakfast fried rice fragrant with toasted golden garlic and egg.",
+    "sourceUrl": "https://thegastrographer.com/ingredient/garlic"
+  },
+  {
+    "id": "mexican-guacamole",
+    "name": "Mexican Guacamole",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "avocado",
+      "lime",
+      "tomato"
+    ],
+    "coreIngredients": [
+      "avocado",
+      "lime",
+      "tomato",
+      "onion"
+    ],
+    "supportingComponents": [
+      "tortilla chips",
+      "cilantro microherbs",
+      "chili flakes"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Smashed avocado dome centred on plate (no pit/seed) with diced tomato and lime.",
+    "blurb": "Fresh Mexican mashed avocado brightened with lime juice, onion, tomato and cilantro.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Guacamole"
+  },
+  {
+    "id": "chilaquiles",
+    "name": "Mexican Chilaquiles",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "eggs",
+      "sauce",
+      "cheese"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "sauce",
+      "cheese",
+      "avocado",
+      "onion"
+    ],
+    "supportingComponents": [
+      "crisp tortilla triangles",
+      "crema drizzle",
+      "cilantro leaves"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Salsa-bathed tortilla chips in pan topped with fried eggs, cheese and sliced avocado.",
+    "blurb": "Comforting Mexican dish of crisp tortillas simmered in salsa with eggs and queso.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Chilaquiles"
+  },
+  {
+    "id": "huevos-rancheros",
+    "name": "Huevos Rancheros",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "eggs",
+      "tomato",
+      "avocado"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "tomato",
+      "sauce",
+      "avocado"
+    ],
+    "supportingComponents": [
+      "warm corn tortillas",
+      "black bean smear",
+      "cilantro scatter"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Sunny eggs set on crisp tortillas with warm tomato-chili salsa and avocado slices.",
+    "blurb": "Classic Mexican ranch breakfast of fried eggs over tortillas with smoky salsa.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/huevos_rancheros"
+  },
+  {
+    "id": "queso-fundido",
+    "name": "Queso Fundido",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "cheese",
+      "pepper",
+      "onion"
+    ],
+    "coreIngredients": [
+      "cheese",
+      "pepper",
+      "onion"
+    ],
+    "supportingComponents": [
+      "warm flour tortillas",
+      "charred pepper strips",
+      "cilantro"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Bubbling melted cheese in skillet topped with charred pepper strips and onion.",
+    "blurb": "Hot Mexican skillet of bubbling melted cheese studded with roasted peppers and onion.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Queso_flameado"
+  },
+  {
+    "id": "rajas-con-crema",
+    "name": "Rajas con Crema",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "pepper",
+      "milk",
+      "cheese"
+    ],
+    "coreIngredients": [
+      "pepper",
+      "milk",
+      "cheese",
+      "onion"
+    ],
+    "supportingComponents": [
+      "crema cheese sauce",
+      "corn kernels",
+      "warm tortillas"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Charred green pepper strips folded into rich cream and cheese sauce in baking bowl.",
+    "blurb": "Creamy Mexican comfort dish of roasted poblano pepper strips in cream and melted cheese.",
+    "sourceUrl": "https://www.allrecipes.com/rajas-con-crema-recipe-8702355"
+  },
+  {
+    "id": "steak-fajitas",
+    "name": "Sizzling Steak Fajitas",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "pepper",
+      "onion"
+    ],
+    "coreIngredients": [
+      "steak",
+      "pepper",
+      "onion",
+      "lime"
+    ],
+    "supportingComponents": [
+      "charred flour tortillas",
+      "cilantro leaves",
+      "lime wedge"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Seared steak strips clustered closely with charred sweet pepper strips and onions.",
+    "blurb": "Tex-Mex skillet classic of seared beef strips tossed with smoky peppers and onions.",
+    "sourceUrl": "https://www.seriouseats.com/quick-fix-fast-fajitas-recipe"
+  },
+  {
+    "id": "agua-de-sandia",
+    "name": "Agua de Sandia",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "watermelon",
+      "lime"
+    ],
+    "coreIngredients": [
+      "watermelon",
+      "lime"
+    ],
+    "supportingComponents": [
+      "crushed ice",
+      "lime wheel",
+      "mint sprig"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Bright ruby watermelon cooler in glass with crisp lime wheel touching the glass base.",
+    "blurb": "Refreshing Mexican street agua fresca blended from sweet watermelon and fresh lime.",
+    "sourceUrl": "https://www.foodnetwork.com/recipes/bobby-flay/agua-de-sandia-watermelon-recipe-1961209"
+  },
+  {
+    "id": "agua-de-fresa",
+    "name": "Agua de Fresa",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "strawberry",
+      "lime"
+    ],
+    "coreIngredients": [
+      "strawberry",
+      "lime"
+    ],
+    "supportingComponents": [
+      "crushed ice",
+      "strawberry half",
+      "mint leaf"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Vibrant strawberry agua fresca in glass with halved strawberry and lime wheel beside.",
+    "blurb": "Cool Mexican strawberry agua fresca lightly brightened with a squeeze of lime.",
+    "sourceUrl": "https://www.mamalatinatips.com/2023/05/strawberry-agua-fresca.html"
+  },
+  {
+    "id": "agua-de-naranja",
+    "name": "Agua de Naranja",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "orange"
+    ],
+    "coreIngredients": [
+      "orange"
+    ],
+    "supportingComponents": [
+      "orange wheel",
+      "crushed ice",
+      "cinnamon dust"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Sunlit orange agua fresca in tall glass with fresh orange wheel resting beside.",
+    "blurb": "Bright Mexican chilled orange agua fresca lightly sweetened and served over ice.",
+    "sourceUrl": "https://lolascocina.com/agua-de-naranja/"
+  },
+  {
+    "id": "mexican-horchata",
+    "name": "Mexican Horchata",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "rice",
+      "milk"
+    ],
+    "coreIngredients": [
+      "rice",
+      "milk"
+    ],
+    "supportingComponents": [
+      "cinnamon dust",
+      "cinnamon stick",
+      "ice cubes"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Creamy ivory rice-milk horchata in glass dusted lightly with warm ground cinnamon.",
+    "blurb": "Velvety Mexican cinnamon-infused rice and milk drink served cold over ice.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Horchata"
+  },
+  {
+    "id": "tomato-sangrita",
+    "name": "Mexican Sangrita",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "drink",
+    "taste": "savoury",
+    "heroes": [
+      "tomato",
+      "orange",
+      "lime"
+    ],
+    "coreIngredients": [
+      "tomato",
+      "orange",
+      "lime",
+      "sauce"
+    ],
+    "supportingComponents": [
+      "chili salt rim",
+      "lime wheel"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Deep crimson spiced tomato-citrus drink in glass with chili rim and lime wheel beside.",
+    "blurb": "Traditional Jaliscan savoury-tart chaser blending tomato, orange, lime and chili.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Agua_fresca"
+  },
+  {
+    "id": "watermelon-lime-salad",
+    "name": "Watermelon Tajin Lime",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "snack",
+    "taste": "both",
+    "heroes": [
+      "watermelon",
+      "lime"
+    ],
+    "coreIngredients": [
+      "watermelon",
+      "lime"
+    ],
+    "supportingComponents": [
+      "chili lime salt dust",
+      "mint leaves"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Neatly clustered crimson watermelon cubes dusted with red chili-lime salt and lime.",
+    "blurb": "Iconic Mexican street snack of juicy chilled watermelon spiked with chili and lime.",
+    "sourceUrl": "https://www.foodnetwork.com/recipes/bobby-flay/agua-de-sandia-watermelon-recipe-1961209"
+  },
+  {
+    "id": "avocado-lime-salad",
+    "name": "Avocado Citrus Salad",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "avocado",
+      "romaine",
+      "lime"
+    ],
+    "coreIngredients": [
+      "avocado",
+      "romaine",
+      "lime",
+      "tomato",
+      "onion"
+    ],
+    "supportingComponents": [
+      "chili lime dressing",
+      "cilantro leaves",
+      "pepita scatter"
+    ],
+    "vessel": "bowl",
+    "layout": "leaf-salad",
+    "platingNotes": "Mounded crisp romaine nest with fanned avocado slices (no pit), tomato and lime.",
+    "blurb": "Crisp Mexican greens tossed with creamy sliced avocado, tomato and zesty lime.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Guacamole"
+  },
+  {
+    "id": "tres-leches",
+    "name": "Tres Leches Cake",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "milk",
+      "eggs",
+      "strawberry"
+    ],
+    "coreIngredients": [
+      "milk",
+      "eggs",
+      "strawberry"
+    ],
+    "supportingComponents": [
+      "sponge cake base",
+      "whipped cream cloud",
+      "sweet milk pool"
+    ],
+    "vessel": "plate",
+    "layout": "dessert-bowl",
+    "platingNotes": "Sponge cake soaked in sweet milk pool crowned with whipped cream and strawberries.",
+    "blurb": "Beloved Latin American sponge cake drenched in three milks and topped with berries.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Tres_leches_cake"
+  },
+  {
+    "id": "causa-limena",
+    "name": "Peruvian Causa Limena",
+    "cuisine": "Peruvian",
+    "region": "Latin America",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "avocado",
+      "chicken"
+    ],
+    "coreIngredients": [
+      "potato",
+      "chicken",
+      "avocado",
+      "lime"
+    ],
+    "supportingComponents": [
+      "aji amarillo mash",
+      "cilantro dots",
+      "lime wheel"
+    ],
+    "vessel": "plate",
+    "layout": "mash-plate",
+    "platingNotes": "Bright yellow-gold lime-seasoned potato mash dome layered with chicken and avocado.",
+    "blurb": "Peruvian layered chilled yellow potato terrine seasoned with lime, chili and avocado.",
+    "sourceUrl": "https://granreceta.com/causa-limena/"
+  },
+  {
+    "id": "lomo-saltado",
+    "name": "Peruvian Lomo Saltado",
+    "cuisine": "Peruvian",
+    "region": "Latin America",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "potato",
+      "tomato"
+    ],
+    "coreIngredients": [
+      "steak",
+      "potato",
+      "tomato",
+      "onion",
+      "rice"
+    ],
+    "supportingComponents": [
+      "soy vinegar jus",
+      "crisp french fries",
+      "cilantro leaves"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Seared steak strips, tomato wedges and golden fries clustered tightly with mixed rice.",
+    "blurb": "Peruvian-Chinese wok stir-fry of seared beef, tomatoes, onions and crisp fries.",
+    "sourceUrl": "https://www.directoalpaladar.com/recetario/nueve-mejores-recetas-cocina-peruana-directo-al-paladar"
+  },
+  {
+    "id": "papa-huancaina",
+    "name": "Papa a la Huancaina",
+    "cuisine": "Peruvian",
+    "region": "Latin America",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "cheese",
+      "pepper"
+    ],
+    "coreIngredients": [
+      "potato",
+      "cheese",
+      "pepper",
+      "eggs",
+      "romaine"
+    ],
+    "supportingComponents": [
+      "creamy cheese pepper sauce",
+      "black olives",
+      "romaine bed"
+    ],
+    "vessel": "plate",
+    "layout": "leaf-salad",
+    "platingNotes": "Potato slices nestled on romaine bed coated in golden cheese-chili sauce and egg.",
+    "blurb": "Peruvian classic of tender potatoes bathed in a creamy spicy cheese sauce.",
+    "sourceUrl": "https://bonapetite.com/recipe/12459/papa-a-la-huancana-huancayostyle-potatoes"
+  },
+  {
+    "id": "peruvian-ceviche",
+    "name": "Peruvian Ceviche",
+    "cuisine": "Peruvian",
+    "region": "Latin America",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "salmon",
+      "lime",
+      "onion"
+    ],
+    "coreIngredients": [
+      "salmon",
+      "lime",
+      "onion",
+      "pepper"
+    ],
+    "supportingComponents": [
+      "leche de tigre pool",
+      "sweet potato coin",
+      "cilantro microherbs"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Cured fish cubes clustered in milky lime leche de tigre with red onion and pepper.",
+    "blurb": "Vibrant Peruvian citrus-cured fish dish bright with lime, chili and red onion.",
+    "sourceUrl": "https://www.directoalpaladar.com/recetario/nueve-mejores-recetas-cocina-peruana-directo-al-paladar"
+  },
+  {
+    "id": "salmon-tiradito",
+    "name": "Salmon Tiradito",
+    "cuisine": "Peruvian",
+    "region": "Latin America",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "salmon",
+      "lime",
+      "pepper"
+    ],
+    "coreIngredients": [
+      "salmon",
+      "lime",
+      "pepper"
+    ],
+    "supportingComponents": [
+      "aji amarillo tiger milk",
+      "cilantro oil dots",
+      "cancha corn"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Thin fanned raw salmon slices resting flat in golden lime-chili sauce with oil dots.",
+    "blurb": "Nikkei-Peruvian crudo of delicate salmon slices dressed in tangy lime and pepper sauce.",
+    "sourceUrl": "https://tastelab.food/encyclopedia/cuts"
+  },
+  {
+    "id": "palta-rellena",
+    "name": "Peruvian Palta Rellena",
+    "cuisine": "Peruvian",
+    "region": "Latin America",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "avocado",
+      "chicken",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "avocado",
+      "chicken",
+      "eggs",
+      "lime"
+    ],
+    "supportingComponents": [
+      "creamy chicken salad",
+      "lime herb drizzle",
+      "microherbs"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Fanned avocado slices (never half with seed) cradling savoury chicken and egg salad.",
+    "blurb": "Peruvian chilled avocado dish paired with herbed shredded chicken, lime and egg.",
+    "sourceUrl": "https://www.studyspanishlatinamerica.com/blog/5-quick-nutritious-and-delicious-latin-america-recipes/"
+  },
+  {
+    "id": "asado-chimichurri",
+    "name": "Asado with Chimichurri",
+    "cuisine": "Argentine",
+    "region": "Latin America",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "garlic",
+      "sauce"
+    ],
+    "coreIngredients": [
+      "steak",
+      "garlic",
+      "sauce"
+    ],
+    "supportingComponents": [
+      "vibrant herb chimichurri",
+      "charred lemon",
+      "parsley scatter"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Sliced seared steak on diagonal dressed on top with bright green garlic chimichurri.",
+    "blurb": "Argentine flame-grilled steak crowned with punchy parsley, garlic and chili chimichurri.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Asado"
+  },
+  {
+    "id": "steak-mushroom-skewer",
+    "name": "Steak Mushroom Skewers",
+    "cuisine": "Argentine",
+    "region": "Latin America",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "mushroom",
+      "pepper"
+    ],
+    "coreIngredients": [
+      "steak",
+      "mushroom",
+      "pepper",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "chimichurri drizzle",
+      "herb scatter"
+    ],
+    "vessel": "plate",
+    "layout": "skewer-platter",
+    "platingNotes": "Overlapping bundle of seared steak, mushroom and pepper skewers with chimichurri.",
+    "blurb": "Smoky grilled beef skewers alternating tender steak, earthy mushrooms and peppers.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Asado"
+  },
+  {
+    "id": "limonada-suica",
+    "name": "Limonada Suica",
+    "cuisine": "Brazilian",
+    "region": "Latin America",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "lime",
+      "milk"
+    ],
+    "coreIngredients": [
+      "lime",
+      "milk"
+    ],
+    "supportingComponents": [
+      "frothy cream foam",
+      "lime wheel",
+      "crushed ice"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Creamy pale-jade limeade in glass with frothy foam top and fresh lime wheel beside.",
+    "blurb": "Brazilian blended whole-lime cooler whipped frothy with sweetened condensed milk.",
+    "sourceUrl": "https://cooking.nytimes.com/recipes/1024120-limonada-brazilian-lemonade"
+  },
+  {
+    "id": "italian-caprese",
+    "name": "Italian Caprese",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "tomato",
+      "cheese"
+    ],
+    "coreIngredients": [
+      "tomato",
+      "cheese"
+    ],
+    "supportingComponents": [
+      "fresh basil leaves",
+      "olive oil dots",
+      "balsamic glaze drizzle"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Alternating shingles of ripe tomato and white mozzarella drizzled with herb oil.",
+    "blurb": "Campanian salad celebrating ripe tomatoes, creamy mozzarella, basil and olive oil.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Caprese_salad"
+  },
+  {
+    "id": "bruschetta-pomodoro",
+    "name": "Bruschetta al Pomodoro",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "baguette",
+      "tomato",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "baguette",
+      "tomato",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "basil ribbons",
+      "olive oil gloss"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two neat garlic-rubbed toast slices piled cleanly with diced ripe tomato and basil.",
+    "blurb": "Classic Italian grilled bread rubbed with garlic and topped with juicy fresh tomatoes.",
+    "sourceUrl": "https://www.elespanol.com/cocinillas/recetas/aperitivos-y-entrantes/20111004/bruschetta-pomodoro/1000064043597_30.html"
+  },
+  {
+    "id": "pappa-al-pomodoro",
+    "name": "Pappa al Pomodoro",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "tomato",
+      "baguette",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "tomato",
+      "baguette",
+      "garlic",
+      "onion"
+    ],
+    "supportingComponents": [
+      "tomato-topped garlic crouton",
+      "basil oil swirl",
+      "herb leaves"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of thick velvety Tuscan tomato soup with garlic-tomato bread on side.",
+    "blurb": "Rustic Tuscan bread-and-tomato soup finished with sweet basil and fruity olive oil.",
+    "sourceUrl": "https://www.seriouseats.com/tuscan-tomato-bread-soup-pappa-al-pomodoro-recipe"
+  },
+  {
+    "id": "tuscan-panzanella",
+    "name": "Tuscan Panzanella",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "baguette",
+      "tomato",
+      "onion"
+    ],
+    "coreIngredients": [
+      "baguette",
+      "tomato",
+      "onion"
+    ],
+    "supportingComponents": [
+      "soaked bread croutons",
+      "red wine vinaigrette",
+      "basil leaves"
+    ],
+    "vessel": "bowl",
+    "layout": "leaf-salad",
+    "platingNotes": "Mounded Tuscan salad of crisp-edged bread cubes, ripe tomato wedges and red onion.",
+    "blurb": "Florentine summer salad tossing rustic bread cubes with ripe tomatoes and sweet onion.",
+    "sourceUrl": "https://en.m.wikipedia.org/wiki/Panzanella"
+  },
+  {
+    "id": "risotto-ai-funghi",
+    "name": "Risotto ai Funghi",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "mushroom",
+      "butter"
+    ],
+    "coreIngredients": [
+      "rice",
+      "mushroom",
+      "butter",
+      "cheese",
+      "onion"
+    ],
+    "supportingComponents": [
+      "parmesan shavings",
+      "thyme leaves",
+      "brown butter gloss"
+    ],
+    "vessel": "plate",
+    "layout": "mash-plate",
+    "platingNotes": "Creamy low-mounded risotto centred on plate topped with seared mushroom halves and cheese.",
+    "blurb": "Northern Italian creamy rice simmered slowly with wild mushrooms, butter and cheese.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Risotto"
+  },
+  {
+    "id": "pear-gorgonzola-risotto",
+    "name": "Pear Gorgonzola Risotto",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "main",
+    "taste": "both",
+    "heroes": [
+      "pear",
+      "rice",
+      "cheese"
+    ],
+    "coreIngredients": [
+      "pear",
+      "rice",
+      "cheese",
+      "butter",
+      "onion"
+    ],
+    "supportingComponents": [
+      "walnut crumble",
+      "parmesan crema",
+      "thyme"
+    ],
+    "vessel": "plate",
+    "layout": "mash-plate",
+    "platingNotes": "Silky cheese risotto topped with fanned sweet pear slices and toasted walnut crumble.",
+    "blurb": "Northern Italian risotto balancing sweet cubed pear against sharp creamy Gorgonzola.",
+    "sourceUrl": "https://www.recipesfromitaly.com/risotto-with-gorgonzola-pear-and-walnuts/"
+  },
+  {
+    "id": "insalata-di-arance",
+    "name": "Insalata di Arance",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "starter",
+    "taste": "both",
+    "heroes": [
+      "orange",
+      "onion"
+    ],
+    "coreIngredients": [
+      "orange",
+      "onion"
+    ],
+    "supportingComponents": [
+      "shaved fennel",
+      "black olives",
+      "citrus olive oil"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Shingled bright orange wheels clustered with crisp onion rings and olive oil dots.",
+    "blurb": "Sicilian winter salad pairing sweet navel orange slices with crisp onion and olives.",
+    "sourceUrl": "https://www.castruriali.com/recipes/insalata-arance"
+  },
+  {
+    "id": "schiacciata-uva",
+    "name": "Schiacciata con l'Uva",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "grapes",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "grapes",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "baked grape flatbread",
+      "rosemary needles",
+      "sugar crust"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two golden baked flatbread squares studded with roasted dark grapes and sugar glaze.",
+    "blurb": "Traditional Tuscan harvest flatbread baked sweet with juicy dark wine grapes.",
+    "sourceUrl": "https://linenands.com/recipes/schiacciata-alluva-recipe"
+  },
+  {
+    "id": "broccoli-orecchiette",
+    "name": "Broccoli Orecchiette",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "broccoli",
+      "garlic",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "broccoli",
+      "garlic",
+      "lemon",
+      "cheese"
+    ],
+    "supportingComponents": [
+      "pasta shells",
+      "pecorino crumble",
+      "chili flakes"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Tender broccoli florets tossed with pasta, crisp garlic chips, lemon and cheese crumble.",
+    "blurb": "Pugliese pasta dish uniting tender broccoli, sizzling garlic, lemon zest and cheese.",
+    "sourceUrl": "https://amateurgourmet.substack.com/p/orecchiette-with-broccoli-garlic"
+  },
+  {
+    "id": "broccoli-aglio-olio",
+    "name": "Aglio e Olio Broccolini",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "garlic",
+      "sauce",
+      "broccoli"
+    ],
+    "coreIngredients": [
+      "garlic",
+      "sauce",
+      "broccoli",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "pasta ribbons",
+      "crispy garlic chips",
+      "chili flakes"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Clustered pasta with emerald broccoli, crispy garlic chips and red chili oil drizzle.",
+    "blurb": "Neapolitan garlic-and-chili pasta tossed with charred broccoli and bright lemon.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Spaghetti_aglio_e_olio"
+  },
+  {
+    "id": "cacio-e-pepe",
+    "name": "Roman Cacio e Pepe",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "cheese",
+      "butter"
+    ],
+    "coreIngredients": [
+      "cheese",
+      "butter"
+    ],
+    "supportingComponents": [
+      "pasta twirl",
+      "cracked black pepper",
+      "pecorino crema"
+    ],
+    "vessel": "bowl",
+    "layout": "mash-plate",
+    "platingNotes": "Silky pasta nest coated in glossy pecorino cheese emulsion and cracked black pepper.",
+    "blurb": "Roman pasta icon emulsifying sharp aged pecorino cheese and toasted black pepper.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Cacio_e_pepe"
+  },
+  {
+    "id": "garlic-bread",
+    "name": "Italian Garlic Bread",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "baguette",
+      "garlic",
+      "butter"
+    ],
+    "coreIngredients": [
+      "baguette",
+      "garlic",
+      "butter",
+      "cheese"
+    ],
+    "supportingComponents": [
+      "melted herb butter",
+      "parsley scatter"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two crisp golden toasted baguette slices brushed cleanly with garlic butter and herbs.",
+    "blurb": "Toasted crusty bread soaked in roasted garlic butter, herbs and melted parmesan.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Garlic_bread"
+  },
+  {
+    "id": "sauce-chili-eggs",
+    "name": "Uova in Purgatorio",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "eggs",
+      "sauce",
+      "tomato"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "sauce",
+      "tomato",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "spicy tomato chili pool",
+      "crusty bread slices",
+      "basil leaves"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Eggs poached in vibrant spiced red tomato-chili sauce in skillet with crusty bread.",
+    "blurb": "Neapolitan eggs poached in fiery garlic-chili tomato sauce and scooped with bread.",
+    "sourceUrl": "https://www.arabdairy.com/shakshouka.html"
+  },
+  {
+    "id": "grilled-peach-burrata",
+    "name": "Grilled Peach & Burrata",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "starter",
+    "taste": "both",
+    "heroes": [
+      "peach",
+      "cheese",
+      "spinach"
+    ],
+    "coreIngredients": [
+      "peach",
+      "cheese",
+      "spinach"
+    ],
+    "supportingComponents": [
+      "balsamic reduction glaze",
+      "olive oil dots",
+      "basil leaves"
+    ],
+    "vessel": "plate",
+    "layout": "leaf-salad",
+    "platingNotes": "Mounded baby spinach nest topped with charred peach wedges and creamy white cheese.",
+    "blurb": "Summer Italian starter uniting caramelized grilled peaches with cool creamy burrata.",
+    "sourceUrl": "https://pirecipes.com/14-fresh-burrata-recipes-for-gourmet-salads/"
+  },
+  {
+    "id": "peach-burrata-bruschetta",
+    "name": "Peach Burrata Bruschetta",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "snack",
+    "taste": "both",
+    "heroes": [
+      "peach",
+      "cheese",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "peach",
+      "cheese",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "honey balsamic drizzle",
+      "basil ribbons"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two neat toasted bread slices topped cleanly with creamy cheese and caramel peach slices.",
+    "blurb": "Crisp Italian bruschetta layered with soft burrata cheese and bruleed sweet peaches.",
+    "sourceUrl": "https://bonapetite.com/recipe/4609/peach-brulee-burrata-bruschetta"
+  },
+  {
+    "id": "sicilian-arancini",
+    "name": "Sicilian Arancini",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "cheese",
+      "tomato"
+    ],
+    "coreIngredients": [
+      "rice",
+      "cheese",
+      "tomato"
+    ],
+    "supportingComponents": [
+      "crisp golden crust",
+      "tomato ragu smear",
+      "basil leaf"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Three golden fried rice spheres clustered on rich red tomato sauce smear with cheese.",
+    "blurb": "Crisp Sicilian saffron rice balls stuffed with melting cheese and savoury tomato ragu.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Arancini"
+  },
+  {
+    "id": "panna-cotta",
+    "name": "Italian Panna Cotta",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "milk",
+      "strawberry",
+      "blueberries"
+    ],
+    "coreIngredients": [
+      "milk",
+      "strawberry",
+      "blueberries"
+    ],
+    "supportingComponents": [
+      "silky cream dome",
+      "berry coulis swirl",
+      "mint leaf"
+    ],
+    "vessel": "plate",
+    "layout": "dessert-bowl",
+    "platingNotes": "Glossy ivory cream dome centred on plate with strawberry halves and blueberry cluster.",
+    "blurb": "Piedmontese set sweetened cream dessert paired with fresh berries and light coulis.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Panna_cotta"
+  },
+  {
+    "id": "peach-bellini",
+    "name": "Venetian Peach Bellini",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "peach"
+    ],
+    "coreIngredients": [
+      "peach"
+    ],
+    "supportingComponents": [
+      "sparkling peach puree",
+      "peach wedge"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Blushing peach-pink sparkling drink in glass with fresh peach slice resting beside.",
+    "blurb": "Classic Venetian refresher of silky crushed white peach nectar and sparkling bubbles.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Bellini_%28cocktail%29"
+  },
+  {
+    "id": "grape-juice-spritz",
+    "name": "Sparkling Grape Spritz",
+    "cuisine": "Italian",
+    "region": "Southern Europe",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "grapes",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "grapes",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "sparkling grape nectar",
+      "grape cluster",
+      "lemon twist"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Ruby sparkling grape spritz in glass with small grape cluster resting beside glass.",
+    "blurb": "Crisp Italian-style non-alcoholic grape cooler brightened with fresh lemon zest.",
+    "sourceUrl": "https://realgreekrecipes.com/grape-pudding/"
+  },
+  {
+    "id": "steak-frites",
+    "name": "French Steak Frites",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "potato",
+      "butter"
+    ],
+    "coreIngredients": [
+      "steak",
+      "potato",
+      "butter",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "herb compound butter",
+      "golden fry bunch",
+      "watercress"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Diagonal sliced steak beside golden heap of fries in brown butter and garlic chips.",
+    "blurb": "Iconic Parisian bistro classic of seared steak, crisp golden fries and herb butter.",
+    "sourceUrl": "https://www.seriouseats.com/steak-frites-recipe-8729192"
+  },
+  {
+    "id": "steak-tartare",
+    "name": "Classic Steak Tartare",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "eggs",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "steak",
+      "eggs",
+      "onion",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "caper herb scatter",
+      "toasted baguette slices",
+      "cured egg yolk"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Neat low beef tartare cylinder crowned with egg yolk and two crisp toasts beside.",
+    "blurb": "French bistro classic of hand-chopped raw beef seasoned with shallot, egg yolk and toast.",
+    "sourceUrl": "https://www.seriouseats.com/steak-tartare-beef-recipe-8709496"
+  },
+  {
+    "id": "steak-mash-jus",
+    "name": "Bistro Steak & Mash",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "potato",
+      "milk"
+    ],
+    "coreIngredients": [
+      "steak",
+      "potato",
+      "butter",
+      "milk",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "bright yellow-white mash",
+      "red wine jus pool",
+      "thyme leaves"
+    ],
+    "vessel": "plate",
+    "layout": "mash-plate",
+    "platingNotes": "Vibrant yellow-white mash dome overlapped by fanned seared steak slices in rich jus.",
+    "blurb": "Classic French bistro plate pairing silky buttered potato puree with sliced seared steak.",
+    "sourceUrl": "https://www.seriouseats.com/steak-frites-recipe-8729192"
+  },
+  {
+    "id": "french-onion-soup",
+    "name": "Soupe a l'Oignon",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "onion",
+      "baguette",
+      "cheese"
+    ],
+    "coreIngredients": [
+      "onion",
+      "baguette",
+      "cheese",
+      "butter"
+    ],
+    "supportingComponents": [
+      "broiled cheese toast",
+      "thyme sprigs"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of rich caramelized onion broth served with cheesy gratin baguette toast.",
+    "blurb": "Classic Parisian caramelized onion soup crowned with melted cheese toast.",
+    "sourceUrl": "https://www.seriouseats.com/french-onion-soup-recipe"
+  },
+  {
+    "id": "tarte-tatin",
+    "name": "French Tarte Tatin",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "apple",
+      "butter"
+    ],
+    "coreIngredients": [
+      "apple",
+      "butter",
+      "milk"
+    ],
+    "supportingComponents": [
+      "caramelized pastry base",
+      "vanilla ice cream quenelle",
+      "caramel smear"
+    ],
+    "vessel": "tart",
+    "layout": "tart",
+    "platingNotes": "Amber caramelized apples nested on pastry with cream quenelle centred inside tart.",
+    "blurb": "Upside-down French caramelized apple tart served warm with butter pastry and cream.",
+    "sourceUrl": "https://www.homecookingadventure.com/30-best-apple-recipes/"
+  },
+  {
+    "id": "apple-galette-normande",
+    "name": "Normandy Apple Tart",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "apple"
+    ],
+    "coreIngredients": [
+      "apple",
+      "butter",
+      "milk"
+    ],
+    "supportingComponents": [
+      "fluted tart shell",
+      "whipped cream quenelle",
+      "caramel drizzle"
+    ],
+    "vessel": "tart",
+    "layout": "tart",
+    "platingNotes": "Fluted tart shell packed with fanned apple slices and cream quenelle at centre.",
+    "blurb": "Classic French Normandy pastry filled with tender baked apples and sweet cream.",
+    "sourceUrl": "https://www.homecookingadventure.com/30-best-apple-recipes/"
+  },
+  {
+    "id": "tarte-au-citron",
+    "name": "Tarte au Citron",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "lemon",
+      "butter",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "lemon",
+      "butter",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "fluted tart shell",
+      "whipped cream quenelle",
+      "candied lemon zest"
+    ],
+    "vessel": "tart",
+    "layout": "tart",
+    "platingNotes": "Fluted tart shell filled with glossy yellow lemon curd and cream quenelle in centre.",
+    "blurb": "Bright French pastry tart filled with silky butter-and-egg lemon curd.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Lemon_tart"
+  },
+  {
+    "id": "tarte-bourdaloue",
+    "name": "Tarte Bourdaloue",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "pear",
+      "butter",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "pear",
+      "butter",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "fluted tart shell",
+      "almond frangipane",
+      "whipped cream dollop"
+    ],
+    "vessel": "tart",
+    "layout": "tart",
+    "platingNotes": "Fluted tart shell filled with almond cream, fanned pear slices and cream at centre.",
+    "blurb": "Parisian classic tart of poached pear halves baked into rich butter-almond frangipane.",
+    "sourceUrl": "https://www.elespanol.com/cocinillas/recetas/postres/20171108/tarta-bourdaloue-peras-salsa-vino-tinto/1001041945796_30.html"
+  },
+  {
+    "id": "tarte-a-la-tomate",
+    "name": "Tarte a la Tomate",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "tomato",
+      "cheese",
+      "butter"
+    ],
+    "coreIngredients": [
+      "tomato",
+      "cheese",
+      "butter"
+    ],
+    "supportingComponents": [
+      "fluted savory tart shell",
+      "dijon cheese layer",
+      "thyme sprigs"
+    ],
+    "vessel": "tart",
+    "layout": "tart",
+    "platingNotes": "Fluted savoury tart shell filled with melted cheese and shingled tomato wheels.",
+    "blurb": "French summer tart layering sharp cheese and ripe sliced tomatoes in flaky pastry.",
+    "sourceUrl": "https://www.seriouseats.com/french-tomato-and-mustard-tart-tarte-a-la-tomate-et-a-la-moutarde-11778699"
+  },
+  {
+    "id": "poires-belle-helene",
+    "name": "Poires Belle Helene",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "pear",
+      "milk"
+    ],
+    "coreIngredients": [
+      "pear",
+      "milk"
+    ],
+    "supportingComponents": [
+      "dark chocolate sauce pool",
+      "vanilla cream quenelle",
+      "toasted almonds"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Poached pear half resting with white cream quenelle and warm dark sauce drizzle.",
+    "blurb": "Escoffier's iconic French dessert of poached pears with vanilla cream and warm sauce.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Poire_belle_H%C3%A9l%C3%A8ne"
+  },
+  {
+    "id": "peach-melba",
+    "name": "Peach Melba",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "peach",
+      "milk"
+    ],
+    "coreIngredients": [
+      "peach",
+      "milk",
+      "strawberry"
+    ],
+    "supportingComponents": [
+      "berry coulis drizzle",
+      "vanilla cream quenelle",
+      "almond flakes"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Poached peach wedges clustered in cream bowl with bright berry drizzle and quenelle.",
+    "blurb": "Classic Escoffier dessert uniting ripe peaches, vanilla ice cream and raspberry sauce.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Peach_Melba"
+  },
+  {
+    "id": "crepes-suzette",
+    "name": "Crepes Suzette",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "orange",
+      "butter",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "orange",
+      "butter",
+      "eggs",
+      "milk"
+    ],
+    "supportingComponents": [
+      "folded crepe stack",
+      "amber orange caramel",
+      "candied orange peel"
+    ],
+    "vessel": "plate",
+    "layout": "pancake-stack",
+    "platingNotes": "Neatly folded stack of thin crepes bathed in glossy amber orange-butter caramel.",
+    "blurb": "Classic French folded crepes simmered in caramelized orange butter and citrus zest.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Cr%C3%AApes_Suzette"
+  },
+  {
+    "id": "duck-a-lorange",
+    "name": "Duck a l'Orange",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "both",
+    "heroes": [
+      "orange",
+      "chicken",
+      "butter"
+    ],
+    "coreIngredients": [
+      "orange",
+      "chicken",
+      "butter"
+    ],
+    "supportingComponents": [
+      "bigarade citrus glaze",
+      "orange peel julienne",
+      "microherbs"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Seared poultry sliced beside bright orange wheels and glossy amber bigarade jus.",
+    "blurb": "Classic French roast poultry glazed in bitter-sweet caramelized orange reduction.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Duck_%C3%A0_l%27orange"
+  },
+  {
+    "id": "creme-brulee",
+    "name": "French Creme Brulee",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "milk",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "milk",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "burnt caramel crust",
+      "vanilla bean flecks"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Golden vanilla custard set in bowl under crisp amber caramelized sugar glass.",
+    "blurb": "Silky French baked cream and egg yolk custard topped with crackly burnt caramel.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Cr%C3%A8me_br%C3%BBl%C3%A9e"
+  },
+  {
+    "id": "fruit-clafoutis",
+    "name": "French Fruit Clafoutis",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "blueberries",
+      "eggs",
+      "milk"
+    ],
+    "coreIngredients": [
+      "blueberries",
+      "eggs",
+      "milk",
+      "butter"
+    ],
+    "supportingComponents": [
+      "custard batter bake",
+      "powdered sugar dust"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Golden baked flan-like batter studded with burst blueberries in baking dish.",
+    "blurb": "Limousin rustic dessert of sweet fruit baked inside a tender buttered egg custard.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Clafoutis"
+  },
+  {
+    "id": "pain-perdu",
+    "name": "French Pain Perdu",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "baguette",
+      "eggs",
+      "milk"
+    ],
+    "coreIngredients": [
+      "baguette",
+      "eggs",
+      "milk",
+      "butter"
+    ],
+    "supportingComponents": [
+      "maple syrup drizzle",
+      "whipped cream quenelle",
+      "cinnamon dust"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two thick golden custard-soaked bread slices topped neatly with cream and maple syrup.",
+    "blurb": "Classic French golden pan-fried bread soaked in rich egg, milk and butter.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/French_toast"
+  },
+  {
+    "id": "croque-monsieur",
+    "name": "Croque Monsieur",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "baguette",
+      "cheese",
+      "butter"
+    ],
+    "coreIngredients": [
+      "baguette",
+      "cheese",
+      "butter",
+      "milk"
+    ],
+    "supportingComponents": [
+      "bechamel cheese crust",
+      "herb scatter"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two neat toasted bread slices topped cleanly with bubbling broiled cheese and bechamel.",
+    "blurb": "Parisian cafe hot sandwich crowned with bubbling browned Gruyere and cream sauce.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Croque_monsieur"
+  },
+  {
+    "id": "quiche-lorraine",
+    "name": "Quiche Lorraine",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "eggs",
+      "cheese",
+      "milk"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "cheese",
+      "milk",
+      "butter"
+    ],
+    "supportingComponents": [
+      "fluted pastry shell",
+      "savory custard",
+      "herb leaves"
+    ],
+    "vessel": "tart",
+    "layout": "tart",
+    "platingNotes": "Golden fluted pastry tart filled flat with silky baked egg, cheese and cream.",
+    "blurb": "French open savoury custard tart baked rich with eggs, cream, butter and cheese.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Quiche_Lorraine"
+  },
+  {
+    "id": "french-tartiflette",
+    "name": "French Tartiflette",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "cheese",
+      "onion"
+    ],
+    "coreIngredients": [
+      "potato",
+      "cheese",
+      "onion",
+      "butter"
+    ],
+    "supportingComponents": [
+      "melted cheese crust",
+      "thyme leaves"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Sliced potatoes and sweet onions baked in bubbling melted cheese inside skillet.",
+    "blurb": "Savoyard Alpine potato bake smothered in melted mountain cheese, onion and butter.",
+    "sourceUrl": "https://www.yummypins.hu/en/blog/recipes/french-tartiflette"
+  },
+  {
+    "id": "florentine-omelette",
+    "name": "Florentine Omelette",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "eggs",
+      "spinach",
+      "cheese"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "spinach",
+      "cheese",
+      "butter"
+    ],
+    "supportingComponents": [
+      "melted cheese fold",
+      "herb oil drizzle",
+      "chive scatter"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Smooth folded golden omelette centred on plate with wilted spinach and melted cheese.",
+    "blurb": "Classic French-style folded omelette filled with buttered spinach and Gruyere cheese.",
+    "sourceUrl": "https://www.seriouseats.com/florentine-omelette-spinach-and-cheese"
+  },
+  {
+    "id": "pear-blue-cheese-salad",
+    "name": "Pear & Blue Cheese Salad",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "starter",
+    "taste": "both",
+    "heroes": [
+      "pear",
+      "cheese",
+      "romaine"
+    ],
+    "coreIngredients": [
+      "pear",
+      "cheese",
+      "romaine",
+      "onion"
+    ],
+    "supportingComponents": [
+      "toasted pecans",
+      "maple mustard vinaigrette"
+    ],
+    "vessel": "bowl",
+    "layout": "leaf-salad",
+    "platingNotes": "Mounded romaine greens cradling fanned pear slices, blue cheese crumble and pecans.",
+    "blurb": "Bistro autumn salad balancing crisp sweet pears against sharp blue cheese and greens.",
+    "sourceUrl": "https://bonapetite.com/recipe/4654/pear-and-blue-cheese-salad"
+  },
+  {
+    "id": "grape-cheese-board",
+    "name": "Cheese & Grape Tartine",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "snack",
+    "taste": "both",
+    "heroes": [
+      "grapes",
+      "cheese",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "grapes",
+      "cheese",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "thyme honey drizzle",
+      "cracked pepper"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two crisp toasted baguette slices topped cleanly with soft cheese and blistered grapes.",
+    "blurb": "French wine-country tartine pairing creamy cheese with sweet roasted grapes and honey.",
+    "sourceUrl": "https://linenands.com/recipes/schiacciata-alluva-recipe"
+  },
+  {
+    "id": "chilled-blueberry-tart",
+    "name": "Blueberry Custard Tart",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "blueberries",
+      "butter",
+      "milk"
+    ],
+    "coreIngredients": [
+      "blueberries",
+      "butter",
+      "milk",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "fluted tart shell",
+      "whipped cream quenelle",
+      "mint microherb"
+    ],
+    "vessel": "tart",
+    "layout": "tart",
+    "platingNotes": "Fluted pastry tart shell filled with blueberries and whipped cream centred inside.",
+    "blurb": "French patisserie tart cradling sweet blueberries in pastry cream inside crisp shell.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Clafoutis"
+  },
+  {
+    "id": "strawberry-tart",
+    "name": "Tarte aux Fraises",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "strawberry",
+      "butter",
+      "milk"
+    ],
+    "coreIngredients": [
+      "strawberry",
+      "butter",
+      "milk",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "fluted tart shell",
+      "vanilla cream centre",
+      "pistachio dust"
+    ],
+    "vessel": "tart",
+    "layout": "tart",
+    "platingNotes": "Fluted tart shell filled flat with pastry cream at centre and shingled strawberries.",
+    "blurb": "Iconic French bakery strawberry tart filled with silky vanilla pastry cream.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Eton_mess"
+  },
+  {
+    "id": "peach-tart",
+    "name": "French Peach Tart",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "peach",
+      "butter"
+    ],
+    "coreIngredients": [
+      "peach",
+      "butter",
+      "milk"
+    ],
+    "supportingComponents": [
+      "fluted tart shell",
+      "whipped cream quenelle",
+      "apricot glaze"
+    ],
+    "vessel": "tart",
+    "layout": "tart",
+    "platingNotes": "Fluted tart shell arranged with fanned sweet peach slices and cream quenelle at centre.",
+    "blurb": "Summer French orchard tart showcasing glazed sliced peaches in crisp butter pastry.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Peach_Melba"
+  },
+  {
+    "id": "potato-leek-soup",
+    "name": "French Vichyssoise",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "milk",
+      "onion"
+    ],
+    "coreIngredients": [
+      "potato",
+      "milk",
+      "onion",
+      "butter"
+    ],
+    "supportingComponents": [
+      "velvety potato cream",
+      "chive oil dots",
+      "garlic croutons"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of silky ivory potato-onion soup served with crisp herb croutons.",
+    "blurb": "Classic French velvety potato and onion cream soup garnished with chives and croutons.",
+    "sourceUrl": "https://www.yummypins.hu/en/blog/recipes/french-tartiflette"
+  },
+  {
+    "id": "butter-garlic-mushrooms",
+    "name": "Butter Garlic Roast",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "butter",
+      "garlic",
+      "mushroom"
+    ],
+    "coreIngredients": [
+      "butter",
+      "garlic",
+      "mushroom"
+    ],
+    "supportingComponents": [
+      "brown butter pool",
+      "parsley scatter",
+      "crusty bread"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Golden seared mushroom halves clustered in brown butter pool with crisp garlic chips.",
+    "blurb": "Classic French bistro side of pan-roasted mushrooms basted in nutty garlic butter.",
+    "sourceUrl": "https://getmecooking.com/recipes/gambas-al-ajillo-con-setas/"
+  },
+  {
+    "id": "salmon-butter-lemon",
+    "name": "Lemon Butter Salmon",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "salmon",
+      "butter",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "salmon",
+      "butter",
+      "lemon",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "beurre blanc pool",
+      "caper berries",
+      "dill fronds"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Seared salmon fillet (top clear) resting in lemon-butter sauce pool with lemon wheels.",
+    "blurb": "Classic seared salmon fillet bathed beneath in velvety French lemon butter sauce.",
+    "sourceUrl": "https://www.ica.se/recept/lohikeitto-finsk-laxsoppa-750901/"
+  },
+  {
+    "id": "cabbage-steak-griddle",
+    "name": "Charred Cabbage Steak",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "cabbage",
+      "butter",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "cabbage",
+      "butter",
+      "lemon",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "brown butter pool",
+      "crispy garlic chips",
+      "thyme leaves"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Seared golden cabbage wedge centred in nutty brown butter pool with lemon and garlic.",
+    "blurb": "Bistro-style charred cabbage wedge basted in browned butter, garlic and bright lemon.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Colcannon"
+  },
+  {
+    "id": "french-mushroom-omelette",
+    "name": "Omelette aux Champignons",
+    "cuisine": "French",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "eggs",
+      "mushroom",
+      "butter"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "mushroom",
+      "butter",
+      "cheese"
+    ],
+    "supportingComponents": [
+      "sauteed mushroom fold",
+      "chive scatter",
+      "brown butter gloss"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Pale tender folded French omelette centred on plate filled with saut\u00e9ed mushrooms.",
+    "blurb": "Classic French soft-curd rolled omelette folded around buttered woodland mushrooms.",
+    "sourceUrl": "https://www.seriouseats.com/classic-french-omelette-recipe"
+  },
+  {
+    "id": "pan-con-tomate",
+    "name": "Pan con Tomate",
+    "cuisine": "Spanish",
+    "region": "Southern Europe",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "baguette",
+      "tomato",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "baguette",
+      "tomato",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "tomato rub puree",
+      "olive oil gloss",
+      "sea salt flakes"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two crisp toasted bread slices brushed cleanly with bright red tomato and garlic oil.",
+    "blurb": "Catalan breakfast staple of grilled bread rubbed with garlic, ripe tomato and olive oil.",
+    "sourceUrl": "https://es.wikipedia.org/wiki/Pan_con_tomate"
+  },
+  {
+    "id": "andalusian-gazpacho",
+    "name": "Andalusian Gazpacho",
+    "cuisine": "Spanish",
+    "region": "Southern Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "tomato",
+      "pepper",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "tomato",
+      "pepper",
+      "garlic",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "chilled tomato soup",
+      "tomato-garlic croutons",
+      "olive oil dots"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of vibrant chilled tomato-pepper soup with garlicky croutons on side.",
+    "blurb": "Chilled southern Spanish soup blended from ripe summer tomatoes, sweet peppers and bread.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Gazpacho"
+  },
+  {
+    "id": "cordoban-salmorejo",
+    "name": "Cordoban Salmorejo",
+    "cuisine": "Spanish",
+    "region": "Southern Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "tomato",
+      "baguette",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "tomato",
+      "baguette",
+      "garlic",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "velvety tomato emulsion",
+      "hard-boiled egg scatter",
+      "tomato toast"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of thick coral-red tomato puree topped with egg and crusty bread side.",
+    "blurb": "Silky Cordoban chilled tomato and bread puree garnished with chopped egg and olive oil.",
+    "sourceUrl": "https://www.seriouseats.com/salmorejo-recipe-12033589"
+  },
+  {
+    "id": "ajoblanco-con-uvas",
+    "name": "Ajoblanco con Uvas",
+    "cuisine": "Spanish",
+    "region": "Southern Europe",
+    "course": "starter",
+    "taste": "both",
+    "heroes": [
+      "grapes",
+      "garlic",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "grapes",
+      "garlic",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "ivory almond soup",
+      "garlic bread toast",
+      "olive oil dots"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of chilled ivory garlic-almond soup with halved grapes and garlic toast.",
+    "blurb": "Andalusian chilled white gazpacho of almonds, garlic and bread garnished with grapes.",
+    "sourceUrl": "https://marcwiner.com/en/ajoblanco/"
+  },
+  {
+    "id": "tortilla-espanola",
+    "name": "Tortilla Espanola",
+    "cuisine": "Spanish",
+    "region": "Southern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "eggs",
+      "potato",
+      "onion"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "potato",
+      "onion"
+    ],
+    "supportingComponents": [
+      "golden potato omelette",
+      "aioli smear",
+      "parsley leaves"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Thick golden wedge of potato-onion omelette centred on plate with light garlic smear.",
+    "blurb": "Classic Spanish omelette slowly cooked with tender olive-oil potatoes and sweet onion.",
+    "sourceUrl": "https://www.abc.es/recetasderechupete/tortilla-de-patatas-espanola-receta-paso-a-paso/5182/"
+  },
+  {
+    "id": "patatas-bravas",
+    "name": "Patatas Bravas",
+    "cuisine": "Spanish",
+    "region": "Southern Europe",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "tomato",
+      "sauce"
+    ],
+    "coreIngredients": [
+      "potato",
+      "tomato",
+      "sauce",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "smoky brava chili sauce",
+      "garlic aioli drizzle",
+      "parsley"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Crisp golden potato cubes tightly piled and drizzled on top with red brava and aioli.",
+    "blurb": "Madrid tapas icon of twice-fried crisp potatoes topped with smoky chili-tomato sauce.",
+    "sourceUrl": "https://www.elespanol.com/cocinillas/recetas/aperitivos-y-entrantes/20190911/patatas-bravas-tomate-receta-facil-preparar-clasica/1001687881196_30.html"
+  },
+  {
+    "id": "sopa-de-ajo",
+    "name": "Castilian Sopa de Ajo",
+    "cuisine": "Spanish",
+    "region": "Southern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "garlic",
+      "baguette",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "garlic",
+      "baguette",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "paprika garlic broth",
+      "crispy garlic bread",
+      "poached egg"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of smoky paprika-garlic broth, poached egg and crisp garlic toast side.",
+    "blurb": "Warming Castilian garlic soup enriched with smoked paprika, toasted bread and egg.",
+    "sourceUrl": "https://www.seriouseats.com/sopa-de-ajo-garlic-soup-recipe"
+  },
+  {
+    "id": "gambas-ajillo-setas",
+    "name": "Ajillo Mushrooms",
+    "cuisine": "Spanish",
+    "region": "Southern Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "mushroom",
+      "garlic",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "mushroom",
+      "garlic",
+      "lemon",
+      "sauce"
+    ],
+    "supportingComponents": [
+      "sizzling chili garlic oil",
+      "crusty bread slices",
+      "parsley"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Seared mushroom halves bathing in golden garlic-chili oil with lemon and bread side.",
+    "blurb": "Spanish tapas skillet of meaty mushrooms seared in sizzling garlic, chili and lemon.",
+    "sourceUrl": "https://getmecooking.com/recipes/gambas-al-ajillo-con-setas/"
+  },
+  {
+    "id": "basque-cheesecake",
+    "name": "Basque Cheesecake",
+    "cuisine": "Spanish",
+    "region": "Southern Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "cheese",
+      "eggs",
+      "milk"
+    ],
+    "coreIngredients": [
+      "cheese",
+      "eggs",
+      "milk"
+    ],
+    "supportingComponents": [
+      "deeply caramelized crust",
+      "berry coulis smear"
+    ],
+    "vessel": "plate",
+    "layout": "dessert-bowl",
+    "platingNotes": "Creamy scorched-top cheesecake wedge centred on plate with modest fruit sauce smear.",
+    "blurb": "San Sebastian crustless cheesecake baked hot for a caramelized crown and custardy heart.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Basque_cheesecake"
+  },
+  {
+    "id": "valencian-paella",
+    "name": "Valencian Paella",
+    "cuisine": "Spanish",
+    "region": "Southern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "chicken",
+      "pepper"
+    ],
+    "coreIngredients": [
+      "rice",
+      "chicken",
+      "pepper",
+      "tomato",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "saffron socarrat rice",
+      "rosemary sprig",
+      "lemon wedge"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Wide golden saffron rice layer studded with chicken, red pepper strips and lemon.",
+    "blurb": "Spain's celebrated saffron rice dish cooked wide in a pan with chicken and peppers.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Paella"
+  },
+  {
+    "id": "greek-avgolemono",
+    "name": "Greek Avgolemono",
+    "cuisine": "Greek",
+    "region": "Southern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "chicken",
+      "lemon",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "lemon",
+      "eggs",
+      "rice"
+    ],
+    "supportingComponents": [
+      "silky lemon egg broth",
+      "crusty lemon bread",
+      "dill fronds"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of velvety golden lemon-egg chicken broth with rice and bread on side.",
+    "blurb": "Beloved Greek chicken soup thickened with a silky tempered emulsion of lemon and egg.",
+    "sourceUrl": "https://www.seriouseats.com/avgolemono-soup-greek-lemon-egg-chicken-soup"
+  },
+  {
+    "id": "cretan-dakos",
+    "name": "Cretan Dakos",
+    "cuisine": "Greek",
+    "region": "Southern Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "baguette",
+      "tomato",
+      "cheese"
+    ],
+    "coreIngredients": [
+      "baguette",
+      "tomato",
+      "cheese"
+    ],
+    "supportingComponents": [
+      "barley rusk toast",
+      "oregano olive oil",
+      "black olives"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two crisp toasted bread slices topped cleanly with grated tomato and white cheese.",
+    "blurb": "Cretan meze of crusty soaked bread crowned with fresh grated tomato and crumbly cheese.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Dakos"
+  },
+  {
+    "id": "greek-spanakopita",
+    "name": "Greek Spanakopita",
+    "cuisine": "Greek",
+    "region": "Southern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "spinach",
+      "cheese",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "spinach",
+      "cheese",
+      "eggs",
+      "onion"
+    ],
+    "supportingComponents": [
+      "golden phyllo crust",
+      "dill herb flecks",
+      "lemon wedge"
+    ],
+    "vessel": "tart",
+    "layout": "tart",
+    "platingNotes": "Crisp golden layered pastry square packed with spinach and white cheese beside lemon.",
+    "blurb": "Flaky Greek pie filled with wilted spinach, tangy feta cheese, herbs and egg.",
+    "sourceUrl": "https://www.allrecipes.com/recipe/18417/spanakopita-greek-spinach-pie/"
+  },
+  {
+    "id": "greek-spanakorizo",
+    "name": "Greek Spanakorizo",
+    "cuisine": "Greek",
+    "region": "Southern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "spinach",
+      "rice",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "spinach",
+      "rice",
+      "lemon",
+      "onion",
+      "tomato"
+    ],
+    "supportingComponents": [
+      "dill herb scatter",
+      "feta crumble",
+      "olive oil drizzle"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Herbed green spinach-and-rice bowl finished with lemon wheel and olive oil.",
+    "blurb": "Comforting Greek home dish of rice simmered with sweet spinach, onion, dill and lemon.",
+    "sourceUrl": "https://www.seriouseats.com/spanakorizo-greek-spinach-and-rice-recipe-11916186"
+  },
+  {
+    "id": "greek-maroulosalata",
+    "name": "Greek Maroulosalata",
+    "cuisine": "Greek",
+    "region": "Southern Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "romaine",
+      "cheese",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "romaine",
+      "cheese",
+      "lemon",
+      "onion"
+    ],
+    "supportingComponents": [
+      "dill herb scatter",
+      "lemon olive oil"
+    ],
+    "vessel": "bowl",
+    "layout": "leaf-salad",
+    "platingNotes": "Mounded crisp romaine nest tossed with crumbled white cheese, scallions and dill.",
+    "blurb": "Bright Greek lettuce salad finely shredded with fresh dill, feta cheese and lemon.",
+    "sourceUrl": "https://cooking.nytimes.com/recipes/1025656-maroulosalata-green-salad-with-feta-and-dill"
+  },
+  {
+    "id": "greek-saganaki",
+    "name": "Greek Saganaki",
+    "cuisine": "Greek",
+    "region": "Southern Europe",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "cheese",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "cheese",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "golden seared cheese slab",
+      "oregano dust",
+      "crusty bread"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Crisp golden pan-seared cheese slab centred on plate with bright lemon wedges beside.",
+    "blurb": "Sizzling Greek appetizer of firm cheese pan-fried crisp and finished with fresh lemon.",
+    "sourceUrl": "https://www.tasteatlas.com/best-rated-cheese-dishes-recipes-in-the-world"
+  },
+  {
+    "id": "greek-moustalevria",
+    "name": "Greek Moustalevria",
+    "cuisine": "Greek",
+    "region": "Southern Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "grapes"
+    ],
+    "coreIngredients": [
+      "grapes"
+    ],
+    "supportingComponents": [
+      "grape must pudding",
+      "crushed walnuts",
+      "cinnamon sesame dust"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Ruby grape pudding in bowl topped with toasted walnuts, sesame and fresh grapes.",
+    "blurb": "Ancient Greek harvest pudding thickened from sweet grape juice with cinnamon and nuts.",
+    "sourceUrl": "https://realgreekrecipes.com/grape-pudding/"
+  },
+  {
+    "id": "watermelon-orange-feta",
+    "name": "Watermelon Orange Feta",
+    "cuisine": "Greek",
+    "region": "Southern Europe",
+    "course": "starter",
+    "taste": "both",
+    "heroes": [
+      "watermelon",
+      "orange",
+      "cheese"
+    ],
+    "coreIngredients": [
+      "watermelon",
+      "orange",
+      "cheese",
+      "onion"
+    ],
+    "supportingComponents": [
+      "olive oil drizzle",
+      "parsley scatter"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Watermelon cubes, orange segments and crumbled feta clustered tightly with onion rings.",
+    "blurb": "Sun-drenched Mediterranean salad pairing sweet watermelon, bright orange and salty feta.",
+    "sourceUrl": "https://www.marthastewart.com/852294/watermelon-orange-and-feta-salad"
+  },
+  {
+    "id": "grape-yogurt-bowl",
+    "name": "Grape Honey Bowl",
+    "cuisine": "Greek",
+    "region": "Southern Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "grapes",
+      "milk"
+    ],
+    "coreIngredients": [
+      "grapes",
+      "milk"
+    ],
+    "supportingComponents": [
+      "thick strained yogurt",
+      "honey swirl",
+      "walnut crumble"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Thick white yogurt bowl topped with clustered sweet grapes, golden honey and walnuts.",
+    "blurb": "Simple Greek dessert of thick strained yogurt crowned with sweet grapes and wild honey.",
+    "sourceUrl": "https://realgreekrecipes.com/grape-pudding/"
+  },
+  {
+    "id": "adjaruli-khachapuri",
+    "name": "Adjaruli Khachapuri",
+    "cuisine": "Georgian",
+    "region": "Eastern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "cheese",
+      "eggs",
+      "butter"
+    ],
+    "coreIngredients": [
+      "cheese",
+      "eggs",
+      "butter",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "boat-shaped bread crust",
+      "melting butter pat"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Crisp baked cheese-filled bread boat holding sunny egg yolk and melting butter pat.",
+    "blurb": "Georgian Black Sea bread boat overflowing with molten cheese, egg yolk and butter.",
+    "sourceUrl": "https://www.saveur.com/adjaruli-khachapuri-georgian-cheese-bread-recipe/"
+  },
+  {
+    "id": "georgian-churchkhela",
+    "name": "Georgian Churchkhela",
+    "cuisine": "Georgian",
+    "region": "Eastern Europe",
+    "course": "snack",
+    "taste": "sweet",
+    "heroes": [
+      "grapes"
+    ],
+    "coreIngredients": [
+      "grapes"
+    ],
+    "supportingComponents": [
+      "walnut skewer strand",
+      "thickened grape glaze"
+    ],
+    "vessel": "plate",
+    "layout": "skewer-platter",
+    "platingNotes": "Deep purple grape-glazed nut strands arranged overlapping with fresh grape cluster.",
+    "blurb": "Traditional Georgian sweet of walnuts threaded and dipped in thickened grape juice.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Churchkhela"
+  },
+  {
+    "id": "finnish-lohikeitto",
+    "name": "Finnish Lohikeitto",
+    "cuisine": "Finnish",
+    "region": "Nordic",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "salmon",
+      "potato",
+      "milk"
+    ],
+    "coreIngredients": [
+      "salmon",
+      "potato",
+      "milk",
+      "butter",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "creamy dill salmon broth",
+      "rye bread side",
+      "dill fronds"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of creamy pale broth, pink salmon chunks and potatoes with bread side.",
+    "blurb": "Classic Finnish creamy salmon and potato soup fragrant with fresh dill and butter.",
+    "sourceUrl": "https://www.ica.se/recept/lohikeitto-finsk-laxsoppa-750901/"
+  },
+  {
+    "id": "nordic-gravlax",
+    "name": "Nordic Gravlax",
+    "cuisine": "Swedish",
+    "region": "Nordic",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "salmon",
+      "lemon",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "salmon",
+      "lemon",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "dill mustard sauce",
+      "dill fronds",
+      "rye toast slices"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Silky cured salmon slices shingled on plate with mustard-dill smear and toast beside.",
+    "blurb": "Scandinavian dill-and-salt cured salmon served thinly sliced with mustard sauce.",
+    "sourceUrl": "https://intercontinentalchef.com/cuisines/sweden/"
+  },
+  {
+    "id": "swedish-blabarssoppa",
+    "name": "Swedish Blabarssoppa",
+    "cuisine": "Swedish",
+    "region": "Nordic",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "blueberries",
+      "milk"
+    ],
+    "coreIngredients": [
+      "blueberries",
+      "milk"
+    ],
+    "supportingComponents": [
+      "velvety blueberry broth",
+      "cream swirl",
+      "mint leaf"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Deep violet blueberry soup-drink in glass with cream swirl and berries resting beside.",
+    "blurb": "Traditional Swedish sweet blueberry drink served warm or chilled with a swirl of cream.",
+    "sourceUrl": "https://www.sydkusten.es/sk/23/a/4004/gravlax-och-blabarssoppa/"
+  },
+  {
+    "id": "danish-aeblekage",
+    "name": "Danish Aeblekage",
+    "cuisine": "Danish",
+    "region": "Nordic",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "apple",
+      "butter",
+      "milk"
+    ],
+    "coreIngredients": [
+      "apple",
+      "butter",
+      "milk"
+    ],
+    "supportingComponents": [
+      "toasted butter crumbs",
+      "whipped cream cloud",
+      "berry jelly dot"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Layered spiced apple compote and golden butter crumbs crowned with whipped cream.",
+    "blurb": "Beloved Danish apple charlotte layering stewed apples, toasted butter crumbs and cream.",
+    "sourceUrl": "http://auntieknickers.blogspot.com/2008/09/"
+  },
+  {
+    "id": "polish-zupa-grzybowa",
+    "name": "Polish Zupa Grzybowa",
+    "cuisine": "Polish",
+    "region": "Eastern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "mushroom",
+      "potato",
+      "milk"
+    ],
+    "coreIngredients": [
+      "mushroom",
+      "potato",
+      "onion",
+      "milk"
+    ],
+    "supportingComponents": [
+      "creamy porcini broth",
+      "crusty garlic bread",
+      "dill scatter"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of earthy creamy wild mushroom soup with potato and crusty bread side.",
+    "blurb": "Hearty Polish forest mushroom soup enriched with saut\u00e9ed mushrooms, potatoes and cream.",
+    "sourceUrl": "https://eatingeuropean.com/polish-mushroom-soup/"
+  },
+  {
+    "id": "polish-golabki",
+    "name": "Polish Golabki",
+    "cuisine": "Polish",
+    "region": "Eastern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "cabbage",
+      "rice",
+      "steak"
+    ],
+    "coreIngredients": [
+      "cabbage",
+      "rice",
+      "steak",
+      "tomato",
+      "onion"
+    ],
+    "supportingComponents": [
+      "braised tomato sauce",
+      "sour cream swirl",
+      "dill"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Tender braised cabbage rolls nestled in rich tomato sauce pool with cream drizzle.",
+    "blurb": "Polish comfort classic of cabbage leaves stuffed with beef and rice in tomato sauce.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Go%C5%82%C4%85bki"
+  },
+  {
+    "id": "polish-bigos",
+    "name": "Polish Bigos",
+    "cuisine": "Polish",
+    "region": "Eastern Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "cabbage",
+      "steak",
+      "mushroom"
+    ],
+    "coreIngredients": [
+      "cabbage",
+      "steak",
+      "mushroom",
+      "onion"
+    ],
+    "supportingComponents": [
+      "rich hunter jus",
+      "rye bread slice",
+      "caraway scatter"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Hearty braised cabbage and seared beef stew studded with mushrooms in skillet bowl.",
+    "blurb": "Traditional Polish hunter's stew slow-braised with cabbage, seared meat and mushrooms.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Bigos"
+  },
+  {
+    "id": "austrian-kaiserschmarrn",
+    "name": "Austrian Kaiserschmarrn",
+    "cuisine": "Austrian",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "eggs",
+      "milk",
+      "apple"
+    ],
+    "coreIngredients": [
+      "eggs",
+      "milk",
+      "butter",
+      "apple",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "caramelized pancake pieces",
+      "powdered sugar snow",
+      "spiced apple compote"
+    ],
+    "vessel": "plate",
+    "layout": "pancake-stack",
+    "platingNotes": "Fluffy caramelized pancake pieces stacked gently with contrasting spiced apple compote.",
+    "blurb": "Imperial Austrian torn fluffy pancake caramelized in butter and served with apples.",
+    "sourceUrl": "https://www.mygermantable.com/emperors-mess-kaiserschmarrn/"
+  },
+  {
+    "id": "apple-cabbage-slaw",
+    "name": "Cabbage Apple Slaw",
+    "cuisine": "German",
+    "region": "Western Europe",
+    "course": "starter",
+    "taste": "both",
+    "heroes": [
+      "cabbage",
+      "apple",
+      "onion"
+    ],
+    "coreIngredients": [
+      "cabbage",
+      "apple",
+      "onion",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "mustard cider dressing",
+      "caraway scatter",
+      "herb leaves"
+    ],
+    "vessel": "bowl",
+    "layout": "leaf-salad",
+    "platingNotes": "Mounded crisp shredded cabbage nest tossed with thin apple matchsticks and onion.",
+    "blurb": "Crisp Central European slaw balancing tangy shredded cabbage with sweet tart apples.",
+    "sourceUrl": "https://www.seriouseats.com/savory-apple-recipes-12174957"
+  },
+  {
+    "id": "swiss-fondue",
+    "name": "Swiss Cheese Fondue",
+    "cuisine": "Swiss",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "cheese",
+      "baguette",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "cheese",
+      "baguette",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "molten gruyere pot",
+      "toasted bread cubes",
+      "nutmeg dust"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Glossy molten cheese pot centred in bowl with crusty garlic bread cubes beside.",
+    "blurb": "Alpine Swiss pot of melted mountain cheese infused with garlic for dipping bread.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Fondue"
+  },
+  {
+    "id": "swiss-raclette",
+    "name": "Swiss Raclette",
+    "cuisine": "Swiss",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "cheese",
+      "potato",
+      "onion"
+    ],
+    "coreIngredients": [
+      "cheese",
+      "potato",
+      "onion"
+    ],
+    "supportingComponents": [
+      "melted raclette blanket",
+      "pickled onion accents",
+      "black pepper"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Boiled golden potato halves blanketed on top with molten browned cheese and onions.",
+    "blurb": "Swiss mountain classic of bubbling scraped cheese melted over warm baby potatoes.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Raclette"
+  },
+  {
+    "id": "irish-colcannon",
+    "name": "Irish Colcannon",
+    "cuisine": "Irish",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "cabbage",
+      "butter"
+    ],
+    "coreIngredients": [
+      "potato",
+      "cabbage",
+      "butter",
+      "milk"
+    ],
+    "supportingComponents": [
+      "bright yellow-white mash",
+      "melting butter well",
+      "scallion flecks"
+    ],
+    "vessel": "plate",
+    "layout": "mash-plate",
+    "platingNotes": "Vibrant yellow-white potato mash dome folded with emerald cabbage and butter well.",
+    "blurb": "Traditional Irish dish of creamy mashed potatoes folded with buttered cabbage.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Colcannon"
+  },
+  {
+    "id": "broccoli-stilton-soup",
+    "name": "Broccoli Stilton Soup",
+    "cuisine": "British",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "broccoli",
+      "cheese",
+      "potato"
+    ],
+    "coreIngredients": [
+      "broccoli",
+      "cheese",
+      "potato",
+      "onion",
+      "milk"
+    ],
+    "supportingComponents": [
+      "velvety green broth",
+      "cheesy crouton toast",
+      "blue cheese crumble"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of vibrant green broccoli soup topped with cheese and bread on side.",
+    "blurb": "Classic British winter soup blending tender broccoli and potato with sharp Stilton.",
+    "sourceUrl": "https://www.bbcgoodfood.com/recipes/broccoli-stilton-soup"
+  },
+  {
+    "id": "broccoli-cheese-bake",
+    "name": "Broccoli Cheese Gratin",
+    "cuisine": "British",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "broccoli",
+      "cheese",
+      "milk"
+    ],
+    "coreIngredients": [
+      "broccoli",
+      "cheese",
+      "milk",
+      "butter"
+    ],
+    "supportingComponents": [
+      "bubbling cheddar sauce",
+      "crispy bread crumbs",
+      "thyme"
+    ],
+    "vessel": "bowl",
+    "layout": "skillet-bake",
+    "platingNotes": "Tender broccoli heads packed in bubbling golden cheese sauce topped with crisp crumbs.",
+    "blurb": "Comforting British gratin baking crisp broccoli florets in rich cheddar cream sauce.",
+    "sourceUrl": "https://www.bbcgoodfood.com/recipes/broccoli-stilton-soup"
+  },
+  {
+    "id": "british-apple-crumble",
+    "name": "British Apple Crumble",
+    "cuisine": "British",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "apple",
+      "butter",
+      "milk"
+    ],
+    "coreIngredients": [
+      "apple",
+      "butter",
+      "milk"
+    ],
+    "supportingComponents": [
+      "golden oat crumble",
+      "vanilla custard pool",
+      "whipped cream quenelle"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Baked cinnamon apples under crisp golden butter crumble in custard pool with quenelle.",
+    "blurb": "Comforting British baked apple dessert topped with crisp butter streusel and cream.",
+    "sourceUrl": "https://www.homecookingadventure.com/30-best-apple-recipes/"
+  },
+  {
+    "id": "british-eton-mess",
+    "name": "British Eton Mess",
+    "cuisine": "British",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "strawberry",
+      "milk",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "strawberry",
+      "milk",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "crisp meringue shards",
+      "whipped cream clouds",
+      "berry drizzle"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Tumbled whipped cream, crisp meringue shards and fresh strawberries in dessert bowl.",
+    "blurb": "Classic English summer dessert folding strawberries, whipped cream and crisp meringue.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Eton_mess"
+  },
+  {
+    "id": "british-lemon-posset",
+    "name": "British Lemon Posset",
+    "cuisine": "British",
+    "region": "Western Europe",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "lemon",
+      "milk"
+    ],
+    "coreIngredients": [
+      "lemon",
+      "milk"
+    ],
+    "supportingComponents": [
+      "silky lemon cream",
+      "shortbread biscuit",
+      "lemon zest curls"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Silky pale-yellow lemon cream set in bowl with crisp butter biscuit and zest.",
+    "blurb": "Velvety English chilled cream pudding naturally set by bright lemon juice and zest.",
+    "sourceUrl": "https://www.thespruceeats.com/perfect-lemon-posset-recipe-435139"
+  },
+  {
+    "id": "bubble-and-squeak",
+    "name": "Bubble and Squeak",
+    "cuisine": "British",
+    "region": "Western Europe",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "potato",
+      "cabbage",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "potato",
+      "cabbage",
+      "butter",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "crisp potato cabbage cake",
+      "brown butter jus",
+      "fried egg"
+    ],
+    "vessel": "plate",
+    "layout": "mash-plate",
+    "platingNotes": "Golden pan-crisped yellow-white potato and cabbage cake topped with soft fried egg.",
+    "blurb": "Traditional British skillet cake of pan-fried mashed potatoes and cabbage with butter.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Bubble_and_squeak"
+  },
+  {
+    "id": "mushroom-toast",
+    "name": "Garlic Mushroom Toast",
+    "cuisine": "British",
+    "region": "Western Europe",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "baguette",
+      "mushroom",
+      "garlic"
+    ],
+    "coreIngredients": [
+      "baguette",
+      "mushroom",
+      "garlic",
+      "butter"
+    ],
+    "supportingComponents": [
+      "thyme butter glaze",
+      "parsley scatter"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two crisp toasted baguette slices neatly piled with garlic-butter seared mushrooms.",
+    "blurb": "British cafe classic of golden seared mushrooms piled on crisp garlic-buttered toast.",
+    "sourceUrl": "https://getmecooking.com/recipes/gambas-al-ajillo-con-setas/"
+  },
+  {
+    "id": "pear-cider-cooler",
+    "name": "Spiced Pear Cooler",
+    "cuisine": "British",
+    "region": "Western Europe",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "pear",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "pear",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "pressed pear nectar",
+      "cinnamon quill",
+      "pear slice"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Pale golden pressed pear cooler in glass with thin pear slice resting tightly beside.",
+    "blurb": "Crisp orchard pear drink brightened with lemon juice and warm spice notes.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Apple_cider"
+  },
+  {
+    "id": "tikil-gomen",
+    "name": "Ethiopian Tikil Gomen",
+    "cuisine": "Ethiopian",
+    "region": "Sub-Saharan Africa",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "cabbage",
+      "potato",
+      "onion"
+    ],
+    "coreIngredients": [
+      "cabbage",
+      "potato",
+      "onion",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "turmeric spiced oil",
+      "injera flatbread",
+      "carrot ribbons"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Golden turmeric-braised cabbage and potato cubes clustered tightly at plate centre.",
+    "blurb": "Fragrant Ethiopian stewed cabbage, potatoes and onions cooked gently with turmeric.",
+    "sourceUrl": "https://cooking.nytimes.com/recipes/1025586-tikel-gomen-cabbage-and-carrots"
+  },
+  {
+    "id": "ethiopian-tibs",
+    "name": "Ethiopian Beef Tibs",
+    "cuisine": "Ethiopian",
+    "region": "Sub-Saharan Africa",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "onion",
+      "pepper"
+    ],
+    "coreIngredients": [
+      "steak",
+      "onion",
+      "garlic",
+      "pepper",
+      "butter"
+    ],
+    "supportingComponents": [
+      "spiced niter kibbeh glaze",
+      "injera flatbread",
+      "berbere dust"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Hot-seared beef strips tossed with charred peppers and onions in spiced butter glaze.",
+    "blurb": "Sizzling Ethiopian saut\u00e9ed beef strips fragrant with spiced butter, onion and peppers.",
+    "sourceUrl": "https://tastelab.food/encyclopedia/cuts"
+  },
+  {
+    "id": "poulet-yassa",
+    "name": "Senegalese Poulet Yassa",
+    "cuisine": "Senegalese",
+    "region": "Sub-Saharan Africa",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "chicken",
+      "lemon",
+      "onion"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "lemon",
+      "onion",
+      "garlic",
+      "rice"
+    ],
+    "supportingComponents": [
+      "caramelized onion jus",
+      "dijon citrus glaze",
+      "mixed rice mound"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed rice topped with braised chicken and glossy caramelized lemon-onion sauce.",
+    "blurb": "Beloved West African dish of chicken braised in caramelized onions, mustard and lemon.",
+    "sourceUrl": "https://www.seriouseats.com/chicken-yassa-senegalese-braised-chicken-with-caramelized-onions-5215703"
+  },
+  {
+    "id": "nigerian-jollof-rice",
+    "name": "Nigerian Jollof Rice",
+    "cuisine": "Nigerian",
+    "region": "Sub-Saharan Africa",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "rice",
+      "tomato",
+      "chicken"
+    ],
+    "coreIngredients": [
+      "rice",
+      "tomato",
+      "pepper",
+      "onion",
+      "chicken"
+    ],
+    "supportingComponents": [
+      "smoky tomato pepper rice",
+      "fried plantain coins",
+      "herb scatter"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Vibrant red smoky tomato-pepper mixed rice in deep bowl crowned with roast chicken.",
+    "blurb": "West Africa's iconic smoky one-pot tomato and pepper rice served with roast chicken.",
+    "sourceUrl": "https://zenaskitchen.substack.com/p/one-pot-jollof-rice-and-chicken"
+  },
+  {
+    "id": "caesar-salad",
+    "name": "Tijuana Caesar Salad",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "romaine",
+      "cheese",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "romaine",
+      "eggs",
+      "cheese",
+      "garlic",
+      "lemon",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "creamy garlic dressing",
+      "crisp croutons",
+      "parmesan shavings"
+    ],
+    "vessel": "bowl",
+    "layout": "leaf-salad",
+    "platingNotes": "Mounded nest of tossed romaine dressed in creamy garlic emulsion with crisp croutons.",
+    "blurb": "Original Tijuana-born romaine salad tossed with garlic-lemon emulsion and cheese.",
+    "sourceUrl": "https://www.seriouseats.com/the-best-caesar-salad-recipe"
+  },
+  {
+    "id": "chicken-caesar-salad",
+    "name": "Chicken Caesar Salad",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "chicken",
+      "romaine",
+      "cheese"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "romaine",
+      "cheese",
+      "baguette",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "caesar emulsion",
+      "crisp garlic croutons",
+      "parmesan shavings"
+    ],
+    "vessel": "bowl",
+    "layout": "leaf-salad",
+    "platingNotes": "Mounded romaine salad nest with sliced roast chicken, croutons and cheese shavings.",
+    "blurb": "Hearty main-course Caesar tossing crisp romaine and croutons with sliced roast chicken.",
+    "sourceUrl": "https://www.seriouseats.com/the-best-caesar-salad-recipe"
+  },
+  {
+    "id": "waldorf-salad",
+    "name": "Waldorf Salad",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "starter",
+    "taste": "both",
+    "heroes": [
+      "apple",
+      "grapes",
+      "romaine"
+    ],
+    "coreIngredients": [
+      "apple",
+      "grapes",
+      "romaine"
+    ],
+    "supportingComponents": [
+      "creamy yogurt dressing",
+      "toasted walnut halves",
+      "celery crescents"
+    ],
+    "vessel": "bowl",
+    "layout": "leaf-salad",
+    "platingNotes": "Mounded romaine nest cradling crisp apple slices, halved grapes and toasted walnuts.",
+    "blurb": "Classic New York salad combining crisp apples, sweet grapes and walnuts on lettuce.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Waldorf_salad"
+  },
+  {
+    "id": "chicken-grape-salad",
+    "name": "Chicken & Grape Salad",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "main",
+    "taste": "both",
+    "heroes": [
+      "chicken",
+      "grapes",
+      "romaine"
+    ],
+    "coreIngredients": [
+      "chicken",
+      "grapes",
+      "romaine",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "creamy herb dressing",
+      "toasted almonds",
+      "herb leaves"
+    ],
+    "vessel": "bowl",
+    "layout": "leaf-salad",
+    "platingNotes": "Mounded romaine nest topped with torn roast chicken, halved grapes and herb dressing.",
+    "blurb": "Refreshing American salad folding tender chicken and sweet grapes in creamy dressing.",
+    "sourceUrl": "https://www.simplyrecipes.com/chicken-salad-with-grapes-recipe-11856208"
+  },
+  {
+    "id": "peach-tomato-salad",
+    "name": "Peach & Tomato Salad",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "starter",
+    "taste": "both",
+    "heroes": [
+      "peach",
+      "tomato",
+      "onion"
+    ],
+    "coreIngredients": [
+      "peach",
+      "tomato",
+      "onion",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "mint herb leaves",
+      "cider vinaigrette",
+      "olive oil dots"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Clustered ripe tomato wedges and sweet peach slices with red onion and mint.",
+    "blurb": "Bright late-summer salad pairing juicy peaches with salted ripe tomatoes and mint.",
+    "sourceUrl": "https://www.americastestkitchen.com/recipes/8375-peach-and-tomato-salad"
+  },
+  {
+    "id": "key-lime-pie",
+    "name": "Key Lime Pie",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "lime",
+      "eggs",
+      "milk"
+    ],
+    "coreIngredients": [
+      "lime",
+      "eggs",
+      "milk",
+      "butter"
+    ],
+    "supportingComponents": [
+      "graham tart shell",
+      "whipped cream quenelle",
+      "lime zest"
+    ],
+    "vessel": "tart",
+    "layout": "tart",
+    "platingNotes": "Golden tart shell filled flat with pale lime custard and whipped cream centred on top.",
+    "blurb": "Florida Keys classic tart of tangy lime custard set in crisp buttered crumb crust.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Key_Lime_Pie"
+  },
+  {
+    "id": "blueberry-pancakes",
+    "name": "Blueberry Pancakes",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "blueberries",
+      "milk",
+      "butter"
+    ],
+    "coreIngredients": [
+      "blueberries",
+      "milk",
+      "eggs",
+      "butter"
+    ],
+    "supportingComponents": [
+      "3-pancake stack",
+      "maple syrup drizzle",
+      "whipped butter pat"
+    ],
+    "vessel": "plate",
+    "layout": "pancake-stack",
+    "platingNotes": "Stack of 3 golden blueberry-studded pancakes drizzled with contrasting maple syrup.",
+    "blurb": "Fluffy buttermilk griddle cakes studded with sweet blueberries and pure maple syrup.",
+    "sourceUrl": "https://www.seriouseats.com/the-easiest-fluffiest-pancake-recipe-from-a-pro-who-s-flipped-thousands-of-them-11729596"
+  },
+  {
+    "id": "peach-pancakes",
+    "name": "Grilled Peach Pancakes",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "peach",
+      "milk",
+      "butter"
+    ],
+    "coreIngredients": [
+      "peach",
+      "milk",
+      "butter",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "3-pancake stack",
+      "maple caramel syrup",
+      "whipped cream dollop"
+    ],
+    "vessel": "plate",
+    "layout": "pancake-stack",
+    "platingNotes": "Stack of 3 fluffy pancakes topped with caramel peach wedges and contrasting maple syrup.",
+    "blurb": "Buttermilk pancake stack crowned with warm peaches and contrasting golden maple syrup.",
+    "sourceUrl": "https://www.seriouseats.com/the-easiest-fluffiest-pancake-recipe-from-a-pro-who-s-flipped-thousands-of-them-11729596"
+  },
+  {
+    "id": "strawberry-pancakes",
+    "name": "Strawberry Cream Pancakes",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "strawberry",
+      "milk",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "strawberry",
+      "milk",
+      "eggs",
+      "butter"
+    ],
+    "supportingComponents": [
+      "3-pancake stack",
+      "maple vanilla syrup",
+      "whipped cream dollop"
+    ],
+    "vessel": "plate",
+    "layout": "pancake-stack",
+    "platingNotes": "Stack of 3 golden pancakes crowned with fresh strawberries and contrasting maple syrup.",
+    "blurb": "Fluffy griddle pancakes topped with ripe strawberries, cream and pure maple syrup.",
+    "sourceUrl": "https://www.seriouseats.com/the-easiest-fluffiest-pancake-recipe-from-a-pro-who-s-flipped-thousands-of-them-11729596"
+  },
+  {
+    "id": "apple-pancakes",
+    "name": "Apple Cinnamon Pancakes",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "apple",
+      "milk",
+      "butter"
+    ],
+    "coreIngredients": [
+      "apple",
+      "milk",
+      "butter",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "3-pancake stack",
+      "warm maple syrup",
+      "cinnamon butter pat"
+    ],
+    "vessel": "plate",
+    "layout": "pancake-stack",
+    "platingNotes": "Stack of 3 pancakes topped with caramelized apple slices and contrasting maple syrup.",
+    "blurb": "Warm spiced buttermilk pancakes layered with saut\u00e9ed apples and maple syrup.",
+    "sourceUrl": "https://www.seriouseats.com/the-easiest-fluffiest-pancake-recipe-from-a-pro-who-s-flipped-thousands-of-them-11729596"
+  },
+  {
+    "id": "peach-cobbler",
+    "name": "Southern Peach Cobbler",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "peach",
+      "butter",
+      "milk"
+    ],
+    "coreIngredients": [
+      "peach",
+      "butter",
+      "milk"
+    ],
+    "supportingComponents": [
+      "golden biscuit crust",
+      "vanilla ice cream quenelle",
+      "cinnamon glaze"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Warm caramelized peach wedges bubbling under biscuit crust topped with cream quenelle.",
+    "blurb": "Deep South baked dessert of sweet spiced peaches crowned with golden butter biscuit.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Cobbler_(food)"
+  },
+  {
+    "id": "blueberry-grunt",
+    "name": "Maritime Blueberry Grunt",
+    "cuisine": "Canadian",
+    "region": "North America",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "blueberries",
+      "butter",
+      "milk"
+    ],
+    "coreIngredients": [
+      "blueberries",
+      "butter",
+      "milk"
+    ],
+    "supportingComponents": [
+      "steamed biscuit dumplings",
+      "vanilla cream quenelle",
+      "lemon zest"
+    ],
+    "vessel": "bowl",
+    "layout": "dessert-bowl",
+    "platingNotes": "Stewed wild blueberries in deep purple compote topped with dumplings and cream.",
+    "blurb": "Canadian Maritime stovetop dessert of spiced blueberries topped with fluffy dumplings.",
+    "sourceUrl": "https://www.americastestkitchen.com/articles/5965-grunt-slump-and-buckle-what-does-it-mean-fruit-desserts"
+  },
+  {
+    "id": "watermelon-gazpacho",
+    "name": "Watermelon Gazpacho",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "starter",
+    "taste": "both",
+    "heroes": [
+      "watermelon",
+      "tomato",
+      "pepper"
+    ],
+    "coreIngredients": [
+      "watermelon",
+      "tomato",
+      "pepper",
+      "onion",
+      "baguette"
+    ],
+    "supportingComponents": [
+      "chilled ruby soup",
+      "tomato garlic crouton",
+      "herb oil dots"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of chilled ruby watermelon-tomato soup with crisp bread on the side.",
+    "blurb": "Vibrant summer gazpacho blending sweet watermelon, ripe tomato and charred pepper.",
+    "sourceUrl": "https://www.rickbayless.com/recipe/xocos-watermelon-gazpacho/"
+  },
+  {
+    "id": "tomato-soup-grilled-cheese",
+    "name": "Tomato Soup & Toast",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "tomato",
+      "cheese",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "tomato",
+      "cheese",
+      "baguette",
+      "butter",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "velvety tomato bisque",
+      "tomato-cheese toasties",
+      "cream swirl"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "soup-bowl",
+    "platingNotes": "Deep soup bowl of rich tomato bisque served with golden melted cheese toast on side.",
+    "blurb": "Beloved comfort pairing of creamy roasted tomato soup and crisp melted cheese toast.",
+    "sourceUrl": "https://www.seriouseats.com/tuscan-tomato-bread-soup-pappa-al-pomodoro-recipe"
+  },
+  {
+    "id": "roasted-broccoli-lemon",
+    "name": "Garlic Lemon Broccoli",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "broccoli",
+      "garlic",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "broccoli",
+      "garlic",
+      "lemon",
+      "cheese"
+    ],
+    "supportingComponents": [
+      "charred broccoli heads",
+      "crispy garlic chips",
+      "lemon wheels"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Roasted broccoli florets clustered tightly with crispy garlic chips and lemon wheels.",
+    "blurb": "Crisp-edged roasted broccoli finished with toasted garlic, fresh lemon and parmesan.",
+    "sourceUrl": "https://alexandracooks.com/2018/01/03/ina-gartens-roasted-broccoli-garlic-lemon-parmesan/"
+  },
+  {
+    "id": "hot-apple-cider",
+    "name": "Spiced Apple Cider",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "apple"
+    ],
+    "coreIngredients": [
+      "apple"
+    ],
+    "supportingComponents": [
+      "cinnamon stick",
+      "star anise",
+      "apple slice"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Amber pressed apple cider in glass with cinnamon stick and crisp apple slice beside.",
+    "blurb": "Warm or chilled orchard-pressed apple cider infused with autumn baking spices.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Apple_cider"
+  },
+  {
+    "id": "orange-watermelon-cooler",
+    "name": "Orange Watermelon Juice",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "orange",
+      "watermelon"
+    ],
+    "coreIngredients": [
+      "orange",
+      "watermelon"
+    ],
+    "supportingComponents": [
+      "crushed ice",
+      "orange wheel",
+      "mint leaf"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Coral-orange blended juice in glass with crisp orange wheel resting tightly beside.",
+    "blurb": "Hydrating cold-pressed cooler blending sweet watermelon with bright fresh orange juice.",
+    "sourceUrl": "https://weirdsmoothies.com/orange-watermelon/"
+  },
+  {
+    "id": "blueberry-berry-smoothie",
+    "name": "Blueberry Berry Smoothie",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "blueberries",
+      "strawberry",
+      "watermelon"
+    ],
+    "coreIngredients": [
+      "blueberries",
+      "strawberry",
+      "watermelon"
+    ],
+    "supportingComponents": [
+      "berry foam crown",
+      "blueberry cluster"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Deep berry smoothie in glass with small blueberry and strawberry cluster beside.",
+    "blurb": "Vibrant chilled smoothie blending wild blueberries, sweet strawberries and watermelon.",
+    "sourceUrl": "https://bonapetite.com/recipe/4550/summer-sweet-smoothies"
+  },
+  {
+    "id": "spinach-green-juice",
+    "name": "Green Spinach Apple",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "drink",
+    "taste": "both",
+    "heroes": [
+      "spinach",
+      "apple",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "spinach",
+      "apple",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "emerald cold-pressed juice",
+      "apple wedge"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Vibrant emerald green juice in glass with crisp green apple slice resting beside.",
+    "blurb": "Crisp cold-pressed green juice balancing leafy spinach with sweet apple and lemon.",
+    "sourceUrl": "https://iheartumami.com/gomaae-japanese-spinach/"
+  },
+  {
+    "id": "steak-cheese-toast",
+    "name": "Philly Cheese Tartine",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "cheese",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "steak",
+      "cheese",
+      "baguette",
+      "onion",
+      "pepper"
+    ],
+    "supportingComponents": [
+      "melted provolone blanket",
+      "charred pepper strips"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two crisp baguette halves topped cleanly with seared steak strips, pepper and cheese.",
+    "blurb": "Toasted artisan baguette loaded with seared steak slices, sweet onions and melted cheese.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Croque_monsieur"
+  },
+  {
+    "id": "salmon-grape-skewer",
+    "name": "Peach Salmon Skewers",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "main",
+    "taste": "both",
+    "heroes": [
+      "salmon",
+      "peach"
+    ],
+    "coreIngredients": [
+      "salmon",
+      "peach",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "honey citrus glaze",
+      "herb scatter"
+    ],
+    "vessel": "plate",
+    "layout": "skewer-platter",
+    "platingNotes": "Overlapping bundle of glazed salmon and sweet peach skewers with citrus glaze.",
+    "blurb": "Caramelized grilled skewers alternating rich salmon cubes with juicy sweet peaches.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Poke_(dish)"
+  },
+  {
+    "id": "lomi-lomi-salmon",
+    "name": "Hawaiian Lomi-lomi Salmon",
+    "cuisine": "Hawaiian",
+    "region": "Oceania",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "salmon",
+      "tomato",
+      "onion"
+    ],
+    "coreIngredients": [
+      "salmon",
+      "tomato",
+      "onion"
+    ],
+    "supportingComponents": [
+      "scallion ribbons",
+      "sea salt crystals",
+      "herb oil dots"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Chilled diced cured salmon and ripe tomato clustered neatly with sweet onion rings.",
+    "blurb": "Hawaiian luau side dish of salted salmon massaged with ripe tomatoes and sweet onion.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Lomi-lomi_salmon"
+  },
+  {
+    "id": "hawaiian-salmon-poke",
+    "name": "Hawaiian Salmon Poke",
+    "cuisine": "Hawaiian",
+    "region": "Oceania",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "salmon",
+      "rice",
+      "avocado"
+    ],
+    "coreIngredients": [
+      "salmon",
+      "rice",
+      "avocado",
+      "onion"
+    ],
+    "supportingComponents": [
+      "sesame soy glaze",
+      "nori strips",
+      "sesame seeds"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed rice bowl topped with soy-glazed raw salmon cubes and fanned avocado (no pit).",
+    "blurb": "Hawaiian island bowl pairing seasoned raw salmon cubes with rice, onion and avocado.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Poke_(dish)"
+  },
+  {
+    "id": "avocado-egg-toast",
+    "name": "Smashed Avocado Toast",
+    "cuisine": "Australian",
+    "region": "Oceania",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "baguette",
+      "avocado",
+      "eggs"
+    ],
+    "coreIngredients": [
+      "baguette",
+      "avocado",
+      "eggs",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "sesame chili flakes",
+      "radish coins",
+      "chives"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two neat toasted bread slices topped cleanly with smashed avocado (no pit) and egg.",
+    "blurb": "Cafe-style smashed avocado on crisp sourdough toast topped with lemon and egg.",
+    "sourceUrl": "https://www.goodhousekeeping.com/food-recipes/a30933199/smashed-avocado-toast-with-hard-boiled-eggs-recipe/"
+  },
+  {
+    "id": "salmon-avocado-toast",
+    "name": "Salmon Avocado Toast",
+    "cuisine": "Australian",
+    "region": "Oceania",
+    "course": "snack",
+    "taste": "savoury",
+    "heroes": [
+      "baguette",
+      "salmon",
+      "avocado"
+    ],
+    "coreIngredients": [
+      "baguette",
+      "salmon",
+      "avocado",
+      "lemon"
+    ],
+    "supportingComponents": [
+      "dill cream cheese smear",
+      "caper scatter",
+      "microherbs"
+    ],
+    "vessel": "board",
+    "layout": "toast-board",
+    "platingNotes": "Two neat toasted bread slices topped cleanly with avocado fan and folded salmon.",
+    "blurb": "Brunch-style open sourdough toast layered with smashed avocado, salmon and fresh dill.",
+    "sourceUrl": "https://www.goodhousekeeping.com/food-recipes/a30933199/smashed-avocado-toast-with-hard-boiled-eggs-recipe/"
+  },
+  {
+    "id": "salmon-avocado-tartare",
+    "name": "Salmon Avocado Tartare",
+    "cuisine": "Australian",
+    "region": "Oceania",
+    "course": "starter",
+    "taste": "savoury",
+    "heroes": [
+      "salmon",
+      "avocado",
+      "lemon"
+    ],
+    "coreIngredients": [
+      "salmon",
+      "avocado",
+      "lemon",
+      "onion"
+    ],
+    "supportingComponents": [
+      "herb citrus oil",
+      "crusty crostini",
+      "microherbs"
+    ],
+    "vessel": "plate",
+    "layout": "tartare-crudo",
+    "platingNotes": "Layered diced raw salmon and creamy diced avocado (no pit) cylinder with citrus oil.",
+    "blurb": "Fresh coastal starter stacking lime-dressed raw salmon over creamy diced avocado.",
+    "sourceUrl": "https://gandumuluwatu.com/menu/"
+  },
+  {
+    "id": "orange-salad-mint",
+    "name": "Moroccan Orange Salad",
+    "cuisine": "Moroccan",
+    "region": "North Africa",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "orange"
+    ],
+    "coreIngredients": [
+      "orange"
+    ],
+    "supportingComponents": [
+      "cinnamon sugar dust",
+      "orange blossom syrup",
+      "mint leaves"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Shingled bright orange wheels centred on plate dusted with cinnamon and fresh mint.",
+    "blurb": "Traditional Moroccan palate cleanser of sliced sweet oranges with cinnamon and mint.",
+    "sourceUrl": "https://www.castruriali.com/recipes/insalata-arance"
+  },
+  {
+    "id": "carne-asada-guacamole",
+    "name": "Carne Asada & Avocado",
+    "cuisine": "Mexican",
+    "region": "Latin America",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "avocado",
+      "lime"
+    ],
+    "coreIngredients": [
+      "steak",
+      "avocado",
+      "lime",
+      "onion",
+      "tomato",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "charred corn tortillas",
+      "cilantro microherbs",
+      "chili flakes"
+    ],
+    "vessel": "plate",
+    "layout": "circular-plate",
+    "platingNotes": "Sliced charred flank steak nestled tightly beside fanned avocado slices (no pit) and lime.",
+    "blurb": "Grilled Mexican citrus-garlic flank steak served with fresh avocado, lime and salsa.",
+    "sourceUrl": "https://glutenfreeandmore.com/carne-asada-tostadas-with-pico-de-gallo-and-avocado-salsa/"
+  },
+  {
+    "id": "egyptian-fattah",
+    "name": "Egyptian Fattah",
+    "cuisine": "Egyptian",
+    "region": "North Africa",
+    "course": "main",
+    "taste": "savoury",
+    "heroes": [
+      "steak",
+      "rice",
+      "baguette"
+    ],
+    "coreIngredients": [
+      "steak",
+      "rice",
+      "baguette",
+      "tomato",
+      "garlic"
+    ],
+    "supportingComponents": [
+      "garlic vinegar tomato jus",
+      "toasted pita crisps",
+      "herb scatter"
+    ],
+    "vessel": "deep-bowl",
+    "layout": "rice-bowl",
+    "platingNotes": "Mixed rice layered over toasted bread crisps with seared beef and garlic tomato sauce.",
+    "blurb": "Festive Egyptian layered dish of crisp flatbread, spiced rice, beef and garlic tomato sauce.",
+    "sourceUrl": "https://travelfoodatlas.com/egyptian-food"
+  },
+  {
+    "id": "mulled-apple-cider",
+    "name": "Mulled Spiced Cider",
+    "cuisine": "British",
+    "region": "Western Europe",
+    "course": "drink",
+    "taste": "sweet",
+    "heroes": [
+      "apple",
+      "orange"
+    ],
+    "coreIngredients": [
+      "apple",
+      "orange"
+    ],
+    "supportingComponents": [
+      "cinnamon quill",
+      "star anise",
+      "orange wheel"
+    ],
+    "vessel": "glass",
+    "layout": "glass-drink",
+    "platingNotes": "Warm amber spiced cider in glass with fresh orange wheel and apple slice beside.",
+    "blurb": "Autumnal spiced orchard apple cider simmered with sweet orange peel and cinnamon.",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Apple_cider"
+  },
+  {
+    "id": "blueberry-lemon-cake",
+    "name": "Blueberry Lemon Cake",
+    "cuisine": "American",
+    "region": "North America",
+    "course": "dessert",
+    "taste": "sweet",
+    "heroes": [
+      "blueberries",
+      "lemon",
+      "cheese"
+    ],
+    "coreIngredients": [
+      "blueberries",
+      "lemon",
+      "cheese",
+      "butter",
+      "eggs"
+    ],
+    "supportingComponents": [
+      "whipped mascarpone frosting",
+      "lemon zest curls",
+      "blueberry cluster"
+    ],
+    "vessel": "plate",
+    "layout": "dessert-bowl",
+    "platingNotes": "Tender lemon-cream cake wedge crowned with mascarpone whip and fresh blueberry cluster.",
+    "blurb": "Bright layered lemon cake studded with wild blueberries and creamy mascarpone frosting.",
+    "sourceUrl": "https://dishbloom.com/blueberry-lemon-mascarpone-cake-recipe/"
+  }
+]

@@ -869,6 +869,7 @@ export const BASE_FAMILY: Record<string, FamilyId> = {
   'pool:jus': 'jus',
   'soup:potato': 'soup-potato',
   'soup:tomato': 'soup-tomato',
+  'soup:cream': 'cream-sauce',
   'soup:pepper': 'drink-orange',
   'mash:potato': 'mash',
   'mash:risotto': 'cooked-rice',

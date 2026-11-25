@@ -38,6 +38,8 @@ export interface DishIdea {
   sauce?: string;
   /** Generated dishes: a sweet dish (no herbs, no savoury garnish layer). */
   sweet?: boolean;
+  /** Generated dishes: the real world dish it is cooked as (world-dishes-brief.md), if one matched. */
+  world?: { id: string; cuisine: string; region: string };
 }
 
 const d = (id: string, title: string, heroes: [string, string, string], course: DishIdea['course'], ware: DishIdea['ware'], base: string, big: string, medium: string[], small: string[], description: string): DishIdea => ({ id, title, heroes, course, ware, base, big, medium, small, description });
