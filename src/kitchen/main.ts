@@ -608,11 +608,46 @@ const tray = mountTray(document.getElementById('tray') as HTMLElement, {
   },
   onUsedClick: (id) => select(staying().find((item) => item.id === id) ?? null),
   onDeal: keepReady,
+  tableIds: () => staying().map((item) => item.id),
+  replaceTable: (ids) => replaceTable(ids),
 });
+
+/** Shuffle (Group 4): the table's ingredients are swapped for new ones in one short fade. */
+function replaceTable(nextIds: string[]): void {
+  if (mode !== 'table' || cooking) return;
+  const leaving = staying();
+  select(null);
+  hovered = null;
+  const incoming = nextIds.map((id) => {
+    const item = ready.get(id) ?? makeItem(id);
+    ready.delete(id);
+    return item;
+  }).filter((item): item is Item => !!item);
+  for (const item of leaving) {
+    item.leaving = true;
+    gsap.killTweensOf(item);
+    gsap.killTweensOf(item.position);
+  }
+  const change = () => {
+    for (const item of leaving) detach(item);
+    for (const item of incoming) {
+      items.push(item);
+      framed.add(item.subject.group);
+      item.leaving = false;
+      item.pop = 1;
+    }
+    arrange(staying());
+    for (const item of incoming) item.position.copy(item.target);
+    applyRoom();
+    relayout(false);
+  };
+  if (prefersReducedMotion()) change();
+  else crossfade(change, 0.24);
+  changed();
+}
 
 const cookPanel = mountCookPanel(document.getElementById('cook-panel') as HTMLElement, {
   onCook: (choices) => cook(choices),
-  onReset: () => clearTable(),
 });
 
 /** Reset (the fix list, P3.5): the choices go back to their defaults and the table is cleared. */
@@ -1021,6 +1056,7 @@ Object.assign(window, {
     cook,
     back: backToTable,
     mode: () => mode,
+    table: () => staying().map((item) => item.id),
     /** How many ready-made ingredients are waiting, and how many paint programs exist (for checks). */
     ready: () => [...ready.keys()],
     programs: () => stage.renderer.info.programs?.length ?? 0,
@@ -1039,5 +1075,6 @@ if (import.meta.env.DEV) {
     clear: () => clearTable(),
     cook: (choices: CookChoices) => cook(choices),
     mode: () => mode,
+    table: () => staying().map((item) => item.id),
   };
 }

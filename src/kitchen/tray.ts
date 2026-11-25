@@ -3,7 +3,7 @@ import { EASE, gsap, prefersReducedMotion } from '../motion';
 /**
  * The ingredient tray: a row of small paintings under the card. Drag one onto the card to put
  * it on the table (or just click it). While it is on the table its tile stays in the row,
- * greyed out. The shuffle button deals new ingredients into every tile that is not in use.
+ * greyed out. The shuffle button deals new ingredients into every tile and swaps the table's for new ones too.
  *
  * The drag, step by step (like dragging a layer out of a bin):
  *   1. Press a tile and move a few pixels: a copy of the tile (the "ghost") lifts off and
@@ -36,6 +36,10 @@ export interface TrayOptions {
   onUsedClick: (id: string) => void;
   /** The tiles changed (at the start and after each shuffle): the ids now showing. */
   onDeal: (ids: string[]) => void;
+  /** The ingredients on the table now. */
+  tableIds: () => string[];
+  /** Shuffle replaces the table too (Group 4): put these on the table instead of what is there. */
+  replaceTable: (ids: string[]) => void;
 }
 
 export interface Tray {
@@ -110,10 +114,13 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
    * the user, 2026-11-16).
    */
   shuffle.addEventListener('click', () => {
-    const free = tiles.filter((tile) => !options.isUsed(tile.dataset.id ?? ''));
-    if (free.length === 0) return;
+    // Every tile is dealt again, and what was on the table is replaced by the first new ones, so a
+    // shuffle changes the whole kitchen, not only the tray (Group 4).
+    const free = tiles;
+    const onTable = options.tableIds();
     // Never deal one that is already showing or on the table.
-    const fresh = deal(free.length, new Set(ids()));
+    const fresh = deal(free.length, new Set([...ids(), ...onTable]));
+    if (onTable.length) options.replaceTable(fresh.slice(0, onTable.length));
     free.forEach((tile, index) => {
       const id = fresh[index];
       if (!id) return;

@@ -2,7 +2,7 @@
  * The cooking panel beside the card: the few choices that steer what the ingredients become.
  *
  * Kept small on purpose (the user, 2026-11-16: "less parameters"): the course, the taste, and
- * how wild the result may be. Each has a default; Reset brings the defaults back. The values
+ * how wild the result may be. Each has a default; Randomise picks new ones at random. The values
  * are plain data (`CookChoices`), ready to be handed to whatever makes the dish.
  */
 
@@ -36,9 +36,11 @@ export interface CookPanel {
   showError(text: string): void;
 }
 
-const RESET_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>`;
+/** A die (Randomise): five pips on a rounded square. */
+const RANDOM_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="0.6" fill="currentColor"/><circle cx="15.5" cy="8.5" r="0.6" fill="currentColor"/><circle cx="12" cy="12" r="0.6" fill="currentColor"/><circle cx="8.5" cy="15.5" r="0.6" fill="currentColor"/><circle cx="15.5" cy="15.5" r="0.6" fill="currentColor"/></svg>`;
 
-export function mountCookPanel(root: HTMLElement, options: { onCook: (choices: CookChoices) => void; onReset?: () => void }): CookPanel {
+
+export function mountCookPanel(root: HTMLElement, options: { onCook: (choices: CookChoices) => void; onRandomise?: (choices: CookChoices) => void }): CookPanel {
   const choices: CookChoices = { ...DEFAULT_CHOICES };
 
   const chipButtons: { group: ChipGroup; option: string; button: HTMLButtonElement }[] = [];
@@ -89,7 +91,7 @@ export function mountCookPanel(root: HTMLElement, options: { onCook: (choices: C
   wild.append(name, input, ends, note);
   root.append(wild);
 
-  // The foot of the panel: Cook, the main action, and a small Reset beside it.
+  // The foot of the panel: Cook, the main action, and a small Randomise beside it.
   const foot = document.createElement('div');
   foot.className = 'cook-foot';
   const cook = document.createElement('button');
@@ -98,17 +100,19 @@ export function mountCookPanel(root: HTMLElement, options: { onCook: (choices: C
   cook.textContent = 'Cook';
   cook.disabled = true;
   cook.addEventListener('click', () => options.onCook({ ...choices }));
+  // Randomise (Group 4, in place of Reset): a random course, taste and wild level. The table stays.
   const reset = document.createElement('button');
   reset.type = 'button';
   reset.className = 'cook-reset';
-  reset.setAttribute('aria-label', 'Reset the choices');
-  reset.title = 'Reset';
-  reset.innerHTML = RESET_ICON;
-  // Reset puts the choices back and clears the table (the fix list: it left the ingredients on).
+  reset.setAttribute('aria-label', 'Randomise the choices');
+  reset.title = 'Randomise';
+  reset.innerHTML = RANDOM_ICON;
   reset.addEventListener('click', () => {
-    Object.assign(choices, DEFAULT_CHOICES);
+    const any = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
+    for (const group of GROUPS) choices[group.key] = any(group.options.filter((option) => option !== choices[group.key]));
+    choices.wild = Math.round(Math.random() * 20) * 5;
     paint();
-    options.onReset?.();
+    options.onRandomise?.({ ...choices });
   });
   foot.append(cook, reset);
   root.append(foot);
@@ -127,8 +131,7 @@ export function mountCookPanel(root: HTMLElement, options: { onCook: (choices: C
     input.value = String(choices.wild);
     // The filled part of the track follows the value.
     input.style.setProperty('--fill', `${choices.wild}%`);
-    const changed = (Object.keys(DEFAULT_CHOICES) as (keyof CookChoices)[]).some((key) => choices[key] !== DEFAULT_CHOICES[key]);
-    reset.disabled = !changed && !canCook;
+    reset.disabled = false;
   }
   let canCook = false;
   paint();
