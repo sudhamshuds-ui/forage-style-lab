@@ -20,9 +20,12 @@ import { leafPiece, stemPiece } from './kit/stemLeaf';
 const WIDTH = 7.1;
 const HEIGHT = 6.7;
 
-export const buildPeach: FormBuilder = ({ state, seed }) => {
-  if (state !== 'whole') throw new Error(`Peach: the "${state}" form is not built yet (whole only for now).`);
-  const random = seededRandom(seed ^ 0x9eac4);
+/**
+ * The peach's body alone, standing, built round its middle, with its map (dishes cut it).
+ * `smooth`: no cleft, no cheeks and only a shallow stem dip, for slices (cut through, the cleft
+ * and the dip showed as bumps in every wedge: the user, 2026-11-19).
+ */
+export function peachBody(random: () => number, smooth = false) {
   const radius = WIDTH / 2;
   const half = HEIGHT / 2 + 0.28;
   const skin = roundBody({
@@ -31,14 +34,14 @@ export const buildPeach: FormBuilder = ({ state, seed }) => {
     lying: false,
     lopsided: 0.6,
     random,
-    poleDimple: { depth: 0.55, width: 1.0, ends: 'end' },
+    poleDimple: { depth: smooth ? 0.1 : 0.55, width: 1.0, ends: 'end' },
     flatBase: 0.2,
     rings: 44,
     segments: 60,
   });
   // The seam (at angle 0 round the fruit, toward +x): a soft crease from the stem down the side,
   // fading out near the foot, with a fuller cheek each side of it.
-  sculpt(skin, (x, y, z) => {
+  if (!smooth) sculpt(skin, (x, y, z) => {
     // The peach's signature (the user, 2026-11-15: "missing their iconic peach bump"): a clear
     // cleft from the stem right down the side to the tip, deepest at the shoulder, with a full,
     // rounded cheek bulging each side of it, one a little fuller than the other.
@@ -58,6 +61,13 @@ export const buildPeach: FormBuilder = ({ state, seed }) => {
   const position = skin.getAttribute('position') as BufferAttribute;
   const top = new Vector3().fromBufferAttribute(position, position.count - 1);
   bodyMap(skin);
+  return { skin, top, half };
+}
+
+export const buildPeach: FormBuilder = ({ state, seed }) => {
+  if (state !== 'whole') throw new Error(`Peach: the "${state}" form is not built yet (whole only for now).`);
+  const random = seededRandom(seed ^ 0x9eac4);
+  const { skin, top } = peachBody(random);
 
   const stem = stemPiece({ base: top.clone().add(new Vector3(0, -0.05, 0)), height: 0.5, footRadius: 0.22, neckRadius: 0.15, lean: 0.25, leanTurn: random() * Math.PI * 2, segments: 10 });
   // One long, slim leaf from the stem, arching out over the shoulder and down.

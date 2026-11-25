@@ -1,0 +1,259 @@
+import { BufferAttribute, Matrix4, Quaternion, Vector3, type BufferGeometry } from 'three';
+import type { FormPiece } from '../../ingredients/forms/kit/piece';
+
+/**
+ * Real physics for plating (the user, 2026-11-22: "the dish should obey real world physics and
+ * centre of gravity"). Like dropping each piece onto the plate by hand and letting it settle: every
+ * piece is a solid body (its convex outline), the plate, the sauce and the board are the ground,
+ * gravity pulls, friction holds; a piece leans on its neighbour, slides off what cannot hold it,
+ * and stops where its weight is supported. Nothing floats, nothing passes through anything.
+ *
+ * Rapier (a physics engine, WebAssembly) is loaded only where dishes are built (the dish review, the
+ * kitchen, the tests): `loadPhysics()` once at start. Without it the composer falls back to the
+ * height-map `Table.rest`.
+ *
+ * Built in centimetres; the engine works in metres (so its tolerances fit food: about a millimetre).
+ */
+type Rapier = typeof import('@dimforge/rapier3d-compat');
+let RAPIER: Rapier | null = null;
+
+export async function loadPhysics(): Promise<void> {
+  if (RAPIER) return;
+  const module = (await import('@dimforge/rapier3d-compat')).default as unknown as Rapier;
+  await module.init();
+  RAPIER = module;
+}
+
+export function physicsReady(): boolean {
+  return RAPIER !== null;
+}
+
+// Centimetres as the engine's unit: food is 1 to 10 cm, the size its tolerances suit (in metres a
+// strawberry is 0.03 and slipped through the ground).
+const M = 1;
+
+/** Points of a geometry (cm), a few hundred at most, for a body's outline. */
+function samplePoints(geometries: BufferGeometry[], most = 300): Float32Array {
+  let total = 0;
+  for (const g of geometries) total += g.getAttribute('position').count;
+  const step = Math.max(1, Math.floor(total / most));
+  const out: number[] = [];
+  let k = 0;
+  for (const g of geometries) {
+    const pos = g.getAttribute('position') as BufferAttribute;
+    for (let i = 0; i < pos.count; i++, k++) if (k % step === 0) out.push(pos.getX(i), pos.getY(i), pos.getZ(i));
+  }
+  return Float32Array.from(out);
+}
+
+/** A geometry as a two-sided triangle mesh collider (cm). */
+function trimeshOf(geometry: BufferGeometry) {
+  const pos = geometry.getAttribute('position') as BufferAttribute;
+  const vertices = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) vertices.set([pos.getX(i) * M, pos.getY(i) * M, pos.getZ(i) * M], i * 3);
+  const one = geometry.index ? Array.from(geometry.index.array as ArrayLike<number>) : Array.from({ length: pos.count }, (_, i) => i);
+  const both: number[] = [...one];
+  for (let i = 0; i + 2 < one.length; i += 3) both.push(one[i], one[i + 2], one[i + 1]);
+  return RAPIER!.ColliderDesc.trimesh(vertices, Uint32Array.from(both));
+}
+
+export interface PhysicsReport {
+  /** Pieces held up by nothing at the end. */
+  floating: number;
+  /** The deepest overlap between two pieces (cm). */
+  deepest: number;
+  /** Pieces still moving when the time ran out. */
+  restless: number;
+}
+
+/**
+ * A plate in the physics world. Add the ground (static shapes), then drop pieces tier by tier;
+ * each drop settles before the next, like plating by hand.
+ */
+export class PhysicsPlate {
+  private readonly world: import('@dimforge/rapier3d-compat').World;
+  private readonly bodies: { body: import('@dimforge/rapier3d-compat').RigidBody; pieces: FormPiece[]; centre: Vector3; collider: number; baked: boolean }[] = [];
+
+  constructor() {
+    if (!RAPIER) throw new Error('Physics is not loaded: call loadPhysics() first.');
+    this.world = new RAPIER.World({ x: 0, y: -981, z: 0 });
+    this.world.timestep = 1 / 120;
+  }
+
+  /** A fixed surface (the plate, a sauce pool, the board), as its exact triangles. */
+  addGround(geometry: BufferGeometry): void {
+    const R = RAPIER!;
+    const g = geometry.index ? geometry : geometry;
+    const pos = g.getAttribute('position') as BufferAttribute;
+    const vertices = new Float32Array(pos.count * 3);
+    for (let i = 0; i < pos.count; i++) vertices.set([pos.getX(i) * M, pos.getY(i) * M, pos.getZ(i) * M], i * 3);
+    const one = g.index ? Array.from(g.index.array as ArrayLike<number>) : Array.from({ length: pos.count }, (_, i) => i);
+    // Both faces of every triangle: a ground built facing the other way (the rice's mound) would
+    // otherwise let pieces fall straight through it.
+    const back: number[] = [];
+    for (let i = 0; i + 2 < one.length; i += 3) back.push(one[i], one[i + 2], one[i + 1]);
+    const indices = Uint32Array.from([...one, ...back]);
+    const body = this.world.createRigidBody(R.RigidBodyDesc.fixed());
+    this.world.createCollider(R.ColliderDesc.trimesh(vertices, indices).setFriction(0.9), body);
+  }
+
+  /**
+   * The ground as a height field (a grid of heights, like a game's terrain): the plate, its sauce,
+   * a bed of leaves, the rice, all at once, from a height at each point (cm). A grid has no gaps,
+   * so nothing slips through it.
+   */
+  addHeightfield(heightAt: (x: number, z: number) => number, half = 16, cell = 0.25): void {
+    const R = RAPIER!;
+    // Built as a mesh of triangles over the grid, facing up (the engine's own height field let
+    // detailed shapes fall through it).
+    const n = Math.round((half * 2) / cell);
+    const vertices = new Float32Array((n + 1) * (n + 1) * 3);
+    for (let j = 0; j <= n; j++) {
+      for (let i = 0; i <= n; i++) {
+        const x = -half + i * cell;
+        const z = -half + j * cell;
+        vertices.set([x * M, heightAt(x, z) * M, z * M], (j * (n + 1) + i) * 3);
+      }
+    }
+    const indices = new Uint32Array(n * n * 6);
+    let k = 0;
+    for (let j = 0; j < n; j++) {
+      for (let i = 0; i < n; i++) {
+        const a0 = j * (n + 1) + i;
+        const a1 = a0 + 1;
+        const b0 = a0 + (n + 1);
+        const b1 = b0 + 1;
+        indices.set([a0, b0, a1, a1, b0, b1], k);
+        k += 6;
+      }
+    }
+    const body = this.world.createRigidBody(R.RigidBodyDesc.fixed());
+    this.world.createCollider(R.ColliderDesc.trimesh(vertices, indices).setFriction(1.4), body);
+  }
+
+  /** A fixed box (cm): a board's top. */
+  addBox(centre: [number, number, number], half: [number, number, number]): void {
+    const R = RAPIER!;
+    const body = this.world.createRigidBody(R.RigidBodyDesc.fixed().setTranslation(centre[0] * M, centre[1] * M, centre[2] * M));
+    this.world.createCollider(R.ColliderDesc.cuboid(half[0] * M, half[1] * M, half[2] * M).setFriction(0.9), body);
+  }
+
+  /** Drop one piece (its parts move together): a solid of its convex outline, at its current place. */
+  drop(pieces: FormPiece[], options: { lift?: number; straightDown?: boolean; noTurn?: boolean } = {}): void {
+    const R = RAPIER!;
+    const points = samplePoints(pieces.map((p) => p.geometry));
+    const centre = new Vector3();
+    for (let i = 0; i < points.length; i += 3) centre.x += points[i], centre.y += points[i + 1], centre.z += points[i + 2];
+    centre.multiplyScalar(3 / points.length);
+    const local = new Float32Array(points.length);
+    for (let i = 0; i < points.length; i += 3) local.set([(points[i] - centre.x) * M, (points[i + 1] - centre.y) * M, (points[i + 2] - centre.z) * M], i);
+    const desc = R.RigidBodyDesc.dynamic()
+      .setTranslation(centre.x * M, (centre.y + (options.lift ?? 0.15)) * M, centre.z * M)
+      .setLinearDamping(4)
+      .setAngularDamping(2)
+      // Never put to sleep early: a heavily damped piece moves so slowly while it tips that the
+      // engine took it for at rest and left fried eggs and a steak balanced on their edges.
+      .setCanSleep(false)
+      .setCcdEnabled(true);
+    // Where it goes comes from the reference: strong damping lets gravity settle its height and
+    // tilt (it leans, tips onto its side, slips off a peak) while it moves only a little across the
+    // plate. Holding it to straight down made pieces balance on an edge, like a fried egg standing up.
+    if (options.straightDown) desc.enabledTranslations(false, true, false);
+    // A leaf keeps the way it was laid: it falls until it touches, never tumbling onto its edge.
+    if (options.noTurn) desc.lockRotations();
+    const body = this.world.createRigidBody(desc);
+    const shape = R.ColliderDesc.convexHull(local);
+    if (!shape) return;
+    const collider = this.world.createCollider(shape.setFriction(1.6).setRestitution(0).setDensity(0.001), body);
+    this.bodies.push({ body, pieces, centre, collider: collider.handle, baked: false });
+  }
+
+  /**
+   * A soft piece laid in place by hand (a leaf draped over what is under it): held still as its
+   * exact surface, so the next pieces land on it. Leaves are not dropped: a stiff curled leaf
+   * tumbled onto its edge and leaned on its neighbours like a card.
+   */
+  hold(pieces: FormPiece[]): void {
+    const fixed = this.world.createRigidBody(RAPIER!.RigidBodyDesc.fixed());
+    for (const p of pieces) this.world.createCollider(trimeshOf(p.geometry).setFriction(1.6), fixed);
+  }
+
+  /** Let everything fall and come to rest (at most `seconds`). */
+  settle(seconds = 4): void {
+    const steps = Math.round(seconds / this.world.timestep);
+    // At rest only when every piece the engine is moving has fallen asleep (a piece pausing at the
+    // top of a bounce is slow for a moment, but not at rest).
+    let still = 0;
+    for (let i = 0; i < steps; i++) {
+      this.world.step();
+      if (i < 120 || i % 10 !== 0) continue;
+      const calm = this.bodies.every((b) => {
+        if (b.baked) return true;
+        const v = b.body.linvel();
+        const w = b.body.angvel();
+        return Math.hypot(v.x, v.y, v.z) < 0.3 && Math.hypot(w.x, w.y, w.z) < 0.03;
+      });
+      still = calm ? still + 1 : 0;
+      // Still for a quarter of a second: truly at rest, not pausing at the top of a tip.
+      if (still >= 3) break;
+    }
+  }
+
+  /**
+   * Move the pieces dropped since the last call to where their bodies came to rest, then hold them
+   * there (like a piece already plated: the next ones lean on it, they do not shove it).
+   */
+  bakeNew(): void {
+    for (const b of this.bodies) {
+      if (b.baked) continue;
+      this.measure(b);
+      const v0 = b.body.linvel();
+      if (Math.hypot(v0.x, v0.y, v0.z) > 2) this.restless++;
+      const t = b.body.translation();
+      const r = b.body.rotation();
+      const m = new Matrix4()
+        .makeTranslation(t.x / M, t.y / M, t.z / M)
+        .multiply(new Matrix4().makeRotationFromQuaternion(new Quaternion(r.x, r.y, r.z, r.w)))
+        .multiply(new Matrix4().makeTranslation(-b.centre.x, -b.centre.y, -b.centre.z));
+      for (const p of b.pieces) p.geometry.applyMatrix4(m);
+      b.baked = true;
+      // Held where it came to rest: the moving body is replaced by a fixed solid of the piece's
+      // final shape, so the next layer leans on it but never moves it. (Switching the body itself
+      // to fixed let the next pieces fall straight through it.)
+      this.world.removeRigidBody(b.body);
+      const fixed = this.world.createRigidBody(RAPIER!.RigidBodyDesc.fixed());
+      // Its exact surface as triangles (a falling piece is caught reliably by triangles; two convex
+      // outlines let thin and detailed pieces slip through each other).
+      for (const p of b.pieces) this.world.createCollider(trimeshOf(p.geometry).setFriction(1.6), fixed);
+    }
+  }
+
+  /** The physics QA: pieces held by nothing, the deepest overlap, pieces still moving (measured as each layer settles). */
+  check(): PhysicsReport {
+    return { floating: this.floating, deepest: this.deepest, restless: this.restless };
+  }
+
+  /** Measure one body against everything it touches, before it is held still. */
+  private measure(b: (typeof this.bodies)[number]): void {
+    let touching = false;
+    const mine = this.world.getCollider(b.collider);
+    this.world.contactPairsWith(mine, (other) => {
+      this.world.contactPair(mine, other, (manifold) => {
+        for (let i = 0; i < manifold.numContacts(); i++) {
+          const d = manifold.contactDist(i);
+          if (d < 0.2) touching = true;
+          this.deepest = Math.max(this.deepest, -d / M);
+        }
+      });
+    });
+    if (!touching) this.floating++;
+  }
+
+  private floating = 0;
+  private deepest = 0;
+  private restless = 0;
+
+  free(): void {
+    this.world.free();
+  }
+}

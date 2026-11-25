@@ -81,11 +81,8 @@ function wedge(angle: number, lumps: number): BufferGeometry {
   return g;
 }
 
-export const buildLime: FormBuilder = ({ state, seed }) => {
-  if (state !== 'whole') throw new Error(`Lime: the "${state}" form is not built yet (the whole lime and two wedges only for now).`);
-  const random = seededRandom(seed ^ 0x11e3);
-
-  // The whole lime, standing: a slightly oval ball with a small nipple under it and a dip on top.
+/** The whole lime alone, standing, built round its middle, with its map (dishes cut it into wheels). */
+export function limeBody(random: () => number): BufferGeometry {
   const whole = roundBody({
     halfLength: HALF,
     radius: profile,
@@ -97,9 +94,21 @@ export const buildLime: FormBuilder = ({ state, seed }) => {
     rings: 40,
     segments: 52,
   });
+  bodyMap(whole, () => 0);
+  return whole;
+}
+
+/** The lime's half height and radius (cm). */
+export const LIME_SIZE = { half: HALF, radius: RADIUS };
+
+export const buildLime: FormBuilder = ({ state, seed }) => {
+  if (state !== 'whole') throw new Error(`Lime: the "${state}" form is not built yet (the whole lime and two wedges only for now).`);
+  const random = seededRandom(seed ^ 0x11e3);
+
+  // The whole lime, standing: a slightly oval ball with a small nipple under it and a dip on top.
+  const whole = limeBody(random);
   const position = whole.getAttribute('position') as BufferAttribute;
   const top = new Vector3().fromBufferAttribute(position, position.count - 1);
-  bodyMap(whole, () => 0);
   // Stand it on the table (the recipe builds it round its middle), then put it in its place.
   const place = new Vector3(-1.7, rest(whole), -2.4);
   whole.translate(place.x, 0, place.z);

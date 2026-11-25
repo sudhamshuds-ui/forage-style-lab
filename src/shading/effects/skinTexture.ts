@@ -57,7 +57,7 @@ import { UNITS_PER_CM } from '../../ingredients/scale';
  */
 
 /** The skin kinds. The shader receives the position in this list. */
-export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon', 'egg', 'rice', 'glaze', 'carton', 'tomato', 'pear', 'peach', 'potato', 'lime', 'garlic', 'mushroom', 'eggshell', 'pulp', 'yolk'] as const;
+export const SKIN_KINDS = ['none', 'pebbled', 'pores', 'streaks', 'seeds', 'leaf', 'florets', 'crust', 'crumb', 'label', 'melon', 'melonRind', 'marbled', 'poultry', 'knuckle', 'onion', 'pepper', 'avocado', 'grape', 'blueberry', 'spinach', 'romaine', 'cabbage', 'salmon', 'egg', 'rice', 'glaze', 'carton', 'tomato', 'pear', 'peach', 'potato', 'lime', 'garlic', 'mushroom', 'eggshell', 'pulp', 'yolk', 'ceramic', 'flesh', 'sauce', 'charred'] as const;
 export type SkinKind = (typeof SKIN_KINDS)[number];
 
 export interface Skin {
@@ -66,6 +66,16 @@ export interface Skin {
   size_mm: number;
   /** 0 to 1: how strongly it shows. */
   amount: number;
+  /**
+   * 0 to 1: a seared crust over whatever faces up (a pan-seared salmon's top, a grilled steak),
+   * golden caramel with deeper patches, on top of the skin's own painting. Dishes only.
+   */
+  seared?: number;
+  /**
+   * A sauce drizzled over it (dishes): pooled on what faces up, running down the sides in
+   * streaks, glossy. Its colour (hex) and how much of the surface it covers (0 to 1).
+   */
+  drizzle?: { colour: string; amount: number };
 }
 
 export const NO_SKIN: Skin = { kind: 'none', size_mm: 1, amount: 0 };
@@ -122,11 +132,25 @@ export const PULP_SKIN: Skin = { kind: 'pulp', size_mm: 1.2, amount: 1 };
 /** A fried egg's yolk (a piece named `yolk`; map y: height share, 0 at its foot). */
 export const YOLK_SKIN: Skin = { kind: 'yolk', size_mm: 2, amount: 1 };
 
+/** Dishes: a glazed stoneware plate or bowl (speckles, a paler rim, an unglazed foot in `pale`). */
+export const CERAMIC_SKIN: Skin = { kind: 'ceramic', size_mm: 2, amount: 1 };
+/** Dishes: a cut face of fruit (map x 0 at the core, 1 at the skin; `pale` the core, `green` the skin's colour). */
+export const FLESH_SKIN: Skin = { kind: 'flesh', size_mm: 2, amount: 1 };
+/** Dishes: a pool of sauce (map x 0 at its middle, 1 at its edge). */
+export const SAUCE_SKIN: Skin = { kind: 'sauce', size_mm: 2, amount: 1 };
+/** Dishes: a grilled cut face (the flesh skin with soft grill bars). */
+export const CHARRED_SKIN: Skin = { kind: 'charred', size_mm: 2, amount: 1 };
+
 /** Give one material its skin. */
 export function setSkin(material: ShaderMaterial, skin: Skin): void {
   // Cells per scene unit: 10 mm per cm, then centimetres to scene units.
   const cellsPerUnit = 10 / Math.max(0.1, skin.size_mm) / UNITS_PER_CM;
-  (material.uniforms.uSkin.value as Vector4).set(SKIN_KINDS.indexOf(skin.kind), cellsPerUnit, skin.amount, 0);
+  (material.uniforms.uSkin.value as Vector4).set(SKIN_KINDS.indexOf(skin.kind), cellsPerUnit, skin.amount, skin.seared ?? 0);
+  const sauce = material.uniforms.uSauce?.value as Vector4 | undefined;
+  if (sauce) {
+    const c = new Color(skin.drizzle?.colour ?? '#000000');
+    sauce.set(c.r, c.g, c.b, skin.drizzle?.amount ?? 0);
+  }
   // Build this material's shader with only this skin's code (see `SKIN_KIND` in the shader).
   const kind = SKIN_KINDS.indexOf(skin.kind);
   if (material.defines?.SKIN_KIND !== kind) {
@@ -139,7 +163,8 @@ export const skinTexture: ShaderEffect = {
   name: 'Skin texture',
   uniforms: {},
   declarations: /* glsl */ `
-uniform vec4 uSkin; // x: kind (see SKIN_KINDS), y: cells per scene unit, z: amount
+uniform vec4 uSkin; // x: kind (see SKIN_KINDS), y: cells per scene unit, z: amount, w: seared
+uniform vec4 uSauce; // a drizzled sauce: rgb its colour (linear), w how much
 uniform sampler2D uLabelMap; // a label's artwork: white = ink, black = the ground
 uniform vec3 uLabelInk;      // the ink colour (cream)
 uniform vec3 uMelonPale;     // a melon's pale band, between flesh and rind (also a steak's marbling)
@@ -220,6 +245,8 @@ const int kind = SKIN_KIND;
 int kind = int(uSkin.x + 0.5);
 #endif
 float amount = uSkin.z;
+// Lines a skin marks for a seared crust to pick out in a deeper brown (a salmon's fat lines).
+float searMark = 0.0;
 if (kind > 0 && amount > 0.0) {
   vec3 p = objectPos * uSkin.y;
   vec3 lab = linearToOklab(colour);
@@ -1275,6 +1302,9 @@ if (kind > 0 && amount > 0.0) {
     fatLab = mix(fatLab, vec3(fatLab.x - 0.03, fatLab.y + 0.01, fatLab.z - 0.03), 1.0 - lit);
     lab = mix(lab, fatLab, line * 0.8 * amount);
     highlightOwn = max(highlightOwn, line);
+    // Seared, the fat lines on top cook darker than the flesh round them (the user, 2026-11-18:
+    // "the white lines become brown").
+    searMark = line;
     // The flakes between the lines: each a touch its own tone, lighter toward its lit edge.
     lab.x += (hash13(vec3(cellId, 9.0, 2.0)) - 0.5) * 0.035 * (1.0 - line);
     lab.x += (fract(phase) - 0.5) * 0.03 * (1.0 - line) * lit;
@@ -1471,7 +1501,7 @@ if (kind > 0 && amount > 0.0) {
     // uv.x height as a share of the body, ownPos the point in the body's own frame (cm).
     float h = vSurfaceUv.x;
     vec3 q = vOwnPos;
-    float around = atan(q.z, q.x);
+    float around = atan(q.z, q.x + 1e-4);
     float NdotL = dot(N, L);
     float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
     float shadeSide = 1.0 - smoothstep(-0.35, 0.35, NdotL * mix(0.4, 1.0, lightMask));
@@ -1609,7 +1639,7 @@ if (kind > 0 && amount > 0.0) {
       // Garlic. uv.x: height share (a clove: along it); uv.y: 0 the bulb, 1 a clove.
       float h = vSurfaceUv.x;
       float clove = smoothstep(0.4, 0.6, vSurfaceUv.y);
-      float around = mix(atan(q.z, q.x), atan(q.z, q.y), clove);
+      float around = mix(atan(q.z, q.x + 1e-4), atan(q.z, q.y + 1e-4), clove);
       // Cream and pearl in soft blooms; lilac-violet streaks running root to neck in smooth arcs,
       // each its own strength, broken in places, in broad soft bands with finer lines inside.
       lab = depthWash(lab, cm, vec3(0.0, 0.012, 0.035), vec3(-0.04, 0.012, -0.035), 0.0, 0.7 * amount);
@@ -1639,7 +1669,7 @@ if (kind > 0 && amount > 0.0) {
       float gillW = clamp(1.0 - capW - stemW, 0.0, 1.0);
       vec3 own = vec3(q.x, mod(q.y, 10.0), q.z);
       float each = floor(q.y / 10.0 + 0.01);
-      float around = atan(own.z, own.x);
+      float around = atan(own.z, own.x + 1e-4);
       float outR = length(own.xz);
       // Redone after the user's note (2026-11-15: "their texture needs a lot of improvement"), from
       // the watercolour: no drawn fibres or planks; soft washes and a few loose marks.
@@ -1716,6 +1746,179 @@ if (kind > 0 && amount > 0.0) {
     lab = mix(lab, cream, film * 0.85 * amount);
     lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.03, lab.z - 0.05), shadeSide * 0.35 * (1.0 - film) * amount);
     highlightOwn = max(highlightOwn, film);
+  } else if (kind >= 38 && kind <= 41) {
+    // Dishes (2026-11-18): tableware, cut flesh and sauces, for every dish to share.
+    vec3 cm = objectPos * 3.8169;
+    float NdotL = dot(N, L);
+    float lit = smoothstep(-0.25, 0.6, NdotL) * mix(0.5, 1.0, lightMask);
+    float shadeSide = 1.0 - smoothstep(-0.35, 0.35, NdotL * mix(0.4, 1.0, lightMask));
+    float turnBand = smoothstep(-0.3, 0.0, NdotL) * (1.0 - smoothstep(0.0, 0.4, NdotL));
+    float tone = lab.x - linearToOklab(uBaseColour).x;
+    if (kind == 38) {
+      // Ceramic (plates, bowls): a glazed stoneware, after the references' speckled cream plates.
+      // Soft warm and cool washes in the glaze (never blotches), fine iron specks in its own deep
+      // shade, a paler line where the glaze thins over the rim, an unglazed foot (uMelonPale) and a
+      // cool lilac shade side (a painted white is never grey).
+      // Pristine porcelain (a low amount: the user, 2026-11-19, "plate is still not clear white it
+      // has some dirty texture"): the shared paint grain and its colour shifts read as dirt on white,
+      // so the colour is laid again from the light alone, a clean turn from lit white to a lilac shade.
+      float pristine = 1.0 - smoothstep(0.1, 0.4, amount);
+      if (pristine > 0.0) {
+        float wrap = smoothstep(-0.45, 0.9, dot(N, L)) * mix(0.55, 1.0, lightMask);
+        vec3 litL = linearToOklab(uLitColour);
+        vec3 baseL = linearToOklab(uBaseColour);
+        vec3 shadowL = linearToOklab(uShadowColour);
+        vec3 clean = wrap > 0.5 ? mix(baseL, litL, (wrap - 0.5) * 2.0) : mix(shadowL, baseL, 0.3 + wrap * 1.4);
+        lab = mix(lab, clean, pristine);
+      }
+      lab = depthWash(lab, cm * 0.5, vec3(0.012, 0.004, 0.022), vec3(-0.03, 0.006, -0.03), 0.0, 0.75 * amount);
+      float speck = smoothstep(0.84, 0.94, valueNoise3(cm * 7.0)) * (1.0 - pristine);
+      float fine = smoothstep(0.86, 0.95, valueNoise3(cm * 19.0 + 4.0)) * (1.0 - pristine);
+      lab = shadeOwn(lab, (speck * 0.32 + fine * 0.16) * show);
+      float rim = smoothstep(0.9, 0.995, vSurfaceUv.y);
+      lab = mix(lab, vec3(lab.x + 0.03, lab.y + 0.004, lab.z + 0.018), rim * 0.6 * amount);
+      float foot = (1.0 - vSurfaceUv.x) * (1.0 - smoothstep(0.02, 0.12, vSurfaceUv.y));
+      vec3 bare = linearToOklab(uMelonPale);
+      lab = mix(lab, vec3(bare.x + tone * 0.8, bare.y, bare.z), foot * 0.7 * amount);
+      lab = mix(lab, vec3(lab.x - 0.025, lab.y + 0.012, lab.z - 0.045), shadeSide * 0.45 * amount);
+    } else if (kind == 39 || kind == 41) {
+      // Cut flesh (a peach's wedge, a tomato's half): uv.x 0 at the core, 1 at the skin. Deeper and
+      // warmer toward the core (uMelonPale: a peach's red by its stone), fibres fanning out from
+      // the core, a soft band of the skin's colour (uMelonGreen) at the rim, never a hard line;
+      // juicy: a glow at the turn and in the shade, small wet glints.
+      float r = vSurfaceUv.x;
+      vec3 q = vOwnPos;
+      // (atan of two zeros is not a number on some graphics cards, which paints black: nudge it.)
+      float around = atan(q.z, q.x + 1e-4) + q.y * 0.2;
+      lab = depthWash(lab, cm, vec3(0.03, -0.01, 0.035), vec3(-0.04, 0.025, -0.02), 0.0, 0.8 * amount);
+      float wander = (fbm3(cm * 1.2 + 3.0) - 0.5) * 0.16;
+      vec3 core = linearToOklab(uMelonPale);
+      core.x += tone * 0.8;
+      lab = mix(lab, core, (1.0 - smoothstep(0.0, 0.5, r + wander)) * 0.7 * amount);
+      float fibre = valueNoise3(vec3(around * 9.0, r * 2.5, q.y * 0.6 + 2.0));
+      lab.x += (fibre - 0.5) * 0.08 * smoothstep(0.1, 0.4, r) * amount;
+      vec3 skinLab = linearToOklab(uMelonGreen);
+      skinLab.x += tone * 0.8;
+      // Citrus (a lime wheel): uv.y counts the segments round the middle; thin pale membranes
+      // between them, softly broken, and a pale pith ring just inside the peel.
+      if (vSurfaceUv.y > 0.0) {
+        float seg = abs(fract(vSurfaceUv.y) - 0.5) * 2.0;
+        float membrane = smoothstep(0.8, 0.97, seg + (fbm3(cm * 3.0) - 0.5) * 0.12) * smoothstep(0.12, 0.3, r) * (1.0 - smoothstep(0.78, 0.86, r));
+        vec3 pithLab = vec3(0.95 + tone * 0.5, -0.01, 0.05);
+        lab = mix(lab, pithLab, membrane * 0.55 * amount);
+        lab = mix(lab, pithLab, smoothstep(0.76, 0.84, r + wander * 0.3) * (1.0 - smoothstep(0.88, 0.94, r)) * 0.8 * amount);
+        lab = mix(lab, pithLab, (1.0 - smoothstep(0.03, 0.12, r)) * 0.7 * amount);
+        lab.x += smoothstep(0.6, 0.85, valueNoise3(vec3(vSurfaceUv.y * 6.0, r * 9.0, 1.0))) * 0.03 * smoothstep(0.15, 0.4, r);
+      }
+      // (Past 1 the map runs over the fruit's skin itself, a peach wedge's: all skin there.)
+      lab = mix(lab, skinLab, smoothstep(0.86, 0.99, r + wander * 0.3) * mix(0.8, 1.0, smoothstep(1.0, 1.25, r)) * amount);
+      // Charred (grilled fruit): soft dark grill bars across the face, broken where the bars did
+      // not touch, in a deep caramel-plum (never black), with a caramel halo round each.
+      if (kind == 41) {
+        float across = (cm.x * 0.72 + cm.z * 0.69) / 1.35;
+        float bar = abs(fract(across) - 0.5) * 2.0;
+        float broken = smoothstep(0.3, 0.6, fbm3(cm * 1.4 + 5.0));
+        float mark = (1.0 - smoothstep(0.14, 0.32, 1.0 - bar)) * broken;
+        float halo = (1.0 - smoothstep(0.25, 0.55, 1.0 - bar)) * broken;
+        lab = mix(lab, vec3(lab.x - 0.06, lab.y + 0.03, lab.z + 0.04), halo * 0.5 * amount);
+        lab = mix(lab, vec3(0.36 + tone * 0.5, 0.06, 0.03), mark * 0.85 * amount);
+      }
+      // Seared (a pan-seared peach wedge, a mushroom's cut face): a caramel-brown edge running
+      // in from the rim in soft, uneven patches, deeper right at the edge; the middle stays fresh.
+      if (uSkin.w > 0.0) {
+        float edge = smoothstep(0.45, 0.98, r + (fbm3(cm * 1.6 + 2.0) - 0.5) * 0.35) * (1.0 - smoothstep(1.02, 1.2, r));
+        // (Deepening to a mahogany right at the rim, like caramelised fruit: the user's photo.)
+        vec3 brown = mix(vec3(0.66 + tone * 0.6, 0.05, 0.11), vec3(0.42 + tone * 0.5, 0.07, 0.07), smoothstep(0.7, 1.0, r));
+        lab = mix(lab, brown, edge * uSkin.w * 0.85);
+      }
+      lab = mix(lab, linearToOklab(uGlowColour), clamp(turnBand * 0.35 + (1.0 - lit) * 0.22, 0.0, 0.45) * amount);
+      float sparkle = smoothstep(0.72, 0.9, valueNoise3(cm * 6.0 + 1.0));
+      highlightBumpy = max(highlightBumpy, 0.8);
+      highlightGlint = max(highlightGlint, sparkle * 0.6);
+      highlightOwn = max(highlightOwn, 0.6);
+      lab = mix(lab, vec3(lab.x - 0.025, lab.y + 0.02, lab.z - 0.05), shadeSide * 0.35 * amount);
+    } else {
+      // Sauce (a pool on a plate: jam, glaze, foam, brown butter): uv.x 0 at its middle, 1 at its
+      // edge. Deeper and richer where it is thick, paler and brighter where it thins at the edge
+      // (light through it), slow swirls; a wet shine broken into glints.
+      float rn = vSurfaceUv.x;
+      lab = depthWash(lab, cm, vec3(0.03, 0.005, 0.03), vec3(-0.05, 0.02, -0.03), 0.0, 0.8 * amount);
+      lab.x -= (1.0 - smoothstep(0.2, 0.9, rn)) * 0.045 * amount;
+      float thin = smoothstep(0.7, 1.0, rn);
+      lab = mix(lab, linearToOklab(uGlowColour), thin * 0.35 * amount);
+      lab = mix(lab, vec3(lab.x + 0.05, lab.y * 0.85, lab.z * 0.85), thin * thin * 0.4 * amount);
+      float swirl = fbm3(vec3(cm.x * 0.7 + sin(cm.z * 0.5) * 1.4, cm.y * 0.3, cm.z * 0.7));
+      lab.x += (swirl - 0.5) * 0.06 * amount;
+      float fleck = smoothstep(0.78, 0.92, valueNoise3(cm * 5.0 + 7.0));
+      lab = shadeOwn(lab, fleck * 0.25 * show);
+      highlightBumpy = max(highlightBumpy, 0.7);
+      highlightGlint = max(highlightGlint, smoothstep(0.75, 0.92, valueNoise3(cm * 4.0)) * 0.5);
+      lab = mix(lab, vec3(lab.x - 0.03, lab.y + 0.015, lab.z - 0.05), shadeSide * 0.4 * amount);
+    }
+  }
+  // Seared (dishes): a crust over what faces up, golden caramel with deeper, broken patches and a
+  // soft edge where the pan stopped touching; never black.
+  // (A cut face, kinds 39 and 41, browns at its edges instead: see the flesh skin.)
+  if (uSkin.w > 0.0 && kind != 39 && kind != 41) {
+    vec3 cmS = objectPos * 3.8169;
+    // Light and shade from the lighting alone (colour, before the skin painted on it): measured
+    // after the skin, the salmon's pale fat lines leaked into the crust as lighter stripes.
+    float toneS = linearToOklab(colour).x - linearToOklab(uBaseColour).x;
+    // Up to 0.99 it is the top only (a fillet seared in the pan); 1 all round (a steak's crust).
+    // A wide, uneven band where the crust gives way to the sides (the user, 2026-11-19: no sudden
+    // shift in colour from the top to the body).
+    float upward = mix(smoothstep(0.05, 0.85, N.y + (fbm3(cmS * 0.8 + 11.0) - 0.5) * 0.45), 1.0, step(0.995, uSkin.w));
+    // Golden caramel on pale things (salmon, bread), a deep brown crust on dark ones (beef).
+    float darkBase = smoothstep(0.7, 0.52, linearToOklab(uBaseColour).x);
+    vec3 golden = mix(vec3(0.7, 0.05, 0.12), vec3(0.46, 0.06, 0.07), darkBase);
+    vec3 deep = mix(vec3(0.5, 0.07, 0.08), vec3(0.32, 0.05, 0.04), darkBase);
+    vec3 searLab = mix(golden + vec3(toneS * 0.6, 0.0, 0.0), deep + vec3(toneS * 0.5, 0.0, 0.0), smoothstep(0.5, 0.78, fbm3(cmS * 1.8 + 3.0)));
+    // Marked lines (a salmon's fat lines) cook to a deeper brown; the top's edge, where it turns
+    // down, caramelises darker too.
+    vec3 marked = mix(golden, deep, 0.85) + vec3(toneS * 0.5 - 0.05, 0.01, -0.01);
+    searLab = mix(searLab, marked, searMark * 0.8);
+    float turnDown = (1.0 - smoothstep(0.45, 0.95, N.y)) * smoothstep(0.1, 0.5, N.y);
+    searLab = mix(searLab, deep + vec3(toneS * 0.5, 0.0, 0.0), turnDown * 0.3);
+    // A rough crust, never smooth plastic (the user, 2026-11-19: "it needs to be rough, bumpy and
+    // not shine"): small lumps lit on the side that faces the light and shaded on the other (an
+    // emboss, like the lemon's pebbling), darker caramel crumbs in the pits, a fine grain.
+    vec3 pS = cmS * 2.4;
+    float lumpHere = fbm3(pS + 5.0);
+    float lumpToward = fbm3(pS + 5.0 + L * 0.3);
+    float emboss = clamp((lumpToward - lumpHere) * 4.0, -1.0, 1.0);
+    searLab.x += emboss * 0.045;
+    searLab = mix(searLab, deep + vec3(toneS * 0.5 - 0.03, 0.0, 0.0), smoothstep(0.6, 0.78, valueNoise3(cmS * 6.5 + 3.0)) * 0.45);
+    searLab.x += (valueNoise3(cmS * 15.0) - 0.5) * 0.06;
+    float broken = mix(0.8, 1.0, smoothstep(0.3, 0.6, fbm3(cmS * 3.0 + 1.0)));
+    // A full sear (0.97 or more) covers what faces up completely: nothing of the raw surface shows
+    // through (the salmon's white fat lines read as raw on a seared top, the user, 2026-11-18).
+    float full = step(0.97, uSkin.w);
+    // A full sear reaches further down the sides of the top, and clears what the skin asked the
+    // highlight to pick out (the salmon's fat lines came back through it).
+    upward = mix(upward, smoothstep(-0.05, 0.45, N.y + (fbm3(cmS * 0.8 + 11.0) - 0.5) * 0.3), full * step(uSkin.w, 0.995));
+    lab = mix(lab, searLab, upward * mix(broken * uSkin.w * 0.93, 1.0, full));
+    highlightOwn = mix(highlightOwn, 0.0, upward * full);
+    // The shine breaks up on the crust: a faint sheen skipping the pits, small glints on the lumps
+    // facing the light, in the crust's own colour.
+    float crust = upward * min(1.0, uSkin.w * 1.1);
+    highlightBumpy = max(highlightBumpy, crust);
+    highlightBreak = max(highlightBreak, crust * smoothstep(0.35, 0.6, lumpHere));
+    highlightGlint = max(highlightGlint, crust * smoothstep(0.35, 0.8, emboss) * 0.5);
+    highlightOwn = max(highlightOwn, crust * 0.8);
+  }
+  // Drizzled sauce (dishes): pooled on what faces up in soft blobs, running down the sides in
+  // streaks, in the sauce's own colour (shaded like the surface under it), wet and glinting.
+  if (uSauce.w > 0.0) {
+    vec3 cmD = objectPos * 3.8169;
+    float topness = smoothstep(-0.15, 0.65, N.y);
+    float blob = smoothstep(0.42, 0.62, fbm3(cmD * 0.55 + 9.0));
+    float runs = smoothstep(0.5, 0.72, fbm3(vec3(cmD.x * 1.1, cmD.y * 0.22, cmD.z * 1.1) + 4.0));
+    float cover = clamp(topness * blob + runs * (1.0 - topness) * 0.85, 0.0, 1.0) * uSauce.w;
+    vec3 sauceLab = linearToOklab(uSauce.rgb);
+    sauceLab.x += (linearToOklab(colour).x - linearToOklab(uBaseColour).x) * 0.6;
+    lab = mix(lab, sauceLab, cover * 0.9);
+    highlightOwn = max(highlightOwn, cover * 0.5);
+    highlightGlint = max(highlightGlint, cover * smoothstep(0.7, 0.9, valueNoise3(cmD * 5.0)) * 0.7);
   }
   colour = max(oklabToLinear(lab), 0.0);
 }

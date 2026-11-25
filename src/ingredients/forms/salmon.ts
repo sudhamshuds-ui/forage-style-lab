@@ -1,4 +1,4 @@
-import { BufferAttribute, Vector3 } from 'three';
+import { BufferAttribute, Vector3, type BufferGeometry } from 'three';
 import { smoothstep } from './kit/lathe';
 import { finishPieces, type FormBuilder } from './kit/piece';
 import { seededRandom } from './kit/random';
@@ -34,31 +34,61 @@ const CELL = 0.2;
 
 export const buildSalmon: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Salmon: the "${state}" form is not built yet (the fillet only for now).`);
+  return finishPieces([{ role: 'flesh_glow', geometry: salmonFillet(seed) }]);
+};
+
+/** A fillet's measurements (cm) and how its top falls away (shares of its height). */
+export interface FilletShape {
+  length: number;
+  width: number;
+  height: number;
+  midline: number;
+  rounding: number;
+  /** How far the back and the belly fall from the loin, and how deep the middle groove is. */
+  backDrop: number;
+  bellyDrop: number;
+  groove: number;
+  /** Its height along its length, t 0 at one end to 1 at the other, as a share (default level). */
+  along?: (t: number) => number;
+  /** A seared top's lumpy, uneven crust: how high its bumps stand (cm; default none). */
+  crust?: number;
+}
+
+/** The pantry's raw fillet. */
+export const RAW_FILLET: FilletShape = { length: LENGTH, width: WIDTH, height: HEIGHT, midline: MIDLINE, rounding: ROUNDING, backDrop: 0.3, bellyDrop: 0.56, groove: 0.2 };
+
+/** A fillet with its skin maps (dishes use their own measurements: a thick cooked portion). */
+export function salmonFillet(seed: number, f: FilletShape = RAW_FILLET): BufferGeometry {
   const random = seededRandom(seed ^ 0x5a1307);
   const phase = Array.from({ length: 6 }, () => random() * Math.PI * 2);
 
   /** The top's height at (x, z): the loin's swell, the middle groove, the thin belly (cm). */
   const topAt = (x: number, z: number) => {
-    const zc = z - MIDLINE;
+    const zc = z - f.midline;
     // Across: thickest just behind the middle line, a rounded back, a long fall to the belly.
-    const back = 1 - 0.3 * smoothstep(0.8, WIDTH / 2 + MIDLINE + 0.6, -zc) ** 1.6;
-    const belly = 1 - 0.56 * smoothstep(0.2, WIDTH / 2 - MIDLINE + 0.4, zc) ** 1.15;
-    let h = HEIGHT * (zc < 0 ? back : belly);
+    const back = 1 - f.backDrop * smoothstep(0.8, f.width / 2 + f.midline + 0.6, -zc) ** 1.6;
+    const belly = 1 - f.bellyDrop * smoothstep(0.2, f.width / 2 - f.midline + 0.4, zc) ** 1.15;
+    let h = f.height * (zc < 0 ? back : belly);
     // The groove along the middle line, a little wandering.
     const wander = 0.18 * Math.sin(x * 0.42 + phase[0]);
-    h -= 0.2 * Math.exp(-(((zc - wander) / 0.42) ** 2));
+    h -= f.groove * Math.exp(-(((zc - wander) / 0.42) ** 2));
     // Along: one end a little thicker, and slow soft swells (flakes of muscle), never flat.
-    h *= 1 + 0.07 * (x / (LENGTH / 2)) + 0.035 * Math.sin(x * 0.55 + phase[1]) + 0.025 * Math.sin(x * 1.1 + z * 0.6 + phase[2]);
+    if (f.along) h *= f.along(Math.min(1, Math.max(0, x / f.length + 0.5)));
+    if (f.crust) {
+      // Lumps of crust in several sizes, so the top is never one smooth sheet.
+      h += f.crust * (0.5 * Math.sin(x * 2.3 + phase[3]) * Math.sin(z * 2.7 + phase[4]) + 0.35 * Math.sin(x * 4.1 - z * 1.9 + phase[5]) * Math.sin(z * 4.6 + x * 1.3) + 0.25 * Math.sin(x * 7.3 + z * 5.1) * Math.sin(z * 6.7 - x * 2.9 + phase[1]));
+    }
+    h *= 1 + 0.07 * (x / (f.length / 2)) + 0.035 * Math.sin(x * 0.55 + phase[1]) + 0.025 * Math.sin(x * 1.1 + z * 0.6 + phase[2]);
     return h;
   };
   /** The outline seen from above (cm, negative inside): a soft, slightly skewed rectangle. */
   const outline = (x: number, z: number) => {
     // The two cut ends: not quite square to the fillet, each with a slow wobble.
-    const endA = -x - LENGTH / 2 + 0.1 * z + 0.12 * Math.sin(z * 0.9 + phase[3]);
-    const endB = x - LENGTH / 2 + 0.14 * z + 0.12 * Math.sin(z * 0.8 + phase[4]);
+    const endA = -x - f.length / 2 + 0.1 * z + 0.12 * Math.sin(z * 0.9 + phase[3]);
+    const endB = x - f.length / 2 + 0.14 * z + 0.12 * Math.sin(z * 0.8 + phase[4]);
     // The back and the belly edges: gently bowed and wavering.
-    const backEdge = -z - WIDTH / 2 + 0.18 * Math.sin(x * 0.33 + phase[5]) + 0.012 * x * x * 0.3;
-    const bellyEdge = z - WIDTH / 2 + 0.25 * Math.sin(x * 0.27 + phase[2]) + 0.1 * Math.sin(x * 0.9 + phase[0]);
+    const backEdge = -z - f.width / 2 + 0.18 * Math.sin(x * 0.33 + phase[5]) + 0.012 * x * x * 0.3;
+    const bellyEdge = z - f.width / 2 + 0.25 * Math.sin(x * 0.27 + phase[2]) + 0.1 * Math.sin(x * 0.9 + phase[0]);
     return roundedIntersection([endA, endB, backEdge, bellyEdge], 0.9);
   };
   const flesh = (x: number, y: number, z: number) => {
@@ -66,12 +96,12 @@ export const buildSalmon: FormBuilder = ({ state, seed }) => {
     // The walls bulge a hair at mid height; the skin stands a hair proud at the foot.
     const bulge = 0.1 * Math.sin(Math.PI * Math.min(1, Math.max(0, y / top))) + 0.05 * (1 - smoothstep(0.1, 0.32, y));
     // Only the top edge is rounded: the underside meets the table flush (the steak's lesson).
-    const d = roundedIntersection([y - top, outline(x, z) - bulge], ROUNDING);
+    const d = roundedIntersection([y - top, outline(x, z) - bulge], f.rounding);
     return Math.max(d, -y);
   };
 
-  const min = new Vector3(-LENGTH / 2 - 1.313, -0.417, -WIDTH / 2 - 1.209);
-  const max = new Vector3(LENGTH / 2 + 1.4, HEIGHT + 0.9, WIDTH / 2 + 1.4);
+  const min = new Vector3(-f.length / 2 - 1.313, -0.417, -f.width / 2 - 1.209);
+  const max = new Vector3(f.length / 2 + 1.4, f.height + 0.9, f.width / 2 + 1.4);
   const mesh = relaxOnSurface(surfaceNets(flesh, min, max, CELL), flesh, CELL);
 
   const pos = mesh.getAttribute('position');
@@ -82,7 +112,7 @@ export const buildSalmon: FormBuilder = ({ state, seed }) => {
     const y = pos.getY(i);
     const z = pos.getZ(i);
     const top = topAt(x, z);
-    uv[2 * i] = z - MIDLINE - 0.18 * Math.sin(x * 0.42 + phase[0]);
+    uv[2 * i] = z - f.midline - 0.18 * Math.sin(x * 0.42 + phase[0]);
     uv[2 * i + 1] = y / top;
     own[3 * i] = x;
     own[3 * i + 1] = y;
@@ -91,5 +121,5 @@ export const buildSalmon: FormBuilder = ({ state, seed }) => {
   mesh.setAttribute('uv', new BufferAttribute(uv, 2));
   mesh.setAttribute('ownPos', new BufferAttribute(own, 3));
 
-  return finishPieces([{ role: 'flesh_glow', geometry: mesh }]);
-};
+  return mesh;
+}

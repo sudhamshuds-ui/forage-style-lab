@@ -69,14 +69,19 @@ export class Stage {
   /** While a transition plays, this draws each frame instead (the spin keeps turning). */
   private frozenDraw: ((delta: number) => void) | null = null;
 
-  constructor(canvas: HTMLCanvasElement, private readonly frame: HTMLElement) {
+  /**
+   * `polar`: how far the starting view is from straight overhead, in degrees (75 for the Style Lab:
+   * low, nearly level with the table). The dish review starts higher, looking down onto the plate
+   * like the dish references.
+   */
+  constructor(canvas: HTMLCanvasElement, private readonly frame: HTMLElement, polar = 75) {
     this.renderer = new WebGLRenderer({ canvas, antialias: false });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = PCFShadowMap;
 
     this.camera = new PerspectiveCamera(28, 3 / 4, 0.1, 150);
-    this.camera.position.setFromSphericalCoords(START_DISTANCE, (75 * Math.PI) / 180, (24 * Math.PI) / 180);
+    this.camera.position.setFromSphericalCoords(START_DISTANCE, (polar * Math.PI) / 180, (24 * Math.PI) / 180);
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.target.set(0, 0.2, 0);

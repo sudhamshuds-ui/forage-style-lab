@@ -1,4 +1,5 @@
 import { EASE, gsap, prefersReducedMotion } from '../motion';
+import { loadPhysics } from '../dishes/kit/physics';
 import '../style.css';
 import '../ui/styleBar.css';
 import './kitchen.css';
@@ -51,6 +52,9 @@ const GAP_CM = 1.4;
 const settings = defaultSettings();
 const card = document.getElementById('card') as HTMLElement;
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+// Cooked dishes are plated with real physics: the engine loads once, before anything is built.
+await loadPhysics();
+
 const stage = new Stage(canvas, card);
 const look = new StylizedLook(EFFECT_STACK);
 const background = new Background();
@@ -385,7 +389,7 @@ function relayout(animate = true): void {
 /** The room follows the first ingredient on the table; an empty table sits in a calm linen room. */
 function applyRoom(): void {
   const first = staying()[0];
-  const room = findPalette(first ? FAMILIES[first.subject.entry.spec.family].rooms[0] : EMPTY_ROOM);
+  const room = findPalette(first ? (first.subject.entry.room ?? FAMILIES[first.subject.entry.spec.family].rooms[0]) : EMPTY_ROOM);
   if (room) applyPalette(settings, room);
 }
 

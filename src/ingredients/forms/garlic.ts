@@ -1,4 +1,4 @@
-import { Matrix4 } from 'three';
+import { Matrix4, type BufferGeometry } from 'three';
 import { bodyMap, rest, sculpt } from './kit/maps';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { smoothMax, smoothstep } from './kit/lathe';
@@ -24,9 +24,8 @@ import { flattenBase, roundBody } from './kit/round';
 const WIDTH = 5.9;
 const HEIGHT = 6.4;
 
-export const buildGarlic: FormBuilder = ({ state, seed }) => {
-  if (state !== 'whole') throw new Error(`Garlic: the "${state}" form is not built yet (the bulb and two cloves only for now).`);
-  const random = seededRandom(seed ^ 0x6a711c);
+/** The bulb alone, standing on the table, with its map (dishes cut it in half). */
+export function garlicBulb(random: () => number): BufferGeometry {
   const half = HEIGHT / 2;
   const bulb = roundBody({
     halfLength: half,
@@ -74,6 +73,13 @@ export const buildGarlic: FormBuilder = ({ state, seed }) => {
   });
   bodyMap(bulb, () => 0);
   rest(bulb);
+  return bulb;
+}
+
+export const buildGarlic: FormBuilder = ({ state, seed }) => {
+  if (state !== 'whole') throw new Error(`Garlic: the "${state}" form is not built yet (the bulb and two cloves only for now).`);
+  const random = seededRandom(seed ^ 0x6a711c);
+  const bulb = garlicBulb(random);
   bulb.translate(-0.6, 0, -1.6);
 
   const clove = (length: number, fat: number, turn: number, at: [number, number], bend: number) => {

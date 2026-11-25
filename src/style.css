@@ -186,15 +186,18 @@ body {
   cursor: default;
 }
 /* The ingredient's name changes with the picture: a quick soft fade and blur. */
-#ingredient-name {
+#ingredient-name,
+.lab-title {
   transition: opacity 100ms ease, filter 100ms ease;
 }
-#ingredient-name.is-changing {
+#ingredient-name.is-changing,
+.lab-title.is-changing {
   opacity: 0;
   filter: blur(2px);
 }
 @media (prefers-reduced-motion: reduce) {
-  #ingredient-name.is-changing {
+  #ingredient-name.is-changing,
+  .lab-title.is-changing {
     filter: none;
   }
 }

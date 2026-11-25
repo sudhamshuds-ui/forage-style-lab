@@ -723,94 +723,83 @@ of dishes, kept on a Figma page; they will add a page of Pinterest dish referenc
 **Not built yet**: Cook itself (step 6), saving and My recipes (step 7). The user's Pinterest board (https://pin.it/4p5khThfq) cannot be reached from the cloud
 session: ask for the images in Figma.
 
-## The Forage kit (branch `kitchen`, started 2026-11-16; not merged)
-The parts dishes will be built from, tried one ingredient at a time (the user's brief: "we create
-a kit ... call it forage kit"). Its own page, `kit.html` (`src/kit/`), preview "Forage Kit" (the
-scratchpad's `publish-kit.sh`, `vite.kit.config.ts`). The kitchen's layout without the tray; the
-card carries the Style Lab's New ingredient (the painted transition) and brush; the side panel
-("Kit parameters") has four rows of chips and Reset.
-- `vessels.ts`: Plate (white china, `milk`), Bowl (the rice bowl's shape, the `glaze` skin), Board
-  (`wood`, a new part-only family), each Small, Medium, Large; a vessel says where food rests
-  (`surface`, `radius`) and how much it holds (`holds`: bigger means more pieces).
-- `cuts.ts`: Whole (the pantry ingredient itself; one, two or three by size, one in a bowl),
-  Sliced (discs in a leaning row, peel on the rim), Diced (crisp cubes, about four in ten with
-  peel on one face), Chopped (small jumbled cubes), Puree (a mound with a spoon's swirl). Each
-  cut is two layers: `flesh` and `skin`.
-- `heat.ts`: Frozen, Raw, Roasted, Caramelized, Burnt: each pulls the palette toward a target
-  (OKLab), with the bread's `crust` texture on cooked cuts and a gloss on frozen and caramelized.
-- `main.ts`: two subjects on stage (vessel and food, each with its own highlight and shadow
-  values); the heated colours are written into the working families `kit-skin`, `kit-flesh` and
-  `kit-mix` just before building; nine round fruit and vegetables to start (`KIT_INGREDIENTS`,
-  each with a flesh family).
-**Round 2 (2026-11-16, the user's notes)**: the row is called **Prep** (not Cut); **no vessel
-and no size** in the panel ("lets just have it on the floor"; `vessels.ts` stays, unused);
-**quantity** is a stepper on the card (less, count, more), floating above the ingredient while
-the card is hovered: one to three whole ones (the procedural apple is copied, turned and sized
-a little differently), one to five helpings of a cut (`HELPINGS`); **heat is a slider** (0 to
-100, the five heats as stops a quarter apart, blended between: `heated`, `heatLook`, `heatName`);
-**New ingredient puts the parameters back** to Whole, Raw, one. Next (the user): go into the
-detail of each form and texture.
-**Round 3 (2026-11-16, the user's notes)**: the ingredient is hovered and selected as in the
-kitchen (the same traced dashed outline, `kitchen/outline.ts`), and the quantity pill shows only
-when it is selected, at its top right; **Puree is a squeeze bottle** (the user's reference: a
-body in the puree's colour, a cream cone cap; one to three bottles); **Diced and Chopped are sharp
-cubes set down flat, one at a time** (`cubes` in `cuts.ts`: on the table or squarely on the
-highest cube under it, its middle over that cube, inside a mound-shaped height limit; random
-tilts cut into each other and hung in the air, and without the limit they built a tower);
-chopped is a quarter of a dice's size and about nine times as many; **the heat slider snaps** to
-its five stops (step 25).
-**Round 4 (2026-11-16, the user's notes)**: the quantity pill is **back to round 2's**: floating
-above the ingredient while the card is hovered (the select-first outline was taken out: "revert
-back to prev interaction setup"); the slider's stop dots are gone (it still snaps); **about a
-quarter of the cubes lean** (`cubes`, pass 2: each stands on one bottom edge on the table and
-tips until its top edge rests against the side of a flat cube beside it, the angle worked out
-exactly so it touches and never cuts in; nothing is set down on a leaning cube).
-**Round 5 (2026-11-16, the user's notes)**: twice as many dice per helping; the puree's bottle is
-**half full** (sauce below, clear `glass` above) and **heat does nothing to a puree**; leaning
-cubes are fewer and only gently tipped (a steep lean stood on its edge: "the cubes dont balance
-right ... make them look realistic"). (Round 6 replaced the rule-built heaps with a physics settle.)
-**Round 6 (2026-11-17, the user's notes; "add the library")**: **`cannon-es`** (a small physics
-library) is installed. **Diced and Chopped are dropped and settled with real physics**
-(`src/kit/tumble.ts`: the pieces are held in loose layers inside a ring of unseen walls, fall,
-settle, the walls are taken away and the heap relaxes; run once per count and remembered, never
-animated). Pieces are **not perfect cubes**: each block's three sides differ, and about a third
-of the dice are **wedges** (half a block cut corner to corner, a convex shape in the physics
-and the same corners drawn: `wedgeCorners`, `WEDGE_FACES`). Chopped is small blocks only, capped
-at 200 pieces (a settle of 260 took over a second). **Cut flesh has a painted texture** (the
-`peach` skin's washes and blush, `fleshSkin` in `kit/main.ts`; compared with potato, pear, crumb
-and streaks). **Puree is a small white cup** filled with the puree (one to three cups); the
-bottle is gone. **The quantity pill is placed once per framing** (following the ingredient every
-frame made it tremble while the view turned) and only fades; **a quantity change dissolves over
-340 ms while the group swells up to size or settles down** (`swell`).
-**Round 7 (2026-11-17, the user's notes)**: **new cubes drop in and tumble onto the heap.** The
-heap is now a live physics world (`Heap` in `tumble.ts`: `settled`, `add`, `remove`, `step`) kept
-while its ingredient and prep stay on the page; `heapMesh` (`cuts.ts`) merges the pieces into two
-shapes and rewrites them from the physics every frame while pieces fall (`dropTick` on GSAP's
-ticker, 4 steps a frame). More: the new pieces are held above the heap inside a wide ring of
-unseen walls (without it they rolled far across the table), fall, the ring opens, the heap
-relaxes; then the heap is measured again (`refitHeap`) and the view eases to fit. Fewer: the last
-pieces are taken away and what leaned on them settles. Heat keeps the same heap; another prep or
-ingredient starts a fresh one. With reduced motion the settle is worked out at once.
-**Puree: quantity is the number of cups**, one to five, every cup the same size, set out on a
-ring so neighbours never touch; the puree has a spiral swirl and a small peak.
-**Round 8 was tried and reverted** (2026-11-17, the user: "revert to before this"; kept in
-history as commit 8779a4b): whole fruit, slices and cups as separate pieces that glide, drop in
-and lift out on a quantity change; heat recoloured in place with an eased colour change; the heap
-falling at 1.4 times real time instead of 4 physics steps a frame; the ring round falling pieces
-taken away without waking the heap (the cause of the "delayed settle"). The kit is at round 7.
-Ask before bringing any of it back.
-**Round 7 fixes (2026-11-17, the user: "fix all 3, dont do the other transitions")**: three parts
-of round 8 brought back on their own, the quantity transitions untouched: **the fall plays at 1.4
-times real time** (`DROP_PACE`, `dropTick` counts the frame's real time; 4 steps a frame was "very
-fast"); **no second settle** (`open(wake)` in `tumble.ts`: when a drop has landed the ring is
-taken away without waking the heap, which had made it "fall down again ... a delayed settle");
-**heat recolours in place** (`applyHeat`: every part is built raw, each painted layer keeps its raw
-colours, heat eases through its stops over 0.34 s; about 0.1 ms against half a second for
-rebuilding three apples), plus the flesh, crust and plain paint programs compiled ahead
-(`warmShaders`) and the first diced and chopped heaps worked out in idle moments.
-Not done yet: sizing in the viewport, per-ingredient
-slice shapes (citrus segments, onion rings, a hollow pepper), parameter categories per kind of
-ingredient (rice, sauces), a reduction in a bottle.
+## Dishes (branch `dishes`, from `kitchen`, started 2026-11-18; not merged)
+**Before building or changing a dish, read `DESIGN.md`** (the taste rules learned on the salmon dish),
+and **run its three QA passes on every round** (cohesion, physics, painting; the user, 2026-11-22).
+**Rule (the user, 2026-11-19): plan before building.** Every dish is first drawn from straight above
+in simple shapes (circles, rectangles, half circles), its composition worked out with symmetry, the
+golden ratio, big-medium-small and circular plating, then built from the same numbers: a `Plan`
+(`src/dishes/kit/plan.ts`) in the dish's form file, drawn to `docs/dishes/plans/{id}.svg` by
+`npm run plans`, checked to fit the plate by `src/dishes/plans.test.ts`. Show the plan with the dish.
+The user's plan (2026-11-18): dishes designed by Claude from the pantry, the **three chosen
+ingredients always the heroes** (support ingredients allowed, never the hero); a reference for
+each made with the user's Figma AI (GPT 2.5) in our style; each built **in code** from the pantry's
+own forms; **50 dishes**, in batches; reviewed in the **"Forage Dish Review"** preview (the Style
+Lab built with `VITE_COLLECTION=dishes`: the registry deals the dishes, "Next dish", the dish's
+name as the title, the camera at 60 degrees looking down, framed higher). Learn from every note:
+`docs/dishes/lessons.md`, read before each batch. Plan, kit and workflow: `docs/dishes/README.md`.
+Batch 1 (the six references on Figma node 214:8) built: salmon and peach, strawberry baguette,
+tomahawk, egg and mushrooms, grape drumsticks, watermelon rice bowl. **First review** (the user's
+notes and plating sketches on Figma node 240:57, 2026-11-18) applied, waiting for the second look:
+centre plating (a round sauce pool, the hero in it, big, medium, small round it, per the user's top
+views), sauces drizzled over (`drizzle` on a skin), seared not charred (flesh browns at its edges;
+a full sear covers a top; the crust's tone follows the food), nothing floating or intersecting
+(`Table.rest`, `clearOf` in `kit/place.ts`), the baguette rebuilt (pressed, toasted bread; built
+whole then cut at the front so every layer shows), D-shaped avocado slices fanned in a curve, a
+flatter cooked rice (`riceBowlParts(seed, dome)`), the black faces on the user's Mac fixed (every
+dish part carries `ownPos`; `atan` nudged off zero; `dishes.test.ts`). Lessons: `docs/dishes/lessons.md`.
+The dish kit (`src/dishes/kit/`): the knife (`cut.ts`), plates and bowls (`ware.ts`), sauce pools
+(`pool.ts`), plating (`place.ts`). Shared additions: `partSkins` and `room` on an entry; skins
+`ceramic`, `flesh`, `sauce`, `charred` and `seared` (a crust on any skin); pantry forms export
+their bodies for cutting (`peachBody`, `limeBody`, `strawberryBody`, `mushroomUpright`,
+`avocadoBody`), unchanged for the pantry.
+
+**Batch 2 (2026-11-19 to 22): 100 composed dishes, waiting for the user's review.** The user asked for
+100 more dishes (Figma AI references, 2D plans first, then 3D, no approvals asked). Built:
+- `src/dishes/catalog.ts`: 100 dish ideas from the pantry (title, heroes, course, ware, base, big,
+  medium, small as `ingredient:form*count`).
+- References: Figma page "Dish refs (generated)", board "Batch 2: 100 dishes (references)" (node 251:2),
+  made with gpt-image-2.5.
+- 2D plans: `src/dishes/compose/layout.ts` (`composePlan`): the hero off centre toward the golden spot,
+  medium on 62% of the ring, small in odd clusters, spaced apart (`relax`, capsule footprints), garnish
+  capped to its ware (`fitWare`). Drawn to `docs/dishes/plans/dish-{id}.svg` and on the Figma page
+  "Dish plans (2D)" (board 253:3), every shape named Base, Big, Medium or Small.
+- 3D: `compose/elements.ts` (the element library: cut bodies meshed with rounded edges and painted
+  flesh to skin in one piece, the pantry's drumstick, broccoli, cheese, mushroom and blueberry, the
+  approved cooked salmon, a carved steak, toast, mounds, fried eggs, leaves) and `compose/build.ts`
+  (ware, base, hero, medium, small, herbs, each set down with `Table.rest`, garnish slid clear of the
+  hero). `DISHES` = the six hand-built dishes plus the hundred (`composedDish`). New families for
+  sauces, cut faces, the wooden board and drinks. Known limits: glass cannot be see-through in the
+  painting (drinks are a liquid column with a thin lip); an omelette, a tart's pastry and a stew's
+  chunks are stand-ins (fried eggs, no pastry, cubes).
+- Preview: "Forage Dish Review" built with `NEXT=` the hundred ids in catalogue order.
+
+**Batch 2, second round (2026-11-22): the references as source of truth, real physics, the
+watercolour.** The user's notes: plating like the references (cohesive, not pieces apart), real
+physics (nothing floating, intersecting or lying on top weirdly), the pantry's watercolour; then
+"make the 2d plan to replicate the generated dish refs ... source of truth for everything". Done:
+- Every dish traced from its reference (`docs/dishes/refs/{id}.jpg`, `compose/traces.ts`, read by
+  `compose/trace.ts`): each piece's foot, real size and turn, in layers bottom first. The ware may
+  change to match (`round`: a round wooden board). New forms from the references: whole fruits,
+  `butter:cake`, `butter:pastry`, `cheese:cake`, `eggs:omelette`, `milk:pancake`, `cabbage:roll`,
+  skewers (`chicken|steak|salmon:skewer`).
+- Colours sampled from each reference (`npx tsx scripts/dump-traces.ts out.json` then
+  `python3 scripts/sample-ref-colours.py out.json` writes `compose/refColours.ts`), turned into
+  families and a room per dish (`compose/refLook.ts`); a sample is kept only when it agrees with the
+  ingredient's own colour.
+- Physics (`dishes/kit/physics.ts`, Rapier, loaded on the dish review and the kitchen with
+  `loadPhysics()`): centimetres; the ground one up-facing triangle grid of heights; each layer
+  dropped (spawned clear of the others), settled until asleep, then held as exact triangle meshes;
+  pieces fall and tip but do not slide across the plate (the reference sets where they go).
+- QA every round (DESIGN.md's three passes): `npm run qa` writes `docs/dishes/qa.md` (pieces apart,
+  floating, overlapping, moving, lost), plus renders next to the references and the pantry's apple.
+- Painting: plates and boards are props (the card frames the food), full coloured shadows, dish
+  skins at a lighter touch (`PAINT_TOUCH`).
+- **Layers, every dish** (the user, 2026-11-25; DESIGN.md "Build every dish in layers"): sauce pool
+  first (added under the food when the reference has none, `defaultPool`), hero, the medium in a
+  generous bunch, then the automatic garnish layer (golden, yellow and white shavings, then herbs).
+  **Never a garlic bulb**: garlic is `garlic:chip`. Fries are thick-cut `potato:fries`, golden,
+  piled for volume. Steak cut faces a saturated pink (`rare`), never repainted by sampled colours.
 
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one

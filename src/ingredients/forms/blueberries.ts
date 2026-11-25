@@ -246,6 +246,23 @@ export function settlePile(random: () => number): Berry[] {
   return berries;
 }
 
+/** One loose berry (dishes scatter them), its crown turned `axis` (default: up and a little to the side). */
+export function oneBlueberry(random: () => number, axis = new Vector3(signed(random) * 0.6, 1, signed(random) * 0.6).normalize()): BufferGeometry {
+  const size = 0.92 + random() * 0.16;
+  const berry: Berry = {
+    centre: new Vector3(),
+    axis,
+    half: BERRY.half * size,
+    radius: BERRY.radius * size,
+    roll: random() * Math.PI * 2,
+    tint: random(),
+    stray: true,
+    home: new Vector3(),
+    crownTurn: random() * Math.PI * 2,
+  };
+  return berryGeometry(berry, random);
+}
+
 export const buildBlueberries: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Blueberries: the "${state}" form is not built yet (whole only for now).`);
   const random = seededRandom(seed ^ 0xb1e0b);

@@ -34,6 +34,7 @@ import { NO_SKIN } from '../shading/effects/skinTexture';
 import type { FormBuilder } from './forms/kit/piece';
 import type { TRIANGLE_BUDGET } from './forms/kit/checks';
 import type { Skin } from '../shading/effects/skinTexture';
+import { DISHES } from '../dishes/dishes';
 
 /**
  * The ingredient registry: one entry per ingredient.
@@ -96,7 +97,7 @@ export interface IngredientEntry {
    * The main body's own peel texture, painted by the shader (never modelled):
    * pebbled lemon peel, orange pores, apple streaks. Stems and leaves stay plain.
    */
-  skin: Skin;
+  skin: Skin & { pale?: string; green?: string };
   /** For clusters: stem ends pointing 'out' from the group (berries, default) or 'front' (broccoli). */
   stemEnds?: 'out' | 'front';
   /** A matte surface (broccoli, bread): the body's highlight stays quiet, like a small part's. */
@@ -133,6 +134,14 @@ export interface IngredientEntry {
    * avocado's polished pit, the user 2026-11-12: "seed needs highlight").
    */
   glossy?: string[];
+  /**
+   * A skin for each of several parts (a dish: the salmon's flesh, the peach's skin, the lime's
+   * peel, each painted by its own ingredient's skin). `pale` and `green` set the two extra
+   * colours some skins read (a melon's band, a glaze's inside rim).
+   */
+  partSkins?: Record<string, Skin & { pale?: string; green?: string }>;
+  /** The room it opens in, when not its family's first (a dish picks its own). */
+  room?: string;
   /**
    * True to keep it out of Shuffle (built and tested, but not in the pantry yet): a cooked state
    * waiting for the "states of an ingredient" tool (the fried egg).
@@ -1001,7 +1010,7 @@ export class ShuffleDeck {
 
 /** The room an ingredient opens in: its family's first room. */
 export function roomOf(entry: IngredientEntry): string | undefined {
-  return FAMILIES[entry.spec.family].rooms[0];
+  return entry.room ?? FAMILIES[entry.spec.family].rooms[0];
 }
 
 /** A random ingredient that is not the one on stage now. */
@@ -1019,3 +1028,10 @@ export function parsePart(part: string): { role: string; family?: FamilyId } {
   const [name, family] = part.split('@');
   return { role: name.replace(':glow', '_glow'), family: family as FamilyId | undefined };
 }
+
+/**
+ * The dish review (a build with VITE_COLLECTION=dishes, published as "Forage Dish Review"): the
+ * Style Lab's Shuffle deals the kitchen's dishes instead of the pantry, so the user can turn
+ * through them and review each like an ingredient.
+ */
+if (import.meta.env.VITE_COLLECTION === 'dishes') REGISTRY.splice(0, REGISTRY.length, ...DISHES.map((dish) => dish.entry));

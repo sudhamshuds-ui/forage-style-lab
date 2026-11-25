@@ -297,6 +297,14 @@ function slideUntilTouching(mover: Piece, still: Piece, direction: Vector3): voi
   }
 }
 
+/** The whole avocado's body alone, standing on its bottom, with its map (dishes slice it). */
+export function avocadoBody(random: () => number): BufferGeometry {
+  return makeWhole(random).body;
+}
+
+/** The avocado's radius at a height (cm, the body's own frame). */
+export const avocadoProfile = profile;
+
 export const buildAvocado: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Avocado: the "${state}" form is not built yet.`);
   const random = seededRandom(seed ^ 0xa70ca);

@@ -4,4 +4,3 @@ dist
 *.log
 dist-proto
 dist-kitchen
-dist-kit

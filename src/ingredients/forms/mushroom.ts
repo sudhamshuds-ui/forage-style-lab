@@ -62,6 +62,28 @@ function inside(s: Shape, p: Vector3): boolean {
   return p.y > s.length - 0.4 && (r / (s.cap + 0.1)) ** 2 + dy * dy < 1;
 }
 
+/** One mushroom standing up (stem down, cap on top), its own frame for the skin (dishes use it). */
+export function mushroomUpright(size: number, n: number, random: () => number): { shape: Shape; geometry: BufferGeometry } {
+  const m = { size };
+  const shape: Shape = { cap: 2.5 * m.size * (1 + signed(random) * 0.05), dome: 2.05 * m.size * (1 + signed(random) * 0.1), stem: 1.0 * m.size, length: 2.5 * m.size * (1 + signed(random) * 0.08) };
+  const ph = random() * Math.PI * 2;
+  const g = spinProfile(outline(shape), 44, (angle, y) => (y > shape.length - 0.5 ? 1 + 0.035 * Math.cos(2 * angle + ph) + 0.025 * Math.cos(3 * angle + ph * 2) : 1 + 0.03 * Math.cos(2 * angle + ph)));
+  // The outline runs from the cap's top down (the bowl kit's runs from the foot up), so the
+  // faces come out wound inward: turn them round.
+  const index = g.getIndex()!;
+  for (let t = 0; t < index.count; t += 3) {
+    const b = index.getX(t + 1);
+    index.setX(t + 1, index.getX(t + 2));
+    index.setX(t + 2, b);
+  }
+  // Its own frame for the skin, before it is laid down.
+  const p = g.getAttribute('position') as BufferAttribute;
+  const own = new Float32Array(p.count * 3);
+  for (let i = 0; i < p.count; i++) own.set([p.getX(i), p.getY(i) + n * 10, p.getZ(i)], i * 3);
+  g.setAttribute('ownPos', new BufferAttribute(own, 3));
+  return { shape, geometry: g };
+}
+
 export const buildMushroom: FormBuilder = ({ state, seed }) => {
   if (state !== 'whole') throw new Error(`Mushroom: the "${state}" form is not built yet (whole only for now).`);
   const random = seededRandom(seed ^ 0x3a54);
@@ -83,22 +105,8 @@ export const buildMushroom: FormBuilder = ({ state, seed }) => {
   const placed: { shape: Shape; matrix: Matrix4 }[] = [];
   const meshes: BufferGeometry[] = [];
   plan.forEach((m, n) => {
-    const shape: Shape = { cap: 2.5 * m.size * (1 + signed(random) * 0.05), dome: 2.05 * m.size * (1 + signed(random) * 0.1), stem: 1.0 * m.size, length: 2.5 * m.size * (1 + signed(random) * 0.08) };
-    const ph = random() * Math.PI * 2;
-    const g = spinProfile(outline(shape), 44, (angle, y) => (y > shape.length - 0.5 ? 1 + 0.035 * Math.cos(2 * angle + ph) + 0.025 * Math.cos(3 * angle + ph * 2) : 1 + 0.03 * Math.cos(2 * angle + ph)));
-    // The outline runs from the cap's top down (the bowl kit's runs from the foot up), so the
-    // faces come out wound inward: turn them round.
-    const index = g.getIndex()!;
-    for (let t = 0; t < index.count; t += 3) {
-      const b = index.getX(t + 1);
-      index.setX(t + 1, index.getX(t + 2));
-      index.setX(t + 2, b);
-    }
-    // Its own frame for the skin, before it is laid down.
+    const { shape, geometry: g } = mushroomUpright(m.size, n, random);
     const p = g.getAttribute('position') as BufferAttribute;
-    const own = new Float32Array(p.count * 3);
-    for (let i = 0; i < p.count; i++) own.set([p.getX(i), p.getY(i) + n * 10, p.getZ(i)], i * 3);
-    g.setAttribute('ownPos', new BufferAttribute(own, 3));
     // Tipped over, resting on its cap's rim and the end of its stem. The tilt is found, not
     // guessed: the angle at which the cap's lowest point and the stem's lowest point are level
     // (with a guessed tilt one end hovered a little: "levitating").
