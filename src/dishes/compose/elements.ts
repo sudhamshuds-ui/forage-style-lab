@@ -43,7 +43,7 @@ export interface RoleLook {
 }
 
 /** What each skewer threads, in order along the stick. */
-const SKEWERS: Record<string, Part[]> = {
+export const SKEWERS: Record<string, Part[]> = {
   chicken: [{ ingredient: 'chicken', form: 'cube', count: 1 }, { ingredient: 'pepper', form: 'slice', count: 1 }, { ingredient: 'grapes', form: 'berry', count: 1 }],
   steak: [{ ingredient: 'steak', form: 'cube', count: 1 }, { ingredient: 'mushroom', form: 'half', count: 1 }, { ingredient: 'pepper', form: 'slice', count: 1 }],
   salmon: [{ ingredient: 'salmon', form: 'cube', count: 1 }, { ingredient: 'peach', form: 'cube', count: 1 }],

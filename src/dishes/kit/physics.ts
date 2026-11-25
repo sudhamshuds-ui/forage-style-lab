@@ -46,6 +46,40 @@ function samplePoints(geometries: BufferGeometry[], most = 300): Float32Array {
   return Float32Array.from(out);
 }
 
+/**
+ * A settled piece's solid for the next layer to land on. Its convex outline when that is close to
+ * the piece (cubes, wedges, fries, toast): a few dozen faces, so a layer settles in a fraction of a
+ * second (with every settled piece as its full triangle mesh, a rice bowl took up to 100 s to
+ * build). Its exact triangles only when the outline would be far off (a curled leaf, a hollow cup),
+ * judged by how much of the outline the piece fills.
+ */
+function heldShape(geometry: BufferGeometry) {
+  const points = samplePoints([geometry], 200);
+  const hull = RAPIER!.ColliderDesc.convexHull(points);
+  geometry.computeBoundingBox();
+  const b = geometry.boundingBox!;
+  const boxVolume = Math.max(1e-6, (b.max.x - b.min.x) * (b.max.y - b.min.y) * (b.max.z - b.min.z));
+  // A cheap fullness test: the piece's own volume against its box (a cube fills about all of it,
+  // a curled leaf or a cup very little).
+  const fill = Math.abs(signedVolume(geometry)) / boxVolume;
+  return hull && fill > 0.35 ? hull : trimeshOf(geometry);
+}
+
+function signedVolume(geometry: BufferGeometry): number {
+  const pos = geometry.getAttribute('position') as BufferAttribute;
+  const index = geometry.index ? (geometry.index.array as ArrayLike<number>) : null;
+  const n = index ? index.length : pos.count;
+  let v = 0;
+  for (let i = 0; i + 2 < n; i += 3) {
+    const a = index ? index[i] : i, b = index ? index[i + 1] : i + 1, c = index ? index[i + 2] : i + 2;
+    const ax = pos.getX(a), ay = pos.getY(a), az = pos.getZ(a);
+    const bx = pos.getX(b), by = pos.getY(b), bz = pos.getZ(b);
+    const cx = pos.getX(c), cy = pos.getY(c), cz = pos.getZ(c);
+    v += (ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) + az * (bx * cy - by * cx)) / 6;
+  }
+  return v;
+}
+
 /** A geometry as a two-sided triangle mesh collider (cm). */
 function trimeshOf(geometry: BufferGeometry) {
   const pos = geometry.getAttribute('position') as BufferAttribute;
@@ -141,7 +175,7 @@ export class PhysicsPlate {
   /** Drop one piece (its parts move together): a solid of its convex outline, at its current place. */
   drop(pieces: FormPiece[], options: { lift?: number; straightDown?: boolean; noTurn?: boolean } = {}): void {
     const R = RAPIER!;
-    const points = samplePoints(pieces.map((p) => p.geometry));
+    const points = samplePoints(pieces.map((p) => p.geometry), 120);
     const centre = new Vector3();
     for (let i = 0; i < points.length; i += 3) centre.x += points[i], centre.y += points[i + 1], centre.z += points[i + 2];
     centre.multiplyScalar(3 / points.length);
@@ -154,7 +188,7 @@ export class PhysicsPlate {
       // Never put to sleep early: a heavily damped piece moves so slowly while it tips that the
       // engine took it for at rest and left fried eggs and a steak balanced on their edges.
       .setCanSleep(false)
-      .setCcdEnabled(true);
+      .setCcdEnabled(false);
     // Where it goes comes from the reference: strong damping lets gravity settle its height and
     // tilt (it leans, tips onto its side, slips off a peak) while it moves only a little across the
     // plate. Holding it to straight down made pieces balance on an edge, like a fried egg standing up.
@@ -224,7 +258,7 @@ export class PhysicsPlate {
       const fixed = this.world.createRigidBody(RAPIER!.RigidBodyDesc.fixed());
       // Its exact surface as triangles (a falling piece is caught reliably by triangles; two convex
       // outlines let thin and detailed pieces slip through each other).
-      for (const p of b.pieces) this.world.createCollider(trimeshOf(p.geometry).setFriction(1.6), fixed);
+      for (const p of b.pieces) this.world.createCollider(heldShape(p.geometry).setFriction(1.6), fixed);
     }
   }
 

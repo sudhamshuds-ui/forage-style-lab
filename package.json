@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "plans": "WRITE_PLANS=1 vitest run src/dishes/plans.test.ts",
-    "qa": "WRITE_QA=1 vitest run src/dishes/compose/qa.test.ts"
+    "qa": "WRITE_QA=1 vitest run src/dishes/compose/qa.test.ts",
+    "qa:generated": "WRITE_QA=1 vitest run src/dishes/compose/generated.qa.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

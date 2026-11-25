@@ -15,7 +15,9 @@ import { EFFECT_STACK } from '../shading/effects';
 import type { FrameContext } from '../shading/effect';
 import { FAMILIES } from '../ingredients/families';
 import { REGISTRY, findIngredient, type IngredientEntry } from '../ingredients/registry';
-import { DISHES } from '../dishes/dishes';
+import type { Dish } from '../dishes/dishes';
+import { composedDish } from '../dishes/compose/build';
+import { cookSeed, pickDish } from '../dishes/compose/pick';
 import { REVEAL_STARTS, ShuffleTransition } from '../painting/transition';
 import { createSubject, type Subject } from '../ingredients/subject';
 import { PROPS } from '../ingredients/forms/kit/checks';
@@ -23,7 +25,7 @@ import { cmToUnits } from '../ingredients/scale';
 import { Painter, type PaintFrame } from '../painting/painter';
 import { OutlineTracer } from './outline';
 import { mountTray } from './tray';
-import { mountCookPanel } from './panel';
+import { mountCookPanel, type CookChoices } from './panel';
 import { mountStyleBar } from '../ui/styleBar';
 import { paintLike } from '../randomize';
 
@@ -604,7 +606,7 @@ const tray = mountTray(document.getElementById('tray') as HTMLElement, {
 });
 
 const cookPanel = mountCookPanel(document.getElementById('cook-panel') as HTMLElement, {
-  onCook: () => cook(),
+  onCook: (choices) => cook(choices),
 });
 
 /** Something on the table changed: update everything that depends on it. */
@@ -668,7 +670,7 @@ function setMode(next: Mode): void {
 }
 
 /** The words that go with the picture: the page's title becomes the dish's name. */
-function setWords(dish: (typeof DISHES)[number] | null): void {
+function setWords(dish: Dish | null): void {
   // The description (it fades and rises in CSS, a beat behind the title).
   if (dish) dishText.textContent = dish.description;
   document.body.dataset.words = dish ? 'dish' : 'forage';
@@ -759,24 +761,56 @@ function playSwap(next: Item[], atSwap: () => void, done: () => void, nearlyDone
 /** How far through the painting the dish counts as nearly painted in (0 to 1). */
 const NEARLY_PAINTED = 0.85;
 
-/** Cook: the ingredients are painted away and the dish is painted in. */
-function cook(): void {
-  if (mode !== 'table' || staying().length === 0) return;
-  // For now every combination makes the one dish that exists (see src/dishes/dishes.ts).
-  const dish = DISHES[0];
-  const item = dishItem ?? makeItemFrom(dish.entry);
-  dishItem = item;
-  parked = staying();
-  hideTitle();
-  setMode('cooking');
-  // The name, the description and the buttons wait until the dish is almost painted in and
-  // clearly visible (the user, 2026-11-16), not the moment the reveal starts.
-  playSwap(
-    [item],
-    () => undefined,
-    () => setMode('dish'),
-    () => setWords(dish),
-  );
+/**
+ * Cook (the composable dishes spec, step 7): the ingredients on the table and the cooking choices
+ * become one plated dish (`pickDish`), built by the composer with real physics, then painted in.
+ * Cooking the same table again gives another plating (each press is a new attempt); the last
+ * few dishes are kept, so Back and Cook again with the same seed are instant.
+ */
+const cookAttempts = new Map<string, number>();
+const cooked = new Map<number, { dish: Dish; item: Item }>();
+let cooking = false;
+
+function cook(choices: CookChoices): void {
+  if (mode !== 'table' || staying().length === 0 || cooking) return;
+  const ids = staying().map((entry) => entry.id);
+  const key = [...ids].sort().join('+') + `|${choices.course}|${choices.taste}|${choices.wild}`;
+  const attempt = cookAttempts.get(key) ?? 0;
+  cookAttempts.set(key, attempt + 1);
+  const seed = cookSeed(ids, choices, attempt);
+  cooking = true;
+  cookPanel.setBusy(true);
+  // Plating takes a moment (physics settles every layer): let the button show it first.
+  window.setTimeout(() => {
+    let made = cooked.get(seed);
+    if (!made) {
+      const dish = composedDish(pickDish(ids, choices, seed));
+      made = { dish, item: makeItemFrom(dish.entry) };
+      cooked.set(seed, made);
+      // Keep a few: older ones are let go.
+      if (cooked.size > 4) {
+        const [oldest] = cooked.keys();
+        const old = cooked.get(oldest)!;
+        if (old.item !== dishItem) old.item.subject.dispose();
+        cooked.delete(oldest);
+      }
+    }
+    const { dish, item } = made;
+    dishItem = item;
+    cooking = false;
+    cookPanel.setBusy(false);
+    parked = staying();
+    hideTitle();
+    setMode('cooking');
+    // The name, the description and the buttons wait until the dish is almost painted in and
+    // clearly visible (the user, 2026-11-16), not the moment the reveal starts.
+    playSwap(
+      [item],
+      () => undefined,
+      () => setMode('dish'),
+      () => setWords(dish),
+    );
+  }, 60);
 }
 
 /** Back to the table, with the same ingredients as before. */
@@ -808,18 +842,6 @@ saveButton.addEventListener('click', () => undefined);
 window.setTimeout(() => {
   transition.warmUp(stage.renderer);
   stage.invalidate();
-  whenIdle(() => {
-    if (dishItem) return;
-    const item = makeItemFrom(DISHES[0].entry);
-    const before = stage.renderer.getRenderTarget();
-    stage.renderer.setRenderTarget(painter.underpainting);
-    const compiling = stage.renderer.compileAsync(item.subject.group, stage.camera, stage.scene);
-    stage.renderer.setRenderTarget(before);
-    compiling.catch(() => undefined).then(() => {
-      if (dishItem) item.subject.dispose();
-      else dishItem = item;
-    });
-  });
 }, 2500);
 
 /* ---------- Each frame ---------- */

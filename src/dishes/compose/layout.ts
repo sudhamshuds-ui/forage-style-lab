@@ -22,7 +22,7 @@ import type { Plan, PlanShape, Size } from '../kit/plan';
  * build reads its positions from this plan and nothing else.
  */
 
-const PHI = (1 + Math.sqrt(5)) / 2;
+export const PHI = (1 + Math.sqrt(5)) / 2;
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
 export type Ware = DishIdea['ware'];
@@ -197,19 +197,19 @@ export interface ComposedPlan {
   herbs: [number, number][];
 }
 
-function footprint(info: ElementInfo, scale: number): number {
+export function footprint(info: ElementInfo, scale: number): number {
   if (info.shape === 'rect') return (Math.hypot(info.w!, info.h!) / 2) * scale;
   return info.r! * scale;
 }
 
-function shapeOf(label: string, size: Size, info: ElementInfo, scale: number, at: [number, number], angle: number): PlanShape {
+export function shapeOf(label: string, size: Size, info: ElementInfo, scale: number, at: [number, number], angle: number): PlanShape {
   if (info.shape === 'rect') return { kind: 'rect', label, size, at, angle, w: info.w! * scale, h: info.h! * scale, round: Math.min(info.w!, info.h!) * scale * 0.3 };
   if (info.shape === 'half') return { kind: 'half', label, size, at, angle, r: info.r! * scale };
   return { kind: 'circle', label, size, at, angle, r: info.r! * scale };
 }
 
 /** Garnish is cut smaller: medium fruit pieces about three quarters, small ones about 0.6. */
-function tierScale(size: Size, info: ElementInfo, ingredient: string): number {
+export function tierScale(size: Size, info: ElementInfo, ingredient: string): number {
   if (!info.shrinks) return 1;
   const r = BODY[ingredient]?.r ?? 2.5;
   if (size === 'big') return 1;
@@ -218,13 +218,13 @@ function tierScale(size: Size, info: ElementInfo, ingredient: string): number {
 }
 
 /** Garnish never outgrows its ware: a piece's reach is capped (a share of the ware's reach), never below 0.45. */
-function fitWare(scale: number, info: ElementInfo, cap: number): number {
+export function fitWare(scale: number, info: ElementInfo, cap: number): number {
   const reach = footprint(info, scale);
   return reach > cap ? Math.max(0.45 * scale, (scale * cap) / reach) : scale;
 }
 
 /** Positions of `n` pieces of one element, as a group round (0, 0), with their turns. */
-function arrange(group: Group, n: number, info: ElementInfo, scale: number, random: () => number): { at: [number, number]; angle: number }[] {
+export function arrange(group: Group, n: number, info: ElementInfo, scale: number, random: () => number): { at: [number, number]; angle: number }[] {
   const out: { at: [number, number]; angle: number }[] = [];
   const reach = footprint(info, scale);
   const width = info.shape === 'rect' ? Math.min(info.w!, info.h!) * scale : reach * 2;

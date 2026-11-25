@@ -801,6 +801,35 @@ physics (nothing floating, intersecting or lying on top weirdly), the pantry's w
   **Never a garlic bulb**: garlic is `garlic:chip`. Fries are thick-cut `potato:fries`, golden,
   piled for volume. Steak cut faces a saturated pink (`rare`), never repainted by sampled colours.
 
+## Composable dishes (branch `composable-dishes`, from `main`, started 2026-11-26; not merged)
+The user's spec (`composable-dishes.md`, a handoff kept outside the repo): the Kitchen's Cook turns any
+1 to 3 pantry ingredients plus Course, Taste and Wild into one plated dish, rule based and seeded, no
+AI model. Built in the spec's order:
+- `src/ingredients/traits.ts`: every pantry ingredient's category, taste, slots (hero, support,
+  accent, base, sauce, garnish, liquid) and buildable forms; `heroPriority`. Tested by building every
+  listed form. Rice and romaine have no piece form: they are always a base.
+- `src/dishes/compose/layouts.ts`: ten plating layouts (circular plate, rice bowl, leaf salad, toast
+  board, soup bowl, skewer platter, glass drink, dessert bowl, skillet bake, mash plate) as data.
+- `src/dishes/compose/layoutPlan.ts` (`composeLayoutPlan`, called by `planFor` for ideas with a
+  `layout`): the hero at the golden spot, then each bunch grown so every piece touches the food
+  already down; platform heroes (toast, mash, pancake, cake, pastry, omelette) carry toppings on top,
+  side by side; skewers as one bundle; a drink's fruit against its glass. Pieces that cannot touch
+  without stacking are left out.
+- `build.ts`: sauce on top (the pool's sauce drizzled over the support), `savoryGarnish` (puddings
+  get a light dusting), garnish only where it lands on food or sauce, new QA fields `offCentre` and
+  `garnishOnFood`; platforms, toppings on a platform and skewers fall without turning.
+- `src/dishes/compose/pick.ts`: `pickDish`, `assignSlots`, `titleDish`, `cookSeed`; `pick.test.ts`
+  checks about 6,800 cooks (every ingredient alone, 24 pairs and trios, every course, taste, Wild).
+- `generated.qa.test.ts` (`npm run qa:generated`, writes `docs/dishes/qa-generated.md`): 20 tables
+  held to the tighter contract (gap at most 0.5 cm, one centre, garnish on food). Not all green yet.
+- The Kitchen's Cook (`kitchen/main.ts`) now cooks with `pickDish` and `composedDish`; Cook reads
+  "Cooking" while the dish is plated (a few seconds of physics). The spec said to hook the Kitchen
+  only once the QA is green: it is hooked on this branch so the user can try it; do not merge before
+  the QA passes or the user says so.
+- Physics speed-ups (all dishes): no CCD, settled pieces held as their convex outline when it is close
+  to the piece, 120 outline points; a rice bowl went from 100 s to about 2 s to build.
+- Dev: `styleLab.cook(ids, course, taste, wild, attempt)` on the dish review page shows a cooked dish.
+
 ## Earlier (2026-11-14)
 Round 2's last five are built on branch `claude/loving-gauss-efvivl` and **waiting for the user's one
 review** (not approved, not merged; `/forage-brand` after approval, then merge to `main`):

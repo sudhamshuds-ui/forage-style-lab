@@ -1,5 +1,7 @@
 import type { DishIdea } from '../catalog';
 import { composePlan, readPart, type ComposedPlan } from './layout';
+import { composeLayoutPlan } from './layoutPlan';
+import { layoutById } from './layouts';
 import { tracedPlan, type Trace } from './trace';
 
 /**
@@ -733,5 +735,8 @@ export function tracedParts(idea: DishIdea): string[] | null {
 /** The plan a dish is built from: its traced reference, or the composer's own plan. */
 export function planFor(idea: DishIdea): ComposedPlan {
   const t = TRACES[idea.id];
-  return t ? tracedPlan(effectiveIdea(idea), t) : composePlan(idea);
+  if (t) return tracedPlan(effectiveIdea(idea), t);
+  // Generated dishes (the Kitchen's Cook) are planned from their layout, never the old ring.
+  if (idea.layout) return composeLayoutPlan(idea, layoutById(idea.layout)!, idea.seed ?? 1);
+  return composePlan(idea);
 }

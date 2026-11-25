@@ -15,6 +15,8 @@ import type { Dish } from '../dishes';
 import { readPart, type ComposedPlan, type Placed } from './layout';
 import { planFor, effectiveIdea, tracedParts, TRACES } from './traces';
 import { refFamilies, refRoom } from './refLook';
+import { layoutById } from './layouts';
+import { PLATFORM_FORMS } from './layoutPlan';
 import { FAMILIES } from '../../ingredients/families';
 import { hexToOklch } from '../../utils/colour';
 import { BASE_FAMILY, PLATE_LOOK, elementLooks, herbLeaf, makeElement, shaving, type Look, type RoleLook } from './elements';
@@ -53,6 +55,16 @@ export function dishLooks(original: DishIdea): RoleLook[] {
   if (kind === 'drink') {
     add({ role: 'drink', family: BASE_FAMILY[idea.base] ?? 'drink-pale', skin: { ...SAUCE_SKIN, amount: 0.5 }, glossy: true });
     add({ role: 'glass', family: 'glass', glossy: true });
+  }
+  // Sauce on top (generated dishes whose layout asks for it): the pool's own sauce drizzled over the
+  // support bunch, after the mains are down, so the plate reads as one dish. The hero's top stays
+  // mostly clear (the salmon lesson: no sauce on a seared top).
+  const layout = layoutById(idea.layout);
+  const sauceFamily = BASE_FAMILY[idea.base];
+  if (layout?.wantsTopSauce && sauceFamily) {
+    const colour = FAMILIES[sauceFamily].colours.base;
+    const supportRoles = new Set(idea.medium.flatMap((text) => elementLooks(readPart(text), seared).map((l) => l.role)));
+    for (const look of looks) if (supportRoles.has(look.role) && look.skin) look.skin = { ...look.skin, drizzle: { colour, amount: 0.35 } };
   }
   if (idea.ware !== 'glass') {
     // The garnish layer every dish ends with: shavings in three colours, then herbs.
@@ -250,6 +262,11 @@ export interface Cohesion {
   apart: number;
   /** Pieces flung off the dish by the physics and left out. */
   lost?: number;
+  /** Generated dishes: support and accent pieces further from the hero than its reach plus their own
+   * plus 0.5 cm (the "one centre" check; 0 passes). */
+  offCentre?: number;
+  /** Generated dishes: the share of garnish (shavings and herbs) that landed over food or its pool. */
+  garnishOnFood?: number;
 }
 
 /**
@@ -279,6 +296,29 @@ function cohesion(food: FormPiece[][]): Cohesion {
     if (nearest > 1) apart++;
   });
   return { widestGap, apart };
+}
+
+/**
+ * The "one centre" check (the composable dishes spec): every support and accent piece sits within the
+ * hero's reach plus its own plus 0.5 cm of the hero's middle, seen from above. Returns how many do
+ * not. `heroCount` is how many of the food entries are the hero (the first layer).
+ */
+function offCentre(food: FormPiece[][], heroCount: number): number {
+  if (heroCount <= 0 || heroCount >= food.length) return 0;
+  const discOf = (pieces: FormPiece[]) => {
+    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+    for (const p of pieces) {
+      p.geometry.computeBoundingBox();
+      const b = p.geometry.boundingBox!;
+      minX = Math.min(minX, b.min.x), maxX = Math.max(maxX, b.max.x), minZ = Math.min(minZ, b.min.z), maxZ = Math.max(maxZ, b.max.z);
+    }
+    return { c: [(minX + maxX) / 2, (minZ + maxZ) / 2] as [number, number], r: Math.hypot(maxX - minX, maxZ - minZ) / 2 };
+  };
+  const heroes = food.slice(0, heroCount).map(discOf);
+  const hx = heroes.reduce((a, d) => a + d.c[0], 0) / heroes.length;
+  const hz = heroes.reduce((a, d) => a + d.c[1], 0) / heroes.length;
+  const heroReach = Math.max(...heroes.map((d) => Math.hypot(d.c[0] - hx, d.c[1] - hz) + d.r));
+  return food.slice(heroCount).map(discOf).filter((d) => Math.hypot(d.c[0] - hx, d.c[1] - hz) > heroReach + d.r + 0.5).length;
 }
 
 /** Build a composed dish from its plan. */
@@ -358,8 +398,11 @@ export function composedBuilder(original: DishIdea): FormBuilder {
     // What the next layer lands on: the ground (sauce, leaves, glass) and every settled piece.
     const settled: FormPiece[] = [...parts, ...late.filter((p) => p.role !== 'plate' && p.role !== 'board')];
     groundOnly.add(settled);
+    let heroFood = -1;
     for (const group of groups) {
       if (!group) continue;
+      // Food before the second layer is the hero.
+      if (heroFood < 0 && food.length) heroFood = food.length;
       const dropped: FormPiece[][] = [];
       const held: FormPiece[][] = [];
       // Each drop as it started, for plating it again if it slips off the ware.
@@ -396,7 +439,15 @@ export function composedBuilder(original: DishIdea): FormBuilder {
           // pieces start inside each other (the engine would shove them apart and fling them).
           const start = spawn.rest(lifted, { tilt: 0, add: true });
           copies.set(start, start.map((piece) => ({ ...piece, geometry: piece.geometry.clone() })));
-          physics.drop(start, { lift: 1.0 });
+          // Platforms (a rösti, a pancake, a cake, toast, an omelette, a fried egg) fall flat and never
+          // turn: they tipped onto their edges. On a platform layout their toppings keep the way they
+          // were laid too, and fall straight down onto it rather than tumbling off.
+          const flatPlatform = ['mash', 'pancake', 'cake', 'pastry', 'toast', 'omelette', 'egg'].includes(p.part.form);
+          const heroForm = readPart(idea.big).form;
+          const onPlatform = (layoutById(idea.layout)?.packing === 'platform' || PLATFORM_FORMS.includes(heroForm)) && !!idea.layout && (p.layer ?? 0) > 0;
+          // Skewers are rigid and round: left free they rolled apart; they fall as the bundle was laid.
+          const skewer = p.part.form === 'skewer';
+          physics.drop(start, { lift: 1.0, noTurn: flatPlatform || onPlatform || skewer, straightDown: skewer });
           dropped.push(start);
           food.push(start);
           parts.push(...start);
@@ -450,7 +501,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       }
     }
     if (physics) {
-      LAST_QA.set(idea.id, { ...physics.check(), ...cohesion(food), ...support(food, groundOnly), lost });
+      LAST_QA.set(idea.id, { ...physics.check(), ...cohesion(food), ...support(food, groundOnly), lost, ...(idea.layout ? { offCentre: offCentre(food, heroFood) } : {}) });
       physics.free();
     }
 
@@ -472,28 +523,52 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       });
       const inside = (x: number, z: number) =>
         idea.ware === 'board' ? Math.abs(x) < 13.5 && Math.abs(z) < 9.5 : Math.hypot(x, z) < (idea.ware === 'deep' ? 4.8 : idea.ware === 'round' ? 12.5 : 10.5);
+      // Over food or its sauce: a bounding box round a thin skewer or a round pancake covers bare
+      // plate too, so a spot is kept only where something lies under it (any spot, if none is found).
+      const { kind: poolKind, at: poolCentre, r: poolRadius } = composed.base;
+      const onSomething = (x: number, z: number) =>
+        idea.ware === 'deep' || table.height(x, z) > groundOnly.height(x, z) + 0.05 || (['pool', 'soup', 'leaves', 'mash'].includes(poolKind) && Math.hypot(x - poolCentre[0], z - poolCentre[1]) < poolRadius * 0.92);
       const pick = (): [number, number] | null => {
-        for (let tries = 0; tries < 30 && boxes.length; tries++) {
+        let fallback: [number, number] | null = null;
+        for (let tries = 0; tries < 40 && boxes.length; tries++) {
           const b = boxes[Math.floor(random() * boxes.length)];
           const x = b.min.x - 1 + random() * (b.max.x - b.min.x + 2);
           const z = b.min.z - 1 + random() * (b.max.z - b.min.z + 2);
-          if (inside(x, z)) return [x, z];
+          if (!inside(x, z)) continue;
+          if (onSomething(x, z)) return [x, z];
+          fallback ??= [x, z];
         }
-        return null;
+        return fallback;
       };
-      const kinds = ['shaving_gold', 'shaving_yellow', 'shaving_white'];
-      const count = 40 + Math.floor(random() * 12);
+      // Puddings and sweet plates take a light dusting of buttery crumbs, not the savoury layer
+      // (the layout's `savoryGarnish`).
+      const savoury = layoutById(idea.layout)?.savoryGarnish ?? true;
+      const kinds = savoury ? ['shaving_gold', 'shaving_yellow', 'shaving_white'] : ['shaving_gold', 'shaving_white'];
+      const count = savoury ? 40 + Math.floor(random() * 12) : 10 + Math.floor(random() * 4);
+      // How much of the garnish lands over food or its pool (a check for generated dishes).
+      const { kind: baseKind, at: poolAt, r: poolR } = composed.base;
+      let onFood = 0;
+      let dropped = 0;
+      const count1 = (x: number, z: number) => {
+        dropped++;
+        const overPool = ['pool', 'soup', 'leaves', 'mash'].includes(baseKind) && Math.hypot(x - poolAt[0], z - poolAt[1]) < poolR;
+        if (overPool || table.height(x, z) > groundOnly.height(x, z) + 0.05 || idea.ware === 'deep') onFood++;
+      };
       for (let i = 0; i < count; i++) {
         const at = pick();
         if (!at) break;
-        parts.push(...posed([shaving(kinds[i % 3], random)], { at: [at[0], table.height(at[0], at[1]), at[1]], turn: random() * Math.PI * 2 }));
+        count1(at[0], at[1]);
+        parts.push(...posed([shaving(kinds[i % kinds.length], random)], { at: [at[0], table.height(at[0], at[1]), at[1]], turn: random() * Math.PI * 2 }));
       }
       // Chopped herbs, big enough to read as herbs from the starting view (about 1 cm).
-      for (let i = 0; i < 18; i++) {
+      for (let i = 0; i < (savoury ? 18 : 5); i++) {
         const at = pick();
         if (!at) break;
+        count1(at[0], at[1]);
         parts.push(...posed([herbLeaf(random)], { scale: 1.9, turn: random() * Math.PI * 2, at: [at[0], table.height(at[0], at[1]) + 0.03, at[1]] }));
       }
+      const qa = LAST_QA.get(idea.id);
+      if (qa && idea.layout && dropped) qa.garnishOnFood = onFood / dropped;
     }
 
     // The hero's role first in the finished list (it takes the entry's skin and main highlight).

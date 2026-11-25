@@ -803,3 +803,9 @@ body[data-mode='returning'] .bar-root {
   pointer-events: none;
   transition: opacity 150ms var(--ease-out);
 }
+
+/* While a dish is being plated (a few seconds of physics), Cook waits: no spinner, the button says so. */
+.cook-go[data-busy='true'] {
+  cursor: progress;
+  opacity: 0.8;
+}

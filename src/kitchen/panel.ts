@@ -30,6 +30,8 @@ export interface CookPanel {
   choices(): CookChoices;
   /** Cook can be pressed only while something is on the table. */
   setCanCook(can: boolean): void;
+  /** While the dish is being plated (a few seconds of physics): Cook reads "Cooking" and waits. */
+  setBusy(busy: boolean): void;
 }
 
 const RESET_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>`;
@@ -122,5 +124,17 @@ export function mountCookPanel(root: HTMLElement, options: { onCook: (choices: C
   }
   paint();
 
-  return { choices: () => ({ ...choices }), setCanCook: (can) => (cook.disabled = !can) };
+  let canCook = false;
+  let busy = false;
+  const refresh = () => {
+    cook.disabled = !canCook || busy;
+    cook.textContent = busy ? 'Cooking' : 'Cook';
+    cook.dataset.busy = String(busy);
+    cook.setAttribute('aria-busy', String(busy));
+  };
+  return {
+    choices: () => ({ ...choices }),
+    setCanCook: (can) => ((canCook = can), refresh()),
+    setBusy: (on) => ((busy = on), refresh()),
+  };
 }
