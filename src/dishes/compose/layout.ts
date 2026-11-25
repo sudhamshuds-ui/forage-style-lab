@@ -158,7 +158,7 @@ export function elementInfo(ingredient: string, form: string): ElementInfo {
     case 'toast':
       return { shape: 'rect', w: 8, h: 11, group: 'pair', shrinks: false };
     case 'mash':
-      return { shape: 'circle', r: ingredient === 'milk' ? 4.2 : 4.5, group: 'pair', shrinks: false };
+      return { shape: 'circle', r: ingredient === 'milk' ? 4.2 : 5.4, group: 'pair', shrinks: false };
     default:
       return { shape: 'circle', r: 2, group: 'heap', shrinks: false };
   }

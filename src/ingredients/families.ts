@@ -126,6 +126,7 @@ export type FamilyId =
   | 'shaving-white'
   | 'porcelain'
   | 'caramel'
+  | 'cream-sauce'
   | 'maple'
   | 'drink-gold'
   | 'pastry'
@@ -682,7 +683,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // A quenelle of vanilla ice cream or crème fraîche: warm ivory, a cool lilac shade.
   'ice-cream': {
     name: 'Ice cream',
-    colours: { lit: '#fffbec', base: '#f6ecd0', shadow: '#b4a8cc', glow: '#fbe2b0', highlight: '#ffffff' },
+    colours: { lit: '#fff8e2', base: '#f6dfa6', shadow: '#a998c8', glow: '#f7cf8a', highlight: '#ffffff' },
     rooms: [],
   },
   // Cooked rice in a dish: warmer than the pantry's raw white, ivory with a golden glow, a lilac
@@ -741,6 +742,13 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     rooms: [],
   },
   // Cream or milk: warm white, a lilac shade.
+  // A cream sauce on a white plate (item G: plain cream vanished into the porcelain): buttery gold,
+  // a rose shade, so it reads as sauce, not plate.
+  'cream-sauce': {
+    name: 'Cream sauce',
+    colours: { lit: '#fff0c0', base: '#efcf86', shadow: '#a87e78', glow: '#f6b85a', highlight: '#fffaf0' },
+    rooms: [],
+  },
   'cream': {
     name: 'Cream',
     colours: { lit: '#fffcf2', base: '#f4ecd8', shadow: '#b2a8c8', glow: '#fbe6c4', highlight: '#ffffff' },
@@ -785,7 +793,8 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // A potato mash: warm cream-gold, a lilac shade.
   'mash': {
     name: 'Mash',
-    colours: { lit: '#fff4d2', base: '#f2dba0', shadow: '#ab9cba', glow: '#f8d68a', highlight: '#ffffff' },
+    // Vibrant yellow-white, buttery (item 9), a lilac shade.
+    colours: { lit: '#fff7d8', base: '#f8dc7e', shadow: '#b09ab8', glow: '#ffc552', highlight: '#ffffff' },
     rooms: [],
   },
   // A light wooden board: honey tan, a mauve shade.

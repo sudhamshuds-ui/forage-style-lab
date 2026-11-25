@@ -133,7 +133,7 @@ describe('pickDish', () => {
           base === id || idea.base === id || (id === 'rice' && idea.base === 'mash:risotto') || (id === 'sauce' && idea.base.startsWith('pool:')) || (id === 'butter' && idea.base === 'pool:brown-butter') ||
           (id === 'milk' && (idea.base === 'pool:cream' || idea.base.startsWith('drink:') || idea.base.startsWith('soup:'))) ||
           (TRAITS[id]?.forms.liquid?.includes(idea.base) ?? false);
-        expect(used.has(id) || inBase, `${where}: ${id} missing (${idea.big}; ${idea.medium}; ${idea.small}; ${idea.base})`).toBe(true);
+        expect(used.has(id) || inBase || !!idea.blended?.includes(id), `${where}: ${id} missing (${idea.big}; ${idea.medium}; ${idea.small}; ${idea.base})`).toBe(true);
       }
     }
   });

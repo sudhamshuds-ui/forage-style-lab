@@ -96,7 +96,7 @@ export function componentInfo(ingredient: string): ElementInfo {
     case 'tart':
       return { shape: 'circle', r: 5.6, group: 'pair', shrinks: false };
     case 'quenelle':
-      return { shape: 'rect', w: 2.6, h: 4.8, group: 'pair', shrinks: false };
+      return { shape: 'circle', r: 2, group: 'pair', shrinks: false };
     case 'whip':
       return { shape: 'circle', r: 1.3, group: 'heap', shrinks: false };
     case 'tuile':
@@ -185,16 +185,21 @@ function tartShell(role: string, random: () => number): FormPiece[] {
   ];
 }
 
-/** A quenelle: a smooth three-sided oval of ice cream, shaped between two spoons, its foot flat. */
+/**
+ * A scoop of ice cream (item G: the old quenelle read as a white blob): a round ball on a flattened
+ * foot, with the ruffled lip a scoop leaves where it was pressed off.
+ */
 function quenelle(random: () => number): BufferGeometry {
-  const L = 2.2 + random() * 0.3;
+  const R = 1.7 + random() * 0.2;
+  const turn = random() * 6;
   const field: Field = (x, y, z) => {
-    const a = Math.atan2(y, x);
-    const ridge = 1 + 0.07 * Math.abs(Math.sin(a * 1.5));
-    const q = Math.hypot(x / (1.2 * ridge), y / (0.95 * ridge), z / L);
-    return Math.max((q - 1) * 1.1, -y - 0.55);
+    const ball = Math.hypot(x, y - R * 0.82, z) - R;
+    const t = (y - 0.35) / 0.5;
+    const a = Math.atan2(z, x);
+    const lip = Math.abs(t) < 1 ? Math.hypot(x, z) - (R * 1.04 + 0.16 * Math.sin(a * 9 + turn) * (1 - t * t)) : Infinity;
+    return Math.max(Math.min(ball, lip), -y);
   };
-  return cutBody(field, [], { reach: L + 0.3, depth: 1, rounding: 0 });
+  return cutBody(field, [], { reach: R * 1.95, depth: R * 1.9, rounding: 0 });
 }
 
 /** Whipped cream: a soft piped rosette, star ridges spiralling up to a curled tip. */

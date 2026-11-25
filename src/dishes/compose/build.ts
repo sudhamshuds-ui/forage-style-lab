@@ -12,7 +12,7 @@ import { pool, wobble } from '../kit/pool';
 import { DINNER_PLATE, PASTA_BOWL, SOUP_BOWL, innerRadiusAt, ware } from '../kit/ware';
 import type { DishIdea } from '../catalog';
 import type { Dish } from '../dishes';
-import { WARE_PLAN, readPart, type ComposedPlan, type Placed } from './layout';
+import { WARE_PLAN, elementInfo, footprint, readPart, type ComposedPlan, type Placed } from './layout';
 import { planFor, effectiveIdea, tracedParts, TRACES } from './traces';
 import { refFamilies, refRoom } from './refLook';
 import { layoutById } from './layouts';
@@ -67,6 +67,7 @@ export function dishLooks(original: DishIdea): RoleLook[] {
     const supportRoles = new Set(idea.medium.flatMap((text) => elementLooks(readPart(text), seared).map((l) => l.role)));
     for (const look of looks) if (supportRoles.has(look.role) && look.skin) look.skin = { ...look.skin, drizzle: { colour, amount: 0.35 } };
   }
+  if (idea.layout === 'pancake-stack' && idea.sauce) add({ role: 'syrup', family: BASE_FAMILY[idea.sauce] ?? 'maple', skin: SAUCE_SKIN, glossy: true });
   for (const c of idea.components ?? []) if (GARNISH_KINDS.includes(c.kind)) add(garnishLook(c));
   if (idea.ware !== 'glass') {
     // The garnish layer every dish ends with: shavings in three colours, then herbs.
@@ -92,10 +93,49 @@ export function dishLooks(original: DishIdea): RoleLook[] {
 /** How high the soup stands in its bowl (cm). */
 const SOUP_LEVEL = 5;
 
-function makeWare(idea: DishIdea, seed: number): { pieces: FormPiece[]; floor: (x: number, z: number) => number; rice?: ReturnType<typeof riceBowlParts>; soup?: { level: number; radius: number; under: (x: number, z: number) => number } } {
+/**
+ * The ware fitted to the food (item 10: plates were sparse, the food tiny in the middle): a plate a
+ * rim's width wider than the food and centred on it; a board a hand's width round it. Generated
+ * dishes only; the catalogue's traced dishes keep their full-size ware.
+ */
+export interface WareFit {
+  at: [number, number];
+  /** Plate radius, or the board's half width and half depth (cm). */
+  r: number;
+  hx: number;
+  hz: number;
+}
+
+function fitWare(idea: DishIdea, composed: ComposedPlan): WareFit | undefined {
+  if (!idea.layout || !['plate', 'slate', 'board', 'round'].includes(idea.ware)) return undefined;
+  const discs = composed.placed.map((p) => ({ c: p.at, r: p.target ? p.target / 2 : footprint(elementInfo(p.part.ingredient, p.part.form), p.scale) }));
+  const { kind, at, r } = composed.base;
+  if (['pool', 'leaves', 'mash'].includes(kind)) discs.push({ c: at, r });
+  if (!discs.length) return undefined;
+  const minX = Math.min(...discs.map((d) => d.c[0] - d.r)), maxX = Math.max(...discs.map((d) => d.c[0] + d.r));
+  const minZ = Math.min(...discs.map((d) => d.c[1] - d.r)), maxZ = Math.max(...discs.map((d) => d.c[1] + d.r));
+  const c: [number, number] = [(minX + maxX) / 2, (minZ + maxZ) / 2];
+  const reach = Math.max(...discs.map((d) => Math.hypot(d.c[0] - c[0], d.c[1] - c[1]) + d.r));
+  if (idea.ware === 'board') {
+    const hx = Math.min(15, Math.max(8, (maxX - minX) / 2 + 2.2));
+    const hz = Math.min(11, Math.max(6.5, (maxZ - minZ) / 2 + 2.2));
+    return { at: c, r: Math.max(hx, hz), hx, hz };
+  }
+  const R = Math.min(idea.ware === 'round' ? 14 : 13.5, Math.max(9, reach + 2.8));
+  return { at: c, r: R, hx: R, hz: R };
+}
+
+function makeWare(idea: DishIdea, seed: number, fit?: WareFit): { pieces: FormPiece[]; floor: (x: number, z: number) => number; rice?: ReturnType<typeof riceBowlParts>; soup?: { level: number; radius: number; under: (x: number, z: number) => number } } {
   switch (idea.ware) {
     case 'plate':
     case 'slate': {
+      if (fit) {
+        // Scaled down to the food: the well, rim and foot keep their shares of the plate.
+        const k = fit.r / DINNER_PLATE.radius;
+        const w = ware({ ...DINNER_PLATE, radius: fit.r, well: DINNER_PLATE.well * k, foot: DINNER_PLATE.foot * k, rim: DINNER_PLATE.rim * (0.75 + 0.25 * k) });
+        w.geometry.translate(fit.at[0], 0, fit.at[1]);
+        return { pieces: [{ role: 'plate', geometry: w.geometry }], floor: (x, z) => w.floor(x - fit.at[0], z - fit.at[1]) };
+      }
       const w = ware(DINNER_PLATE);
       return { pieces: [{ role: 'plate', geometry: w.geometry }], floor: w.floor };
     }
@@ -138,14 +178,17 @@ function makeWare(idea: DishIdea, seed: number): { pieces: FormPiece[]; floor: (
     }
     case 'board': {
       // A light wooden board, rounded at its corners and edges, 1.6 cm thick.
-      const board = boardGeometry(30, 1.6, 22);
-      return { pieces: [{ role: 'board', geometry: board }], floor: (x, z) => (Math.abs(x) < 15 && Math.abs(z) < 11 ? 1.6 : 0) };
+      const [bx, bz, hx, hz] = fit ? [fit.at[0], fit.at[1], fit.hx, fit.hz] : [0, 0, 15, 11];
+      const board = boardGeometry(hx * 2, 1.6, hz * 2);
+      board.translate(bx, 0, bz);
+      return { pieces: [{ role: 'board', geometry: board }], floor: (x, z) => (Math.abs(x - bx) < hx && Math.abs(z - bz) < hz ? 1.6 : 0) };
     }
     case 'round': {
       // A round wooden board, 28 cm across, 1.6 cm thick, its edge softly rounded.
-      const board = new CylinderGeometry(14, 13.8, 1.6, 72, 1);
-      board.translate(0, 0.8, 0);
-      return { pieces: [{ role: 'board', geometry: withFrame(board, false) }], floor: (x, z) => (Math.hypot(x, z) < 14 ? 1.6 : 0) };
+      const [bx, bz, R] = fit ? [fit.at[0], fit.at[1], fit.r] : [0, 0, 14];
+      const board = new CylinderGeometry(R, R - 0.2, 1.6, 72, 1);
+      board.translate(bx, 0.8, bz);
+      return { pieces: [{ role: 'board', geometry: withFrame(board, false) }], floor: (x, z) => (Math.hypot(x - bx, z - bz) < R ? 1.6 : 0) };
     }
     case 'glass':
     default:
@@ -396,7 +439,14 @@ export function composedBuilder(original: DishIdea): FormBuilder {
     const composed: ComposedPlan = planFor(original);
     const seared = isCooked(idea);
     void seared;
-    const w = makeWare(idea, seed);
+    const fit = fitWare(idea, composed);
+    const w = makeWare(idea, seed, fit);
+    /** True when a spot (with a half size) lies on the ware's top. */
+    const onTheWare = (c: [number, number], hx: number, hz: number): boolean => {
+      if (fit && idea.ware === 'board') return Math.abs(c[0] - fit.at[0]) + hx < fit.hx - 0.8 && Math.abs(c[1] - fit.at[1]) + hz < fit.hz - 0.8;
+      if (fit) return Math.hypot(c[0] - fit.at[0], c[1] - fit.at[1]) + Math.max(hx, hz) < fit.r - 1.2;
+      return idea.ware === 'board' ? Math.abs(c[0]) + hx < 13.5 && Math.abs(c[1]) + hz < 9.5 : Math.hypot(c[0], c[1]) + Math.max(hx, hz) < Math.max(WARE_PLAN[idea.ware].reach + 0.5, WARE_PLAN[idea.ware].plate - 1.5);
+    };
     const table = new Table(w.floor);
     // Real physics where it is loaded (the dish pages, the tests); the height map otherwise.
     const physics = physicsReady() ? new PhysicsPlate() : null;
@@ -481,7 +531,8 @@ export function composedBuilder(original: DishIdea): FormBuilder {
     };
     /** The planned stacks the layouts allow, with their most extra height (cm): fries in two layers. */
     // Crispy garlic and crumbs are garnish-sized: like the shavings, they may lie over the food.
-    const stackAllowance = (p: Placed) => (p.part.form === 'fries' ? 2.6 : ['chip', 'crumble'].includes(p.part.form) ? 6 : 0.4);
+    // A pancake stack is the one tall exception (item 5): three or four high.
+    const stackAllowance = (p: Placed) => (p.part.form === 'fries' ? 2.6 : p.part.form === 'pancake' ? 4 : ['chip', 'crumble'].includes(p.part.form) ? 6 : 0.4);
     /** A piece that stands on its edge (when it should lie flat) or is piled on another loose piece. */
     const towers = (pieces: FormPiece[]): boolean => {
       const p = placedOf.get(pieces);
@@ -521,7 +572,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
             const [x, z] = [c[0] + Math.cos(b) * reachOut, c[1] + Math.sin(b) * reachOut];
             if (here.height(x, z) - base.height(x, z) > 0.2) touching = true;
           }
-          const onWare = idea.ware === 'board' ? Math.abs(c[0]) + hx < 13.5 && Math.abs(c[1]) + hz < 9.5 : Math.hypot(c[0], c[1]) + Math.max(hx, hz) < Math.max(WARE_PLAN[idea.ware].reach + 0.5, WARE_PLAN[idea.ware].plate - 1.5);
+          const onWare = onTheWare(c, hx, hz);
           // The shift from where the laid copy sits to the free spot.
           if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) dbgCount[(clear ? 1 : 0) + (onWare ? 2 : 0) + (touching ? 4 : 0)]++;
           if (clear && onWare && touching) return [c[0] - planned[0], c[1] - planned[1]];
@@ -531,6 +582,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       return null;
     };
     let heroFood = -1;
+    let syrupPoured = false;
     /** Ingredients set straight onto a glass's rim (outside the physics). */
     const rimServed: string[] = [];
     // Which plan entry each drop came from, and the hero's pieces (the base a platform's toppings rest on).
@@ -701,6 +753,28 @@ export function composedBuilder(original: DishIdea): FormBuilder {
           settled.push(...pieces);
         }
       }
+      // Pancakes: syrup poured over the stack once it is down (item 5), pooling on top and running
+      // over the edge in a few drips; the toppings then sit in it.
+      if (idea.layout === 'pancake-stack' && heroPieces.length && !syrupPoured) {
+        syrupPoured = true;
+        const box = boundsOf(heroPieces);
+        const c: [number, number] = [(box.min.x + box.max.x) / 2, (box.min.z + box.max.z) / 2];
+        const r = (box.max.x - box.min.x + box.max.z - box.min.z) / 4;
+        const under = new Table(w.floor);
+        under.add(heroPieces);
+        const geometry = pool({
+          outline: wobble(r * 0.8, [[7, 0.2, random() * 6], [3, 0.07, random() * 6], [11, 0.05, random() * 6]]),
+          at: c,
+          depth: 0.22,
+          edge: 0.35,
+          floor: (x, z) => under.height(x, z),
+          rings: 30,
+          segments: 140,
+        });
+        const syrup = [{ role: 'syrup', geometry }];
+        parts.push(...syrup);
+        table.add(syrup);
+      }
     }
     if (physics) {
       // A piece frozen while still sliding (the engine stops after a few seconds) can be held a few
@@ -744,7 +818,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         return p.geometry.boundingBox!.clone();
       });
       const inside = (x: number, z: number) =>
-        idea.ware === 'board' ? Math.abs(x) < 13.5 && Math.abs(z) < 9.5 : Math.hypot(x, z) < (idea.ware === 'deep' ? 4.8 : idea.ware === 'round' ? 12.5 : 10.5);
+        fit ? onTheWare([x, z], 0, 0) : idea.ware === 'board' ? Math.abs(x) < 13.5 && Math.abs(z) < 9.5 : Math.hypot(x, z) < (idea.ware === 'deep' ? 4.8 : idea.ware === 'round' ? 12.5 : 10.5);
       // Over food or its sauce: a bounding box round a thin skewer or a round pancake covers bare
       // plate too, so a spot is kept only where something lies under it (any spot, if none is found).
       const { kind: poolKind, at: poolCentre, r: poolRadius } = composed.base;

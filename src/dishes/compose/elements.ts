@@ -163,7 +163,8 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
     case 'butter:crumble':
       return [{ role: id, family: 'butter', skin: { kind: 'pores', size_mm: 1.1, amount: 0.18 }, glossy: true }];
     case 'potato:mash':
-      return [{ role: id, family: 'mash', skin: { ...SAUCE_SKIN, amount: 0.4, seared: seared ? 0.7 : 0 } }];
+      // Never seared brown: mash stays vibrant yellow-white (item 9).
+      return [{ role: id, family: 'mash', skin: { ...SAUCE_SKIN, amount: 0.4 } }];
     case 'milk:mash':
       return [{ role: id, family: 'cream', skin: { ...SAUCE_SKIN, amount: 0.4 } }];
     case 'avocado:half':
@@ -538,7 +539,7 @@ function toast(role: string, random: () => number, ingredient: string): FormPiec
 }
 
 /** A soft mound (mash, a scoop of milk ice, a rösti): a pool with height and soft bumps. */
-function mound(role: string, random: () => number, r: number, height: number): FormPiece[] {
+function mound(role: string, random: () => number, r: number, height: number, dome = 0): FormPiece[] {
   const ph = [random() * 6, random() * 6, random() * 6];
   const geometry = pool({
     outline: wobble(r, [[3, 0.04, ph[0]], [5, 0.025, ph[1]]]),
@@ -546,7 +547,10 @@ function mound(role: string, random: () => number, r: number, height: number): F
     depth: height,
     edge: 0.75,
     floor: () => 0,
-    bumps: (x, z, rn) => (0.18 * Math.sin(x * 2.1 + ph[2]) * Math.sin(z * 1.9 + ph[0]) + 0.1 * Math.sin(x * 4.3 + z * 1.7)) * (1 - rn * 0.5),
+    bumps: (x, z, rn) =>
+      dome * (1 - rn * rn) +
+      (dome ? 0.14 * Math.sin(Math.atan2(z, x) * 3 + Math.hypot(x, z) * 1.6 + ph[1]) * (1 - rn) : 0) +
+      (0.18 * Math.sin(x * 2.1 + ph[2]) * Math.sin(z * 1.9 + ph[0]) + 0.1 * Math.sin(x * 4.3 + z * 1.7)) * (1 - rn * 0.5),
     rings: 26,
     segments: 80,
   });
@@ -723,7 +727,8 @@ export function makeElement(part: Part, random: () => number, seed: number): For
     case 'baguette:toast':
       return settle(toast(role, random, ingredient));
     case 'potato:mash':
-      return mound(role, random, 4.5, 1.0);
+      // A low, wide dome with spoon swirls (item 9), not a flat pancake of mash.
+      return mound(role, random, 5.4, 1.1, 0.9);
     case 'milk:mash':
       return mound(role, random, 4.2, 2.4);
     case 'avocado:half': {
@@ -853,7 +858,7 @@ export const BASE_FAMILY: Record<string, FamilyId> = {
   'pool:honey': 'honey',
   'pool:chili': 'chili-oil',
   'pool:tomato-sauce': 'tomato-sauce',
-  'pool:cream': 'cream',
+  'pool:cream': 'cream-sauce',
   'pool:herb-oil': 'herb-oil',
   'pool:berry-sauce': 'berry-sauce',
   'pool:cheese-sauce': 'cheese-sauce',

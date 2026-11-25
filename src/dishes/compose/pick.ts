@@ -134,8 +134,11 @@ export function layoutCandidates(ids: string[], course: Course, taste: string): 
   }
   if (course === 'snack') {
     if (threaded) add('skewer-platter');
+    // A sweet snack of fruit or milk is pancakes first; anything else is toast.
+    const sweetSnack = taste !== 'Savoury' && ids.some((id) => TART_FILLING.includes(id));
+    if (sweetSnack && !ids.includes('baguette')) add('pancake-stack');
     add('toast-board');
-    if (taste !== 'Savoury' && ids.some((id) => TART_FILLING.includes(id))) add('pancake-stack');
+    if (sweetSnack) add('pancake-stack');
     return out;
   }
   // Main.
@@ -200,7 +203,7 @@ function chooseSauce(layout: LayoutSpec, ids: string[], lead: string, taste: str
 /** The family of a sauce (for smears, oil dots and gels that match it). */
 const SAUCE_FAMILY: Record<string, FamilyId> = {
   'pool:caramel': 'caramel', 'pool:maple': 'maple', 'pool:berry-sauce': 'berry-sauce', 'pool:honey': 'honey', 'pool:citrus-oil': 'citrus-oil', 'pool:chili': 'chili-oil',
-  'pool:herb-oil': 'herb-oil', 'pool:jus': 'jus', 'pool:cream': 'cream', 'pool:tomato-sauce': 'tomato-sauce', 'pool:cheese-sauce': 'cheese-sauce',
+  'pool:herb-oil': 'herb-oil', 'pool:jus': 'jus', 'pool:cream': 'cream-sauce', 'pool:tomato-sauce': 'tomato-sauce', 'pool:cheese-sauce': 'cheese-sauce',
   'pool:brown-butter': 'brown-butter',
 };
 
@@ -331,7 +334,8 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
       // The vehicle is the platform; the table's best filling is the star on it.
       const filling = byRank([...left].filter((id) => TART_FILLING.includes(id) && id !== 'butter' && id !== 'milk'));
       const vehicle = layout.id === 'tart' ? componentPiece('tart', left.has('milk') || left.has('cheese') || filling.length === 0 ? 'cream' : 'pastry', 1, 'under').part! : 'milk:pancake';
-      hero = { id: vehicle.split(':')[0], form: vehicle.split(':')[1], count: 1 };
+      // Pancakes come as a stack of three or four (item 5).
+      hero = { id: vehicle.split(':')[0], form: vehicle.split(':')[1], count: layout.id === 'pancake-stack' ? between(random, [3, 4]) : 1 };
       if (layout.id === 'pancake-stack' && left.has('milk')) take('milk');
       if (left.has('butter')) take('butter'), inBase.push('butter');
       if (left.has('milk')) take('milk'), inBase.push('milk');
@@ -357,7 +361,8 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
     case 'toast-board': {
       // Toast is the vehicle: the table's bread, or the library's.
       if (left.has('baguette')) take('baguette');
-      hero = { id: 'baguette', form: 'toast', count: left.size >= 2 ? 2 : between(random, [1, 2]) };
+      // Two slices (item 6); one crostini under a whole seared salmon fillet (item D).
+      hero = { id: 'baguette', form: 'toast', count: left.has('salmon') ? 1 : 2 };
       break;
     }
     case 'mash-plate': {
@@ -457,8 +462,10 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
       let form = formFor(id, 'support', wild, random)!;
       if (platform && form === 'fries') form = 'wedge';
       if (platform && TOPPING_CUT[id]) form = TOPPING_CUT[id];
+      // Salmon on toast is one fillet with a seared top, not a pile of cubes (item D).
+      if (layout.id === 'toast-board' && id === 'salmon') form = 'fillet';
       // A carved breast or a steak is one piece (sliced), never four of them.
-      const single = ['steak', 'fillet', 'drumstick'].includes(form) || (id === 'chicken' && form === 'slice');
+      const single = ['steak', 'fillet', 'drumstick'].includes(form) || (id === 'chicken' && form === 'slice' && !platform);
       // Avocado slices fan in a short curve of five to seven (twelve read as a pile of cucumber).
       const fan = id === 'avocado' && form === 'slice' ? odd(between(random, [5, 6])) : undefined;
       support.push({ id, form, count: single ? 1 : fan ?? Math.max(1, supportCount(form)) });
@@ -483,7 +490,8 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
   if (wantsPool && (base === 'none' || base === 'pool:chili') && !inBase.includes('sauce')) base = chooseSauce(layout, ids, star, choices.taste, wild);
   if (base === 'none' && wantsPool) base = chooseSauce(layout, ids, star, choices.taste, wild);
   // Milk or butter that went into the sauce is the sauce (it must be on the plate, as the caption says).
-  const sauceable = base === 'none' || base.startsWith('pool:');
+  // A toast board has no pool (a cream pool spread over the board, item 6): milk and butter are in the toast.
+  const sauceable = (base === 'none' || base.startsWith('pool:')) && layout.id !== 'toast-board';
   if (inBase.includes('milk') && sauceable && !inBase.includes('sauce') && !['tart', 'pancake-stack'].includes(layout.id)) base = 'pool:cream';
   else if (inBase.includes('butter') && sauceable && !inBase.includes('sauce') && !['tart', 'pancake-stack'].includes(layout.id)) base = 'pool:brown-butter';
 
@@ -550,7 +558,7 @@ export function chooseComponents(slots: Slots, wild: number, random: () => numbe
       if (b === 2) out.push(componentGarnish('gel', savouryGel, 5));
       break;
     case 'composed-plate':
-      out.push(componentPiece('smear', slots.star === 'lemon' || slots.star === 'lime' ? 'cream' : sauce ?? 'cream', 1, 'beside'));
+      out.push(componentPiece('smear', slots.star === 'lemon' || slots.star === 'lime' ? 'cream-sauce' : sauce ?? 'cream-sauce', 1, 'beside'));
       out.push(componentGarnish('oil-dot', oil, 7), componentGarnish('microherb', 'leaf', 7));
       if (b >= 1) out.push(componentPiece('tuile', 'pastry', 1, 'beside'));
       if (b === 2) out.push(componentGarnish('gel', savouryGel, 5));
@@ -592,7 +600,7 @@ export function chooseComponents(slots: Slots, wild: number, random: () => numbe
       // Mains: a real accompaniment beside the hero (a puree when the table brings none), oil dots
       // and microherbs; Unhinged adds a crisp tuile and gel beads.
       // Never a mash puree unless the table brought the potato (the P0 list: no invented mash).
-      if (slots.support.length === 0 && !['mash-plate', 'rice-bowl'].includes(slots.layout.id)) out.push(componentPiece('puree', hasTable('potato') ? 'mash' : 'cream', 1, 'beside'));
+      if (slots.support.length === 0 && !['mash-plate', 'rice-bowl'].includes(slots.layout.id)) out.push(componentPiece('puree', hasTable('potato') ? 'mash' : 'cream-sauce', 1, 'beside'));
       out.push(componentGarnish('oil-dot', oil, 7));
       // A step out varies the finish from dish to dish (the fix list: not the same herb-and-shaving
       // stamp on every main): microherbs, a smear of the sauce, or a crisp tuile.
@@ -712,8 +720,11 @@ function describeDish(slots: Slots, components: DishComponent[], random: () => n
   const { layout, hero, support, accent, base } = slots;
   const pick = <T,>(list: T[]) => list[Math.floor(random() * list.length) % list.length];
   const sauceWords = SAUCE_WORDS[base] ?? (slots.sauce !== 'none' ? SAUCE_WORDS[slots.sauce] : undefined);
-  const lead = piecePhrase(hero);
-  const sides = [...support, ...accent].filter((p) => !(p.id === hero.id && p.form === hero.form)).map(piecePhrase);
+  // On a platform (toast, mash, a tart) the topping leads and the vehicle is the "where".
+  const platform = ['toast-board', 'mash-plate', 'tart'].includes(layout.id) && support.length > 0;
+  const toppings = [...support, ...accent].filter((p) => !(p.id === hero.id && p.form === hero.form));
+  const lead = platform ? piecePhrase(toppings[0]) : piecePhrase(hero);
+  const sides = (platform ? toppings.slice(1) : toppings).map(piecePhrase);
   if (layout.id === 'glass-drink') {
     const glass = DRINK_WORDS[base] ?? 'A cold drink';
     return pick([`${glass}, poured cold, ${lead} on the rim.`, `${glass} over ice, finished with ${lead}.`, `${glass}, served chilled with ${lead}.`]);
@@ -726,7 +737,8 @@ function describeDish(slots: Slots, components: DishComponent[], random: () => n
   else if (base === 'mash:risotto') where = 'in a creamy rice pudding';
   else if (layout.id === 'tart') where = 'in a crisp pastry shell';
   else if (layout.id === 'pancake-stack') where = `, ${sauceWords ?? 'syrup'} poured over`;
-  else if (layout.id === 'toast-board') where = pick(['piled on toasted bread', 'on golden toast']);
+  else if (layout.id === 'toast-board') where = platform ? pick([`piled on ${hero.count > 1 ? 'two slices of ' : ''}toasted bread`, `on golden ${hero.count > 1 ? 'toasts' : 'toast'}`]) : 'golden from the pan';
+  else if (layout.id === 'mash-plate') where = platform ? pick(['on a low dome of buttery mash', 'over a swirl of potato mash']) : '';
   else if (sauceWords) where = pick([`over ${sauceWords}`, `on a pool of ${sauceWords}`, `with ${sauceWords} spooned round`]);
   const extras = components
     .map((c) => ({ quenelle: 'a scoop of ice cream', 'whipped-cream': 'whipped cream', smear: 'a swipe of sauce', tuile: 'a crisp tuile', puree: 'a silky puree', gel: 'bright gel beads', 'oil-dot': pick(['a few drops of oil', 'a thread of oil']), microherb: pick(['microherbs', 'a scatter of fresh herbs']) } as Record<string, string>)[c.kind])
@@ -787,8 +799,10 @@ export function titleDish(slots: Slots, cooked: boolean, components: DishCompone
     }
     case 'toast-board': {
       // Never a plain "X on toast" (item 11): the topping names the toast.
+      // The topping in the singular, as a name: "blueberry toast", "avocado toast".
+      const first = support[0] ? NOUN[support[0].id] ?? support[0].id : star;
       const second = sides[1] ?? bits[0];
-      candidates = [second && side1 ? `${side1} toast with ${second}` : '', `${side1 ?? star} toast with herbs`, `${side1 ?? star} toast`, `${star} crostini`, 'Toast with herbs'];
+      candidates = [second ? `${first} toast with ${second}` : '', `${first} toast with herbs`, `${first} crostini with herbs`, 'Toast with fresh herbs'];
       break;
     }
     case 'soup-bowl': candidates = base === `soup:${hero.id}` ? [`creamy ${NOUN[hero.id]} soup${side1 ? ` with ${side1}` : ''}`, `creamy ${NOUN[hero.id]} soup`] : [`${cap(base.startsWith('soup:') ? NOUN[base.split(':')[1]] : 'creamy')} soup with ${heroWords}`, `${base.startsWith('soup:') ? NOUN[base.split(':')[1]] : star} soup`, `${star} soup`]; break;

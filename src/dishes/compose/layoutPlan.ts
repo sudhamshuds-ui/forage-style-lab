@@ -180,6 +180,13 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
       const along: [number, number] = [Math.sin((angle * Math.PI) / 180), Math.cos((angle * Math.PI) / 180)];
       for (let s = -2; s <= 2; s++) heroDiscs.push({ c: [at[0] + (along[0] * s * len) / 5, at[1] + (along[1] * s * len) / 5], r: 1.7 * heroScale });
     }
+  } else if (hero.form === 'pancake') {
+    // A stack (item 5): every pancake over the same spot, each a touch off centre and its own size.
+    for (let k = 0; k < hero.count; k++) {
+      const at: [number, number] = [heroAt[0] + signed(random) * 0.35, heroAt[1] + signed(random) * 0.35];
+      placed.push({ part: hero, size: 'big', scale: heroScale * (1 - k * 0.03), at, angle: random() * 360, index: k, layer: 0 });
+    }
+    heroDiscs.push({ c: heroAt, r: packR(heroInfo, heroScale) * 0.97 });
   } else {
     const group = arrange(heroInfo.group, hero.count, heroInfo, heroScale, random);
     let reach = 0;
@@ -234,9 +241,14 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
     if (platform && idea.ware !== 'glass' && !besidePlatform) {
       // Toppings on the platform: support spread over it, accents round its edge, all on top.
       const edge = heroR * 0.86;
-      const inside = (c: [number, number], rr: number) => Math.hypot(c[0] - heroCentre[0], c[1] - heroCentre[1]) + rr * 0.4 <= edge && wareLimit(c, rr);
+      // On the platform itself, never in a gap between two slices of toast or over the board
+      // (item 6): inside one of the hero's own coins (a toast is a row of them).
+      const inside = (c: [number, number], rr: number) => heroDiscs.some((d) => Math.hypot(c[0] - d.c[0], c[1] - d.c[1]) + rr * 0.55 <= d.r * 0.92) && wareLimit(c, rr);
       if (!top.length) {
-        const first = { at: [heroCentre[0] + signed(random) * 0.4, heroCentre[1] + signed(random) * 0.4] as [number, number], angle: random() * 360 };
+        // Starting on the platform itself (the middle of two toasts is the gap between them).
+        const seat = heroDiscs.reduce((best, d) => (Math.hypot(d.c[0] - heroCentre[0], d.c[1] - heroCentre[1]) - d.r < Math.hypot(best.c[0] - heroCentre[0], best.c[1] - heroCentre[1]) - best.r ? d : best), heroDiscs[0]);
+        const onSeat = inside(heroCentre, shape.r + shape.half) ? heroCentre : seat.c;
+        const first = { at: [onSeat[0] + signed(random) * 0.4, onSeat[1] + signed(random) * 0.4] as [number, number], angle: random() * 360 };
         top.push(...discsAt(shape, first.at, first.angle, isFlat(part)));
         spots = [first, ...grow(top, part.count - 1, shape, heroCentre, inside, isFlat(part), random)];
       } else {
