@@ -923,6 +923,7 @@ export const BASE_FAMILY: Record<string, FamilyId> = {
   'soup:potato': 'soup-potato',
   'soup:tomato': 'soup-tomato',
   'soup:cream': 'cream-sauce',
+  'soup:pudding': 'cream',
   'soup:spinach': 'green-gravy',
   'soup:pepper': 'drink-orange',
   'mash:potato': 'mash',

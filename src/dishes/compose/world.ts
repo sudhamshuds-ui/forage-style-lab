@@ -41,13 +41,17 @@ export interface WorldDish {
 export interface Looks {
   vessel: 'bowl' | 'deep-bowl' | 'kadai' | 'ramekin' | 'plate' | 'board' | 'glass' | 'tart';
   base: { colour: string; texture: string; family: FamilyId; from?: string } | null;
-  pieces: { ingredient: string; shape: string; sink: 'none' | 'third' | 'half'; size_cm?: number }[];
+  pieces: { ingredient: string; shape: string; sink: 'none' | 'third' | 'half'; size_cm?: number; required?: boolean }[];
   finish: string;
   never: string[];
   needs: string[];
   savoury?: boolean;
   /** The note's minimum to claim the name (docs/forage-specs/world-dish-looks.json). */
   claim?: string[];
+  /** The note serves ice cream (a quenelle or a scoop); otherwise no scoop is ever added. */
+  scoop?: boolean;
+  /** The note serves whipped cream or a cream cap; otherwise none is added. */
+  whip?: boolean;
 }
 
 /** Vessels the renderer can paint, and the layouts each means. */
@@ -103,14 +107,38 @@ function legalFor(dish: WorldDish, table: string[], course: string): boolean {
 }
 
 /** Words a dish name uses for each pantry ingredient (a name that says "steak" needs the steak). */
-const NAME_WORDS: Record<string, RegExp> = {
+export const NAME_WORDS: Record<string, RegExp> = {
   steak: /steak|beef|bistec|lomo|bulgogi|carne/, salmon: /salmon|lox|gravlax/, chicken: /chicken|pollo|poulet|joojeh|murgh|tikka/,
-  eggs: /\begg|omelet|frittata|tortilla|shakshuka|tamago|chawanmushi/, potato: /potato|aloo|batat|patata|rösti|rosti|frites|fries|chips|hash|gratin|mash/, rice: /\brice|risotto|pilaf|polo|paella/,
-  baguette: /bread|toast|bruschetta|crostini|tartine|banh mi|dakos/, milk: /\bmilk|latte|lassi/, cheese: /cheese|feta|parmesan|halloumi|gorgonzola|paneer|ricotta|gibna/,
+  eggs: /\begg|omelet|frittata|tortilla|shakshuka|tamago|chawanmushi/, potato: /potato|aloo|batat|patata|rösti|rosti|frites|\bfries|\bchips\b|\bhash\b|gratin|\bmash/, rice: /\brice|risotto|pilaf|polo|paella/,
+  baguette: /bread|toast|bruschetta|crostini|tartine|banh mi|dakos/, milk: /\bmilk|latte|lassi/, cheese: /cheese|feta|parmesan|halloumi|gorgonzola|paneer|ricotta|gibna|mozzarella|burrata|pecorino|cheddar|gruy|manchego|queso|comt|brie|camembert|raclette|reblochon|mascarpone|halloumi|kashkaval|haloumi/,
   strawberry: /strawberr/, blueberries: /blueberr/, grapes: /grape/, watermelon: /watermelon|subak|tangmo|bateeikh/, apple: /apple|aeble/, pear: /\bpear/,
   peach: /peach|melba/, orange: /orange/, lemon: /lemon/, lime: /\blime/, tomato: /tomat|pomodoro/, avocado: /avocado|guacamole/, mushroom: /mushroom/,
   spinach: /spinach|esfenaj|palak/, cabbage: /cabbage|slaw|kimchi/, broccoli: /broccoli/, pepper: /pepper|pimiento/, onion: /onion/, garlic: /garlic/, romaine: /romaine|caesar/,
 };
+
+/**
+ * The pantry ingredients one line of a note's minimum to claim the name asks for: every one it
+ * names ("tomato slices and white mozzarella"), or one of them where it offers a choice ("lemon or
+ * lime"). Colour words are not ingredients ("coral-orange puree", "lime-green", "salmon pink").
+ */
+export function claimNeeds(line: string): { ids: string[]; anyOf: boolean } {
+  let text = line.toLowerCase();
+  if (/^(no|never|not)\b/.test(text)) return { ids: [], anyOf: false };
+  text = text
+    .replace(/\b(coral|golden|bright|deep|pale|burnt|red|reddish|yellow|amber|vibrant|warm)[- ]orange\b/g, ' ')
+    .replace(/\borange[- ](red|yellow|gold|golden|brown|tinted|hued|pink)\b/g, ' ')
+    .replace(/\b(lime|lemon|salmon|peach|tomato|cherry|mushroom|avocado|butter|cream)[- ](green|yellow|pink|red|coloured|colored|toned|tinted|brown|white)\b/g, ' ');
+  const ids = Object.keys(NAME_WORDS).filter((id) => NAME_WORDS[id].test(text));
+  return { ids, anyOf: /\bor\b/.test(text) };
+}
+
+/** True when the table shows everything the note's minimum to claim the name asks for. */
+export function claimMet(dish: WorldDish, table: string[]): boolean {
+  return (dish.looks.claim ?? []).every((line) => {
+    const { ids, anyOf } = claimNeeds(line);
+    return !ids.length || (anyOf ? ids.some((id) => table.includes(id)) : ids.every((id) => table.includes(id)));
+  });
+}
 
 /** Brief 2.2: how well a dish fits the table and the choices (-Infinity when it cannot be cooked). */
 export function scoreWorldDish(dish: WorldDish, table: string[], choices: Choices): number {
@@ -133,13 +161,14 @@ export function scoreWorldDish(dish: WorldDish, table: string[], choices: Choice
   if (!table.includes(dish.heroes[0])) return -Infinity;
   // Every ingredient the note's minimum to claim the name shows has to be on the table (Colcannon
   // is mash with cabbage; Palak Paneer needs the spinach and the paneer).
-  for (const need of dish.looks.claim ?? []) {
-    const text = need.toLowerCase();
-    if (/^(no|never|not)\b/.test(text)) continue;
-    const named = (Object.keys(NAME_WORDS) as string[]).filter((id) => NAME_WORDS[id].test(text));
-    // (One of several named is enough: "lemon or lime".)
-    if (named.length && !named.some((id) => table.includes(id))) return -Infinity;
-  }
+  if (!claimMet(dish, table)) return -Infinity;
+  // R7: the pieces the note shows are on the table (a Caprese is tomato and mozzarella; only what
+  // it shows "if on table" may be missing) ...
+  if (dish.looks.pieces.some((p) => p.required !== false && !table.includes(p.ingredient))) return -Infinity;
+  // ... and every table ingredient has its place in the dish: a piece, the base, or the recipe (rice
+  // never vanishes into a gazpacho, a tomato is never stood on a lemon rice).
+  const place = new Set([...dish.heroes, ...dish.coreIngredients, ...dish.looks.pieces.map((p) => p.ingredient), ...(dish.looks.base?.from ? [dish.looks.base.from] : [])]);
+  if (table.some((id) => !place.has(id))) return -Infinity;
   if (/duck|lamb|pork|shrimp|prawn|tuna|\bcod\b|crab|bacon|\bham\b|turkey|tofu|noodle|pasta|ramen|udon|spaghetti|coffee|ca phe/.test(name)) return -Infinity;
   let score = 0;
   for (const id of table) {
@@ -215,8 +244,12 @@ export function worldComponents(dish: WorldDish, table: string[], sweet: boolean
     const names = PANTRY_WORDS.find(([re]) => re.test(text));
     if (names && !table.includes(names[1])) continue;
     if (names) continue; // a table ingredient: it is on the plate already as a piece
-    if (/quenelle|ice cream|gelato|sorbet/.test(text) && !/whipped/.test(text)) add(componentPiece('quenelle', 'ice-cream', 1, 'beside'));
-    else if (/whipped|cream (dollop|cloud|swirl)|chantilly|foam|mascarpone/.test(text)) add(componentPiece('whip', 'cream', 1, 'on-hero-allowed'));
+    if (/quenelle|ice cream|gelato|sorbet/.test(text) && !/whipped/.test(text)) {
+      if (dish.looks?.scoop !== false) add(componentPiece('quenelle', 'ice-cream', 1, 'beside'));
+    }
+    else if (/whipped|cream (dollop|cloud|swirl)|chantilly|foam|mascarpone/.test(text)) {
+      if (dish.looks?.whip !== false) add(componentPiece('whip', 'cream', 1, 'on-hero-allowed'));
+    }
     else if (/pancake|crepe|tart shell|pastry|crust/.test(text)) continue; // the layout's own vehicle
     else if (/sponge|biscuit|shortbread|\bcake\b|tuile|wafer|brittle/.test(text)) add(componentPiece('tuile', 'pastry', 1, 'beside'));
     else if (/smear|puree|purée|hummus|toum|labneh|yogurt|tahini/.test(text)) add(componentPiece('smear', 'cream-sauce', 1, 'beside'));
@@ -225,7 +258,9 @@ export function worldComponents(dish: WorldDish, table: string[], sweet: boolean
       if (sweet) add(componentGarnish('gel', /maple|caramel|molasses/.test(text) ? 'caramel' : 'honey', 7));
     }
     else if (/pomegranate|barberr|cranberr/.test(text)) add(componentGarnish('gel', 'berry-sauce', 9));
-    else if (/pistachio|pine nut|almond|walnut|hazelnut|sesame|seed|nut/.test(text)) add(componentGarnish('gel', /pistachio/.test(text) ? 'leaf' : 'pastry', 11));
+    else if (/pistachio|pine nut|almond|walnut|hazelnut|sesame|seed|nut/.test(text)) {
+      add({ ...componentGarnish('gel', /pistachio/.test(text) ? 'leaf' : 'pastry', 11), label: /pistachio/.test(text) ? 'chopped pistachios' : /sesame|seed/.test(text) ? 'toasted seeds' : 'toasted nuts' });
+    }
     else if (/olive/.test(text) && !/oil/.test(text)) add(componentGarnish('gel', 'ink', 7));
     else if (/sumac|chili flake|paprika|berbere|chili lime salt/.test(text)) add(componentGarnish('gel', 'chili-oil', 13));
     else if (/cinnamon|sugar dust|cocoa|nutmeg/.test(text)) add(componentGarnish('gel', 'caramel', 13));
@@ -267,6 +302,16 @@ export function applyLooks(slots: LooksSlots, dish: WorldDish, table: string[]):
   const pieces = () => [slots.hero, ...slots.support, ...slots.accent];
   for (const want of looks.pieces) {
     if (!table.includes(want.ingredient)) continue;
+    // A piece the note shows that went into the base (the milk of a panna cotta's dome): out again.
+    if (want.shape === 'mash' && !pieces().some((p) => p.id === want.ingredient) && slots.inBase.includes(want.ingredient)) {
+      slots.inBase.splice(slots.inBase.indexOf(want.ingredient), 1);
+      const piece = { id: want.ingredient, form: want.shape, count: 1 };
+      // (The dome leads; a quenelle or cream standing in for it gives way.)
+      if (['quenelle', 'whip', 'puree'].includes(slots.hero.id) || want.shape === 'mash') {
+        if (!['quenelle', 'whip', 'puree'].includes(slots.hero.id)) slots.support.unshift(slots.hero);
+        slots.hero = piece;
+      } else slots.support.push(piece);
+    }
     for (const p of pieces()) {
       if (p.id !== want.ingredient || p.form === want.shape) continue;
       // (A slice of toast is only ever the vehicle; beside the food, bread stays croutons.)
@@ -286,6 +331,25 @@ export function applyLooks(slots: LooksSlots, dish: WorldDish, table: string[]):
     if (slots.hero.id === from) slots.hero = slots.support.shift() ?? slots.accent.shift() ?? slots.hero;
     if (!slots.inBase.includes(from)) slots.inBase.push(from);
     slots.base = `soup:${from}`;
+  }
+  // A set or simmered pudding (Muhallabieh, kheer, sutlac): the milk (or rice) fills a small bowl,
+  // smooth to its rim; what sits on it is the table's other pieces, or a thin glaze of the note's
+  // finish. Never a scoop of ice cream (R7).
+  if (looks.base && /pudding|set milk|kheer/.test(looks.base.texture)) {
+    const inside = [looks.base.from, 'milk', 'rice'].filter((id): id is string => !!id && table.includes(id));
+    for (const id of inside) {
+      slots.support = slots.support.filter((p) => p.id !== id);
+      slots.accent = slots.accent.filter((p) => p.id !== id);
+      if (!slots.inBase.includes(id)) slots.inBase.push(id);
+    }
+    if (inside.includes(slots.hero.id) || ['quenelle', 'whip', 'puree', 'smear'].includes(slots.hero.id)) {
+      const glaze: FamilyId = /rose/.test(looks.finish) ? 'drink-pink' : /saffron|caramel|brown|cinnamon/.test(looks.finish) ? 'caramel' : 'honey';
+      const table1 = (list: { id: string }[]) => list.findIndex((p) => table.includes(p.id));
+      const fromSupport = table1(slots.support);
+      const fromAccent = table1(slots.accent);
+      slots.hero = fromSupport >= 0 ? slots.support.splice(fromSupport, 1)[0] : fromAccent >= 0 ? slots.accent.splice(fromAccent, 1)[0] : { id: 'puree', form: glaze, count: 1 };
+    }
+    slots.base = 'soup:pudding';
   }
   return { family: looks.base?.family, texture: looks.base?.texture };
 }

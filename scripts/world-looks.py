@@ -48,6 +48,8 @@ FAMILY = {
     'drink': {'green': 'drink-green', 'red': 'drink-red', 'pink': 'drink-pink', 'purple': 'drink-purple', 'amber': 'drink-gold', 'golden': 'drink-gold', 'orange': 'drink-orange', 'brown': 'drink-gold', 'cream': 'cream'},
     'soup': {'green': 'green-gravy', 'red': 'soup-tomato', 'pink': 'soup-tomato', 'purple': 'berry-sauce', 'amber': 'soup-potato', 'golden': 'soup-potato', 'orange': 'drink-orange', 'brown': 'jus', 'cream': 'cream-sauce'},
     'pool': {'green': 'herb-oil', 'red': 'tomato-sauce', 'pink': 'berry-sauce', 'purple': 'berry-sauce', 'amber': 'caramel', 'golden': 'cheese-sauce', 'orange': 'chili-oil', 'brown': 'jus', 'cream': 'cream-sauce'},
+    # A set or simmered pudding filling its bowl (Muhallabieh, kheer, sutlac): never scoops of ice cream.
+    'pudding': {'green': 'cream', 'red': 'berry-sauce', 'pink': 'berry-sauce', 'purple': 'berry-sauce', 'amber': 'custard', 'golden': 'custard', 'orange': 'custard', 'brown': 'custard', 'cream': 'cream'},
     'rice': {'green': 'cooked-rice', 'red': 'rice-red', 'pink': 'rice-red', 'orange': 'rice-red', 'golden': 'rice-gold', 'amber': 'rice-gold', 'brown': 'rice-gold', 'cream': 'cooked-rice', 'purple': 'cooked-rice'},
 }
 SHAPES = [
@@ -146,7 +148,7 @@ def looks_of(dish: dict, note: dict) -> dict:
     lead = None
     if note['base'] and layout not in NO_BASE:
         text = (note['base']['colour'] + ' ' + note['base']['texture']).lower()
-        kind = KIND.get(layout) or ('soup' if re.search(r'gravy|curry|stew|soup|broth|puree|purée|dal', text) else 'pool')
+        kind = KIND.get(layout) or ('pudding' if layout == 'dessert-bowl' and re.search(r'pudding|set milk|kheer', text) else 'soup' if re.search(r'gravy|curry|stew|soup|broth|puree|purée|dal', text) else 'pool')
         if kind == 'pool' and re.search(r'smash|mash|dome', text):
             # A smashed avocado or mash "base" is the hero piece itself, not a pool.
             lead = next((i for i in ('avocado', 'potato') if i in text or (i == 'potato' and 'mash' in text)), None)
@@ -156,9 +158,13 @@ def looks_of(dish: dict, note: dict) -> dict:
             colour = colour_of(note['base']['colour'].lower()) or colour_of(text) or ('cream' if kind in ('rice', 'soup', 'drink') else 'brown')
             if kind == 'rice' and not re.search(r'red|golden|yellow|saffron|turmeric|orange|brown', note['base']['colour'].lower()):
                 colour = 'cream'
-            base = {'colour': colour, 'texture': note['base']['texture'], 'family': FAMILY[kind][colour]}
+            family = FAMILY[kind][colour]
+            # A sweet dish's red pool is a berry coulis, never tomato sauce.
+            if (dish['course'] == 'dessert' or dish['taste'] == 'sweet') and family in ('tomato-sauce', 'chili-oil'):
+                family = 'berry-sauce'
+            base = {'colour': colour, 'texture': note['base']['texture'], 'family': family}
             # The table ingredient the base is made of (spinach in a palak gravy) goes into it.
-            makers = ('spinach', 'tomato', 'potato', 'pepper') if kind == 'soup' else \
+            makers = ('spinach', 'tomato', 'potato', 'pepper') if kind == 'soup' else ('milk', 'rice', 'grapes') if kind == 'pudding' else \
                 ('milk',) if kind == 'drink' else ()
             for ingredient in dish['heroes'] + dish['coreIngredients']:
                 if ingredient in makers and re.search(ingredient.rstrip('s')[:6], text):
@@ -174,6 +180,10 @@ def looks_of(dish: dict, note: dict) -> dict:
             if ingredient not in STAPLE_PIECES:
                 needs.append(ingredient)
             continue
+        # (Milk set into a dome, a panna cotta, is a piece: the kit's cream mound.)
+        if ingredient == 'milk' and re.search(r'dome|mound|unmold', piece['shape'] + ' ' + piece['placement']):
+            pieces.append({'ingredient': 'milk', 'shape': 'mash', 'sink': 'none', 'size_cm': piece['size_cm'], 'required': True})
+            continue
         if ingredient in BASE_ONLY or (base and base.get('from') == ingredient and kind == 'soup') or ingredient == lead:
             continue
         form = form_of(ingredient, piece['shape'].lower(), layout)
@@ -186,7 +196,9 @@ def looks_of(dish: dict, note: dict) -> dict:
         sink = 'half' if 'half' in place and 'sunk' in place else 'third' if 'sunk' in place or 'nestled' in place or layout in ('soup-bowl', 'rice-bowl') else 'none'
         if any(p['ingredient'] == ingredient for p in pieces):
             continue
-        pieces.append({'ingredient': ingredient, 'shape': form, 'sink': sink, 'size_cm': piece['size_cm']})
+        # A piece the note shows only "if on table" (or as optional) is not needed to claim the name.
+        required = not re.search(r'if on table|if garnish|optional', place)
+        pieces.append({'ingredient': ingredient, 'shape': form, 'sink': sink, 'size_cm': piece['size_cm'], 'required': required})
 
     never = list(note['never'])
     # Ingredient words the note forbids outright, as pantry ids (a "no meat" claim forbids steak and chicken).
@@ -194,7 +206,10 @@ def looks_of(dish: dict, note: dict) -> dict:
         w = word.lower().strip()
         if re.fullmatch(r'(no |any )?meat', w):
             never += MEAT
-    out = {'vessel': vessel, 'base': base, 'pieces': pieces, 'finish': note['finish'], 'never': never,
+    # Ice cream only where the note serves it (R7: Muhallabieh came as two scoops of "ice cream").
+    scoop = bool(re.search(r'quenelle|ice cream|gelato|sorbet|scoop', json.dumps(note).lower()))
+    whip = bool(re.search(r'whip|chantilly|cream (dollop|cloud|cap|swirl)|foam|froth', json.dumps(note).lower()))
+    out = {'vessel': vessel, 'base': base, 'pieces': pieces, 'finish': note['finish'], 'never': never, 'scoop': scoop, 'whip': whip,
            'needs': sorted(set(needs)), 'claim': note['minimum_to_claim_name']}
     if dish['taste'] == 'savoury':
         out['savoury'] = True

@@ -612,7 +612,8 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
       // Citrus as an accent is a couple of small wedges at true size (one in a bowl of rice): whole
       // wheels at full size crowded the plate and fell off it (R4).
       const citrus = ['lemon', 'lime', 'orange'].includes(id);
-      if (citrus) accent.push({ id, form: 'wedge', count: layout.id === 'rice-bowl' ? 1 : 2 });
+      // In a soup it is one thin wheel at most, never wedges floating in it (R7: the gazpacho).
+      if (citrus) accent.push(layout.id === 'soup-bowl' ? { id, form: 'wheel', count: 1 } : { id, form: 'wedge', count: layout.id === 'rice-bowl' ? 1 : 2 });
       else accent.push({ id, form, count: id === 'garlic' ? 5 : Math.max(['strip', 'wheel', 'slice'].includes(form) ? 3 : 1, odd(between(random, layout.accent))) });
     } else if (traits.forms.support?.length) {
       const form = formFor(id, 'support', wild, random)!;
@@ -850,9 +851,9 @@ const SAUCE_WORDS: Record<string, string> = {
 };
 const DRINK_WORDS: Record<string, string> = {
   'drink:apple': 'Apple cider cooler', 'drink:pear': 'Pear juice spritz', 'drink:peach': 'Peach iced tea', 'drink:lemon': 'Classic fresh lemonade', 'drink:lime': 'Fresh lime cooler',
-  'drink:orange': 'Fresh orange juice', 'drink:strawberry': 'Fresh strawberry cooler', 'drink:watermelon': 'Fresh watermelon cooler', 'drink:grape': 'Sparkling grape spritz',
+  'drink:orange': 'Fresh orange juice', 'drink:strawberry': 'Fresh strawberry cooler', 'drink:watermelon': 'Fresh watermelon cooler', 'drink:grape': 'Sparkling grape cooler',
   'drink:blueberry': 'Blueberry lemonade', 'drink:tomato': 'Tomato juice with celery', 'drink:pepper': 'Roast pepper cooler', 'drink:spinach': 'Green spinach juice',
-  'drink:avocado': 'Avocado lime smoothie', 'drink:green': 'Green garden juice', 'drink:milk': 'Thick vanilla milkshake', 'drink:horchata': 'Cinnamon rice horchata',
+  'drink:avocado': 'Avocado lime smoothie', 'drink:green': 'Green garden juice', 'drink:milk': 'Thick vanilla milkshake', 'drink:horchata': 'Cinnamon rice milk',
   'drink:bloody': 'Spiced tomato chili sip', 'drink:consomme': 'Clear golden consommé',
 };
 
@@ -873,6 +874,8 @@ function firstFit(candidates: string[], fallback: string): string {
 /** How a piece reads in a sentence ("a fan of avocado slices", "crisp garlic chips"). */
 function piecePhrase(p: Piece): string {
   if (p.id === 'quenelle') return p.form === 'custard' ? 'a scoop of egg custard ice cream' : 'a scoop of vanilla ice cream';
+  if (p.id === 'puree') return ({ 'drink-pink': 'a thin glaze of rose syrup', caramel: 'a thin caramel glaze', honey: 'a thread of honey', custard: 'a spoonful of custard' } as Record<string, string>)[p.form] ?? 'a spoonful of cream';
+  if (p.id === 'whip') return 'a cap of whipped cream';
   if (p.id === 'tart') return p.form === 'custard' ? 'a vanilla custard tart' : p.form === 'lemon-flesh' ? 'a lemon curd tart' : p.form === 'lime-flesh' ? 'a lime curd tart' : 'a crisp pastry tart';
   const n = NOUN[p.id] ?? p.id;
   const many = p.count > 1;
@@ -930,7 +933,8 @@ function describeDish(slots: Slots, components: DishComponent[], random: () => n
   }
   // Where it sits: only what is really under it.
   let where = '';
-  if (slots.texture && (base.startsWith('soup:') || base.startsWith('pool:'))) where = `in ${slots.texture.startsWith('a ') ? '' : 'a '}${slots.texture}`;
+  if (slots.texture && base === 'soup:pudding') where = `on ${slots.texture.startsWith('a ') ? '' : 'a '}${slots.texture}`;
+  else if (slots.texture && (base.startsWith('soup:') || base.startsWith('pool:'))) where = `in ${slots.texture.startsWith('a ') ? '' : 'a '}${slots.texture}`;
   else if (slots.texture && base === 'rice') where = `over ${slots.texture}`;
   else if (base.startsWith('soup:')) where = pick([`in a velvety ${NOUN[base.split(':')[1]]} soup`, `floating in a creamy ${NOUN[base.split(':')[1]]} soup`]);
   else if (base === 'rice') where = pick(['over warm mixed rice', 'on a bowl of herbed rice']);
@@ -1065,9 +1069,24 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number, opti
   }
   const GENERIC_TEXTURES = ['a glossy sauce pool', 'a smooth drink', 'a smooth soup', 'a sparkling drink', 'mixed rice with herb and vegetable flecks', 'a clear broth'];
   if (look.texture && !GENERIC_TEXTURES.includes(look.texture)) slots.texture = look.texture;
+  // No scoop of ice cream where the note serves none (R7: a Muhallabieh of "custard ice cream").
+  if (world?.looks && !world.looks.scoop && slots.hero.id === 'quenelle') slots.hero = { id: 'puree', form: slots.hero.form === 'custard' ? 'custard' : 'cream', count: 1 };
   capForTrueSize(slots);
-  const components = chooseComponents(slots, varied.wild, random);
+  let components = chooseComponents(slots, varied.wild, random);
   if (world) for (const c of worldComponents(world, table, !!slots.sweet)) if (!components.some((o) => o.kind === c.kind && o.family === c.family)) components.push(c);
+  if (world?.looks && !world.looks.scoop) components = components.filter((c) => c.kind !== 'quenelle');
+  if (world?.looks && !world.looks.whip) {
+    components = components.filter((c) => c.kind !== 'whipped-cream');
+    if (slots.hero.id === 'whip') slots.hero = { id: 'puree', form: 'cream', count: 1 };
+    slots.support = slots.support.filter((p) => p.id !== 'whip');
+  }
+  // A citrus fruit in a soup is one thin wheel, never wedges floating in it (R7: the gazpacho).
+  // (And a pepper in a soup is a few thin strips, never one half floating.)
+  if (slots.layout.id === 'soup-bowl')
+    for (const p of [slots.hero, ...slots.support, ...slots.accent]) {
+      if (['lemon', 'lime', 'orange'].includes(p.id)) Object.assign(p, { form: 'wheel', count: 1 });
+      if (p.id === 'pepper' && p.form === 'half') Object.assign(p, { form: 'strip', count: 3 });
+    }
   const part = (p: Piece) => `${p.id}:${p.form}${p.count > 1 ? `*${p.count}` : ''}`;
   const raw = ['tartare-crudo', 'leaf-salad', 'glass-drink'].includes(layout.id) || slots.course === 'dessert';
   const made = titleDish(slots, !raw, components, seededRandom(seed ^ 0x7e57));

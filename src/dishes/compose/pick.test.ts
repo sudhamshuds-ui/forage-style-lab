@@ -52,7 +52,8 @@ describe('pickDish (the P0 list)', () => {
       const pieces = piecesOf(idea);
       if (!ids.includes('potato')) {
         expect(idea.layout, where).not.toBe('mash-plate');
-        expect(pieces.some((p) => p.form === 'mash' || (p.ingredient === 'puree' && p.form === 'mash')), where).toBe(false);
+        // (A panna cotta's set cream dome is the kit's milk mound, not a mash.)
+        expect(pieces.some((p) => (p.form === 'mash' && p.ingredient !== 'milk') || (p.ingredient === 'puree' && p.form === 'mash')), where).toBe(false);
       }
       if (choices.course === 'Drink') expect(idea.layout, where).toBe('glass-drink');
       if (choices.course === 'Starter' || choices.course === 'Main') {
@@ -208,7 +209,8 @@ describe('pickDish', () => {
       const words = idea.title.toLowerCase().split(/\s+/).filter((w) => !['with', 'and', 'on', 'a'].includes(w));
       expect(new Set(words).size, `${where}: ${idea.title}`).toBe(words.length);
       // Every dish has at least one library component beyond a bare pool.
-      expect(idea.components?.length ?? 0, `${where}: no components`).toBeGreaterThan(0);
+      // (A world dish shows what its looks note serves, which may be no library piece at all.)
+      if (!idea.world) expect(idea.components?.length ?? 0, `${where}: no components`).toBeGreaterThan(0);
       // Drink is always a glass.
       if (choices.course === 'Drink') expect(idea.ware, where).toBe('glass');
     }
@@ -258,9 +260,12 @@ describe('pickDish', () => {
 
   it('plates the spec examples as described', () => {
     const steakFrites = pickDish(['steak', 'potato', 'garlic'], { course: 'Main', taste: 'Savoury', wild: 0 }, 1);
-    expect(steakFrites.layout).toBe('circular-plate');
-    expect(steakFrites.big).toBe('steak:steak');
-    expect(steakFrites.medium[0]).toMatch(/^potato:fries\*1\d$/);
+    // (A plated main: Steak Frites, or Bistro Steak & Mash where the looks note earns it.)
+    expect(['circular-plate', 'mash-plate']).toContain(steakFrites.layout);
+    if (steakFrites.layout === 'circular-plate') {
+      expect(steakFrites.big).toBe('steak:steak');
+      expect(steakFrites.medium[0]).toMatch(/^potato:fries\*1\d$/);
+    } else expect([steakFrites.big, ...steakFrites.medium]).toContain('steak:steak');
     expect(steakFrites.small).toContain('garlic:chip*5');
     const bowl = pickDish(['salmon', 'rice', 'avocado'], { course: 'Main', taste: 'Savoury', wild: 0 }, 1);
     expect([bowl.layout, bowl.ware, bowl.base]).toEqual(['rice-bowl', 'deep', 'rice']);

@@ -10,7 +10,7 @@ import { Table, clearance, plate, posed } from '../kit/place';
 import { PhysicsPlate, physicsReady, type PhysicsReport } from '../kit/physics';
 import { pool, wobble } from '../kit/pool';
 import { glass, glassFor, glassRadius, takesIce, type Glass } from '../kit/glass';
-import { DINNER_PLATE, PASTA_BOWL, SOUP_BOWL, innerRadiusAt, ware } from '../kit/ware';
+import { DINNER_PLATE, PASTA_BOWL, PUDDING_BOWL, SOUP_BOWL, innerRadiusAt, ware } from '../kit/ware';
 import type { DishIdea } from '../catalog';
 import type { Dish } from '../dishes';
 import { WARE_PLAN, elementInfo, footprint, readPart, type ComposedPlan, type Placed } from './layout';
@@ -167,9 +167,13 @@ function makeWare(idea: DishIdea, seed: number, fit?: WareFit): { pieces: FormPi
       if (idea.base.startsWith('soup:')) {
         // Soup: always a big deep bowl, the soup a level surface well up its side (the P0 and P1
         // lists: a shallow pasta bowl read as a plate floating over an oversized shadow).
-        const w = ware(SOUP_BOWL);
-        const edge = innerRadiusAt(SOUP_BOWL, SOUP_LEVEL);
-        return { pieces: [{ role: 'plate', geometry: w.geometry }], floor: (x, z) => (Math.hypot(x, z) < edge ? SOUP_LEVEL : w.floor(x, z)), soup: { level: SOUP_LEVEL, radius: edge, under: w.floor } };
+        // (A set pudding fills a small dessert bowl nearly to its rim, R7.)
+        const pudding = idea.base === 'soup:pudding';
+        const shape = pudding ? PUDDING_BOWL : SOUP_BOWL;
+        const level = pudding ? 4.6 : SOUP_LEVEL;
+        const w = ware(shape);
+        const edge = innerRadiusAt(shape, level);
+        return { pieces: [{ role: 'plate', geometry: w.geometry }], floor: (x, z) => (Math.hypot(x, z) < edge ? level : w.floor(x, z)), soup: { level, radius: edge, under: w.floor } };
       }
       const w = ware(PASTA_BOWL);
       return { pieces: [{ role: 'plate', geometry: w.geometry }], floor: w.floor };

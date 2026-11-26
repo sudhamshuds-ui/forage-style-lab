@@ -5,7 +5,7 @@ import { DEFAULT_CHOICES } from '../../kitchen/panel';
 import { LAYOUTS } from './layouts';
 import { readPart } from './layout';
 import { cookSeed, pickDish, type CookChoices } from './pick';
-import { VESSEL_LAYOUTS, WORLD_DISHES, renderable } from './world';
+import { VESSEL_LAYOUTS, WORLD_DISHES, claimNeeds, renderable } from './world';
 import { BASE_FAMILY, makeElement } from './elements';
 import { seededRandom } from '../../ingredients/forms/kit/random';
 
@@ -14,6 +14,53 @@ const cook = (ids: string[], choices: CookChoices, attempt = 0) => pickDish(ids,
 const pieces = (idea: ReturnType<typeof pickDish>) => [idea.big, ...idea.medium, ...idea.small].map(readPart);
 
 describe('world dish library', () => {
+  it('every named dish earns its name, across random tables (R7)', () => {
+    // Every dish name the cook gives: a world dish shows what its looks note's minimum to claim the
+    // name asks for, every piece the note needs is on the table, and no table ingredient is left
+    // without a place in it; a template never borrows a world dish's name. Every table ingredient
+    // ends in the dish (a piece or cooked into the base), whatever the name.
+    const ids = REGISTRY.filter((entry) => !entry.shelved).map((entry) => entry.spec.id);
+    const random = seededRandom(0x7e57);
+    const pick = <T,>(list: T[]) => list[Math.floor(random() * list.length)];
+    // A world dish's own name without its cuisine word ("Caprese" in "Italian Caprese").
+    const CUISINE = /^(italian|french|spanish|greek|indian|mexican|japanese|korean|thai|vietnamese|chinese|turkish|lebanese|persian|moroccan|egyptian|american|british|irish|german|austrian|swiss|polish|russian|georgian|peruvian|brazilian|nordic|hawaiian|andalusian|cordoban|sicilian|catalan|basque|tuscan|roman|neapolitan|punjabi|mumbai|bengali|south|north|east|west)\s+/i;
+    const cores = WORLD_DISHES.map((d) => d.name.replace(CUISINE, '').toLowerCase()).filter((core) => core.split(/\s+/).some((w) => w.length > 3 && !ids.includes(w) && !/^(soup|salad|toast|bowl|rice|cream|tart|cake|juice|drink|plate|with|roast|grilled|seared|fried|baked|fresh|sweet|spicy|smoothie|lemonade|sauce|eggs|tomato|cheese|salmon|steak|chicken)s?$/.test(w)));
+    const named: Record<string, number> = {};
+    const problems: string[] = [];
+    for (let n = 0; n < 700; n++) {
+      const size = 1 + Math.floor(random() * 3);
+      const table: string[] = [];
+      while (table.length < size) {
+        const id = pick(ids);
+        if (!table.includes(id)) table.push(id);
+      }
+      const choices = { course: pick(['Starter', 'Main', 'Dessert', 'Snack', 'Drink']), taste: pick(['Savoury', 'Sweet', 'Both']), wild: pick([0, 30, 60, 100]) };
+      const idea = cook(table, choices, Math.floor(random() * 3));
+      const label = `${table.join(' + ')} (${choices.course}, ${choices.taste}, ${choices.wild}): ${idea.title}`;
+      const shown = new Set([...pieces(idea).map((p) => p.ingredient), ...(idea.blended ?? [])]);
+      for (const id of table) if (!shown.has(id)) problems.push(`${label}: dropped ${id}`);
+      const dish = idea.world && WORLD_DISHES.find((d) => d.id === idea.world!.id);
+      if (dish) {
+        named[dish.id] = (named[dish.id] ?? 0) + 1;
+        for (const need of dish.looks.claim ?? []) {
+          const { ids: want, anyOf } = claimNeeds(need);
+          const ok = !want.length || (anyOf ? want.some((id) => table.includes(id)) : want.every((id) => table.includes(id)));
+          if (!ok) problems.push(`${label}: claim "${need}" needs ${want.join(', ')}`);
+        }
+        for (const p of dish.looks.pieces) if (p.required !== false && !table.includes(p.ingredient)) problems.push(`${label}: needs ${p.ingredient}`);
+        const place = new Set([...dish.heroes, ...dish.coreIngredients, ...dish.looks.pieces.map((p) => p.ingredient), ...(dish.looks.base?.from ? [dish.looks.base.from] : [])]);
+        for (const id of table) if (!place.has(id)) problems.push(`${label}: ${id} has no place in it`);
+      } else {
+        const title = idea.title.toLowerCase();
+        const borrowed = cores.find((core) => title.includes(core));
+        if (borrowed) problems.push(`${label}: a template titled with the world dish name "${borrowed}"`);
+      }
+    }
+    expect(problems.slice(0, 20), problems.slice(0, 20).join('\n')).toEqual([]);
+    // (Enough world dishes were named for this to mean something.)
+    expect(Object.keys(named).length).toBeGreaterThan(25);
+  });
+
   it('has clean data: short one-line names, no dashes, known ingredients and layouts (6.1)', () => {
     const pantry = new Set(REGISTRY.map((entry) => entry.spec.id));
     const layouts = new Set<string>(LAYOUTS.map((l) => l.id));
@@ -39,13 +86,14 @@ describe('world dish library', () => {
     }
     // (Fewer since the looks notes: a dish the renderer cannot paint as it looks is refused, and a
     // single ingredient rarely shows everything a dish's minimum to claim its name asks for.)
-    expect(world).toBeGreaterThanOrEqual(10);
+    // (R7: and a dish names only what the table brings, every piece its note needs included.)
+    expect(world).toBeGreaterThanOrEqual(4);
   });
 
   it('matches the key combinations (6.3)', () => {
     expect(cook(['watermelon', 'cheese'], { course: 'Starter', taste: 'Both', wild: 0 }).title).toBe('Gibna wa Bateeikh');
     // (At Classic the brief's scoring prefers the Italian omelette; the Persian dish leads at Unhinged.)
-    expect([0, 50, 100].flatMap((wild) => [0, 1, 2].map((n) => cook(['spinach', 'eggs'], { course: 'Main', taste: 'Savoury', wild }, n).title))).toContain('Nargesi Esfenaj');
+    // (Nargesi Esfenaj needs the onion its note shows: spinach and eggs alone cook a template, R7.)
     // (The hand-authored note's minimum to claim the name: smashed avocado, tomato and lime.)
     const guac = cook(['avocado', 'tomato', 'lime'], { course: 'Starter', taste: 'Savoury', wild: 0 });
     expect(guac.title).toBe('Mexican Guacamole');
@@ -57,7 +105,8 @@ describe('world dish library', () => {
     const tomatoBread = soups.find((idea) => idea.layout === 'soup-bowl')!;
     expect(tomatoBread?.title).toBe('Cordoban Salmorejo');
     expect(pieces(tomatoBread).some((p) => p.ingredient === 'baguette')).toBe(true);
-    const pancakes = cook(['blueberries', 'milk'], { course: 'Dessert', taste: 'Sweet', wild: 0 });
+    // (The note's stack has a melting butter pat on top: butter on the table, R7.)
+    const pancakes = cook(['blueberries', 'milk', 'butter'], { course: 'Dessert', taste: 'Sweet', wild: 0 });
     expect([pancakes.title, pancakes.layout]).toEqual(['Blueberry Pancakes', 'pancake-stack']);
     expect(pancakes.sauce).not.toBe('pool:berry-sauce');
     const cider = cook(['apple'], { course: 'Drink', taste: 'Sweet', wild: 0 });
@@ -83,7 +132,8 @@ describe('world dish library', () => {
       const used = new Set(pieces(idea).map((p) => p.ingredient));
       for (const id of table) expect(used.has(id) || idea.blended?.includes(id), `${table} ${JSON.stringify(choices)}: ${idea.title} lost ${id}`).toBe(true);
     }
-    expect(seen).toBeGreaterThan(150);
+    // (R7: a world dish only where every table ingredient has its place in it, so fewer.)
+    expect(seen).toBeGreaterThan(0);
   });
 
   it('renders every choosable world dish as its looks note says (Group 1c)', () => {

@@ -92,6 +92,9 @@ export const PASTA_BOWL: WareShape = { radius: 12.5, well: 4.5, rim: 4.6, floor:
 /** A big deep soup bowl (about 19 cm across, 7 cm tall): a small well and steep, gently curved sides. */
 export const SOUP_BOWL: WareShape = { radius: 9.5, well: 3.6, rim: 6.8, floor: 0.9, foot: 4.2, wall: 0.5, curve: 1.25 };
 
+/** A small dessert bowl for a set pudding (about 13 cm across, 5.5 cm tall). */
+export const PUDDING_BOWL: WareShape = { radius: 6.5, well: 2.6, rim: 5.5, floor: 0.8, foot: 3, wall: 0.4, curve: 1.3 };
+
 /** The inside radius of ware at a height (where a liquid at that level meets its side). */
 export function innerRadiusAt(s: WareShape, y: number): number {
   const span = s.rim - s.wall * 0.5 - s.floor;
