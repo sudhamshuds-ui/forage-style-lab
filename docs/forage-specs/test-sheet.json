@@ -1,0 +1,1059 @@
+{
+  "title": "Forage Kitchen preview test sheet",
+  "purpose": "A short hand-check of the next Forage Kitchen preview in the browser. The table holds up to 3 pantry items. Course is Starter, Main, Dessert, Snack or Drink. Taste is Savoury, Sweet or Both. Wild is 0, 60 or 100. Undo and tap-to-remove were requested and may land in this preview.",
+  "shared_pass_checks": [
+    "Sizes sit within ±15% of real-world-sizes.json (toast ~11×8×1.7 cm; lemon wheel Ø 5.5; lime wheel Ø 4.5; orange wheel Ø 7.0; garlic chips ~1.6; butter pat ~2.5×2.0×0.6; salmon ribbons ~7.5×3.5×0.3; cooked fillet 12×5×2.5 if a fillet is used at all).",
+    "Nothing hovers or levitates (droplets, garnish, fruit, chicken, bowl shadows). Pieces rest on the food, the ware, or the rim slit.",
+    "Every visible element comes from a table ingredient or a pantry staple (herb fleck, oil dot, icing sugar, ice). Fruit garnish, lemon wheels, berries and croutons appear only if that ingredient is on the table. Toast and pancake batter may appear when the dish type needs them.",
+    "The title and the caption name the same dish. If a world-dish name is used, the plate matches that dish's looks note (vessel, base colour/texture, piece shapes, finish). If it cannot, the name is refused and a template dish is used instead.",
+    "The caption does not repeat stock phrases, and it does not mention food that is not on the plate. No em dashes in title or caption.",
+    "Savoury dishes have no syrup. Sweet dishes have no fried eggs, croutons, or savoury herb-oil unless that ingredient is honestly part of the dish."
+  ],
+  "references": {
+    "looks": "/workspace/forage-specs/world-dish-looks.json",
+    "sizes": "/workspace/forage-specs/real-world-sizes.json",
+    "prompt": "/workspace/forage-specs/claude-prompt-round6.md",
+    "notes": "/workspace/forage-specs/owner-notes.md"
+  },
+  "controls": {
+    "course": [
+      "Starter",
+      "Main",
+      "Dessert",
+      "Snack",
+      "Drink"
+    ],
+    "taste": [
+      "Savoury",
+      "Sweet",
+      "Both"
+    ],
+    "wild": [
+      0,
+      60,
+      100
+    ],
+    "table_limit": 3
+  },
+  "how_to": [
+    "Work from the top. Tests 1-10 are the regressions that already failed in screenshots or in the last preview.",
+    "Put only the listed ingredients on the table, set Course, Taste and Wild, press Cook, then run the pass checks. Shared checks apply to every Cook.",
+    "If a world-dish name is refused, that can be a pass - as long as the title does not keep the refused name, and the fallback plate is honest.",
+    "Glass mapping in current code, used by tests 5, 7, 23-27: grape → wine; apple → coupe; pear or lime → nick-and-nora; watermelon, spinach, avocado, pepper → rocks; otherwise highball.",
+    "UI tests (29-32) do not need a perfect dish; they need the control to behave."
+  ],
+  "tests": [
+    {
+      "id": 1,
+      "name": "Palak Paneer looks honest",
+      "ingredients": [
+        {
+          "id": "spinach",
+          "name": "Spinach"
+        },
+        {
+          "id": "cheese",
+          "name": "Cheese"
+        }
+      ],
+      "course": "Main",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "A kadai or deep bowl of Palak Paneer, or a refused name falling back to a green spinach-and-paneer template. If the name is claimed: smooth, fully green spinach gravy, white or lightly golden paneer cubes (~2.2 cm) half sunk, optional cream swirl.",
+      "plausible": [
+        "Palak Paneer"
+      ],
+      "vessel": "kadai or deep bowl",
+      "pass_checks": [
+        "Base is deep emerald green and smooth, not yellow, not a cheese sauce, not a flat plate of slices.",
+        "Cheese is cubes, half sunk in the gravy, not slices, not chicken.",
+        "No meat. No syrup. Title, caption and looks note agree."
+      ],
+      "watch_for": "The round-5 failure: sliced chicken and cheese slices on a yellow sauce on a flat plate, still titled Palak Paneer. User is Indian; this is the honesty benchmark for all 236 dishes.",
+      "covers": "round-6 Group 1; owner palak-paneer.jpg"
+    },
+    {
+      "id": 2,
+      "name": "Khachapuri refused unless it is a bread boat",
+      "ingredients": [
+        {
+          "id": "baguette",
+          "name": "Baguette"
+        },
+        {
+          "id": "cheese",
+          "name": "Cheese"
+        },
+        {
+          "id": "eggs",
+          "name": "Eggs"
+        }
+      ],
+      "course": "Main",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "Adjaruli Khachapuri only if the renderer can build a pointed bread boat (~22 cm) with a molten cheese pool and a raw yolk (~3.5 cm) in the centre, plus at most a thin pale butter pat. Otherwise refuse the name and serve a cheese-and-egg bread plate or toast that does not claim Khachapuri.",
+      "plausible": [
+        "Adjaruli Khachapuri (only if the boat exists)"
+      ],
+      "vessel": "board (fitted to the bread)",
+      "pass_checks": [
+        "If titled Khachapuri: boat-shaped crust, melted cheese inside, yolk in the middle. Never flat baguette toast with that name.",
+        "Any butter is a small pale pat (~2.5×2.0×0.6 cm) or a melting smear, never a tall pink or yellow block.",
+        "No raw pepper strips (pepper is not on the table). No syrup. Board sized to the bread, not a huge empty board."
+      ],
+      "watch_for": "Round-5 khachapuri.jpg: '...li Khachapuri' on flat toast with pepper strips, crumbled cheese, and huge pink-yellow butter cubes that look like cake.",
+      "covers": "round-6 Group 1 and 3f; Group 7 butter; owner khachapuri.jpg"
+    },
+    {
+      "id": 3,
+      "name": "Kaiserschmarrn is torn, not a stack",
+      "ingredients": [
+        {
+          "id": "eggs",
+          "name": "Eggs"
+        },
+        {
+          "id": "milk",
+          "name": "Milk"
+        },
+        {
+          "id": "apple",
+          "name": "Apple"
+        }
+      ],
+      "course": "Dessert",
+      "taste": "Sweet",
+      "wild": 0,
+      "should_produce": "Austrian Kaiserschmarrn if torn, caramelised pancake chunks (~4-5 cm) can be built and dusted with icing sugar, with stewed apple beside. If the renderer can only make a neat American stack, refuse the name and serve a template dessert that does not claim Kaiserschmarrn.",
+      "plausible": [
+        "Austrian Kaiserschmarrn (only if torn chunks exist)"
+      ],
+      "vessel": "plate",
+      "pass_checks": [
+        "If named Kaiserschmarrn: a loose heap of irregular torn pieces, not a tidy stack of 3 round pancakes, plus a snowfall of icing sugar.",
+        "Apple is present as compote or slices. No herbs, croutons, or savoury oil.",
+        "Title and caption agree."
+      ],
+      "watch_for": "Round-5 shot: Kaiserschmarrn rendered as a neat pancake stack.",
+      "covers": "round-6 Group 1a; owner round-5 test"
+    },
+    {
+      "id": 4,
+      "name": "Crème brûlée is a ramekin, not ice cream",
+      "ingredients": [
+        {
+          "id": "milk",
+          "name": "Milk"
+        },
+        {
+          "id": "eggs",
+          "name": "Eggs"
+        }
+      ],
+      "course": "Dessert",
+      "taste": "Sweet",
+      "wild": 0,
+      "should_produce": "Crème Brûlée only if a low ramekin (~10×4.5 cm) of pale custard with a crisp cracked amber caramel top can be built. Otherwise refuse the name. Do not plate a quenelle of ice cream and call it Crème Brûlée.",
+      "plausible": [
+        "Crème Brûlée (only if the ramekin exists)"
+      ],
+      "vessel": "ramekin",
+      "pass_checks": [
+        "If named Crème Brûlée: ramekin, pale custard, cracked caramel lid. Never ice cream on a flat plate under that title.",
+        "No herbs, croutons, or a berry pile hiding the top (no fruit is on the table).",
+        "Title and caption describe the same dish. A refused name must not stay in the title."
+      ],
+      "watch_for": "Round-5 shot: Crème Brûlée titled over ice cream on a plate (title/caption mismatch). ware.ts still has no ramekin - a leftover name is a fail.",
+      "covers": "round-6 Group 1a/b; owner round-5 test"
+    },
+    {
+      "id": 5,
+      "name": "Doogh is a savoury yogurt drink",
+      "ingredients": [
+        {
+          "id": "milk",
+          "name": "Milk"
+        },
+        {
+          "id": "lemon",
+          "name": "Lemon"
+        }
+      ],
+      "course": "Drink",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "Persian Doogh: an opaque creamy white savoury yogurt drink in a glass (highball). A lemon wheel (Ø 5.5 cm) may sit upright in a rim slit or beside the glass, because lemon is on the table. Optional mint fleck only as a pantry herb; no invented fruit.",
+      "plausible": [
+        "Persian Doogh"
+      ],
+      "vessel": "glass (highball)",
+      "pass_checks": [
+        "Looks like a salted yogurt drink, not a vanilla milkshake and not a pink fruit smoothie.",
+        "Garnish is only lemon (on the table). The wheel stands upright through a slit, or sits beside; it does not float flat on the liquid.",
+        "Etched band, if any, stays on the glass surface, thin and subtle, not a pale stripe through the drink. Liquid has a slight vertical gradient. Shadow starts at the foot."
+      ],
+      "watch_for": "Round-5 shot: Doogh as a vanilla milkshake with a lemon wheel that isn't justified by taste, lying flat. After this test, flip Taste to Sweet and Cook again: it should become something like Punjabi Sweet Lassi, not stay Doogh.",
+      "covers": "round-6 Group 1a and Group 4; owner round-5 test"
+    },
+    {
+      "id": 6,
+      "name": "Salmorejo is a thick cold puree",
+      "ingredients": [
+        {
+          "id": "tomato",
+          "name": "Tomato"
+        },
+        {
+          "id": "baguette",
+          "name": "Baguette"
+        },
+        {
+          "id": "eggs",
+          "name": "Eggs"
+        }
+      ],
+      "course": "Starter",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "Cordoban Salmorejo: a deep bowl of thick velvety coral-orange tomato-and-bread puree, garnished with egg (halved or chopped). Not a thin gazpacho, not a tomato soup with floating bread cubes.",
+      "plausible": [
+        "Cordoban Salmorejo"
+      ],
+      "vessel": "deep soup bowl (Ø ~19 cm, liquid ~5 cm)",
+      "pass_checks": [
+        "Base is thick coral-orange, not a watery clear red broth and not melted cheese.",
+        "Egg garnish is present (eggs are on the table). Bread belongs in the puree; if a slice sits on the side it is flavoured from the table, not a random crouton heap.",
+        "No syrup. Title matches caption and the looks note. Toppings, if any, sink about a third of their height."
+      ],
+      "watch_for": "Being named Salmorejo while looking like a thin gazpacho, a hot tomato soup, or a cheese-topped bake. Andalusian Gazpacho is a different dish (no egg hero; thinner).",
+      "covers": "round-6 Group 1; owner request to re-check Salmorejo"
+    },
+    {
+      "id": 7,
+      "name": "Drink from bread, tomato and broccoli uses only the table",
+      "ingredients": [
+        {
+          "id": "baguette",
+          "name": "Baguette"
+        },
+        {
+          "id": "tomato",
+          "name": "Tomato"
+        },
+        {
+          "id": "broccoli",
+          "name": "Broccoli"
+        }
+      ],
+      "course": "Drink",
+      "taste": "Savoury",
+      "wild": 60,
+      "should_produce": "A savoury tomato-style drink in a highball (the default glass). Tomato is in the liquid. Garnish, if any, is tomato or broccoli from the table, never a strawberry or other invented fruit. Broccoli and bread must still be accounted for (in the glass, as a rim or side garnish, or as a blended ingredient) - they are not silently dropped.",
+      "plausible": [
+        "a tomato juice / savoury highball (not a named fruit drink)"
+      ],
+      "vessel": "glass (highball)",
+      "pass_checks": [
+        "No strawberry, no pink berry liquid, no lemon wheel (none of those are on the table).",
+        "Liquid is tomato-forward (red or amber), with a slight vertical gradient, not a flat solid block. Etched band is not a stripe through the drink.",
+        "Any rim garnish is a small piece of a table ingredient, standing upright in a slit. Shadow starts at the foot. Ice, if present, reads as cubes (~2.5 cm), not crushed 1 cm chips."
+      ],
+      "watch_for": "The confirmed bug: Course was Drink, and the app invented a pink highball with an oversized strawberry garnish (highball-strawberry.jpg). Also: dropping broccoli or bread from the dish entirely.",
+      "covers": "round-6 Group 2 and Group 4; owner drink bug; covers highball glass"
+    },
+    {
+      "id": 8,
+      "name": "Milk and red onion drink keeps the onion, invents no lemon",
+      "ingredients": [
+        {
+          "id": "milk",
+          "name": "Milk"
+        },
+        {
+          "id": "onion",
+          "name": "Red onion"
+        }
+      ],
+      "course": "Drink",
+      "taste": "Savoury",
+      "wild": 60,
+      "should_produce": "A savoury yogurt or onion-buttermilk drink in a glass. Onion must appear (in the liquid, as a small garnish, or clearly blended). No citrus unless it is on the table.",
+      "plausible": [
+        "a savoury yogurt / onion drink (not Doogh, which needs lemon)"
+      ],
+      "vessel": "glass (highball)",
+      "pass_checks": [
+        "Onion is not dropped. No lemon wheel, no lime, no strawberry, no other invented fruit.",
+        "Garnish that is present stands in a rim slit or sits beside. Nothing floats flat on the surface.",
+        "Title does not claim Persian Doogh (lemon is missing, so the looks minimum cannot be met)."
+      ],
+      "watch_for": "The reported case: a lemon wheel with no lemon on the table, and the onion omitted.",
+      "covers": "round-6 Group 2; pick.test.ts onionDrink"
+    },
+    {
+      "id": 9,
+      "name": "Broccoli and tomato lie flat on toast",
+      "ingredients": [
+        {
+          "id": "baguette",
+          "name": "Baguette"
+        },
+        {
+          "id": "broccoli",
+          "name": "Broccoli"
+        },
+        {
+          "id": "tomato",
+          "name": "Tomato"
+        }
+      ],
+      "course": "Snack",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "Two slices of toast on a board fitted to the bread. Broccoli is halved or chopped florets, 3-5 cm, laid flat and spread across both slices. Tomato is on the toast (wheels Ø ~6.5 cm or smaller dice/wedges), not a single wedge parked beside the board.",
+      "plausible": [
+        "a tomato and broccoli tartine / bruschetta-style toast (not a named pasta dish)"
+      ],
+      "vessel": "board, sized to the two toasts",
+      "pass_checks": [
+        "Two toast slices, ~11×8×1.7 cm, toppings sitting on the bread, nothing falling off.",
+        "No whole florets standing upright like trees, and no 7.5 cm broccoli head.",
+        "Board has about a finger's width of wood around the food, not a huge empty board. No syrup."
+      ],
+      "watch_for": "broccoli-toast.jpg: standing trees, florets far too big, one tomato wedge off to the side. Form is wrong, not just scale.",
+      "covers": "round-6 Group 3e and Group 7 scale; owner broccoli-toast.jpg"
+    },
+    {
+      "id": 10,
+      "name": "Salmon on toast is thin ribbons, to scale, droplets touching",
+      "ingredients": [
+        {
+          "id": "baguette",
+          "name": "Baguette"
+        },
+        {
+          "id": "salmon",
+          "name": "Salmon"
+        },
+        {
+          "id": "avocado",
+          "name": "Avocado"
+        }
+      ],
+      "course": "Snack",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "Salmon and avocado toast on two slices: fanned avocado (no pit), thin folded salmon ribbons or flakes draped on the bread. A plausible world name is Salmon Avocado Toast. Never a whole cooked fillet brick.",
+      "plausible": [
+        "Salmon Avocado Toast"
+      ],
+      "vessel": "board, sized to the two toasts",
+      "pass_checks": [
+        "Toast stays ~11×8×1.7 cm. Salmon is ribbons ~7.5×3.5×0.3 cm (or small flakes), not a 13×6.2×3.4 cm cooked fillet, and not longer than the bread.",
+        "Salmon and avocado sit on the toast, not scattered onto the board. Oil droplets touch the food or bread; nothing hovers.",
+        "Avocado is slices, a fan, dice or smash - never a half with the brown seed. No syrup. Title matches caption."
+      ],
+      "watch_for": "The scale bug: a thick salmon brick longer than the toast, hovering droplets, toppings sliding off, or an avocado half with the pit.",
+      "covers": "round-6 Group 7 scale + toast toppings; owner salmon/toast notes"
+    },
+    {
+      "id": 11,
+      "name": "Butter is a pale pat, never a cake block",
+      "ingredients": [
+        {
+          "id": "baguette",
+          "name": "Baguette"
+        },
+        {
+          "id": "butter",
+          "name": "Butter"
+        },
+        {
+          "id": "tomato",
+          "name": "Tomato"
+        }
+      ],
+      "course": "Snack",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "Tomato toast or pan con tomate with a small pale butter pat or a melting smear on hot bread. Two slices on a fitted board.",
+      "plausible": [
+        "Pan con Tomate",
+        "Bruschetta Pomodoro",
+        "tomato toast"
+      ],
+      "vessel": "board",
+      "pass_checks": [
+        "Butter, if visible, is a thin pale tile ~2.5×2.0×0.6 cm or a smear - not a 2.6×2.6×1.6 cm pink or yellow cube.",
+        "Toppings stay on the toast. Tomato is from the table. No syrup, no invented cheese or pepper."
+      ],
+      "watch_for": "The same tall butter blocks seen on the Khachapuri shot, even when the dish is ordinary toast.",
+      "covers": "round-6 Group 3f; owner butter complaint"
+    },
+    {
+      "id": 12,
+      "name": "Potato soup toppings are roast dice, sunk in",
+      "ingredients": [
+        {
+          "id": "potato",
+          "name": "Potato"
+        },
+        {
+          "id": "milk",
+          "name": "Milk"
+        },
+        {
+          "id": "onion",
+          "name": "Red onion"
+        }
+      ],
+      "course": "Starter",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "Potato-Leek Soup (or a close ivory potato-cream soup) in a deep soup bowl, Ø ~19 cm, liquid sitting around 5 cm. Smooth silky pale ivory base. If potato pieces sit in the soup they are golden, irregular diced roast potato (~2.2 cm), sunk about a third of their height with a slight varied tilt.",
+      "plausible": [
+        "Potato-Leek Soup"
+      ],
+      "vessel": "deep soup bowl (not a pasta bowl, not a rice bowl, not a plate)",
+      "pass_checks": [
+        "No croutons and no side bread (baguette is not on the table).",
+        "Potato toppings do not read as bread cubes. Some pieces break the surface; none hover.",
+        "Bowl sits on its foot, shadow centred under it, not a detached disc that makes the bowl float."
+      ],
+      "watch_for": "Round-5: potato soup toppings still read as croutons; toppings perched on top of the liquid; shallow bowl; invented bread.",
+      "covers": "round-6 Group 3g/h; owner mid-run potato soup notes"
+    },
+    {
+      "id": 13,
+      "name": "Rice-bowl toppings sink; avocado has no pit",
+      "ingredients": [
+        {
+          "id": "salmon",
+          "name": "Salmon"
+        },
+        {
+          "id": "rice",
+          "name": "Rice"
+        },
+        {
+          "id": "avocado",
+          "name": "Avocado"
+        }
+      ],
+      "course": "Main",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "A rice bowl such as Teriyaki Salmon Bowl: mixed rice in a deep bowl, glazed salmon, fanned avocado slices. Toppings sink about a third into the rice, with varied tilt.",
+      "plausible": [
+        "Teriyaki Salmon Bowl"
+      ],
+      "vessel": "rice / donburi bowl (ideally Ø 16-18 cm; current code is 13.2 - flag if it looks cramped, but don't fail a slightly small chawan if the food is honest)",
+      "pass_checks": [
+        "Rice has some mix-through, not a plain white dome. Salmon and avocado are in or on the rice, not hovering beside the bowl.",
+        "Avocado is slices or a fan, never a half with the seed. If a fillet is used it is ~12×5×2.5 cm, not a 3.4 cm-thick brick.",
+        "Shadow sits under the foot. No syrup."
+      ],
+      "watch_for": "Toppings sitting neatly on top of the rice; a chicken-or-salmon piece floating beside the bowl; avocado pit; a detached shadow disc.",
+      "covers": "round-6 Group 3g and Group 7; pick.test.ts salmon+rice+avocado"
+    },
+    {
+      "id": 14,
+      "name": "Chicken, potato and spinach as a Main is not a salad",
+      "ingredients": [
+        {
+          "id": "chicken",
+          "name": "Chicken"
+        },
+        {
+          "id": "potato",
+          "name": "Potato"
+        },
+        {
+          "id": "spinach",
+          "name": "Spinach"
+        }
+      ],
+      "course": "Main",
+      "taste": "Savoury",
+      "wild": 60,
+      "should_produce": "A plated main: roast or sliced chicken with potato (mash, roast cubes or wedges) and wilted spinach. Not a salad, and the title must not say salad.",
+      "plausible": [
+        "a roast / skillet / composed chicken main (no required world name)"
+      ],
+      "vessel": "plate (or a skillet if one exists)",
+      "pass_checks": [
+        "Title does not match /salad/i. Layout is not a leaf-salad.",
+        "Chicken is slices, torn meat or a drumstick (~12×4 cm), not crouton-like cubes (cubes are for soup only).",
+        "Potato reads as potato (vibrant mash or roast dice), not bread cubes. Spinach is wilted leaves, not a flat star. No syrup."
+      ],
+      "watch_for": "Named or plated as a salad; chicken rendered as crouton cubes; grey-brown mash; spinach leaves splayed flat.",
+      "covers": "round-6 honest mains; pick.test.ts chicken+potato+spinach Main"
+    },
+    {
+      "id": 15,
+      "name": "Romaine as a Main is a bed, not a salad dish",
+      "ingredients": [
+        {
+          "id": "romaine",
+          "name": "Romaine"
+        },
+        {
+          "id": "steak",
+          "name": "Steak"
+        },
+        {
+          "id": "tomato",
+          "name": "Tomato"
+        }
+      ],
+      "course": "Main",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "A steak main with a romaine bed or wilted leaves beside, tomato on the plate. A main is never itself a salad. (If you later set Course to Starter, a mounded tossed salad is allowed - but that is a different cook.)",
+      "plausible": [
+        "a steak with a romaine bed (not a Caesar or named tossed salad)"
+      ],
+      "vessel": "plate",
+      "pass_checks": [
+        "The dish reads as a main with steak as the hero. Romaine is a leaf bed or a side, not a flat star of leaves titled as a salad.",
+        "No croutons (baguette is not on the table). Tomato is present. No syrup.",
+        "Leaves form a mounded nest if they are the bed, not a radial splay."
+      ],
+      "watch_for": "Owner note: romaine salad leaves splay flat like a star and croutons sit on top as big blocks, including when no bread was chosen. Title 'Romaine salad' on a Main.",
+      "covers": "round-6 mains-are-not-salads; owner romaine notes"
+    },
+    {
+      "id": 16,
+      "name": "Strawberry toast keeps the berries on the bread",
+      "ingredients": [
+        {
+          "id": "baguette",
+          "name": "Baguette"
+        },
+        {
+          "id": "strawberry",
+          "name": "Strawberry"
+        }
+      ],
+      "course": "Dessert",
+      "taste": "Sweet",
+      "wild": 0,
+      "should_produce": "Strawberry toast or a similar dessert tartine: two slices, sliced or halved strawberries on the bread. Do not claim Ichigo Sando (that needs milk and a special sandwich form the renderer does not have). A contrasting syrup is allowed on this sweet dish; it must not be strawberry-on-strawberry if a syrup is used.",
+      "plausible": [
+        "strawberry toast / tartine (not Ichigo Sando)"
+      ],
+      "vessel": "board, sized to the toast",
+      "pass_checks": [
+        "Strawberries sit on the toast, not beside it or hovering. Toast ~11×8×1.7 cm, two slices if the layout is toast.",
+        "No invented lemon, mint, or other fruit. Title does not claim Ichigo Sando unless a cream-filled sandwich is actually built.",
+        "Caption matches the plate."
+      ],
+      "watch_for": "A dishonest Ichigo Sando name on plain toast; toppings falling off; a giant board-sized slab of bread; savoury herb oil on a sweet toast.",
+      "covers": "round-6 strawberry toast; can't-render list for ichigo-sando"
+    },
+    {
+      "id": 17,
+      "name": "Savoury Wild 0 stays savoury, no syrup",
+      "ingredients": [
+        {
+          "id": "steak",
+          "name": "Steak"
+        },
+        {
+          "id": "potato",
+          "name": "Potato"
+        },
+        {
+          "id": "garlic",
+          "name": "Garlic"
+        }
+      ],
+      "course": "Main",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "A straight savoury main such as Steak Frites (or Steak and potatoes). Fries ~6-8×1.2 cm or a yellow-white mash dome ~10×3.5 cm, sliced steak ~14×8×2.5 cm, garlic as chips (~1.6 cm) only, never a bulb.",
+      "plausible": [
+        "Steak Frites",
+        "Steak and mash"
+      ],
+      "vessel": "plate (Ø ~27 cm, or shrunk to the food)",
+      "pass_checks": [
+        "No syrup, no fruit garnish, no blueberries, no dessert components, no fried egg unless eggs are on the table (they are not).",
+        "Garlic is chips, never a whole bulb. Mash, if used, is vibrant yellow-white and a real dome, not a 1 cm-flat pancake and not grey-brown.",
+        "Title and caption agree. Composition is centred."
+      ],
+      "watch_for": "Syrup or sweet garnish creeping onto a Wild 0 savoury plate; steak as tiny red dice on mash; a garlic bulb.",
+      "covers": "round-6 Group 7 no syrup on savoury; Wild 0 discipline; owner steak-on-mash"
+    },
+    {
+      "id": 18,
+      "name": "Sweet Wild 0 dessert stays sweet",
+      "ingredients": [
+        {
+          "id": "strawberry",
+          "name": "Strawberry"
+        },
+        {
+          "id": "milk",
+          "name": "Milk"
+        },
+        {
+          "id": "blueberries",
+          "name": "Blueberries"
+        }
+      ],
+      "course": "Dessert",
+      "taste": "Sweet",
+      "wild": 0,
+      "should_produce": "A straightforward sweet dessert or a sweet lassi-like cream dessert: berries with cream, a tart, a stack, or a sweet bowl. No fried eggs, no croutons, no lime, no savoury herb oil.",
+      "plausible": [
+        "a berry cream dessert, tart, or sweet bowl (Strawberry Lassi is a Drink, so not this course)"
+      ],
+      "vessel": "plate, tart or dessert bowl - not a glass (Course is Dessert)",
+      "pass_checks": [
+        "Every berry is from the table. Milk may appear as cream, ice cream, a pancake stack or a custard.",
+        "No fried egg, no croutons, no invented citrus, no savoury salad dressing.",
+        "If pancakes appear they are a stack of about 3, Ø ~12 cm, with a contrasting syrup (not the same berry already on the plate)."
+      ],
+      "watch_for": "Earlier bug: fried eggs and lime on a caramelised apple dessert; croutons on pancakes. Also a single flat pancake standing in for a stack.",
+      "covers": "round-6 sweet rules at Wild 0; P1 savoury-on-sweet bug"
+    },
+    {
+      "id": 19,
+      "name": "Wild 60 does not invent a dishonest world dish",
+      "ingredients": [
+        {
+          "id": "watermelon",
+          "name": "Watermelon"
+        },
+        {
+          "id": "cabbage",
+          "name": "Cabbage"
+        },
+        {
+          "id": "strawberry",
+          "name": "Strawberry"
+        }
+      ],
+      "course": "Starter",
+      "taste": "Savoury",
+      "wild": 60,
+      "should_produce": "A conservative plated starter that uses all three ingredients honestly, or a refused world name falling back to a template. Fruit may sit with cabbage, but do not dress a fruit plate as a traditional savoury national salad with herb oil and a shaky 'the Polish way' caption if that is not a real match.",
+      "plausible": [
+        "a composed fruit-and-cabbage starter (no forced world name)"
+      ],
+      "vessel": "plate or shallow bowl",
+      "pass_checks": [
+        "All three ingredients appear. No invented lemon, cheese, or bread.",
+        "If a world-dish name is used, the plate matches that dish's looks note; otherwise the name is refused.",
+        "Sizes: watermelon as cubes ~3 cm or a plated wedge, not a whole melon; strawberries sliced; cabbage as leaves or a wedge, not a whole head."
+      ],
+      "watch_for": "painterly-watermelon-cabbage.jpg caption: 'Sliced watermelon with cabbage leaves and strawberry slices over herb oil... the Polish way' - a shaky world-dish match and a sweet/savoury muddle. After the cook, optionally toggle painterly (see test 27).",
+      "covers": "round-6 Group 1 honesty + Group 5; owner painterly-watermelon-cabbage.jpg"
+    },
+    {
+      "id": 20,
+      "name": "Wild 100 differs from Wild 0, still honest",
+      "ingredients": [
+        {
+          "id": "steak",
+          "name": "Steak"
+        },
+        {
+          "id": "potato",
+          "name": "Potato"
+        },
+        {
+          "id": "garlic",
+          "name": "Garlic"
+        }
+      ],
+      "course": "Main",
+      "taste": "Savoury",
+      "wild": 100,
+      "should_produce": "The same table as test 17, now at Wild 100. It should visibly differ (another cut, arrangement, garnish, or another fitting savoury main). It may be more adventurous, but it is still a savoury main with only table ingredients, no syrup, and real-world sizes.",
+      "plausible": [
+        "Steak Frites or another fitting savoury steak-and-potato main, not a random dessert"
+      ],
+      "vessel": "plate",
+      "pass_checks": [
+        "The plate is not identical to the Wild 0 cook of the same table (test 17). Cook test 17 first and compare.",
+        "Still no syrup, no invented fruit, no garlic bulb, no dessert rename.",
+        "Sizes still clamp to ±15% of true. Title matches caption."
+      ],
+      "watch_for": "Wild 100 being a no-op (same as Wild 0), or Wild 100 breaking taste rules to 'go wild'.",
+      "covers": "round-6 Wild bands; pick.test.ts Wild 0 vs 100"
+    },
+    {
+      "id": 21,
+      "name": "Repeat cooks of the same table vary",
+      "ingredients": [
+        {
+          "id": "steak",
+          "name": "Steak"
+        },
+        {
+          "id": "potato",
+          "name": "Potato"
+        },
+        {
+          "id": "garlic",
+          "name": "Garlic"
+        }
+      ],
+      "course": "Main",
+      "taste": "Savoury",
+      "wild": 60,
+      "should_produce": "Press Cook 3 or 4 times without changing the table or the controls. Each plate should still be a fitting savoury steak-and-potato main, but arrangement, piece choice, garnish, and sometimes the dish itself should change more than a tiny nudge.",
+      "plausible": [
+        "Steak Frites or another fitting main, possibly alternating"
+      ],
+      "vessel": "plate",
+      "pass_checks": [
+        "At least two of the four cooks are clearly distinguishable (different cut, layout, garnish, or a second fitting dish).",
+        "Every cook still uses only table ingredients, stays savoury, and keeps real-world sizes.",
+        "Captions are not copy-pasted stock lines with the same repeated phrase every time."
+      ],
+      "watch_for": "Owner: repeated cooks look near-identical. A 1-degree rotation or a single oil-dot moved 2 mm is not enough.",
+      "covers": "round-6 Group 3i; owner mid-run variety note"
+    },
+    {
+      "id": 22,
+      "name": "Tomato and milk as a savoury starter is not pancakes",
+      "ingredients": [
+        {
+          "id": "tomato",
+          "name": "Tomato"
+        },
+        {
+          "id": "milk",
+          "name": "Milk"
+        }
+      ],
+      "course": "Starter",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "A savoury starter such as a tomato-cream soup in a deep bowl, or another savoury tomato-and-dairy plate. Not pancakes, not a dessert.",
+      "plausible": [
+        "a tomato-cream soup or savoury tomato starter (not pancakes, not a lassi)"
+      ],
+      "vessel": "deep soup bowl or a starter plate - not a pancake stack",
+      "pass_checks": [
+        "Layout is not pancake-stack. No syrup. Milk may appear as cream in the soup or on the plate.",
+        "Tomato is clearly present. No invented potato mash (potato is not on the table).",
+        "If it is a soup, toppings sink about a third; no croutons without bread on the table."
+      ],
+      "watch_for": "Round-2 bug: tomato + milk (savoury starter) became 'Pancakes with cream sauce'.",
+      "covers": "historical pancake mis-course; savoury Wild 0"
+    },
+    {
+      "id": 23,
+      "name": "Highball quality (strawberry milk)",
+      "ingredients": [
+        {
+          "id": "strawberry",
+          "name": "Strawberry"
+        },
+        {
+          "id": "milk",
+          "name": "Milk"
+        }
+      ],
+      "course": "Drink",
+      "taste": "Sweet",
+      "wild": 0,
+      "should_produce": "A pink or blush yogurt/milk drink in a highball, such as Strawberry Lassi or Korean Strawberry Milk. A small halved strawberry may stand in a rim slit (strawberry is on the table). Side fruit slices beside the glass are welcome.",
+      "plausible": [
+        "Strawberry Lassi",
+        "Korean Strawberry Milk"
+      ],
+      "vessel": "glass (highball)",
+      "pass_checks": [
+        "Garnish is a smaller halved berry on a slit, standing upright, slightly tilted out - not an oversized wedge lying flat, and not a fruit that is not on the table.",
+        "Etched band, if present, is a thin surface detail, not a pale stripe through the liquid. Liquid has a slight vertical colour gradient, not a flat solid pink block.",
+        "Shadow starts at the foot. Ice, if any, ~2.5 cm. Title matches caption."
+      ],
+      "watch_for": "highball-strawberry.jpg issues (band through the drink, flat solid liquid, oversized garnish) even when the fruit is legitimately on the table. Also claiming Doogh (that is savoury, and has no strawberry).",
+      "covers": "round-6 Group 4; highball glass; owner highball-strawberry.jpg quality notes"
+    },
+    {
+      "id": 24,
+      "name": "Rocks glass (watermelon and lime)",
+      "ingredients": [
+        {
+          "id": "watermelon",
+          "name": "Watermelon"
+        },
+        {
+          "id": "lime",
+          "name": "Lime"
+        }
+      ],
+      "course": "Drink",
+      "taste": "Sweet",
+      "wild": 0,
+      "should_produce": "Agua de Sandía: a watermelon drink in a rocks / tumbler glass, with a lime wheel (Ø 4.5 cm) upright in a slit or beside the glass.",
+      "plausible": [
+        "Agua de Sandia"
+      ],
+      "vessel": "glass (rocks)",
+      "pass_checks": [
+        "Glass is a short wide tumbler (~8.3×8.5 cm), not a highball and not a stemmed glass.",
+        "Lime is the only garnish fruit (it is on the table). Wheel stands in a slit; it does not float flat. No strawberry, no lemon.",
+        "Same glass-quality checks as test 23: band, gradient, shadow at the foot, ice size."
+      ],
+      "watch_for": "Wrong glass family; invented strawberry; lime wheel lying flat; etched band cutting through the liquid.",
+      "covers": "round-6 Group 4; rocks glass; agua-de-sandia"
+    },
+    {
+      "id": 25,
+      "name": "Coupe (apple cider)",
+      "ingredients": [
+        {
+          "id": "apple",
+          "name": "Apple"
+        }
+      ],
+      "course": "Drink",
+      "taste": "Sweet",
+      "wild": 0,
+      "should_produce": "Spiced Apple Cider or a similar apple drink in a coupe. Apple is the only fruit. Side apple slices beside the glass are welcome.",
+      "plausible": [
+        "Spiced Apple Cider",
+        "Hot Apple Cider"
+      ],
+      "vessel": "glass (coupe)",
+      "pass_checks": [
+        "Glass is a wide stemmed coupe (bowl ~10.4 cm), not a wine glass or a tumbler.",
+        "No invented lemon, lime, or strawberry garnish. Any apple garnish stands in a slit or sits beside.",
+        "Shadow starts at the foot, no offset ring, no grey pebble stuck at the stem base. Liquid has a slight gradient."
+      ],
+      "watch_for": "A lime or strawberry appearing with only apple on the table; a floating garnish; an offset shadow blob (P1 drink bug).",
+      "covers": "round-6 Group 4; coupe glass; glass.ts apple → coupe"
+    },
+    {
+      "id": 26,
+      "name": "Wine glass (grape spritz)",
+      "ingredients": [
+        {
+          "id": "grapes",
+          "name": "Red grapes"
+        },
+        {
+          "id": "lemon",
+          "name": "Lemon"
+        }
+      ],
+      "course": "Drink",
+      "taste": "Sweet",
+      "wild": 0,
+      "should_produce": "A sparkling grape spritz in a wine glass, with a lemon wheel (Ø 5.5 cm) upright on the rim or beside the glass.",
+      "plausible": [
+        "Sparkling Grape Spritz"
+      ],
+      "vessel": "glass (wine)",
+      "pass_checks": [
+        "Glass is a stemmed wine glass. Bowl diameter ~8 cm is fine. Height is currently ~16 cm vs a true 20-24 cm - note it, fail only if it no longer reads as a wine glass.",
+        "Lemon wheel from the table, upright in a slit, not floating flat. Grapes may appear as berries beside. No invented strawberry.",
+        "Shadow at the foot, slight liquid gradient, no grey pebble at the stem."
+      ],
+      "watch_for": "Wrong glass; flat lemon wheel; short tasting-glass proportions so extreme the drink looks like a Nick & Nora. Known: wine glass is short in current code.",
+      "covers": "round-6 Group 4; wine glass; glass.ts grape → wine"
+    },
+    {
+      "id": 27,
+      "name": "Nick & Nora (lime and milk)",
+      "ingredients": [
+        {
+          "id": "lime",
+          "name": "Lime"
+        },
+        {
+          "id": "milk",
+          "name": "Milk"
+        }
+      ],
+      "course": "Drink",
+      "taste": "Sweet",
+      "wild": 0,
+      "should_produce": "Limonada Suíça or a similar lime-and-milk cooler in a Nick & Nora glass.",
+      "plausible": [
+        "Limonada Suica"
+      ],
+      "vessel": "glass (nick-and-nora)",
+      "pass_checks": [
+        "Glass is a small stemmed cocktail glass (rim ~6.5-7.5 cm, height ~12-14 cm), not a wine glass or a coupe.",
+        "Lime garnish only, upright in a slit. No lemon, no strawberry. Milk is in the liquid.",
+        "Shadow at the foot, slight gradient, no invented fruit."
+      ],
+      "watch_for": "Picking a coupe or wine glass instead; a flat lime wheel; claiming Doogh (savoury, and this taste is Sweet).",
+      "covers": "round-6 Group 4; nick-and-nora glass; glass.ts lime → nick-and-nora"
+    },
+    {
+      "id": 28,
+      "name": "Painterly on, then off again",
+      "ingredients": [
+        {
+          "id": "watermelon",
+          "name": "Watermelon"
+        },
+        {
+          "id": "cabbage",
+          "name": "Cabbage"
+        },
+        {
+          "id": "strawberry",
+          "name": "Strawberry"
+        }
+      ],
+      "course": "Starter",
+      "taste": "Savoury",
+      "wild": 60,
+      "should_produce": "Cook the same table as test 19 (or reuse that plate). Turn the brush / painterly style on, inspect the food, then turn it off and click through at least one more screen (Shuffle, or a new Cook).",
+      "plausible": [
+        "same plate as test 19"
+      ],
+      "vessel": "(same as test 19)",
+      "pass_checks": [
+        "With painterly on: strokes on the food are about a quarter of the old strawberry-slice size, so you can still tell watermelon, cabbage and strawberry apart. Finer strokes near edges and highlights. The table and background may stay loose.",
+        "With painterly off: the default style returns on this plate and on the next screen. No leftover brush look.",
+        "Switching back does not freeze or slow the page (screen changes must not take 60s+)."
+      ],
+      "watch_for": "painterly-watermelon-cabbage.jpg: unreadable food strokes. After switching off, every later screen stays painterly and the app crawls. That switch-back leak is a fail even if the new stroke size is good.",
+      "covers": "round-6 Group 5; owner painterly note"
+    },
+    {
+      "id": 29,
+      "name": "Shuffle animation and table replace",
+      "ingredients": [
+        {
+          "id": "tomato",
+          "name": "Tomato"
+        },
+        {
+          "id": "broccoli",
+          "name": "Broccoli"
+        },
+        {
+          "id": "baguette",
+          "name": "Baguette"
+        }
+      ],
+      "course": "(leave as-is)",
+      "taste": "(leave as-is)",
+      "wild": "(leave as-is)",
+      "should_produce": "Click Shuffle once. Tray tiles and the items already on the table both change. The motion is staggered out (lift + fade) then staggered in (drop + a slight bounce), about 0.5s total, not a hard cut.",
+      "plausible": [
+        "n/a (UI)"
+      ],
+      "vessel": "n/a",
+      "pass_checks": [
+        "Table items are replaced, not only the tray.",
+        "The motion is staggered and about half a second, on both tiles and table items.",
+        "After Shuffle, a Cook still works and the camera is not stuck top-down."
+      ],
+      "watch_for": "Owner: Shuffle is a hard transition. Earlier: Shuffle changed the tray but left the table as-is. Dragging during Shuffle must not leave the camera rotated or locked.",
+      "covers": "round-6 Group 6p; owner Shuffle note"
+    },
+    {
+      "id": 30,
+      "name": "Randomise changes Course, Taste and Wild",
+      "ingredients": [
+        {
+          "id": "steak",
+          "name": "Steak"
+        },
+        {
+          "id": "potato",
+          "name": "Potato"
+        },
+        {
+          "id": "garlic",
+          "name": "Garlic"
+        }
+      ],
+      "course": "Main",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "Set the controls as above, then click Randomise (not Reset). Course, Taste and/or Wild should change to a new random combination. Ingredients may stay (Randomise is the settings control; Shuffle is for ingredients).",
+      "plausible": [
+        "n/a (UI)"
+      ],
+      "vessel": "n/a",
+      "pass_checks": [
+        "At least one of Course, Taste, Wild is different after Randomise. Click a few times if the first roll matches by chance.",
+        "It is instant, or close to it - not the old 15-30s Reset shatter that ignored clicks.",
+        "A following Cook uses the new settings (for example Drink actually produces a glass)."
+      ],
+      "watch_for": "Randomise acting like the old Reset (clearing the table, snapping back to Main/Savoury, or hanging). Or changing nothing.",
+      "covers": "round-6 Kitchen UI; P1 Randomise request"
+    },
+    {
+      "id": 31,
+      "name": "Undo is on the left and actually undoes",
+      "ingredients": [
+        {
+          "id": "baguette",
+          "name": "Baguette"
+        },
+        {
+          "id": "tomato",
+          "name": "Tomato"
+        },
+        {
+          "id": "broccoli",
+          "name": "Broccoli"
+        }
+      ],
+      "course": "Snack",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "Cook once (a toast is fine). Change something - Cook again, or Shuffle, or tap an ingredient off the table - then press Undo. The previous state comes back. The Undo button sits on the left of the kitchen UI.",
+      "plausible": [
+        "n/a (UI)"
+      ],
+      "vessel": "n/a",
+      "pass_checks": [
+        "Undo is visible on the left, not only on the right or hidden in a menu.",
+        "One press restores the last Cook or the last table change (whichever was implemented). A second press can go further back if a stack exists.",
+        "Undo does not reset Course/Taste/Wild unless those were what changed, and it does not lock the camera top-down."
+      ],
+      "watch_for": "Button missing in this preview (it was requested, and listed as coming). A control that clears everything like Reset is not Undo.",
+      "covers": "owner: Undo button on the left; round-6 Group 6"
+    },
+    {
+      "id": 32,
+      "name": "Tap to remove a table item, without rotating the camera",
+      "ingredients": [
+        {
+          "id": "baguette",
+          "name": "Baguette"
+        },
+        {
+          "id": "tomato",
+          "name": "Tomato"
+        },
+        {
+          "id": "broccoli",
+          "name": "Broccoli"
+        }
+      ],
+      "course": "Snack",
+      "taste": "Savoury",
+      "wild": 0,
+      "should_produce": "With three items on the table, tap one (or drag it back to the tray) to remove it. The table then holds the remaining two. Cook should use only what is left. Dragging an item must not rotate the camera or leave later renders stuck top-down.",
+      "plausible": [
+        "n/a (UI)"
+      ],
+      "vessel": "n/a",
+      "pass_checks": [
+        "A single table item can be removed without clearing the whole table.",
+        "The next Cook omits the removed ingredient and does not invent it back.",
+        "Camera stays in the normal kitchen view after a drag or a tap."
+      ],
+      "watch_for": "Owner: there is no way to remove one item; dragging a table item rotates the camera, and later renders stay top-down. This control was listed as coming - fail if it is still missing or if the camera bug remains.",
+      "covers": "round-6 Group 6o; owner tap-to-remove / camera bug"
+    }
+  ]
+}

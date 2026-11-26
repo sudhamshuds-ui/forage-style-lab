@@ -1,0 +1,7983 @@
+[
+  {
+    "id": "nargesi-esfenaj",
+    "name": "Nargesi Esfenaj",
+    "vessel": "skillet",
+    "base": {
+      "colour": "deep dark green",
+      "texture": "wilted sautéed spinach bed"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "whole fried",
+        "size_cm": 8.0,
+        "placement": "nestled in wells on top"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "slices",
+        "size_cm": 4.0,
+        "placement": "folded into spinach"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered on top"
+      }
+    ],
+    "finish": "golden turmeric oil drizzle and flatbread wedges beside",
+    "never": [
+      "syrup",
+      "sweet sauces",
+      "cheese sauce",
+      "pale yellow pool",
+      "raw salad leaves"
+    ],
+    "minimum_to_claim_name": [
+      "wilted dark green spinach bed",
+      "sunny eggs nestled in the spinach"
+    ]
+  },
+  {
+    "id": "borani-esfenaj",
+    "name": "Borani Esfenaj",
+    "vessel": "shallow bowl",
+    "base": {
+      "colour": "pale sage green and ivory",
+      "texture": "thick creamy strained yogurt swirled with wilted spinach"
+    },
+    "pieces": [
+      {
+        "ingredient": "spinach",
+        "shape": "torn",
+        "size_cm": 3.0,
+        "placement": "folded through yogurt"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "rings",
+        "size_cm": 3.5,
+        "placement": "scattered crisp on top"
+      }
+    ],
+    "finish": "swirl of olive oil, crispy fried onion threads, sumac dust, pita crisps",
+    "never": [
+      "syrup",
+      "sweet sauces",
+      "raw salad heap",
+      "melted cheese"
+    ],
+    "minimum_to_claim_name": [
+      "creamy yogurt-spinach base",
+      "garlic and crisp onion finish"
+    ]
+  },
+  {
+    "id": "tahchin-esfenaj",
+    "name": "Tahchin-e Esfenaj",
+    "vessel": "plate",
+    "base": {
+      "colour": "deep saffron gold",
+      "texture": "unmolded crisp golden tahdig rice cake"
+    },
+    "pieces": [
+      {
+        "ingredient": "spinach",
+        "shape": "torn",
+        "size_cm": 3.5,
+        "placement": "layered inside rice cake"
+      },
+      {
+        "ingredient": "chicken",
+        "shape": "torn",
+        "size_cm": 4.0,
+        "placement": "layered and tucked on top"
+      }
+    ],
+    "finish": "ruby barberry scatter and saffron glaze",
+    "never": [
+      "syrup",
+      "plain wet white rice",
+      "soup broth"
+    ],
+    "minimum_to_claim_name": [
+      "golden saffron crusted rice mound",
+      "spinach",
+      "chicken"
+    ]
+  },
+  {
+    "id": "baghali-polo",
+    "name": "Baghali Polo",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "white and bright green",
+      "texture": "fluffy steamed basmati rice flecked with dill and fava beans"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "drumstick",
+        "size_cm": 11.0,
+        "placement": "nestled on rice"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "pats",
+        "size_cm": 2.0,
+        "placement": "melting on top"
+      }
+    ],
+    "finish": "saffron-butter drizzle and fresh dill scatter",
+    "never": [
+      "syrup",
+      "sweet sauces",
+      "red tomato rice"
+    ],
+    "minimum_to_claim_name": [
+      "green herb-flecked rice",
+      "braised or roast chicken",
+      "butter"
+    ]
+  },
+  {
+    "id": "joojeh-kabab",
+    "name": "Joojeh Kabab",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "skewers",
+        "size_cm": 20.0,
+        "placement": "fanned overlapping"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wedges",
+        "size_cm": 5.0,
+        "placement": "beside skewers"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "halves",
+        "size_cm": 4.5,
+        "placement": "charred beside skewers"
+      }
+    ],
+    "finish": "saffron butter glaze and sumac dust",
+    "never": [
+      "syrup",
+      "pale unseared chicken",
+      "soup"
+    ],
+    "minimum_to_claim_name": [
+      "saffron-golden chicken skewers",
+      "charred edges",
+      "lemon"
+    ]
+  },
+  {
+    "id": "khoresh-fesenjan",
+    "name": "Khoresh Fesenjan",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "dark mahogany brown",
+      "texture": "rich velvety walnut-pomegranate stew beside saffron rice"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "slices",
+        "size_cm": 5.0,
+        "placement": "half sunk in dark stew"
+      },
+      {
+        "ingredient": "rice",
+        "shape": "mound",
+        "size_cm": 10.0,
+        "placement": "beside stew"
+      }
+    ],
+    "finish": "ruby pomegranate seeds and saffron rice crown",
+    "never": [
+      "bright yellow curry",
+      "green gravy",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "dark mahogany walnut-pomegranate sauce",
+      "chicken",
+      "rice"
+    ]
+  },
+  {
+    "id": "zereshk-polo",
+    "name": "Zereshk Polo",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "ivory and saffron gold",
+      "texture": "fluffy saffron-streaked basmati rice"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "drumstick",
+        "size_cm": 11.0,
+        "placement": "nestled on rice"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "pats",
+        "size_cm": 2.0,
+        "placement": "melting on rice"
+      }
+    ],
+    "finish": "bright ruby barberry scatter and pistachio slivers",
+    "never": [
+      "green rice",
+      "red tomato rice",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "saffron-golden rice",
+      "chicken",
+      "ruby barberry scatter"
+    ]
+  },
+  {
+    "id": "kuku-sabzi",
+    "name": "Kuku Sabzi",
+    "vessel": "plate",
+    "base": {
+      "colour": "ivory",
+      "texture": "cool yogurt smear under wedge"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "omelette wedge",
+        "size_cm": 10.0,
+        "placement": "centred on smear"
+      },
+      {
+        "ingredient": "spinach",
+        "shape": "chopped",
+        "size_cm": 1.0,
+        "placement": "densely packed inside green egg wedge"
+      }
+    ],
+    "finish": "walnut crumble and ruby barberry dots",
+    "never": [
+      "plain yellow omelette without green herbs",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "thick emerald-green herb-packed frittata wedge"
+    ]
+  },
+  {
+    "id": "persian-doogh",
+    "name": "Persian Doogh",
+    "vessel": "glass",
+    "base": {
+      "colour": "opaque creamy white",
+      "texture": "chilled savoury yogurt drink with fine froth"
+    },
+    "pieces": [
+      {
+        "ingredient": "lemon",
+        "shape": "wheel",
+        "size_cm": 5.5,
+        "placement": "beside glass if on table"
+      }
+    ],
+    "finish": "dried mint dust and crushed ice",
+    "never": [
+      "vanilla milkshake",
+      "sweet berries",
+      "invented fruit garnish not on table",
+      "yellow lemonade"
+    ],
+    "minimum_to_claim_name": [
+      "opaque white savoury yogurt drink",
+      "mint fleck"
+    ]
+  },
+  {
+    "id": "gibna-wa-bateeikh",
+    "name": "Gibna wa Bateeikh",
+    "vessel": "plate",
+    "base": {
+      "colour": "pale golden green",
+      "texture": "light olive oil dots"
+    },
+    "pieces": [
+      {
+        "ingredient": "watermelon",
+        "shape": "cubes",
+        "size_cm": 3.0,
+        "placement": "clustered tightly"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "crumble",
+        "size_cm": 1.5,
+        "placement": "nestled against watermelon"
+      }
+    ],
+    "finish": "fresh mint leaves and nigella seed scatter",
+    "never": [
+      "syrup",
+      "melted yellow cheese",
+      "thick soup"
+    ],
+    "minimum_to_claim_name": [
+      "bright red watermelon cubes",
+      "white crumbly cheese"
+    ]
+  },
+  {
+    "id": "egyptian-koshari",
+    "name": "Egyptian Koshari",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "ivory and brown",
+      "texture": "layered rice, brown lentils, and macaroni"
+    },
+    "pieces": [
+      {
+        "ingredient": "tomato",
+        "shape": "sauce ladle",
+        "size_cm": 8.0,
+        "placement": "poured over top"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "rings",
+        "size_cm": 2.5,
+        "placement": "scattered crisp dark-brown on top"
+      }
+    ],
+    "finish": "spiced red tomato-garlic sauce and crispy fried onions",
+    "never": [
+      "syrup",
+      "sweet fruit",
+      "plain white rice alone"
+    ],
+    "minimum_to_claim_name": [
+      "rice",
+      "lentils and macaroni",
+      "spiced red tomato sauce",
+      "crispy fried onions"
+    ]
+  },
+  {
+    "id": "rozz-meammar",
+    "name": "Rozz Me'ammar",
+    "vessel": "bowl",
+    "base": {
+      "colour": "creamy ivory with blistered golden-brown top",
+      "texture": "baked milk-and-butter rice"
+    },
+    "pieces": [
+      {
+        "ingredient": "butter",
+        "shape": "pats",
+        "size_cm": 2.0,
+        "placement": "melted into crust"
+      }
+    ],
+    "finish": "blistered golden-brown dairy crust",
+    "never": [
+      "dry loose white rice",
+      "red tomato sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "creamy baked rice in baking bowl",
+      "golden blistered crust"
+    ]
+  },
+  {
+    "id": "egyptian-hawawshi",
+    "name": "Egyptian Hawawshi",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "pita pocket",
+        "shape": "halves",
+        "size_cm": 12.0,
+        "placement": "stacked angled"
+      },
+      {
+        "ingredient": "steak",
+        "shape": "minced filling",
+        "size_cm": 1.0,
+        "placement": "stuffed inside crisp pita"
+      }
+    ],
+    "finish": "tahini drizzle and sumac dust",
+    "never": [
+      "open baguette toast with steak slices on top",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "crispy baked stuffed pita halves",
+      "spiced minced beef filling"
+    ]
+  },
+  {
+    "id": "batates-mahshia",
+    "name": "Batates Mahshia",
+    "vessel": "skillet",
+    "base": {
+      "colour": "rich brick red",
+      "texture": "simmered spiced tomato-cumin sauce"
+    },
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "hollowed cups",
+        "size_cm": 5.5,
+        "placement": "half sunk upright in sauce"
+      },
+      {
+        "ingredient": "steak",
+        "shape": "minced filling",
+        "size_cm": 1.0,
+        "placement": "packed inside potato cups"
+      }
+    ],
+    "finish": "pine nut scatter and parsley leaves",
+    "never": [
+      "potato mash",
+      "french fries",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "hollowed potato cups stuffed with spiced beef",
+      "red tomato sauce"
+    ]
+  },
+  {
+    "id": "roz-bel-laban",
+    "name": "Roz Bel Laban",
+    "vessel": "bowl",
+    "base": {
+      "colour": "creamy snow white",
+      "texture": "thick silky chilled rice pudding"
+    },
+    "pieces": [
+      {
+        "ingredient": "rice",
+        "shape": "whole grains",
+        "size_cm": 0.5,
+        "placement": "suspended in milk cream"
+      }
+    ],
+    "finish": "crushed green pistachios and cinnamon dust",
+    "never": [
+      "herbs",
+      "croutons",
+      "savoury oil",
+      "loose dry rice"
+    ],
+    "minimum_to_claim_name": [
+      "creamy white rice pudding in bowl"
+    ]
+  },
+  {
+    "id": "om-ali",
+    "name": "Egyptian Om Ali",
+    "vessel": "bowl",
+    "base": {
+      "colour": "warm ivory and golden brown",
+      "texture": "hot sweet milk-soaked flaky puff pastry bake"
+    },
+    "pieces": [
+      {
+        "ingredient": "puff pastry",
+        "shape": "torn shards",
+        "size_cm": 4.0,
+        "placement": "soaked and bubbling in bowl"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "melted",
+        "size_cm": 1.5,
+        "placement": "golden browned top"
+      }
+    ],
+    "finish": "pistachio scatter, raisins, whipped cream dollop",
+    "never": [
+      "herbs",
+      "croutons",
+      "flat toast slices on a board"
+    ],
+    "minimum_to_claim_name": [
+      "flaky pastry baked in sweet milk",
+      "golden browned top"
+    ]
+  },
+  {
+    "id": "saneyet-batates",
+    "name": "Saneyet Batates",
+    "vessel": "skillet",
+    "base": {
+      "colour": "bright spiced red",
+      "texture": "simmered tomato-onion baking jus"
+    },
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "wheels",
+        "size_cm": 5.0,
+        "placement": "layered flat in sauce"
+      },
+      {
+        "ingredient": "chicken",
+        "shape": "drumstick",
+        "size_cm": 11.0,
+        "placement": "nestled on top of potatoes"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "rings",
+        "size_cm": 4.5,
+        "placement": "nested between potatoes"
+      }
+    ],
+    "finish": "roasted tomato glaze and fresh coriander",
+    "never": [
+      "french fries",
+      "mashed potato",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "sliced potato rounds",
+      "chicken",
+      "red tomato-onion sauce"
+    ]
+  },
+  {
+    "id": "salatet-batates",
+    "name": "Salatet Batates",
+    "vessel": "plate",
+    "base": {
+      "colour": "golden yellow-green",
+      "texture": "light cumin-lemon olive oil coating"
+    },
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "cubes",
+        "size_cm": 2.2,
+        "placement": "clustered tightly"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wheels",
+        "size_cm": 5.5,
+        "placement": "tucked beside"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered on top"
+      }
+    ],
+    "finish": "fresh parsley scatter and chili flakes",
+    "never": [
+      "mashed potato",
+      "french fries",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "boiled or roasted potato cubes",
+      "lemon",
+      "garlic"
+    ]
+  },
+  {
+    "id": "shakshouka",
+    "name": "Shakshouka",
+    "vessel": "skillet",
+    "base": {
+      "colour": "vibrant rust red",
+      "texture": "chunky simmered tomato-pepper sauce"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "poached in sauce",
+        "size_cm": 7.0,
+        "placement": "half sunk in sauce wells"
+      },
+      {
+        "ingredient": "pepper",
+        "shape": "strips",
+        "size_cm": 4.5,
+        "placement": "simmered in sauce"
+      }
+    ],
+    "finish": "cilantro leaves and crusty bread beside",
+    "never": [
+      "syrup",
+      "yellow cheese sauce",
+      "dry eggs on flat plate"
+    ],
+    "minimum_to_claim_name": [
+      "red tomato-pepper sauce in skillet",
+      "eggs nestled in sauce"
+    ]
+  },
+  {
+    "id": "turkish-menemen",
+    "name": "Turkish Menemen",
+    "vessel": "skillet",
+    "base": {
+      "colour": "warm orange-red and gold",
+      "texture": "soft silky scrambled egg curds folded into tomato and green pepper"
+    },
+    "pieces": [
+      {
+        "ingredient": "tomato",
+        "shape": "dice",
+        "size_cm": 1.5,
+        "placement": "folded through soft eggs"
+      },
+      {
+        "ingredient": "pepper",
+        "shape": "strips",
+        "size_cm": 3.5,
+        "placement": "folded through eggs"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "crumble",
+        "size_cm": 1.2,
+        "placement": "scattered on top"
+      }
+    ],
+    "finish": "pul biber chili flakes and toasted pide slices",
+    "never": [
+      "clean unbroken fried egg",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "soft scrambled egg curds",
+      "tomato",
+      "green pepper in skillet"
+    ]
+  },
+  {
+    "id": "turkish-cilbir",
+    "name": "Turkish Cilbir",
+    "vessel": "shallow bowl",
+    "base": {
+      "colour": "cool ivory white",
+      "texture": "thick whipped garlic yogurt pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "poached",
+        "size_cm": 6.5,
+        "placement": "resting centred on yogurt"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "melted chili pool",
+        "size_cm": 4.0,
+        "placement": "drizzled bright red over eggs"
+      }
+    ],
+    "finish": "red Aleppo chili butter drizzle, dill fronds, crusty bread",
+    "never": [
+      "syrup",
+      "tomato soup base",
+      "sunny fried egg with crisp brown edges"
+    ],
+    "minimum_to_claim_name": [
+      "white yogurt pool",
+      "eggs",
+      "red chili butter drizzle"
+    ]
+  },
+  {
+    "id": "turkish-sutlac",
+    "name": "Turkish Sutlac",
+    "vessel": "bowl",
+    "base": {
+      "colour": "creamy white with dark caramelised top",
+      "texture": "baked rice pudding with blistered brown skin"
+    },
+    "pieces": [
+      {
+        "ingredient": "rice",
+        "shape": "whole grains",
+        "size_cm": 0.5,
+        "placement": "suspended inside pudding"
+      }
+    ],
+    "finish": "crushed hazelnuts and cinnamon dust",
+    "never": [
+      "herbs",
+      "croutons",
+      "pale unbaked puddle"
+    ],
+    "minimum_to_claim_name": [
+      "creamy rice pudding in baking bowl",
+      "blistered caramelised top skin"
+    ]
+  },
+  {
+    "id": "lebanese-fattoush",
+    "name": "Lebanese Fattoush",
+    "vessel": "bowl",
+    "base": {
+      "colour": "crisp fresh green",
+      "texture": "tossed romaine leaf bed with sumac vinaigrette"
+    },
+    "pieces": [
+      {
+        "ingredient": "tomato",
+        "shape": "wedges",
+        "size_cm": 3.5,
+        "placement": "scattered through salad"
+      },
+      {
+        "ingredient": "baguette",
+        "shape": "cubes",
+        "size_cm": 2.2,
+        "placement": "scattered crisp pita chips on top"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "rings",
+        "size_cm": 3.5,
+        "placement": "scattered through salad"
+      }
+    ],
+    "finish": "ruby pomegranate seeds and sumac dust",
+    "never": [
+      "creamy white caesar dressing",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "crisp romaine bed",
+      "tomato",
+      "toasted bread croutons"
+    ]
+  },
+  {
+    "id": "lebanese-toum",
+    "name": "Lebanese Toum",
+    "vessel": "shallow bowl",
+    "base": {
+      "colour": "snow white",
+      "texture": "fluffy whipped emulsified garlic dip swirled cleanly"
+    },
+    "pieces": [
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "optional crisp garnish on rim"
+      },
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 10.0,
+        "placement": "beside dip"
+      }
+    ],
+    "finish": "olive oil well and mint leaf",
+    "never": [
+      "chunky brown gravy",
+      "raw whole garlic bulb",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "fluffy snow-white whipped garlic cloud",
+      "bread beside"
+    ]
+  },
+  {
+    "id": "batata-harra",
+    "name": "Lebanese Batata Harra",
+    "vessel": "plate",
+    "base": {
+      "colour": "bright chili orange-red",
+      "texture": "glossy garlic-chili oil coating"
+    },
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "cubes",
+        "size_cm": 2.2,
+        "placement": "clustered tightly"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered on top"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wedges",
+        "size_cm": 5.0,
+        "placement": "beside pile"
+      }
+    ],
+    "finish": "fresh cilantro leaves and Aleppo chili flakes",
+    "never": [
+      "mashed potato",
+      "syrup",
+      "plain boiled pale potatoes"
+    ],
+    "minimum_to_claim_name": [
+      "crisp golden fried potato cubes",
+      "red chili-garlic oil"
+    ]
+  },
+  {
+    "id": "shish-taouk",
+    "name": "Shish Taouk",
+    "vessel": "plate",
+    "base": {
+      "colour": "snow white",
+      "texture": "neat garlic toum smear beside skewers"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "skewers",
+        "size_cm": 20.0,
+        "placement": "overlapping bundle"
+      },
+      {
+        "ingredient": "pepper",
+        "shape": "squares",
+        "size_cm": 3.0,
+        "placement": "threaded between chicken cubes"
+      }
+    ],
+    "finish": "sumac onion scatter and flatbread wrap",
+    "never": [
+      "syrup",
+      "loose unskewered chicken wings"
+    ],
+    "minimum_to_claim_name": [
+      "marinated chicken skewers with char",
+      "garlic smear"
+    ]
+  },
+  {
+    "id": "lebanese-muhallabieh",
+    "name": "Muhallabieh",
+    "vessel": "bowl",
+    "base": {
+      "colour": "silky snow white",
+      "texture": "chilled set milk pudding"
+    },
+    "pieces": [],
+    "finish": "green pistachio crumble and pale rosewater syrup glaze",
+    "never": [
+      "herbs",
+      "croutons",
+      "savoury oil",
+      "yellow custard"
+    ],
+    "minimum_to_claim_name": [
+      "snow-white milk pudding in bowl",
+      "pistachio crumble"
+    ]
+  },
+  {
+    "id": "mint-limonana",
+    "name": "Mint Limonana",
+    "vessel": "glass",
+    "base": {
+      "colour": "frothy pale jade green",
+      "texture": "blended mint-lemon slush cooler"
+    },
+    "pieces": [
+      {
+        "ingredient": "lemon",
+        "shape": "wheel",
+        "size_cm": 5.5,
+        "placement": "slit upright on rim or beside"
+      }
+    ],
+    "finish": "crushed mint ice and mint sprig",
+    "never": [
+      "milkshake",
+      "red berry drink",
+      "invented fruit not on table"
+    ],
+    "minimum_to_claim_name": [
+      "frothy pale-green citrus cooler in glass"
+    ]
+  },
+  {
+    "id": "preserved-lemon-chicken",
+    "name": "Moroccan Lemon Chicken",
+    "vessel": "plate",
+    "base": {
+      "colour": "warm saffron gold",
+      "texture": "glossy braised onion-lemon jus"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "drumstick",
+        "size_cm": 11.5,
+        "placement": "nestled in jus"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wheels",
+        "size_cm": 5.5,
+        "placement": "tucked beside chicken"
+      }
+    ],
+    "finish": "green olives and fresh herb scatter",
+    "never": [
+      "syrup",
+      "sweet desserts",
+      "raw chicken"
+    ],
+    "minimum_to_claim_name": [
+      "braised chicken in golden saffron jus",
+      "lemon"
+    ]
+  },
+  {
+    "id": "chicken-pastilla",
+    "name": "Chicken Pastilla",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "phyllo pie",
+        "shape": "round pastry parcel",
+        "size_cm": 15.0,
+        "placement": "centred on plate"
+      },
+      {
+        "ingredient": "chicken",
+        "shape": "shredded filling",
+        "size_cm": 2.5,
+        "placement": "enclosed inside pastry"
+      }
+    ],
+    "finish": "latticed powdered sugar and cinnamon dust with toasted almonds",
+    "never": [
+      "open fruit tart",
+      "chicken pieces sitting naked on top of flat pastry"
+    ],
+    "minimum_to_claim_name": [
+      "crisp golden enclosed phyllo pie",
+      "powdered sugar and cinnamon lattice"
+    ]
+  },
+  {
+    "id": "moroccan-taktouka",
+    "name": "Moroccan Taktouka",
+    "vessel": "shallow bowl",
+    "base": {
+      "colour": "deep roasted red-amber",
+      "texture": "silky slow-cooked pepper and tomato compote"
+    },
+    "pieces": [
+      {
+        "ingredient": "pepper",
+        "shape": "strips",
+        "size_cm": 4.0,
+        "placement": "folded into compote"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "dice",
+        "size_cm": 1.5,
+        "placement": "folded into compote"
+      }
+    ],
+    "finish": "cumin paprika oil drizzle and parsley scatter",
+    "never": [
+      "raw crunchy salad",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "cooked tomato-pepper compote",
+      "roasted pepper"
+    ]
+  },
+  {
+    "id": "slata-mechouia",
+    "name": "Slata Mechouia",
+    "vessel": "plate",
+    "base": {
+      "colour": "glossy amber-red",
+      "texture": "harissa olive oil pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "pepper",
+        "shape": "strips",
+        "size_cm": 5.0,
+        "placement": "mounded charred at centre"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "wedges",
+        "size_cm": 4.0,
+        "placement": "charred in mound"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "halves",
+        "size_cm": 5.0,
+        "placement": "perched around mound"
+      }
+    ],
+    "finish": "black olives and capers",
+    "never": [
+      "raw green romaine",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "charred pepper and tomato salad",
+      "egg halves"
+    ]
+  },
+  {
+    "id": "butter-chicken",
+    "name": "Butter Chicken",
+    "vessel": "kadai",
+    "base": {
+      "colour": "rich velvety orange-red",
+      "texture": "smooth butter-tomato makhani gravy"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "torn",
+        "size_cm": 3.5,
+        "placement": "half sunk in gravy"
+      }
+    ],
+    "finish": "swirl of white cream and dried fenugreek leaf dust",
+    "never": [
+      "green spinach gravy",
+      "dry chicken on bare plate",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "rich orange-red tomato-butter gravy",
+      "charred chicken chunks"
+    ]
+  },
+  {
+    "id": "palak-paneer",
+    "name": "Palak Paneer",
+    "vessel": "kadai",
+    "base": {
+      "colour": "deep emerald green",
+      "texture": "smooth, fully green spinach gravy"
+    },
+    "pieces": [
+      {
+        "ingredient": "cheese",
+        "shape": "cubes",
+        "size_cm": 2.2,
+        "placement": "half sunk"
+      }
+    ],
+    "finish": "swirl of cream and fine ginger julienne",
+    "never": [
+      "chicken",
+      "yellow sauce",
+      "cheese slices on a flat plate",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "smooth fully green spinach gravy in bowl or kadai",
+      "white or lightly golden paneer cubes",
+      "no meat"
+    ]
+  },
+  {
+    "id": "aloo-gobi",
+    "name": "Aloo Gobi",
+    "vessel": "plate",
+    "base": {
+      "colour": "warm turmeric gold",
+      "texture": "light spiced oil gloss"
+    },
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "cubes",
+        "size_cm": 2.2,
+        "placement": "clustered tightly"
+      },
+      {
+        "ingredient": "cauliflower",
+        "shape": "florets",
+        "size_cm": 3.5,
+        "placement": "intermingled with potatoes"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "wedges",
+        "size_cm": 3.0,
+        "placement": "tucked through"
+      }
+    ],
+    "finish": "fresh cilantro leaves",
+    "never": [
+      "broccoli pretending to be cauliflower",
+      "watery soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "turmeric-golden potato cubes",
+      "cauliflower florets"
+    ]
+  },
+  {
+    "id": "aloo-paratha",
+    "name": "Aloo Paratha",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "flatbread",
+        "shape": "stuffed round",
+        "size_cm": 18.0,
+        "placement": "centred flat"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "pat",
+        "size_cm": 2.5,
+        "placement": "melting centred on top"
+      }
+    ],
+    "finish": "golden browned griddle spots and small yogurt bowl beside",
+    "never": [
+      "plain potato mash mound with no flatbread",
+      "baguette toast",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "griddled golden stuffed flatbread",
+      "melting butter pat"
+    ]
+  },
+  {
+    "id": "mumbai-pav-bhaji",
+    "name": "Mumbai Pav Bhaji",
+    "vessel": "plate",
+    "base": {
+      "colour": "deep spiced red-orange",
+      "texture": "thick chunky buttered vegetable mash"
+    },
+    "pieces": [
+      {
+        "ingredient": "butter",
+        "shape": "pat",
+        "size_cm": 2.2,
+        "placement": "melting on top of bhaji"
+      },
+      {
+        "ingredient": "pav buns",
+        "shape": "halves",
+        "size_cm": 8.0,
+        "placement": "toasted beside bhaji"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "rings",
+        "size_cm": 3.5,
+        "placement": "beside bhaji"
+      }
+    ],
+    "finish": "fresh cilantro and lime wedge",
+    "never": [
+      "plain yellow mashed potatoes",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "thick spiced red-orange vegetable mash",
+      "buttered toasted rolls beside",
+      "butter pat"
+    ]
+  },
+  {
+    "id": "chicken-biryani",
+    "name": "Chicken Biryani",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "white and saffron gold",
+      "texture": "long-grain basmati rice layered with spiced masala"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "drumstick",
+        "size_cm": 10.5,
+        "placement": "tucked into rice"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "rings",
+        "size_cm": 2.5,
+        "placement": "scattered crisp golden-brown on top"
+      }
+    ],
+    "finish": "crispy fried onions, fresh mint, saffron streaks",
+    "never": [
+      "plain sticky porridge",
+      "red tomato soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "saffron-streaked basmati rice",
+      "spiced chicken",
+      "crispy fried onions"
+    ]
+  },
+  {
+    "id": "chitranna-lemon-rice",
+    "name": "Chitranna Lemon Rice",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "bright turmeric yellow",
+      "texture": "loose seasoned tempered rice"
+    },
+    "pieces": [
+      {
+        "ingredient": "lemon",
+        "shape": "wheel",
+        "size_cm": 5.5,
+        "placement": "tucked beside rice"
+      }
+    ],
+    "finish": "black mustard seeds, curry leaves, roasted peanuts",
+    "never": [
+      "white rice",
+      "creamy risotto",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "bright turmeric-yellow rice",
+      "lemon"
+    ]
+  },
+  {
+    "id": "indian-rice-kheer",
+    "name": "Indian Rice Kheer",
+    "vessel": "bowl",
+    "base": {
+      "colour": "creamy pale ivory-gold",
+      "texture": "thick cardamom-saffron simmered milk rice pudding"
+    },
+    "pieces": [
+      {
+        "ingredient": "rice",
+        "shape": "whole grains",
+        "size_cm": 0.5,
+        "placement": "suspended in thickened sweet milk"
+      }
+    ],
+    "finish": "pistachio and almond slivers, saffron strands, rose petals",
+    "never": [
+      "herbs",
+      "croutons",
+      "dry white rice"
+    ],
+    "minimum_to_claim_name": [
+      "creamy saffron-ivory milk rice pudding in bowl"
+    ]
+  },
+  {
+    "id": "indian-rasmalai",
+    "name": "Indian Rasmalai",
+    "vessel": "bowl",
+    "base": {
+      "colour": "pale saffron gold",
+      "texture": "chilled thinned sweet cardamom-saffron milk"
+    },
+    "pieces": [
+      {
+        "ingredient": "paneer discs",
+        "shape": "flattened rounds",
+        "size_cm": 5.5,
+        "placement": "floating half sunk in saffron milk"
+      }
+    ],
+    "finish": "green pistachio slivers and rose petal dust",
+    "never": [
+      "porous yellow cheddar slices",
+      "herbs",
+      "croutons"
+    ],
+    "minimum_to_claim_name": [
+      "soft snow-white flattened milk-curd discs",
+      "pale saffron milk pool"
+    ]
+  },
+  {
+    "id": "nimbu-pani",
+    "name": "Indian Nimbu Pani",
+    "vessel": "glass",
+    "base": {
+      "colour": "translucent cloudy pale yellow-green",
+      "texture": "chilled spiced citrus cooler"
+    },
+    "pieces": [
+      {
+        "ingredient": "lime",
+        "shape": "wedge",
+        "size_cm": 4.5,
+        "placement": "slit upright on rim or beside"
+      }
+    ],
+    "finish": "cumin-salt rim, mint sprig, ice cubes",
+    "never": [
+      "milky yogurt drink",
+      "berry red drink"
+    ],
+    "minimum_to_claim_name": [
+      "cloudy pale citrus drink in glass",
+      "lemon or lime"
+    ]
+  },
+  {
+    "id": "strawberry-lassi",
+    "name": "Strawberry Lassi",
+    "vessel": "glass",
+    "base": {
+      "colour": "blush pink",
+      "texture": "thick creamy blended yogurt smoothie"
+    },
+    "pieces": [
+      {
+        "ingredient": "strawberry",
+        "shape": "half",
+        "size_cm": 2.8,
+        "placement": "slit on rim or beside glass"
+      }
+    ],
+    "finish": "yogurt foam cap and cardamom dust",
+    "never": [
+      "clear watery juice",
+      "herbs",
+      "lemon garnish unless on table"
+    ],
+    "minimum_to_claim_name": [
+      "thick blush-pink yogurt drink in glass",
+      "strawberry"
+    ]
+  },
+  {
+    "id": "sweet-lassi",
+    "name": "Punjabi Sweet Lassi",
+    "vessel": "glass",
+    "base": {
+      "colour": "creamy ivory white",
+      "texture": "thick frothy blended sweet yogurt drink"
+    },
+    "pieces": [],
+    "finish": "frothy malai cream cap, cardamom dust, crushed pistachios",
+    "never": [
+      "clear juice",
+      "savoury mint-salt rim",
+      "invented strawberry"
+    ],
+    "minimum_to_claim_name": [
+      "thick creamy white yogurt drink in glass with frothy top"
+    ]
+  },
+  {
+    "id": "broccoli-masala-omelette",
+    "name": "Broccoli Masala Omelette",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "omelette",
+        "size_cm": 14.0,
+        "placement": "centred folded half-moon"
+      },
+      {
+        "ingredient": "broccoli",
+        "shape": "chopped florets",
+        "size_cm": 2.0,
+        "placement": "studded inside and peeking out"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "dice",
+        "size_cm": 1.2,
+        "placement": "studded in omelette"
+      }
+    ],
+    "finish": "cilantro leaves and chili butter",
+    "never": [
+      "raw standing whole broccoli trees",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "folded golden omelette",
+      "broccoli",
+      "spiced masala flecks"
+    ]
+  },
+  {
+    "id": "tamago-kake-gohan",
+    "name": "Tamago Kake Gohan",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "glossy pale gold and white",
+      "texture": "steamed hot Japanese rice with whipped golden egg"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "golden yolk",
+        "size_cm": 3.5,
+        "placement": "resting centred on rice well"
+      }
+    ],
+    "finish": "soy drizzle, nori strips, sesame furikake",
+    "never": [
+      "crispy fried egg white",
+      "tomato sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "steamed rice in bowl",
+      "glossy raw yolk / golden egg"
+    ]
+  },
+  {
+    "id": "oyakodon",
+    "name": "Japanese Oyakodon",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "steamed white",
+      "texture": "fluffy Japanese rice in sweet dashi-soy broth"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "torn",
+        "size_cm": 3.5,
+        "placement": "simmered across top"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "soft-set ribbons",
+        "size_cm": 6.0,
+        "placement": "blanketing chicken and rice"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "slices",
+        "size_cm": 3.5,
+        "placement": "simmered into egg"
+      }
+    ],
+    "finish": "mitsuba herb leaves and scallion rings",
+    "never": [
+      "dry separated chicken and fried egg on flat plate",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "rice bowl",
+      "simmered chicken",
+      "soft-set egg blanket"
+    ]
+  },
+  {
+    "id": "salmon-ochazuke",
+    "name": "Salmon Ochazuke",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "pale clear jade-gold",
+      "texture": "steamed rice half-submerged in green tea dashi broth"
+    },
+    "pieces": [
+      {
+        "ingredient": "salmon",
+        "shape": "flaked chunks",
+        "size_cm": 3.0,
+        "placement": "centred on rice mound"
+      }
+    ],
+    "finish": "nori strips and crisp rice cracker pearls",
+    "never": [
+      "creamy white chowder",
+      "whole raw salmon block",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "rice in clear pale tea broth",
+      "flaked seared salmon"
+    ]
+  },
+  {
+    "id": "teriyaki-salmon-bowl",
+    "name": "Teriyaki Salmon Bowl",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "steamed white",
+      "texture": "fluffy Japanese rice"
+    },
+    "pieces": [
+      {
+        "ingredient": "salmon",
+        "shape": "fillet",
+        "size_cm": 12.0,
+        "placement": "nestled glazed on rice"
+      },
+      {
+        "ingredient": "avocado",
+        "shape": "slices",
+        "size_cm": 7.0,
+        "placement": "fanned beside salmon"
+      }
+    ],
+    "finish": "glossy dark teriyaki lacquer glaze, sesame seeds, scallion ribbons",
+    "never": [
+      "avocado half with pit",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "rice bowl",
+      "teriyaki-glazed seared salmon",
+      "fanned avocado"
+    ]
+  },
+  {
+    "id": "ichigo-sando",
+    "name": "Ichigo Sando",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "shokupan milk bread",
+        "shape": "crustless sandwich halves",
+        "size_cm": 10.0,
+        "placement": "stacked angled showing cross-section"
+      },
+      {
+        "ingredient": "strawberry",
+        "shape": "halves",
+        "size_cm": 3.0,
+        "placement": "embedded cleanly in cream filling"
+      }
+    ],
+    "finish": "thick snow-white chantilly cream cross-section",
+    "never": [
+      "crusty brown toasted baguette",
+      "herbs",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "crustless white milk bread sandwich halves",
+      "thick whipped cream",
+      "whole or halved strawberries visible in cut"
+    ]
+  },
+  {
+    "id": "kinoko-gohan",
+    "name": "Kinoko Gohan",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "warm tan-ivory",
+      "texture": "soy-dashi seasoned steamed rice"
+    },
+    "pieces": [
+      {
+        "ingredient": "mushroom",
+        "shape": "slices",
+        "size_cm": 3.5,
+        "placement": "folded through and on top of rice"
+      },
+      {
+        "ingredient": "cabbage",
+        "shape": "torn",
+        "size_cm": 3.5,
+        "placement": "wilted into rice"
+      }
+    ],
+    "finish": "scallion rings and toasted sesame scatter",
+    "never": [
+      "red tomato rice",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "seasoned rice in bowl",
+      "sautéed mushrooms"
+    ]
+  },
+  {
+    "id": "okonomiyaki",
+    "name": "Osaka Okonomiyaki",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "cabbage pancake",
+        "shape": "thick round pancake",
+        "size_cm": 16.0,
+        "placement": "centred flat on plate"
+      },
+      {
+        "ingredient": "cabbage",
+        "shape": "shredded",
+        "size_cm": 3.0,
+        "placement": "bound inside golden pancake"
+      }
+    ],
+    "finish": "brown okonomiyaki sauce, white mayo lattice, aonori flakes",
+    "never": [
+      "sweet dessert pancake stack",
+      "loose raw cabbage salad",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "thick savoury cabbage pancake",
+      "brown sauce and mayo lattice"
+    ]
+  },
+  {
+    "id": "spinach-gomaae",
+    "name": "Spinach Goma-ae",
+    "vessel": "plate",
+    "base": {
+      "colour": "warm sesame tan",
+      "texture": "thick nutty sesame paste coating"
+    },
+    "pieces": [
+      {
+        "ingredient": "spinach",
+        "shape": "mounded bundle",
+        "size_cm": 7.0,
+        "placement": "neatly stacked at centre"
+      }
+    ],
+    "finish": "toasted sesame seed scatter",
+    "never": [
+      "loose raw salad leaves",
+      "red tomato sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "compact blanched dark-green spinach bundle",
+      "tan sesame dressing"
+    ]
+  },
+  {
+    "id": "tamagoyaki",
+    "name": "Tamagoyaki",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "rolled rectangular slices",
+        "size_cm": 5.5,
+        "placement": "shingled neatly at centre"
+      }
+    ],
+    "finish": "grated daikon mound, light soy glaze, scallion curl",
+    "never": [
+      "sunny fried egg",
+      "thin half-moon French omelette",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "thick layered rectangular golden rolled omelette slices"
+    ]
+  },
+  {
+    "id": "chicken-yakitori",
+    "name": "Chicken Yakitori",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "skewers",
+        "size_cm": 18.0,
+        "placement": "fanned overlapping"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "charred scallion segments",
+        "size_cm": 3.0,
+        "placement": "alternating on skewers"
+      }
+    ],
+    "finish": "glossy dark tare soy glaze and shichimi chili dust",
+    "never": [
+      "pale unglazed chicken",
+      "soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "charred glazed chicken skewers",
+      "scallion/onion segments"
+    ]
+  },
+  {
+    "id": "chicken-karaage",
+    "name": "Chicken Karaage",
+    "vessel": "plate",
+    "base": {
+      "colour": "pale green-white",
+      "texture": "finely shredded cabbage slaw nest"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "crisp fried bites",
+        "size_cm": 4.0,
+        "placement": "clustered beside slaw"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wedges",
+        "size_cm": 5.0,
+        "placement": "beside chicken"
+      }
+    ],
+    "finish": "kewpie mayo dot and crispy starch crust",
+    "never": [
+      "raw chicken",
+      "soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "crisp golden fried chicken bites",
+      "lemon wedge",
+      "shredded cabbage"
+    ]
+  },
+  {
+    "id": "chawanmushi",
+    "name": "Chawanmushi",
+    "vessel": "lidded cup",
+    "base": {
+      "colour": "silky pale golden ivory",
+      "texture": "delicate steamed savoury dashi egg custard"
+    },
+    "pieces": [
+      {
+        "ingredient": "mushroom",
+        "shape": "half",
+        "size_cm": 3.0,
+        "placement": "inlaid half sunk on custard"
+      },
+      {
+        "ingredient": "chicken",
+        "shape": "torn",
+        "size_cm": 2.5,
+        "placement": "suspended inside custard"
+      }
+    ],
+    "finish": "single mitsuba leaf on top",
+    "never": [
+      "fried egg",
+      "sweet burnt caramel custard",
+      "flat plate"
+    ],
+    "minimum_to_claim_name": [
+      "steamed silky savoury custard in cup",
+      "inlaid mushroom and chicken"
+    ]
+  },
+  {
+    "id": "broccoli-chawanmushi",
+    "name": "Broccoli Chawanmushi",
+    "vessel": "lidded cup",
+    "base": {
+      "colour": "pale celadon ivory",
+      "texture": "silky steamed savoury dashi egg custard"
+    },
+    "pieces": [
+      {
+        "ingredient": "broccoli",
+        "shape": "floret halves",
+        "size_cm": 2.8,
+        "placement": "inlaid half sunk in custard"
+      }
+    ],
+    "finish": "herb oil dots",
+    "never": [
+      "fried egg",
+      "standing whole broccoli on dry plate",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "steamed silky savoury custard in cup",
+      "tender broccoli florets inlaid"
+    ]
+  },
+  {
+    "id": "salmon-takikomi",
+    "name": "Salmon Takikomi Gohan",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "warm soy-dashi tan",
+      "texture": "seasoned steamed Japanese rice"
+    },
+    "pieces": [
+      {
+        "ingredient": "salmon",
+        "shape": "flaked chunks",
+        "size_cm": 3.0,
+        "placement": "scattered on top of rice"
+      },
+      {
+        "ingredient": "mushroom",
+        "shape": "slices",
+        "size_cm": 3.0,
+        "placement": "folded through rice"
+      }
+    ],
+    "finish": "ginger julienne and scallion flecks",
+    "never": [
+      "raw sashimi cubes",
+      "creamy risotto",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "seasoned rice bowl",
+      "flaked cooked salmon",
+      "mushrooms"
+    ]
+  },
+  {
+    "id": "bibimbap",
+    "name": "Korean Bibimbap",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "steamed white",
+      "texture": "warm rice bed under arranged toppings"
+    },
+    "pieces": [
+      {
+        "ingredient": "steak",
+        "shape": "strips",
+        "size_cm": 5.0,
+        "placement": "radial wedge on rice"
+      },
+      {
+        "ingredient": "spinach",
+        "shape": "leaf",
+        "size_cm": 5.0,
+        "placement": "radial wedge on rice"
+      },
+      {
+        "ingredient": "mushroom",
+        "shape": "slices",
+        "size_cm": 3.5,
+        "placement": "radial wedge on rice"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "whole fried",
+        "size_cm": 7.5,
+        "placement": "centred on top"
+      }
+    ],
+    "finish": "red gochujang swirl, sesame oil drizzle, toasted sesame seeds",
+    "never": [
+      "all ingredients stirred into brown porridge",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "rice bowl",
+      "distinct radial sections of beef and vegetables",
+      "sunny egg on top"
+    ]
+  },
+  {
+    "id": "kimchi-bokkeumbap",
+    "name": "Kimchi Bokkeumbap",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "vibrant gochujang red-orange",
+      "texture": "glossy stir-fried rice"
+    },
+    "pieces": [
+      {
+        "ingredient": "cabbage",
+        "shape": "torn",
+        "size_cm": 3.0,
+        "placement": "folded through red rice"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "whole fried",
+        "size_cm": 7.5,
+        "placement": "centred on top"
+      }
+    ],
+    "finish": "nori seaweed shreds, sesame oil gloss, scallion flecks",
+    "never": [
+      "pale plain white rice",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "red kimchi fried rice in bowl",
+      "fried egg on top"
+    ]
+  },
+  {
+    "id": "korean-bulgogi",
+    "name": "Korean Beef Bulgogi",
+    "vessel": "plate",
+    "base": {
+      "colour": "dark caramel soy brown",
+      "texture": "light glossy sweet-soy glaze"
+    },
+    "pieces": [
+      {
+        "ingredient": "steak",
+        "shape": "thin seared slices",
+        "size_cm": 7.0,
+        "placement": "shingled tightly at centre"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "rings",
+        "size_cm": 4.0,
+        "placement": "tucked with beef"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered lightly"
+      }
+    ],
+    "finish": "toasted sesame seeds and scallion ribbons",
+    "never": [
+      "thick rare steak slab",
+      "creamy white sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "thin caramelized brown-glazed beef slices",
+      "onion"
+    ]
+  },
+  {
+    "id": "yangnyeom-chicken",
+    "name": "Yangnyeom Chicken",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "crisp glazed bites",
+        "size_cm": 4.5,
+        "placement": "piled tightly at centre"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "tossed on glaze"
+      }
+    ],
+    "finish": "sticky crimson gochujang glaze, crushed peanuts, sesame seeds",
+    "never": [
+      "pale unglazed chicken",
+      "soup broth",
+      "sweet dessert syrup"
+    ],
+    "minimum_to_claim_name": [
+      "crisp chicken pieces coated in glossy crimson chili glaze"
+    ]
+  },
+  {
+    "id": "kimchi-chicken-cabbage",
+    "name": "Kimchi Chicken Stir-Fry",
+    "vessel": "plate",
+    "base": {
+      "colour": "bright crimson gochujang red",
+      "texture": "glossy wok chili glaze"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "slices",
+        "size_cm": 5.5,
+        "placement": "clustered in red glaze"
+      },
+      {
+        "ingredient": "cabbage",
+        "shape": "strips",
+        "size_cm": 4.5,
+        "placement": "charred and tossed with chicken"
+      }
+    ],
+    "finish": "toasted sesame seeds and scallion ribbons",
+    "never": [
+      "raw pale cabbage salad",
+      "white cream sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "seared chicken",
+      "charred cabbage",
+      "red gochujang chili glaze"
+    ]
+  },
+  {
+    "id": "gyeran-jjim",
+    "name": "Korean Gyeran-jjim",
+    "vessel": "clay pot",
+    "base": {
+      "colour": "warm pale golden yellow",
+      "texture": "fluffy puffed volcanic steamed egg dome"
+    },
+    "pieces": [
+      {
+        "ingredient": "onion",
+        "shape": "scallion rings",
+        "size_cm": 1.2,
+        "placement": "scattered on dome"
+      }
+    ],
+    "finish": "toasted sesame oil drizzle, scallion rings, gochugaru red pepper fleck",
+    "never": [
+      "flat fried egg on plate",
+      "sweet custard caramel",
+      "tomato sauce"
+    ],
+    "minimum_to_claim_name": [
+      "puffed steamed egg dome rising in dark earthen bowl"
+    ]
+  },
+  {
+    "id": "subak-hwachae",
+    "name": "Subak Hwachae",
+    "vessel": "glass",
+    "base": {
+      "colour": "pastel blush pink",
+      "texture": "chilled sparkling watermelon milk punch"
+    },
+    "pieces": [
+      {
+        "ingredient": "watermelon",
+        "shape": "cubes",
+        "size_cm": 2.2,
+        "placement": "floating and beside glass"
+      }
+    ],
+    "finish": "crushed ice and mint sprig",
+    "never": [
+      "savoury herbs",
+      "thick cream soup",
+      "invented banana or apple"
+    ],
+    "minimum_to_claim_name": [
+      "chilled pink milk punch in glass",
+      "watermelon pieces"
+    ]
+  },
+  {
+    "id": "gamja-jeon",
+    "name": "Korean Gamja-jeon",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "crisp lacy flat pancake",
+        "size_cm": 16.0,
+        "placement": "centred flat on plate"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "thin shreds",
+        "size_cm": 3.0,
+        "placement": "bound inside crisp crust"
+      }
+    ],
+    "finish": "soy-vinegar dipping bowl beside and sesame scatter",
+    "never": [
+      "fluffy mashed potato mound",
+      "sweet pancakes with maple syrup"
+    ],
+    "minimum_to_claim_name": [
+      "golden crisp lacy pan-fried potato pancake"
+    ]
+  },
+  {
+    "id": "korean-baesuk",
+    "name": "Korean Baesuk",
+    "vessel": "bowl",
+    "base": {
+      "colour": "clear pale amber",
+      "texture": "warm spiced ginger-cinnamon poaching syrup"
+    },
+    "pieces": [
+      {
+        "ingredient": "pear",
+        "shape": "halves",
+        "size_cm": 7.5,
+        "placement": "half sunk in clear syrup"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "slice",
+        "size_cm": 5.0,
+        "placement": "floating beside pear"
+      }
+    ],
+    "finish": "pine nut scatter and whole cinnamon stick",
+    "never": [
+      "herbs",
+      "croutons",
+      "thick cream sauce",
+      "raw green pear on dry plate"
+    ],
+    "minimum_to_claim_name": [
+      "poached pear halves",
+      "clear amber ginger syrup"
+    ]
+  },
+  {
+    "id": "korean-strawberry-milk",
+    "name": "Korean Strawberry Milk",
+    "vessel": "glass",
+    "base": {
+      "colour": "layered ruby pink and snow white",
+      "texture": "chilled milk over chunky strawberry compote"
+    },
+    "pieces": [
+      {
+        "ingredient": "strawberry",
+        "shape": "dice",
+        "size_cm": 1.2,
+        "placement": "sunk at bottom and half on rim"
+      }
+    ],
+    "finish": "fresh strawberry half on rim or beside",
+    "never": [
+      "savoury herbs",
+      "invented citrus wheel"
+    ],
+    "minimum_to_claim_name": [
+      "layered white milk and red strawberry puree in glass",
+      "strawberry"
+    ]
+  },
+  {
+    "id": "samgyetang",
+    "name": "Korean Samgyetang",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "milky pale ivory-gold",
+      "texture": "rich aromatic ginseng chicken broth"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "drumstick",
+        "size_cm": 11.0,
+        "placement": "half sunk in broth"
+      },
+      {
+        "ingredient": "rice",
+        "shape": "mound",
+        "size_cm": 6.0,
+        "placement": "submerged inside broth"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "cloves or chips",
+        "size_cm": 1.6,
+        "placement": "simmered in broth"
+      }
+    ],
+    "finish": "fresh scallion rings",
+    "never": [
+      "red chili broth",
+      "croutons",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "milky pale chicken broth in deep bowl",
+      "chicken",
+      "rice"
+    ]
+  },
+  {
+    "id": "yangzhou-fried-rice",
+    "name": "Yangzhou Fried Rice",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "golden pale yellow",
+      "texture": "loose wok-tossed fried rice with fine egg curds"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "scrambled curds",
+        "size_cm": 1.5,
+        "placement": "flecked evenly through rice"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "dice",
+        "size_cm": 1.0,
+        "placement": "flecked through rice"
+      }
+    ],
+    "finish": "bright green scallion scatter and sesame oil gloss",
+    "never": [
+      "wet risotto mush",
+      "red tomato sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "golden loose wok fried rice",
+      "egg flecks"
+    ]
+  },
+  {
+    "id": "tomato-egg-stir-fry",
+    "name": "Tomato Egg Stir-Fry",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "steamed white",
+      "texture": "fluffy white rice under glossy red-gold topping"
+    },
+    "pieces": [
+      {
+        "ingredient": "tomato",
+        "shape": "wedges",
+        "size_cm": 4.0,
+        "placement": "nestled in glossy tomato glaze on rice"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "soft-scrambled curds",
+        "size_cm": 4.0,
+        "placement": "folded among tomato wedges"
+      }
+    ],
+    "finish": "glossy orange-red tomato glaze and green scallion scatter",
+    "never": [
+      "raw dry tomato wedges with fried egg",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "soft scrambled eggs",
+      "juicy cooked tomato wedges in glaze",
+      "white rice"
+    ]
+  },
+  {
+    "id": "beef-and-broccoli",
+    "name": "Beef and Broccoli",
+    "vessel": "plate",
+    "base": {
+      "colour": "dark glossy oyster-soy brown",
+      "texture": "velvet savoury brown stir-fry glaze"
+    },
+    "pieces": [
+      {
+        "ingredient": "steak",
+        "shape": "slices",
+        "size_cm": 6.0,
+        "placement": "clustered in brown glaze"
+      },
+      {
+        "ingredient": "broccoli",
+        "shape": "halved florets",
+        "size_cm": 4.0,
+        "placement": "tucked tightly beside beef"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered on top"
+      }
+    ],
+    "finish": "toasted sesame seeds and scallion curls",
+    "never": [
+      "raw standing whole broccoli",
+      "creamy white sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "brown-glazed seared beef slices",
+      "tender green broccoli florets"
+    ]
+  },
+  {
+    "id": "youmai-cai",
+    "name": "Garlic Stir-Fry Romaine",
+    "vessel": "plate",
+    "base": {
+      "colour": "glossy amber oyster-soy",
+      "texture": "light savoury garlic wok glaze"
+    },
+    "pieces": [
+      {
+        "ingredient": "romaine",
+        "shape": "wilted whole leaves",
+        "size_cm": 12.0,
+        "placement": "mounded neatly lengthwise"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered crisp on leaves"
+      }
+    ],
+    "finish": "glossy garlic oyster sauce and crisp golden garlic",
+    "never": [
+      "creamy white caesar dressing",
+      "croutons",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "wok-wilted glossy romaine leaves",
+      "garlic"
+    ]
+  },
+  {
+    "id": "sichuan-chili-wontons",
+    "name": "Sichuan Chili Oil Dish",
+    "vessel": "shallow bowl",
+    "base": {
+      "colour": "vivid crimson red",
+      "texture": "aromatic chili-garlic oil pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "dumplings",
+        "shape": "folded pleated parcels",
+        "size_cm": 4.5,
+        "placement": "half sunk in crimson chili oil"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered on dumplings"
+      }
+    ],
+    "finish": "toasted sesame scatter, scallion rings, cilantro leaves",
+    "never": [
+      "plain clear broth with no red chili oil",
+      "sauce pool with no dumplings",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "folded dumplings/wontons",
+      "vivid crimson chili-garlic oil pool"
+    ]
+  },
+  {
+    "id": "cabbage-chicken-stir-fry",
+    "name": "Wok Cabbage Chicken",
+    "vessel": "plate",
+    "base": {
+      "colour": "glossy dark soy-chili amber",
+      "texture": "light savoury wok glaze"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "slices",
+        "size_cm": 5.5,
+        "placement": "clustered at centre"
+      },
+      {
+        "ingredient": "cabbage",
+        "shape": "torn charred leaves",
+        "size_cm": 5.0,
+        "placement": "tossed beside chicken"
+      },
+      {
+        "ingredient": "mushroom",
+        "shape": "halves",
+        "size_cm": 3.5,
+        "placement": "tucked among cabbage"
+      }
+    ],
+    "finish": "scallion greens and toasted sesame seeds",
+    "never": [
+      "raw crunchy coleslaw",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "wok-seared chicken",
+      "charred cabbage",
+      "savory soy glaze"
+    ]
+  },
+  {
+    "id": "egg-fried-rice",
+    "name": "Chinese Egg Fried Rice",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "warm pale gold",
+      "texture": "fluffy wok-tossed fried rice"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "curds",
+        "size_cm": 1.5,
+        "placement": "scattered through rice"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered on top"
+      }
+    ],
+    "finish": "scallion flecks and white-pepper soy gloss",
+    "never": [
+      "wet porridge",
+      "red tomato rice",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "loose golden fried rice in bowl",
+      "egg curds"
+    ]
+  },
+  {
+    "id": "broccoli-garlic-rice",
+    "name": "Garlic Broccoli Rice",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "pale soy-butter gold",
+      "texture": "seasoned steamed rice"
+    },
+    "pieces": [
+      {
+        "ingredient": "broccoli",
+        "shape": "halved florets",
+        "size_cm": 3.5,
+        "placement": "nestled on rice"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered crisp on top"
+      }
+    ],
+    "finish": "toasted sesame seeds and soy glaze",
+    "never": [
+      "standing giant raw broccoli trees",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "rice bowl",
+      "tender green broccoli florets",
+      "garlic chips"
+    ]
+  },
+  {
+    "id": "thai-khao-pad",
+    "name": "Thai Khao Pad",
+    "vessel": "plate",
+    "base": {
+      "colour": "warm pale golden tan",
+      "texture": "fragrant jasmine fried rice mound"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "scrambled ribbons",
+        "size_cm": 2.0,
+        "placement": "folded through rice"
+      },
+      {
+        "ingredient": "lime",
+        "shape": "wedge",
+        "size_cm": 4.5,
+        "placement": "perched beside rice mound"
+      },
+      {
+        "ingredient": "chicken",
+        "shape": "slices",
+        "size_cm": 4.5,
+        "placement": "tucked through rice"
+      }
+    ],
+    "finish": "cucumber slices, cilantro scatter, chili fish sauce",
+    "never": [
+      "red kimchi rice",
+      "creamy risotto",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "jasmine fried rice",
+      "egg",
+      "fresh lime wedge"
+    ]
+  },
+  {
+    "id": "tom-kha-gai",
+    "name": "Thai Tom Kha Gai",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "creamy opaque coconut white",
+      "texture": "silky coconut galangal broth with bright chili oil droplets"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "torn",
+        "size_cm": 3.5,
+        "placement": "sunk one-third in broth"
+      },
+      {
+        "ingredient": "mushroom",
+        "shape": "halves",
+        "size_cm": 3.5,
+        "placement": "sunk one-third in broth"
+      }
+    ],
+    "finish": "red chili oil dots and fresh cilantro leaves",
+    "never": [
+      "clear red tom yum broth",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "creamy white coconut broth in deep bowl",
+      "chicken",
+      "mushrooms"
+    ]
+  },
+  {
+    "id": "pla-haeng-tangmo",
+    "name": "Pla Haeng Tangmo",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "watermelon",
+        "shape": "cubes",
+        "size_cm": 3.0,
+        "placement": "clustered neatly on plate"
+      },
+      {
+        "ingredient": "salmon",
+        "shape": "fluffy dried fish floss",
+        "size_cm": 1.5,
+        "placement": "mounded lightly on top of watermelon"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "crisp fried shallot flakes",
+        "size_cm": 1.5,
+        "placement": "scattered on fish floss"
+      }
+    ],
+    "finish": "mint leaves and crispy golden shallots",
+    "never": [
+      "raw salmon fillet slab",
+      "sweet whipped cream",
+      "milkshake"
+    ],
+    "minimum_to_claim_name": [
+      "chilled red watermelon cubes",
+      "savoury flaked fish topping",
+      "crispy shallots"
+    ]
+  },
+  {
+    "id": "nam-tok-beef",
+    "name": "Thai Nam Tok Beef",
+    "vessel": "plate",
+    "base": {
+      "colour": "crisp fresh green",
+      "texture": "romaine leaf bed with chili-lime dressing"
+    },
+    "pieces": [
+      {
+        "ingredient": "steak",
+        "shape": "thin seared slices",
+        "size_cm": 6.5,
+        "placement": "clustered over romaine"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "rings",
+        "size_cm": 3.5,
+        "placement": "tucked with beef"
+      },
+      {
+        "ingredient": "lime",
+        "shape": "wedge",
+        "size_cm": 4.5,
+        "placement": "beside beef"
+      }
+    ],
+    "finish": "toasted rice powder specks and fresh mint leaves",
+    "never": [
+      "thick cream dressing",
+      "croutons",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "sliced charred beef",
+      "romaine bed",
+      "red onion",
+      "lime"
+    ]
+  },
+  {
+    "id": "thai-tom-yum",
+    "name": "Thai Tom Yum",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "vivid fiery red-orange",
+      "texture": "aromatic clear hot-and-sour lemongrass broth"
+    },
+    "pieces": [
+      {
+        "ingredient": "mushroom",
+        "shape": "halves",
+        "size_cm": 3.5,
+        "placement": "sunk one-third in broth"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "wedges",
+        "size_cm": 3.5,
+        "placement": "sunk one-third in broth"
+      },
+      {
+        "ingredient": "lime",
+        "shape": "wheel",
+        "size_cm": 4.5,
+        "placement": "floating or beside bowl"
+      }
+    ],
+    "finish": "fresh cilantro leaves and chili oil beads",
+    "never": [
+      "thick creamy white coconut broth",
+      "croutons in broth unless bread on table",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "red-orange hot-and-sour broth in deep bowl",
+      "mushrooms",
+      "tomato"
+    ]
+  },
+  {
+    "id": "banh-mi-op-la",
+    "name": "Vietnamese Banh Mi",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "split crispy baguette",
+        "size_cm": 16.0,
+        "placement": "centred on board"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "whole fried",
+        "size_cm": 7.5,
+        "placement": "layered inside/on bread"
+      },
+      {
+        "ingredient": "pepper",
+        "shape": "strips",
+        "size_cm": 5.0,
+        "placement": "tucked cleanly beside egg"
+      }
+    ],
+    "finish": "pickled carrot-daikon ribbons, cilantro sprigs, chili drizzle",
+    "never": [
+      "sweet jam",
+      "melted cheddar blanket"
+    ],
+    "minimum_to_claim_name": [
+      "crusty baguette",
+      "fried egg",
+      "fresh pepper and herbs"
+    ]
+  },
+  {
+    "id": "sinh-to-bo",
+    "name": "Vietnamese Sinh To Bo",
+    "vessel": "glass",
+    "base": {
+      "colour": "lush pale jade green",
+      "texture": "thick velvety blended avocado condensed-milk shake"
+    },
+    "pieces": [
+      {
+        "ingredient": "avocado",
+        "shape": "thin fan slices",
+        "size_cm": 5.0,
+        "placement": "beside glass if garnish shown"
+      }
+    ],
+    "finish": "condensed milk swirl and crushed ice",
+    "never": [
+      "avocado half with brown pit",
+      "clear watery green juice",
+      "savoury herbs"
+    ],
+    "minimum_to_claim_name": [
+      "thick pale jade-green creamy avocado shake in glass"
+    ]
+  },
+  {
+    "id": "ca-phe-trung",
+    "name": "Vietnamese Ca Phe Trung",
+    "vessel": "glass",
+    "base": {
+      "colour": "dark espresso black-brown",
+      "texture": "strong Vietnamese coffee under thick golden custard egg foam"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "whipped golden egg-yolk foam cap",
+        "size_cm": 7.0,
+        "placement": "layered thick on top of coffee"
+      }
+    ],
+    "finish": "light cocoa dust on golden foam",
+    "never": [
+      "fried egg",
+      "white milk glass with no dark coffee base",
+      "savoury herbs"
+    ],
+    "minimum_to_claim_name": [
+      "dark coffee base",
+      "thick whipped golden egg-yolk foam cap in glass"
+    ]
+  },
+  {
+    "id": "vietnamese-pho-ga",
+    "name": "Vietnamese Pho Ga",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "clear pale golden amber",
+      "texture": "fragrant star-anise chicken broth"
+    },
+    "pieces": [
+      {
+        "ingredient": "rice noodles",
+        "shape": "folded noodle nest",
+        "size_cm": 11.0,
+        "placement": "submerged in broth"
+      },
+      {
+        "ingredient": "chicken",
+        "shape": "slices",
+        "size_cm": 5.5,
+        "placement": "fanned on noodles half sunk"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "thin rings",
+        "size_cm": 4.0,
+        "placement": "floating in broth"
+      },
+      {
+        "ingredient": "lime",
+        "shape": "wedge",
+        "size_cm": 4.5,
+        "placement": "beside bowl"
+      }
+    ],
+    "finish": "Thai basil leaves and scallion scatter",
+    "never": [
+      "thick opaque creamy soup",
+      "rice grains instead of rice noodles",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "clear golden broth in deep bowl",
+      "flat white rice noodles",
+      "sliced chicken",
+      "lime"
+    ]
+  },
+  {
+    "id": "filipino-sinangag",
+    "name": "Filipino Sinangag",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "warm ivory with golden garlic oil gloss",
+      "texture": "loose garlic-toasted fried rice"
+    },
+    "pieces": [
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered generously on top"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "whole fried",
+        "size_cm": 7.5,
+        "placement": "crowned on top of rice"
+      }
+    ],
+    "finish": "crisp golden garlic chips and scallion flecks",
+    "never": [
+      "red tomato rice",
+      "whole raw garlic bulb",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "garlic-fried rice in bowl",
+      "crisp golden garlic chips",
+      "fried egg"
+    ]
+  },
+  {
+    "id": "mexican-guacamole",
+    "name": "Mexican Guacamole",
+    "vessel": "shallow bowl",
+    "base": {
+      "colour": "vibrant avocado green",
+      "texture": "chunky smashed avocado dome"
+    },
+    "pieces": [
+      {
+        "ingredient": "tomato",
+        "shape": "dice",
+        "size_cm": 1.2,
+        "placement": "folded and scattered on top"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "dice",
+        "size_cm": 1.0,
+        "placement": "folded and scattered"
+      },
+      {
+        "ingredient": "lime",
+        "shape": "wedge",
+        "size_cm": 4.5,
+        "placement": "perched beside dome"
+      }
+    ],
+    "finish": "cilantro leaves and red chili flakes",
+    "never": [
+      "avocado half with brown seed/pit",
+      "smooth thin green soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "chunky smashed green avocado dome",
+      "tomato",
+      "lime"
+    ]
+  },
+  {
+    "id": "chilaquiles",
+    "name": "Mexican Chilaquiles",
+    "vessel": "skillet",
+    "base": {
+      "colour": "rich roasted red salsa",
+      "texture": "warm simmered tomato-chili salsa"
+    },
+    "pieces": [
+      {
+        "ingredient": "tortilla chips",
+        "shape": "crisp triangles",
+        "size_cm": 4.5,
+        "placement": "coated and heaped in skillet"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "whole fried",
+        "size_cm": 7.5,
+        "placement": "perched on top"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "crumble",
+        "size_cm": 1.2,
+        "placement": "scattered on top"
+      },
+      {
+        "ingredient": "avocado",
+        "shape": "slices",
+        "size_cm": 6.5,
+        "placement": "fanned on top"
+      }
+    ],
+    "finish": "white crema drizzle and cilantro leaves",
+    "never": [
+      "soup with croutons",
+      "avocado half with pit",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "salsa-coated tortilla triangles in skillet",
+      "fried egg",
+      "crumbled cheese"
+    ]
+  },
+  {
+    "id": "huevos-rancheros",
+    "name": "Huevos Rancheros",
+    "vessel": "plate",
+    "base": {
+      "colour": "bright roasted tomato red",
+      "texture": "warm ranchera tomato-chili salsa pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "corn tortillas",
+        "shape": "warm rounds",
+        "size_cm": 13.0,
+        "placement": "laid flat under eggs"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "whole fried",
+        "size_cm": 7.5,
+        "placement": "set side by side on tortillas"
+      },
+      {
+        "ingredient": "avocado",
+        "shape": "slices",
+        "size_cm": 7.0,
+        "placement": "fanned beside eggs"
+      }
+    ],
+    "finish": "cilantro scatter and black bean smear",
+    "never": [
+      "avocado half with pit",
+      "baguette toast",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "tortillas",
+      "sunny fried eggs",
+      "red tomato salsa",
+      "avocado slices"
+    ]
+  },
+  {
+    "id": "queso-fundido",
+    "name": "Queso Fundido",
+    "vessel": "skillet",
+    "base": {
+      "colour": "warm ivory gold",
+      "texture": "bubbling molten stringy melted cheese"
+    },
+    "pieces": [
+      {
+        "ingredient": "pepper",
+        "shape": "strips",
+        "size_cm": 5.5,
+        "placement": "charred and nestled into molten cheese"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "slices",
+        "size_cm": 4.0,
+        "placement": "charred on top"
+      }
+    ],
+    "finish": "fresh cilantro leaves and warm tortillas beside",
+    "never": [
+      "cold raw cheese wedge",
+      "tomato soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "bubbling melted cheese pool in skillet",
+      "charred pepper strips"
+    ]
+  },
+  {
+    "id": "rajas-con-crema",
+    "name": "Rajas con Crema",
+    "vessel": "skillet",
+    "base": {
+      "colour": "creamy pale ivory",
+      "texture": "thick simmered cream and melted cheese sauce"
+    },
+    "pieces": [
+      {
+        "ingredient": "pepper",
+        "shape": "strips",
+        "size_cm": 6.0,
+        "placement": "folded generously through cream"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "slices",
+        "size_cm": 4.5,
+        "placement": "simmered in cream"
+      }
+    ],
+    "finish": "sweet corn kernels and warm tortillas beside",
+    "never": [
+      "raw crunchy whole bell pepper",
+      "red tomato sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "charred pepper strips",
+      "rich white cream-cheese sauce in skillet"
+    ]
+  },
+  {
+    "id": "steak-fajitas",
+    "name": "Sizzling Steak Fajitas",
+    "vessel": "skillet",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "steak",
+        "shape": "seared strips",
+        "size_cm": 7.5,
+        "placement": "clustered sizzling at centre"
+      },
+      {
+        "ingredient": "pepper",
+        "shape": "strips",
+        "size_cm": 6.5,
+        "placement": "charred beside steak"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "rings",
+        "size_cm": 4.5,
+        "placement": "charred with peppers"
+      },
+      {
+        "ingredient": "lime",
+        "shape": "wedge",
+        "size_cm": 4.5,
+        "placement": "beside skillet"
+      }
+    ],
+    "finish": "cilantro leaves and lime wedge",
+    "never": [
+      "creamy white sauce",
+      "mashed potato",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "seared steak strips",
+      "charred pepper strips",
+      "charred onion"
+    ]
+  },
+  {
+    "id": "agua-de-sandia",
+    "name": "Agua de Sandia",
+    "vessel": "glass",
+    "base": {
+      "colour": "translucent ruby-rose red",
+      "texture": "chilled refreshing watermelon juice with vertical depth"
+    },
+    "pieces": [
+      {
+        "ingredient": "lime",
+        "shape": "wheel",
+        "size_cm": 4.5,
+        "placement": "slit upright on rim"
+      }
+    ],
+    "finish": "crushed ice and fresh mint sprig",
+    "never": [
+      "thick opaque strawberry milkshake",
+      "invented fruit not on table"
+    ],
+    "minimum_to_claim_name": [
+      "translucent ruby watermelon drink in glass",
+      "lime"
+    ]
+  },
+  {
+    "id": "agua-de-fresa",
+    "name": "Agua de Fresa",
+    "vessel": "glass",
+    "base": {
+      "colour": "vibrant crimson strawberry red",
+      "texture": "chilled blended fruit agua fresca"
+    },
+    "pieces": [
+      {
+        "ingredient": "strawberry",
+        "shape": "half",
+        "size_cm": 2.8,
+        "placement": "slit upright on rim"
+      },
+      {
+        "ingredient": "lime",
+        "shape": "wheel",
+        "size_cm": 4.5,
+        "placement": "beside glass if on table"
+      }
+    ],
+    "finish": "crushed ice and mint leaf",
+    "never": [
+      "thick dairy milkshake",
+      "invented lemon not on table"
+    ],
+    "minimum_to_claim_name": [
+      "vibrant red strawberry agua fresca in glass",
+      "strawberry"
+    ]
+  },
+  {
+    "id": "agua-de-naranja",
+    "name": "Agua de Naranja",
+    "vessel": "glass",
+    "base": {
+      "colour": "bright sunlit tangerine orange",
+      "texture": "chilled citrus juice cooler"
+    },
+    "pieces": [
+      {
+        "ingredient": "orange",
+        "shape": "wheel",
+        "size_cm": 7.0,
+        "placement": "slit upright on rim"
+      }
+    ],
+    "finish": "crushed ice and pinch of cinnamon",
+    "never": [
+      "dairy cream top",
+      "invented strawberry"
+    ],
+    "minimum_to_claim_name": [
+      "bright orange drink in glass",
+      "orange"
+    ]
+  },
+  {
+    "id": "mexican-horchata",
+    "name": "Mexican Horchata",
+    "vessel": "glass",
+    "base": {
+      "colour": "milky creamy ivory",
+      "texture": "smooth chilled spiced rice-milk drink"
+    },
+    "pieces": [],
+    "finish": "light ground cinnamon dust and ice cubes",
+    "never": [
+      "clear translucent water",
+      "red berry colour",
+      "citrus wheel on rim"
+    ],
+    "minimum_to_claim_name": [
+      "opaque milky ivory rice-milk drink in glass",
+      "cinnamon dust"
+    ]
+  },
+  {
+    "id": "tomato-sangrita",
+    "name": "Mexican Sangrita",
+    "vessel": "glass",
+    "base": {
+      "colour": "deep spiced crimson tomato red",
+      "texture": "chilled savoury-tangy tomato citrus juice"
+    },
+    "pieces": [
+      {
+        "ingredient": "lime",
+        "shape": "wheel",
+        "size_cm": 4.5,
+        "placement": "slit upright on rim"
+      }
+    ],
+    "finish": "chili-salt rim",
+    "never": [
+      "pink strawberry smoothie",
+      "dairy milk foam",
+      "invented berry"
+    ],
+    "minimum_to_claim_name": [
+      "deep crimson tomato-citrus drink in glass",
+      "lime"
+    ]
+  },
+  {
+    "id": "watermelon-lime-salad",
+    "name": "Watermelon Tajin Lime",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "watermelon",
+        "shape": "cubes",
+        "size_cm": 3.0,
+        "placement": "clustered neatly"
+      },
+      {
+        "ingredient": "lime",
+        "shape": "wedges",
+        "size_cm": 4.5,
+        "placement": "tucked beside watermelon"
+      }
+    ],
+    "finish": "red chili-lime Tajin dust and mint leaves",
+    "never": [
+      "soup",
+      "melted cheese",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "red watermelon cubes",
+      "lime"
+    ]
+  },
+  {
+    "id": "avocado-lime-salad",
+    "name": "Avocado Citrus Salad",
+    "vessel": "bowl",
+    "base": {
+      "colour": "crisp fresh green",
+      "texture": "tossed romaine leaf bed"
+    },
+    "pieces": [
+      {
+        "ingredient": "avocado",
+        "shape": "slices",
+        "size_cm": 7.0,
+        "placement": "fanned over romaine"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "wedges",
+        "size_cm": 3.5,
+        "placement": "scattered around"
+      },
+      {
+        "ingredient": "lime",
+        "shape": "wedge",
+        "size_cm": 4.5,
+        "placement": "perched on side"
+      }
+    ],
+    "finish": "cilantro leaves and pepita scatter",
+    "never": [
+      "avocado half with pit",
+      "creamy white ranch",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "romaine leaf bed",
+      "fanned avocado slices",
+      "lime"
+    ]
+  },
+  {
+    "id": "tres-leches",
+    "name": "Tres Leches Cake",
+    "vessel": "plate",
+    "base": {
+      "colour": "creamy pale ivory",
+      "texture": "sweet condensed-milk pool around sponge"
+    },
+    "pieces": [
+      {
+        "ingredient": "sponge cake",
+        "shape": "rectangular slab",
+        "size_cm": 10.0,
+        "placement": "centred in milk pool"
+      },
+      {
+        "ingredient": "whipped cream",
+        "shape": "cloud dome",
+        "size_cm": 8.0,
+        "placement": "crowned thick over cake"
+      },
+      {
+        "ingredient": "strawberry",
+        "shape": "halves",
+        "size_cm": 3.0,
+        "placement": "perched on whipped cream"
+      }
+    ],
+    "finish": "light cinnamon dust and sweet milk rim pool",
+    "never": [
+      "herbs",
+      "croutons",
+      "flat dry pancake",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "milk-soaked sponge cake",
+      "thick whipped cream top",
+      "sweet milk pool"
+    ]
+  },
+  {
+    "id": "causa-limena",
+    "name": "Peruvian Causa Limena",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "smooth layered yellow mash cylinder",
+        "size_cm": 9.5,
+        "placement": "centred neatly stacked"
+      },
+      {
+        "ingredient": "avocado",
+        "shape": "slices",
+        "size_cm": 6.5,
+        "placement": "layered inside and fanned on top"
+      },
+      {
+        "ingredient": "chicken",
+        "shape": "torn",
+        "size_cm": 2.5,
+        "placement": "layered inside mash cylinder"
+      }
+    ],
+    "finish": "cilantro oil dots and lime wheel",
+    "never": [
+      "avocado half with pit",
+      "french fries",
+      "brown gravy",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "bright yellow-gold potato mash dome/cylinder",
+      "avocado",
+      "chicken"
+    ]
+  },
+  {
+    "id": "lomo-saltado",
+    "name": "Peruvian Lomo Saltado",
+    "vessel": "plate",
+    "base": {
+      "colour": "dark glossy soy-vinegar brown",
+      "texture": "rich stir-fry jus"
+    },
+    "pieces": [
+      {
+        "ingredient": "steak",
+        "shape": "seared strips",
+        "size_cm": 6.5,
+        "placement": "clustered in jus"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "wedges",
+        "size_cm": 4.0,
+        "placement": "tossed with steak"
+      },
+      {
+        "ingredient": "potato",
+        "shape": "fries",
+        "size_cm": 7.0,
+        "placement": "piled tightly beside steak"
+      },
+      {
+        "ingredient": "rice",
+        "shape": "mound",
+        "size_cm": 8.0,
+        "placement": "mounded beside"
+      }
+    ],
+    "finish": "fresh cilantro leaves",
+    "never": [
+      "mashed potato",
+      "creamy white sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "seared steak strips",
+      "tomato wedges",
+      "golden fries"
+    ]
+  },
+  {
+    "id": "papa-huancaina",
+    "name": "Papa a la Huancaina",
+    "vessel": "plate",
+    "base": {
+      "colour": "crisp fresh green",
+      "texture": "romaine lettuce leaf bed"
+    },
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "wheels",
+        "size_cm": 5.5,
+        "placement": "shingled on romaine"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "smooth golden aji-cheese sauce",
+        "size_cm": 9.0,
+        "placement": "blanketed smoothly over potatoes"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "halves",
+        "size_cm": 5.0,
+        "placement": "beside sauced potatoes"
+      }
+    ],
+    "finish": "black olives and parsley leaf",
+    "never": [
+      "raw dry cheese cubes",
+      "red tomato sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "sliced boiled potatoes",
+      "smooth golden yellow cheese-chili sauce",
+      "romaine"
+    ]
+  },
+  {
+    "id": "peruvian-ceviche",
+    "name": "Peruvian Ceviche",
+    "vessel": "shallow bowl",
+    "base": {
+      "colour": "milky pale citrus-ivory",
+      "texture": "bright lime leche de tigre pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "salmon",
+        "shape": "cubes",
+        "size_cm": 2.2,
+        "placement": "clustered half sunk in leche de tigre"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "thin rings",
+        "size_cm": 4.0,
+        "placement": "scattered crisp over fish"
+      },
+      {
+        "ingredient": "pepper",
+        "shape": "thin strips",
+        "size_cm": 3.5,
+        "placement": "tucked beside"
+      }
+    ],
+    "finish": "cilantro microherbs and toasted corn cancha",
+    "never": [
+      "thick seared salmon fillet",
+      "sweet syrup",
+      "creamy mayonnaise"
+    ],
+    "minimum_to_claim_name": [
+      "cured fish cubes",
+      "milky lime leche de tigre pool",
+      "red onion"
+    ]
+  },
+  {
+    "id": "salmon-tiradito",
+    "name": "Salmon Tiradito",
+    "vessel": "plate",
+    "base": {
+      "colour": "vibrant golden yellow-orange",
+      "texture": "silky aji amarillo lime tiger's milk pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "salmon",
+        "shape": "thin sashimi slices",
+        "size_cm": 7.0,
+        "placement": "fanned flat in golden pool"
+      }
+    ],
+    "finish": "green cilantro oil dots and cancha corn",
+    "never": [
+      "thick cooked seared fillet",
+      "tomato sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "thin raw salmon slices fanned flat",
+      "golden yellow-orange lime sauce"
+    ]
+  },
+  {
+    "id": "palta-rellena",
+    "name": "Peruvian Palta Rellena",
+    "vessel": "plate",
+    "base": {
+      "colour": "pale lime-herb green",
+      "texture": "light herb oil drizzle"
+    },
+    "pieces": [
+      {
+        "ingredient": "avocado",
+        "shape": "fanned slices",
+        "size_cm": 7.5,
+        "placement": "curved ring cradling salad"
+      },
+      {
+        "ingredient": "chicken",
+        "shape": "torn",
+        "size_cm": 2.5,
+        "placement": "mounded inside avocado ring"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "halves",
+        "size_cm": 4.5,
+        "placement": "nestled with chicken"
+      }
+    ],
+    "finish": "microherbs and lime drizzle",
+    "never": [
+      "avocado half with brown seed/pit",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "fanned avocado",
+      "chicken and egg salad mound"
+    ]
+  },
+  {
+    "id": "asado-chimichurri",
+    "name": "Asado with Chimichurri",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "steak",
+        "shape": "thick diagonal slices",
+        "size_cm": 13.0,
+        "placement": "fanned across plate"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "in herb dressing"
+      }
+    ],
+    "finish": "vibrant emerald chopped-parsley chimichurri spooned over steak and charred lemon",
+    "never": [
+      "sweet fruit glaze",
+      "thick white cream sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "seared sliced beef steak",
+      "vibrant green herb chimichurri"
+    ]
+  },
+  {
+    "id": "steak-mushroom-skewer",
+    "name": "Steak Mushroom Skewers",
+    "vessel": "plate",
+    "base": {
+      "colour": "bright emerald herb green",
+      "texture": "chimichurri oil drizzle"
+    },
+    "pieces": [
+      {
+        "ingredient": "steak",
+        "shape": "skewers",
+        "size_cm": 20.0,
+        "placement": "fanned overlapping"
+      },
+      {
+        "ingredient": "mushroom",
+        "shape": "halves",
+        "size_cm": 3.5,
+        "placement": "threaded on skewers"
+      },
+      {
+        "ingredient": "pepper",
+        "shape": "slices",
+        "size_cm": 3.5,
+        "placement": "threaded on skewers"
+      }
+    ],
+    "finish": "chimichurri drizzle and herb scatter",
+    "never": [
+      "raw unseared meat",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "charred steak skewers",
+      "mushrooms",
+      "peppers"
+    ]
+  },
+  {
+    "id": "limonada-suica",
+    "name": "Limonada Suica",
+    "vessel": "glass",
+    "base": {
+      "colour": "creamy pale jade-white",
+      "texture": "frothy blended whole-lime condensed-milk cooler"
+    },
+    "pieces": [
+      {
+        "ingredient": "lime",
+        "shape": "wheel",
+        "size_cm": 4.5,
+        "placement": "slit upright on rim"
+      }
+    ],
+    "finish": "frothy cream foam cap and crushed ice",
+    "never": [
+      "clear transparent water",
+      "red berry drink",
+      "invented lemon"
+    ],
+    "minimum_to_claim_name": [
+      "frothy creamy pale-jade limeade in glass",
+      "lime"
+    ]
+  },
+  {
+    "id": "italian-caprese",
+    "name": "Italian Caprese",
+    "vessel": "plate",
+    "base": {
+      "colour": "pale golden green",
+      "texture": "olive oil dots and dark balsamic drizzle"
+    },
+    "pieces": [
+      {
+        "ingredient": "tomato",
+        "shape": "wheels",
+        "size_cm": 6.5,
+        "placement": "alternating shingled"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "slices",
+        "size_cm": 5.5,
+        "placement": "alternating white mozzarella slices"
+      }
+    ],
+    "finish": "whole fresh basil leaves and olive oil",
+    "never": [
+      "melted baked yellow cheese",
+      "thick soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "alternating red tomato slices and white mozzarella slices",
+      "fresh basil"
+    ]
+  },
+  {
+    "id": "bruschetta-pomodoro",
+    "name": "Bruschetta al Pomodoro",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 11.0,
+        "placement": "two slices laid flat on board"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "dice",
+        "size_cm": 1.3,
+        "placement": "spread evenly across both slices"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered lightly on tomato"
+      }
+    ],
+    "finish": "fresh basil ribbons and olive oil gloss",
+    "never": [
+      "one single giant raw tomato wedge",
+      "standing raw broccoli",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "two crisp toasted baguette slices",
+      "diced tomato spread across bread"
+    ]
+  },
+  {
+    "id": "pappa-al-pomodoro",
+    "name": "Pappa al Pomodoro",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "rich rustic brick red",
+      "texture": "thick velvety bread-thickened Tuscan tomato soup"
+    },
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 9.0,
+        "placement": "beside bowl if on table"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered on soup"
+      }
+    ],
+    "finish": "bright green basil oil swirl and basil leaves",
+    "never": [
+      "clear thin watery broth",
+      "creamy white soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "thick textured red tomato soup in deep bowl",
+      "bread"
+    ]
+  },
+  {
+    "id": "tuscan-panzanella",
+    "name": "Tuscan Panzanella",
+    "vessel": "bowl",
+    "base": {
+      "colour": "pale ruby-amber",
+      "texture": "light tomato red-wine vinaigrette at bottom"
+    },
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "cubes",
+        "size_cm": 2.4,
+        "placement": "tossed evenly throughout"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "wedges",
+        "size_cm": 3.8,
+        "placement": "clustered with bread"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "rings",
+        "size_cm": 3.5,
+        "placement": "tucked throughout"
+      }
+    ],
+    "finish": "fresh basil leaves",
+    "never": [
+      "romaine lettuce Caesar bed",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "crisp-edged bread cubes",
+      "ripe tomato wedges",
+      "red onion"
+    ]
+  },
+  {
+    "id": "risotto-ai-funghi",
+    "name": "Risotto ai Funghi",
+    "vessel": "shallow bowl",
+    "base": {
+      "colour": "creamy warm ivory-tan",
+      "texture": "glossy low-mounded creamy risotto"
+    },
+    "pieces": [
+      {
+        "ingredient": "mushroom",
+        "shape": "halves",
+        "size_cm": 3.8,
+        "placement": "sunk one-third across top"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "pats",
+        "size_cm": 1.5,
+        "placement": "glossed into rice"
+      }
+    ],
+    "finish": "parmesan shavings and thyme leaves",
+    "never": [
+      "dry loose steamed white rice",
+      "red tomato sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "creamy glossy low-mounded risotto",
+      "seared mushrooms"
+    ]
+  },
+  {
+    "id": "pear-gorgonzola-risotto",
+    "name": "Pear Gorgonzola Risotto",
+    "vessel": "shallow bowl",
+    "base": {
+      "colour": "silky pale ivory-cream",
+      "texture": "glossy low-mounded cheese risotto"
+    },
+    "pieces": [
+      {
+        "ingredient": "pear",
+        "shape": "slices",
+        "size_cm": 5.5,
+        "placement": "fanned on top of risotto"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "crumble",
+        "size_cm": 1.4,
+        "placement": "melting over risotto"
+      }
+    ],
+    "finish": "toasted walnut crumble and thyme leaves",
+    "never": [
+      "dry loose white rice",
+      "red tomato sauce",
+      "chocolate sauce"
+    ],
+    "minimum_to_claim_name": [
+      "creamy cheese risotto",
+      "fanned pear slices"
+    ]
+  },
+  {
+    "id": "insalata-di-arance",
+    "name": "Insalata di Arance",
+    "vessel": "plate",
+    "base": {
+      "colour": "pale golden green",
+      "texture": "citrus olive oil dots"
+    },
+    "pieces": [
+      {
+        "ingredient": "orange",
+        "shape": "wheels",
+        "size_cm": 7.0,
+        "placement": "shingled overlapping at centre"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "thin rings",
+        "size_cm": 4.0,
+        "placement": "draped over orange wheels"
+      }
+    ],
+    "finish": "shaved fennel and black olives",
+    "never": [
+      "whipped cream",
+      "syrup",
+      "heavy romaine salad"
+    ],
+    "minimum_to_claim_name": [
+      "shingled bright orange slices",
+      "thin red onion rings"
+    ]
+  },
+  {
+    "id": "schiacciata-uva",
+    "name": "Schiacciata con l'Uva",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "grape flatbread",
+        "shape": "baked golden squares",
+        "size_cm": 11.0,
+        "placement": "two squares laid side by side"
+      },
+      {
+        "ingredient": "grapes",
+        "shape": "whole roasted berries",
+        "size_cm": 1.8,
+        "placement": "pressed and blistered into dough"
+      }
+    ],
+    "finish": "rosemary needles and coarse sugar crust",
+    "never": [
+      "raw green romaine",
+      "savory melted cheddar"
+    ],
+    "minimum_to_claim_name": [
+      "golden baked dimpled flatbread",
+      "roasted dark grapes embedded in crust"
+    ]
+  },
+  {
+    "id": "broccoli-orecchiette",
+    "name": "Broccoli Orecchiette",
+    "vessel": "shallow bowl",
+    "base": {
+      "colour": "pale golden olive oil",
+      "texture": "light pasta-water emulsion"
+    },
+    "pieces": [
+      {
+        "ingredient": "pasta",
+        "shape": "orecchiette shells",
+        "size_cm": 2.2,
+        "placement": "mounded at centre"
+      },
+      {
+        "ingredient": "broccoli",
+        "shape": "chopped florets",
+        "size_cm": 2.8,
+        "placement": "tossed evenly with pasta"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered on top"
+      }
+    ],
+    "finish": "pecorino cheese crumble and chili flakes",
+    "never": [
+      "rice instead of pasta",
+      "raw standing whole broccoli",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "ear-shaped orecchiette pasta",
+      "tender broccoli florets",
+      "garlic"
+    ]
+  },
+  {
+    "id": "broccoli-aglio-olio",
+    "name": "Aglio e Olio Broccolini",
+    "vessel": "shallow bowl",
+    "base": {
+      "colour": "golden chili-garlic oil",
+      "texture": "light emulsified garlic-chili oil"
+    },
+    "pieces": [
+      {
+        "ingredient": "pasta",
+        "shape": "spaghetti twirl",
+        "size_cm": 12.0,
+        "placement": "mounded at centre"
+      },
+      {
+        "ingredient": "broccoli",
+        "shape": "halved florets",
+        "size_cm": 3.5,
+        "placement": "tossed with pasta"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered crisp on top"
+      }
+    ],
+    "finish": "red chili oil drizzle and chili flakes",
+    "never": [
+      "rice instead of pasta",
+      "standing whole raw broccoli",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "pasta",
+      "garlic chips",
+      "broccoli florets"
+    ]
+  },
+  {
+    "id": "cacio-e-pepe",
+    "name": "Roman Cacio e Pepe",
+    "vessel": "shallow bowl",
+    "base": {
+      "colour": "creamy pale ivory",
+      "texture": "glossy pecorino cheese emulsion speckled with black pepper"
+    },
+    "pieces": [
+      {
+        "ingredient": "pasta",
+        "shape": "tonnarelli twirl",
+        "size_cm": 13.0,
+        "placement": "nestled coated at centre"
+      }
+    ],
+    "finish": "coarse cracked black pepper and pecorino dust",
+    "never": [
+      "dry white rice",
+      "melted yellow cheddar block",
+      "red tomato sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "pasta twirl",
+      "creamy pecorino cheese emulsion",
+      "cracked black pepper"
+    ]
+  },
+  {
+    "id": "garlic-bread",
+    "name": "Italian Garlic Bread",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 11.0,
+        "placement": "two golden slices laid flat"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "melting smear",
+        "size_cm": 3.5,
+        "placement": "brushed over bread surface"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered lightly on buttered bread"
+      }
+    ],
+    "finish": "chopped parsley scatter and melted butter gloss",
+    "never": [
+      "giant pink-yellow butter blocks",
+      "sweet icing",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "golden toasted baguette slices",
+      "garlic",
+      "butter"
+    ]
+  },
+  {
+    "id": "sauce-chili-eggs",
+    "name": "Uova in Purgatorio",
+    "vessel": "skillet",
+    "base": {
+      "colour": "vivid fiery tomato red",
+      "texture": "simmered spicy tomato-chili sauce pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "poached in sauce",
+        "size_cm": 7.5,
+        "placement": "half sunk in simmering tomato wells"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered lightly"
+      }
+    ],
+    "finish": "fresh basil leaves and crusty bread beside",
+    "never": [
+      "dry eggs on bare plate",
+      "yellow cheese sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "red tomato-chili sauce in skillet",
+      "eggs nestled in sauce"
+    ]
+  },
+  {
+    "id": "grilled-peach-burrata",
+    "name": "Grilled Peach & Burrata",
+    "vessel": "plate",
+    "base": {
+      "colour": "deep fresh green",
+      "texture": "baby spinach leaf bed"
+    },
+    "pieces": [
+      {
+        "ingredient": "cheese",
+        "shape": "torn creamy burrata mound",
+        "size_cm": 7.0,
+        "placement": "centred on spinach"
+      },
+      {
+        "ingredient": "peach",
+        "shape": "wedges",
+        "size_cm": 6.0,
+        "placement": "charred around cheese"
+      }
+    ],
+    "finish": "dark balsamic reduction drizzle and basil leaves",
+    "never": [
+      "hard yellow cheddar cubes",
+      "croutons",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "creamy white burrata/soft cheese",
+      "charred peach wedges",
+      "spinach"
+    ]
+  },
+  {
+    "id": "peach-burrata-bruschetta",
+    "name": "Peach Burrata Bruschetta",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 11.0,
+        "placement": "two crisp slices laid flat"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "slices",
+        "size_cm": 5.0,
+        "placement": "spread across bread"
+      },
+      {
+        "ingredient": "peach",
+        "shape": "slices",
+        "size_cm": 5.0,
+        "placement": "fanned flat over cheese on both slices"
+      }
+    ],
+    "finish": "honey-balsamic drizzle and basil ribbons",
+    "never": [
+      "hard cheddar wedge on side",
+      "raw whole peach"
+    ],
+    "minimum_to_claim_name": [
+      "two toasted bread slices",
+      "creamy white cheese",
+      "peach slices"
+    ]
+  },
+  {
+    "id": "sicilian-arancini",
+    "name": "Sicilian Arancini",
+    "vessel": "plate",
+    "base": {
+      "colour": "rich brick red",
+      "texture": "smooth tomato ragu smear"
+    },
+    "pieces": [
+      {
+        "ingredient": "fried rice balls",
+        "shape": "golden breaded spheres",
+        "size_cm": 6.0,
+        "placement": "three clustered on ragu smear"
+      }
+    ],
+    "finish": "grated parmesan snow and single basil leaf",
+    "never": [
+      "loose wet rice bowl",
+      "raw white rice",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "crisp golden fried breaded rice spheres",
+      "red tomato sauce"
+    ]
+  },
+  {
+    "id": "panna-cotta",
+    "name": "Italian Panna Cotta",
+    "vessel": "plate",
+    "base": {
+      "colour": "deep ruby crimson",
+      "texture": "glossy berry coulis swirl"
+    },
+    "pieces": [
+      {
+        "ingredient": "milk",
+        "shape": "silky cream dome",
+        "size_cm": 7.5,
+        "placement": "unmolded centred on coulis"
+      },
+      {
+        "ingredient": "strawberry",
+        "shape": "halves",
+        "size_cm": 2.8,
+        "placement": "beside dome"
+      },
+      {
+        "ingredient": "blueberries",
+        "shape": "whole",
+        "size_cm": 1.3,
+        "placement": "clustered beside dome"
+      }
+    ],
+    "finish": "mint leaf on cream dome",
+    "never": [
+      "herbs like thyme or parsley",
+      "croutons",
+      "savoury oil",
+      "porridge"
+    ],
+    "minimum_to_claim_name": [
+      "smooth glossy unmolded ivory cream dome",
+      "berries"
+    ]
+  },
+  {
+    "id": "peach-bellini",
+    "name": "Venetian Peach Bellini",
+    "vessel": "glass",
+    "base": {
+      "colour": "blushing soft peach-pink",
+      "texture": "sparkling peach puree drink with vertical gradient"
+    },
+    "pieces": [
+      {
+        "ingredient": "peach",
+        "shape": "slice",
+        "size_cm": 4.5,
+        "placement": "slit upright on rim or beside"
+      }
+    ],
+    "finish": "fine sparkling effervescence",
+    "never": [
+      "thick white yogurt shake",
+      "red tomato juice",
+      "invented lemon"
+    ],
+    "minimum_to_claim_name": [
+      "peach-pink sparkling drink in glass",
+      "peach"
+    ]
+  },
+  {
+    "id": "grape-juice-spritz",
+    "name": "Sparkling Grape Spritz",
+    "vessel": "glass",
+    "base": {
+      "colour": "translucent ruby-violet",
+      "texture": "sparkling grape spritz with vertical depth"
+    },
+    "pieces": [
+      {
+        "ingredient": "grapes",
+        "shape": "whole",
+        "size_cm": 1.8,
+        "placement": "beside glass"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wheel",
+        "size_cm": 5.5,
+        "placement": "slit upright on rim"
+      }
+    ],
+    "finish": "ice cubes and lemon twist",
+    "never": [
+      "milky yogurt drink",
+      "invented strawberry"
+    ],
+    "minimum_to_claim_name": [
+      "translucent ruby-purple sparkling drink in glass",
+      "grapes"
+    ]
+  },
+  {
+    "id": "steak-frites",
+    "name": "French Steak Frites",
+    "vessel": "plate",
+    "base": {
+      "colour": "nutty amber brown",
+      "texture": "light brown-butter jus pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "steak",
+        "shape": "diagonal seared slices",
+        "size_cm": 13.0,
+        "placement": "fanned on one side"
+      },
+      {
+        "ingredient": "potato",
+        "shape": "fries",
+        "size_cm": 7.5,
+        "placement": "heaped crisply beside steak"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "pat",
+        "size_cm": 2.2,
+        "placement": "melting on steak"
+      }
+    ],
+    "finish": "herb compound butter pat, crisp garlic chips, watercress",
+    "never": [
+      "mashed potato",
+      "sweet syrup",
+      "giant pink butter block"
+    ],
+    "minimum_to_claim_name": [
+      "seared sliced steak",
+      "golden fries",
+      "butter"
+    ]
+  },
+  {
+    "id": "steak-tartare",
+    "name": "Classic Steak Tartare",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "steak",
+        "shape": "finely diced cylinder",
+        "size_cm": 8.5,
+        "placement": "neat low cylinder at centre"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "raw golden yolk",
+        "size_cm": 3.5,
+        "placement": "nestled in dimple on top"
+      },
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 9.5,
+        "placement": "two crisp slices beside cylinder"
+      }
+    ],
+    "finish": "caper scatter and finely chopped herbs",
+    "never": [
+      "seared brown steak slab",
+      "fried egg white",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "molded raw red beef tartare cylinder",
+      "golden yolk on top",
+      "toasts"
+    ]
+  },
+  {
+    "id": "steak-mash-jus",
+    "name": "Bistro Steak & Mash",
+    "vessel": "plate",
+    "base": {
+      "colour": "deep mahogany brown",
+      "texture": "glossy red-wine jus pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "mash",
+        "size_cm": 10.0,
+        "placement": "smooth yellow-white dome at centre"
+      },
+      {
+        "ingredient": "steak",
+        "shape": "seared slices",
+        "size_cm": 13.0,
+        "placement": "fanned overlapping mash edge"
+      }
+    ],
+    "finish": "thyme leaves and glossy jus",
+    "never": [
+      "french fries",
+      "greyish brown mash",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "smooth yellow-white mash dome",
+      "seared sliced steak",
+      "dark jus"
+    ]
+  },
+  {
+    "id": "french-onion-soup",
+    "name": "Soupe a l'Oignon",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "deep amber-mahogany",
+      "texture": "rich caramelized onion beef broth"
+    },
+    "pieces": [
+      {
+        "ingredient": "onion",
+        "shape": "caramelized ribbons",
+        "size_cm": 4.0,
+        "placement": "submerged in broth"
+      },
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 9.0,
+        "placement": "floating on broth"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "broiled melted cap",
+        "size_cm": 9.5,
+        "placement": "bubbling golden over toast and bowl rim"
+      }
+    ],
+    "finish": "thyme sprig",
+    "never": [
+      "creamy white potato soup",
+      "raw purple onion rings",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "dark amber onion broth in deep bowl",
+      "gratinated melted-cheese bread top"
+    ]
+  },
+  {
+    "id": "tarte-tatin",
+    "name": "French Tarte Tatin",
+    "vessel": "tart",
+    "base": {
+      "colour": "deep burnt amber",
+      "texture": "glossy caramelized butter-sugar glaze on pastry"
+    },
+    "pieces": [
+      {
+        "ingredient": "apple",
+        "shape": "wedges",
+        "size_cm": 5.5,
+        "placement": "packed tightly in concentric ring"
+      },
+      {
+        "ingredient": "quenelle",
+        "shape": "creamy quenelle",
+        "size_cm": 4.5,
+        "placement": "centred on tart"
+      }
+    ],
+    "finish": "vanilla ice cream or cream quenelle and amber caramel glaze",
+    "never": [
+      "raw pale green apple slices",
+      "herbs",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "pastry base",
+      "amber caramelized packed apples",
+      "cream quenelle"
+    ]
+  },
+  {
+    "id": "apple-galette-normande",
+    "name": "Normandy Apple Tart",
+    "vessel": "tart",
+    "base": {
+      "colour": "golden pale custard",
+      "texture": "fluted crisp pastry tart shell"
+    },
+    "pieces": [
+      {
+        "ingredient": "apple",
+        "shape": "slices",
+        "size_cm": 5.5,
+        "placement": "fanned in tight spiral ring"
+      },
+      {
+        "ingredient": "quenelle",
+        "shape": "whipped cream quenelle",
+        "size_cm": 4.0,
+        "placement": "centred"
+      }
+    ],
+    "finish": "apricot-caramel gloss",
+    "never": [
+      "herbs",
+      "croutons",
+      "savoury oil",
+      "chunky stew"
+    ],
+    "minimum_to_claim_name": [
+      "fluted pastry tart shell",
+      "fanned apple slices"
+    ]
+  },
+  {
+    "id": "tarte-au-citron",
+    "name": "Tarte au Citron",
+    "vessel": "tart",
+    "base": {
+      "colour": "bright glossy lemon yellow",
+      "texture": "smooth velvety set lemon curd inside fluted tart shell"
+    },
+    "pieces": [
+      {
+        "ingredient": "quenelle",
+        "shape": "whipped cream quenelle",
+        "size_cm": 4.0,
+        "placement": "centred on curd"
+      }
+    ],
+    "finish": "fine candied lemon zest curls",
+    "never": [
+      "fried egg",
+      "herbs",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "fluted pastry shell",
+      "smooth bright yellow lemon curd"
+    ]
+  },
+  {
+    "id": "tarte-bourdaloue",
+    "name": "Tarte Bourdaloue",
+    "vessel": "tart",
+    "base": {
+      "colour": "warm pale almond gold",
+      "texture": "baked almond frangipane inside fluted tart shell"
+    },
+    "pieces": [
+      {
+        "ingredient": "pear",
+        "shape": "slices",
+        "size_cm": 6.0,
+        "placement": "fanned neatly into frangipane"
+      },
+      {
+        "ingredient": "quenelle",
+        "shape": "whipped cream dollop",
+        "size_cm": 3.8,
+        "placement": "centred"
+      }
+    ],
+    "finish": "flaked almonds and light glaze",
+    "never": [
+      "fried egg",
+      "herbs",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "fluted pastry tart shell",
+      "baked frangipane base",
+      "fanned pear slices"
+    ]
+  },
+  {
+    "id": "tarte-a-la-tomate",
+    "name": "Tarte a la Tomate",
+    "vessel": "tart",
+    "base": {
+      "colour": "pale golden cheese",
+      "texture": "melted mustard-cheese layer inside savoury tart shell"
+    },
+    "pieces": [
+      {
+        "ingredient": "tomato",
+        "shape": "wheels",
+        "size_cm": 6.5,
+        "placement": "shingled overlapping across tart"
+      }
+    ],
+    "finish": "fresh thyme sprigs and cracked pepper",
+    "never": [
+      "sweet whipped cream",
+      "sugar glaze",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "fluted savoury tart shell",
+      "melted cheese base",
+      "shingled red tomato wheels"
+    ]
+  },
+  {
+    "id": "poires-belle-helene",
+    "name": "Poires Belle Helene",
+    "vessel": "shallow bowl",
+    "base": {
+      "colour": "glossy dark chocolate brown",
+      "texture": "warm dark chocolate sauce pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "pear",
+        "shape": "half",
+        "size_cm": 8.0,
+        "placement": "centred poached upright"
+      },
+      {
+        "ingredient": "quenelle",
+        "shape": "vanilla ice cream quenelle",
+        "size_cm": 4.5,
+        "placement": "beside pear half"
+      }
+    ],
+    "finish": "warm dark chocolate drizzle and toasted almond flakes",
+    "never": [
+      "herbs",
+      "croutons",
+      "savoury gravy",
+      "raw unpoached green pear"
+    ],
+    "minimum_to_claim_name": [
+      "poached pear half",
+      "vanilla cream quenelle",
+      "dark sauce drizzle"
+    ]
+  },
+  {
+    "id": "peach-melba",
+    "name": "Peach Melba",
+    "vessel": "bowl",
+    "base": {
+      "colour": "bright ruby raspberry-berry",
+      "texture": "glossy sweet berry coulis drizzle"
+    },
+    "pieces": [
+      {
+        "ingredient": "peach",
+        "shape": "halves",
+        "size_cm": 7.0,
+        "placement": "nestled in bowl"
+      },
+      {
+        "ingredient": "quenelle",
+        "shape": "vanilla ice cream quenelle",
+        "size_cm": 4.5,
+        "placement": "beside poached peach"
+      }
+    ],
+    "finish": "berry coulis ribbon and toasted almond flakes",
+    "never": [
+      "herbs",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "poached peach",
+      "vanilla cream quenelle",
+      "bright red berry coulis"
+    ]
+  },
+  {
+    "id": "crepes-suzette",
+    "name": "Crepes Suzette",
+    "vessel": "plate",
+    "base": {
+      "colour": "glossy amber caramel orange",
+      "texture": "warm orange-butter caramel sauce pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "crepes",
+        "shape": "folded thin triangles",
+        "size_cm": 13.0,
+        "placement": "shingled overlapping in sauce"
+      },
+      {
+        "ingredient": "orange",
+        "shape": "wheels",
+        "size_cm": 7.0,
+        "placement": "tucked beside crepes"
+      }
+    ],
+    "finish": "candied orange peel julienne and amber butter sauce",
+    "never": [
+      "thick fluffy American pancake stack",
+      "herbs",
+      "croutons",
+      "fried egg"
+    ],
+    "minimum_to_claim_name": [
+      "thin folded triangular crepes",
+      "glossy amber orange-butter sauce"
+    ]
+  },
+  {
+    "id": "duck-a-lorange",
+    "name": "Duck a l'Orange",
+    "vessel": "plate",
+    "base": {
+      "colour": "glossy mahogany citrus amber",
+      "texture": "rich bigarade orange-jus pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "duck",
+        "shape": "seared rosy breast slices",
+        "size_cm": 12.0,
+        "placement": "fanned cleanly on plate"
+      },
+      {
+        "ingredient": "orange",
+        "shape": "wheels",
+        "size_cm": 7.0,
+        "placement": "tucked beside duck"
+      }
+    ],
+    "finish": "blanched orange peel julienne and glossy jus",
+    "never": [
+      "pale roast chicken breast pretending to be duck",
+      "sweet pancake",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "rosy seared duck slices",
+      "orange wheels",
+      "amber bigarade jus"
+    ]
+  },
+  {
+    "id": "creme-brulee",
+    "name": "French Creme Brulee",
+    "vessel": "ramekin",
+    "base": {
+      "colour": "deep amber-mahogany glass",
+      "texture": "crisp torched caramelized sugar crust over pale vanilla custard"
+    },
+    "pieces": [],
+    "finish": "cracked glossy burnt-sugar top",
+    "never": [
+      "ice cream scoop on a flat plate",
+      "herbs",
+      "croutons",
+      "berry pile hiding top"
+    ],
+    "minimum_to_claim_name": [
+      "low ceramic ramekin",
+      "pale custard",
+      "crisp amber cracked caramelized sugar top"
+    ]
+  },
+  {
+    "id": "fruit-clafoutis",
+    "name": "French Fruit Clafoutis",
+    "vessel": "bowl",
+    "base": {
+      "colour": "warm golden custard",
+      "texture": "puffed baked flan-like batter in baking dish"
+    },
+    "pieces": [
+      {
+        "ingredient": "blueberries",
+        "shape": "whole",
+        "size_cm": 1.3,
+        "placement": "studded half sunk in baked batter"
+      }
+    ],
+    "finish": "light powdered sugar dust",
+    "never": [
+      "herbs",
+      "croutons",
+      "raw loose berries on cream"
+    ],
+    "minimum_to_claim_name": [
+      "baked golden custard batter in baking dish",
+      "burst blueberries embedded"
+    ]
+  },
+  {
+    "id": "pain-perdu",
+    "name": "French Pain Perdu",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "thick caramelized toast",
+        "size_cm": 11.0,
+        "placement": "two slices angled overlapping"
+      },
+      {
+        "ingredient": "quenelle",
+        "shape": "whipped cream quenelle",
+        "size_cm": 4.0,
+        "placement": "perched on top"
+      }
+    ],
+    "finish": "warm maple syrup drizzle and cinnamon dust",
+    "never": [
+      "savoury herbs",
+      "garlic",
+      "tomato",
+      "raw pale bread"
+    ],
+    "minimum_to_claim_name": [
+      "golden custard-soaked caramelized bread slices",
+      "sweet cream/syrup"
+    ]
+  },
+  {
+    "id": "croque-monsieur",
+    "name": "Croque Monsieur",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 11.0,
+        "placement": "two crisp slices laid flat"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "broiled bubbling gratin crust",
+        "size_cm": 9.5,
+        "placement": "melted golden across top"
+      }
+    ],
+    "finish": "bubbling browned gruyere-bechamel crust and herb scatter",
+    "never": [
+      "cold raw cheese cubes",
+      "sweet syrup",
+      "fruit"
+    ],
+    "minimum_to_claim_name": [
+      "toasted bread",
+      "melted golden broiled cheese crust"
+    ]
+  },
+  {
+    "id": "quiche-lorraine",
+    "name": "Quiche Lorraine",
+    "vessel": "tart",
+    "base": {
+      "colour": "pale golden custard",
+      "texture": "silky baked savoury egg-cream custard in fluted pastry shell"
+    },
+    "pieces": [
+      {
+        "ingredient": "cheese",
+        "shape": "baked golden top",
+        "size_cm": 8.0,
+        "placement": "melted into savoury custard"
+      }
+    ],
+    "finish": "subtle browned custard top and thyme leaves",
+    "never": [
+      "fried sunny-side egg",
+      "sweet fruit",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "fluted savoury pastry shell",
+      "smooth baked golden savoury custard"
+    ]
+  },
+  {
+    "id": "french-tartiflette",
+    "name": "French Tartiflette",
+    "vessel": "skillet",
+    "base": {
+      "colour": "bubbling ivory-gold",
+      "texture": "molten reblochon cheese and cream bake"
+    },
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "wheels",
+        "size_cm": 5.0,
+        "placement": "layered half sunk in bubbling cheese"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "slices",
+        "size_cm": 4.0,
+        "placement": "folded among potatoes"
+      }
+    ],
+    "finish": "golden blistered cheese crust and thyme leaves",
+    "never": [
+      "raw french fries",
+      "red tomato sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "sliced potatoes",
+      "bubbling melted golden cheese crust in skillet"
+    ]
+  },
+  {
+    "id": "florentine-omelette",
+    "name": "Florentine Omelette",
+    "vessel": "plate",
+    "base": {
+      "colour": "pale herb green",
+      "texture": "light herb oil drizzle"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "omelette",
+        "size_cm": 15.0,
+        "placement": "centred smooth folded half-moon"
+      },
+      {
+        "ingredient": "spinach",
+        "shape": "wilted leaves",
+        "size_cm": 4.0,
+        "placement": "peeking from fold"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "melted fold",
+        "size_cm": 3.0,
+        "placement": "inside fold"
+      }
+    ],
+    "finish": "chive scatter and glossy butter sheen",
+    "never": [
+      "raw sunny fried egg",
+      "tomato soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "smooth folded golden omelette",
+      "wilted spinach",
+      "cheese"
+    ]
+  },
+  {
+    "id": "pear-blue-cheese-salad",
+    "name": "Pear & Blue Cheese Salad",
+    "vessel": "bowl",
+    "base": {
+      "colour": "crisp fresh green",
+      "texture": "mounded romaine leaf bed"
+    },
+    "pieces": [
+      {
+        "ingredient": "pear",
+        "shape": "slices",
+        "size_cm": 6.0,
+        "placement": "fanned over greens"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "crumble",
+        "size_cm": 1.3,
+        "placement": "scattered over greens"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "thin rings",
+        "size_cm": 3.5,
+        "placement": "tucked lightly"
+      }
+    ],
+    "finish": "toasted pecans and mustard vinaigrette gloss",
+    "never": [
+      "heavy white mayonnaise",
+      "melted yellow cheese",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "romaine leaf bed",
+      "fanned pear slices",
+      "crumbled cheese"
+    ]
+  },
+  {
+    "id": "grape-cheese-board",
+    "name": "Cheese & Grape Tartine",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 11.0,
+        "placement": "two crisp slices laid flat"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "slices",
+        "size_cm": 5.0,
+        "placement": "laid flat across toast"
+      },
+      {
+        "ingredient": "grapes",
+        "shape": "halves",
+        "size_cm": 1.8,
+        "placement": "nestled blistered on cheese"
+      }
+    ],
+    "finish": "thyme honey drizzle and cracked black pepper",
+    "never": [
+      "giant cake-sized butter block",
+      "tomato sauce"
+    ],
+    "minimum_to_claim_name": [
+      "two crisp baguette toasts",
+      "cheese",
+      "grapes"
+    ]
+  },
+  {
+    "id": "chilled-blueberry-tart",
+    "name": "Blueberry Custard Tart",
+    "vessel": "tart",
+    "base": {
+      "colour": "pale vanilla cream",
+      "texture": "smooth pastry custard inside fluted tart shell"
+    },
+    "pieces": [
+      {
+        "ingredient": "blueberries",
+        "shape": "whole",
+        "size_cm": 1.3,
+        "placement": "packed evenly over custard"
+      },
+      {
+        "ingredient": "quenelle",
+        "shape": "whipped cream quenelle",
+        "size_cm": 3.8,
+        "placement": "centred"
+      }
+    ],
+    "finish": "mint microherb and glossy berry glaze",
+    "never": [
+      "herbs like thyme or parsley",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "fluted tart shell",
+      "blueberries",
+      "cream"
+    ]
+  },
+  {
+    "id": "strawberry-tart",
+    "name": "Tarte aux Fraises",
+    "vessel": "tart",
+    "base": {
+      "colour": "silky pale vanilla",
+      "texture": "smooth pastry cream inside fluted tart shell"
+    },
+    "pieces": [
+      {
+        "ingredient": "strawberry",
+        "shape": "halves",
+        "size_cm": 2.8,
+        "placement": "shingled tightly in concentric ring"
+      }
+    ],
+    "finish": "red berry glaze sheen and crushed pistachio dust",
+    "never": [
+      "herbs",
+      "croutons",
+      "savoury oil",
+      "fried egg"
+    ],
+    "minimum_to_claim_name": [
+      "fluted tart shell",
+      "pastry cream",
+      "shingled fresh strawberries"
+    ]
+  },
+  {
+    "id": "peach-tart",
+    "name": "French Peach Tart",
+    "vessel": "tart",
+    "base": {
+      "colour": "warm almond cream",
+      "texture": "fluted crisp pastry tart shell"
+    },
+    "pieces": [
+      {
+        "ingredient": "peach",
+        "shape": "slices",
+        "size_cm": 5.5,
+        "placement": "fanned in neat rosette"
+      },
+      {
+        "ingredient": "quenelle",
+        "shape": "whipped cream quenelle",
+        "size_cm": 3.8,
+        "placement": "centred"
+      }
+    ],
+    "finish": "glossy apricot glaze",
+    "never": [
+      "herbs",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "fluted tart shell",
+      "fanned peach slices"
+    ]
+  },
+  {
+    "id": "potato-leek-soup",
+    "name": "French Vichyssoise",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "silky pale ivory",
+      "texture": "velvety smooth pureed potato-onion cream soup"
+    },
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "dice",
+        "size_cm": 1.6,
+        "placement": "sunk one-third as golden garnish"
+      }
+    ],
+    "finish": "green chive oil dots and light cream swirl",
+    "never": [
+      "chunky red tomato soup",
+      "croutons unless baguette on table",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "smooth silky ivory potato-cream soup in deep bowl"
+    ]
+  },
+  {
+    "id": "butter-garlic-mushrooms",
+    "name": "Butter Garlic Roast",
+    "vessel": "plate",
+    "base": {
+      "colour": "nutty amber brown",
+      "texture": "foaming brown-butter pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "mushroom",
+        "shape": "halves",
+        "size_cm": 3.8,
+        "placement": "clustered in brown butter"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered crisp on mushrooms"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "pat",
+        "size_cm": 1.8,
+        "placement": "melting"
+      }
+    ],
+    "finish": "fresh parsley scatter",
+    "never": [
+      "raw pale whole mushrooms on dry plate",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "seared brown mushrooms",
+      "brown butter pool",
+      "garlic"
+    ]
+  },
+  {
+    "id": "salmon-butter-lemon",
+    "name": "Lemon Butter Salmon",
+    "vessel": "plate",
+    "base": {
+      "colour": "creamy pale butter gold",
+      "texture": "velvety beurre blanc lemon-butter pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "salmon",
+        "shape": "fillet",
+        "size_cm": 12.0,
+        "placement": "centred seared top clear"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wheels",
+        "size_cm": 5.5,
+        "placement": "tucked beside salmon"
+      }
+    ],
+    "finish": "dill fronds and caper scatter",
+    "never": [
+      "green syrup",
+      "sauce poured over crisp seared salmon top",
+      "giant raw fillet on toast"
+    ],
+    "minimum_to_claim_name": [
+      "seared salmon fillet",
+      "lemon-butter sauce pool",
+      "lemon"
+    ]
+  },
+  {
+    "id": "cabbage-steak-griddle",
+    "name": "Charred Cabbage Steak",
+    "vessel": "plate",
+    "base": {
+      "colour": "nutty amber brown",
+      "texture": "glossy brown-butter pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "cabbage",
+        "shape": "thick seared wedge",
+        "size_cm": 11.0,
+        "placement": "centred caramelized face up"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered on cabbage"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wedges",
+        "size_cm": 5.0,
+        "placement": "beside cabbage"
+      }
+    ],
+    "finish": "fresh thyme leaves and brown butter drizzle",
+    "never": [
+      "raw cold coleslaw shreds",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "thick seared caramelized cabbage wedge",
+      "brown butter"
+    ]
+  },
+  {
+    "id": "french-mushroom-omelette",
+    "name": "Omelette aux Champignons",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "omelette",
+        "size_cm": 15.0,
+        "placement": "centred smooth pale-gold rolled cylinder"
+      },
+      {
+        "ingredient": "mushroom",
+        "shape": "slices",
+        "size_cm": 3.2,
+        "placement": "tucked in fold and beside"
+      }
+    ],
+    "finish": "chive scatter and light butter sheen",
+    "never": [
+      "raw sunny fried egg",
+      "tomato sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "smooth golden folded French omelette",
+      "sautéed mushrooms"
+    ]
+  },
+  {
+    "id": "pan-con-tomate",
+    "name": "Pan con Tomate",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 11.0,
+        "placement": "two crisp slices laid flat"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "grated bright-red pulp",
+        "size_cm": 8.0,
+        "placement": "spread evenly across toast tops"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "optional crisp flecks"
+      }
+    ],
+    "finish": "olive oil gloss and flaky sea salt",
+    "never": [
+      "giant single raw tomato wedge",
+      "melted cheddar",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "two crisp toasted bread slices",
+      "bright red rubbed tomato pulp"
+    ]
+  },
+  {
+    "id": "andalusian-gazpacho",
+    "name": "Andalusian Gazpacho",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "vibrant coral-red",
+      "texture": "chilled smooth blended tomato-pepper soup"
+    },
+    "pieces": [
+      {
+        "ingredient": "pepper",
+        "shape": "dice",
+        "size_cm": 1.0,
+        "placement": "floating lightly as garnish"
+      },
+      {
+        "ingredient": "baguette",
+        "shape": "cubes",
+        "size_cm": 1.8,
+        "placement": "beside bowl if on table"
+      }
+    ],
+    "finish": "green olive oil dots",
+    "never": [
+      "hot melted cheese",
+      "milk cream swirl",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "chilled smooth vibrant red tomato-pepper soup in bowl"
+    ]
+  },
+  {
+    "id": "cordoban-salmorejo",
+    "name": "Cordoban Salmorejo",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "thick velvety coral-orange",
+      "texture": "dense silky bread-emulsified cold tomato puree"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "halves",
+        "size_cm": 4.5,
+        "placement": "sunk one-third on top"
+      },
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 9.0,
+        "placement": "beside bowl if on table"
+      }
+    ],
+    "finish": "glossy extra-virgin olive oil drizzle",
+    "never": [
+      "watery clear red broth",
+      "melted cheese",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "thick coral-orange cold tomato-bread puree in bowl",
+      "egg garnish"
+    ]
+  },
+  {
+    "id": "ajoblanco-con-uvas",
+    "name": "Ajoblanco con Uvas",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "silky chilled ivory white",
+      "texture": "smooth cold almond-garlic bread soup"
+    },
+    "pieces": [
+      {
+        "ingredient": "grapes",
+        "shape": "halves",
+        "size_cm": 1.8,
+        "placement": "sunk one-third across top"
+      }
+    ],
+    "finish": "bright green olive oil dots",
+    "never": [
+      "red tomato soup",
+      "melted cheese",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "smooth chilled ivory-white soup in bowl",
+      "halved grapes"
+    ]
+  },
+  {
+    "id": "tortilla-espanola",
+    "name": "Tortilla Espanola",
+    "vessel": "plate",
+    "base": {
+      "colour": "pale garlic ivory",
+      "texture": "light aioli smear beside wedge"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "thick round omelette wedge",
+        "size_cm": 11.0,
+        "placement": "centred upright on plate"
+      },
+      {
+        "ingredient": "potato",
+        "shape": "slices",
+        "size_cm": 4.0,
+        "placement": "layered visible in cut face of wedge"
+      }
+    ],
+    "finish": "parsley leaf and olive oil sheen",
+    "never": [
+      "thin folded French omelette",
+      "sunny fried egg",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "thick golden potato-egg omelette wedge"
+    ]
+  },
+  {
+    "id": "patatas-bravas",
+    "name": "Patatas Bravas",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "cubes",
+        "size_cm": 2.5,
+        "placement": "piled tightly at centre"
+      }
+    ],
+    "finish": "spicy brick-red brava sauce and ivory garlic aioli drizzled across top",
+    "never": [
+      "mashed potato",
+      "plain pale boiled potatoes",
+      "sweet syrup"
+    ],
+    "minimum_to_claim_name": [
+      "crisp golden fried potato cubes",
+      "red chili brava sauce and white aioli drizzle"
+    ]
+  },
+  {
+    "id": "sopa-de-ajo",
+    "name": "Castilian Sopa de Ajo",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "smoky paprika rust red",
+      "texture": "warm clear garlic-paprika broth"
+    },
+    "pieces": [
+      {
+        "ingredient": "eggs",
+        "shape": "poached",
+        "size_cm": 6.5,
+        "placement": "half sunk at centre"
+      },
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 7.5,
+        "placement": "floating in broth"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered in broth"
+      }
+    ],
+    "finish": "smoked paprika oil sheen",
+    "never": [
+      "creamy white potato soup",
+      "raw purple onions",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "smoky paprika-red garlic broth in deep bowl",
+      "egg",
+      "bread"
+    ]
+  },
+  {
+    "id": "gambas-ajillo-setas",
+    "name": "Ajillo Mushrooms",
+    "vessel": "skillet",
+    "base": {
+      "colour": "sizzling golden-chili amber",
+      "texture": "aromatic garlic-chili olive oil pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "mushroom",
+        "shape": "halves",
+        "size_cm": 3.8,
+        "placement": "bathing half sunk in sizzling oil"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered golden in oil"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wedge",
+        "size_cm": 5.0,
+        "placement": "beside skillet"
+      }
+    ],
+    "finish": "fresh chopped parsley",
+    "never": [
+      "creamy white sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "seared mushrooms in golden garlic-chili oil",
+      "garlic"
+    ]
+  },
+  {
+    "id": "basque-cheesecake",
+    "name": "Basque Cheesecake",
+    "vessel": "plate",
+    "base": {
+      "colour": "deep berry crimson",
+      "texture": "modest fruit coulis smear beside wedge"
+    },
+    "pieces": [
+      {
+        "ingredient": "cheese",
+        "shape": "tall scorched cake wedge",
+        "size_cm": 9.5,
+        "placement": "centred showing creamy interior and dark burnt top"
+      }
+    ],
+    "finish": "deeply caramelized near-black top crust",
+    "never": [
+      "herbs",
+      "croutons",
+      "pale unbaked raw cheese wedge",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "tall creamy cheesecake wedge with deeply scorched dark top"
+    ]
+  },
+  {
+    "id": "valencian-paella",
+    "name": "Valencian Paella",
+    "vessel": "skillet",
+    "base": {
+      "colour": "rich saffron gold",
+      "texture": "shallow wide pan-cooked saffron rice layer"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "drumstick",
+        "size_cm": 10.5,
+        "placement": "nestled into rice"
+      },
+      {
+        "ingredient": "pepper",
+        "shape": "strips",
+        "size_cm": 6.0,
+        "placement": "arranged radially on rice"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wedges",
+        "size_cm": 5.0,
+        "placement": "tucked at pan rim"
+      }
+    ],
+    "finish": "rosemary sprig and crisp socarrat edges",
+    "never": [
+      "creamy white risotto",
+      "soup broth",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "wide shallow saffron-golden rice layer",
+      "chicken",
+      "pepper strips"
+    ]
+  },
+  {
+    "id": "greek-avgolemono",
+    "name": "Greek Avgolemono",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "velvety pale lemon gold",
+      "texture": "silky emulsified egg-lemon chicken soup"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "torn",
+        "size_cm": 3.5,
+        "placement": "sunk one-third in soup"
+      },
+      {
+        "ingredient": "rice",
+        "shape": "grains",
+        "size_cm": 0.5,
+        "placement": "suspended in silky broth"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wheel",
+        "size_cm": 5.5,
+        "placement": "beside or floating"
+      }
+    ],
+    "finish": "fresh dill fronds and cracked pepper",
+    "never": [
+      "red tomato soup",
+      "clear brown broth",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "velvety pale lemon-gold soup in deep bowl",
+      "chicken",
+      "lemon"
+    ]
+  },
+  {
+    "id": "cretan-dakos",
+    "name": "Cretan Dakos",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 11.0,
+        "placement": "two crisp rustic slices laid flat"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "dice",
+        "size_cm": 1.3,
+        "placement": "piled evenly across bread"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "crumble",
+        "size_cm": 1.3,
+        "placement": "mounded over tomato"
+      }
+    ],
+    "finish": "black olives, oregano dust, olive oil gloss",
+    "never": [
+      "melted orange cheddar",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "crisp toasted bread/rusk",
+      "grated tomato",
+      "white crumbled cheese"
+    ]
+  },
+  {
+    "id": "greek-spanakopita",
+    "name": "Greek Spanakopita",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "phyllo pastry",
+        "shape": "crisp golden flaky wedge",
+        "size_cm": 11.0,
+        "placement": "centred showing layered spinach-feta filling"
+      },
+      {
+        "ingredient": "spinach",
+        "shape": "chopped wilted greens",
+        "size_cm": 1.5,
+        "placement": "visible inside phyllo layers"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "crumble",
+        "size_cm": 1.2,
+        "placement": "studded inside spinach filling"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wedge",
+        "size_cm": 5.0,
+        "placement": "beside pastry"
+      }
+    ],
+    "finish": "flaky golden shattered pastry crust and dill flecks",
+    "never": [
+      "open sweet fruit tart",
+      "creamy white yogurt soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "flaky golden layered phyllo pastry",
+      "spinach and white feta filling"
+    ]
+  },
+  {
+    "id": "greek-spanakorizo",
+    "name": "Greek Spanakorizo",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "vibrant herb green and ivory",
+      "texture": "tender olive-oil braised spinach rice"
+    },
+    "pieces": [
+      {
+        "ingredient": "spinach",
+        "shape": "torn",
+        "size_cm": 3.0,
+        "placement": "folded generously through rice"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wheel",
+        "size_cm": 5.5,
+        "placement": "tucked on top"
+      }
+    ],
+    "finish": "fresh dill scatter, feta crumble if on table, olive oil drizzle",
+    "never": [
+      "dry plain white rice",
+      "red chili sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "green spinach-studded rice in bowl",
+      "lemon"
+    ]
+  },
+  {
+    "id": "greek-maroulosalata",
+    "name": "Greek Maroulosalata",
+    "vessel": "bowl",
+    "base": {
+      "colour": "crisp bright green",
+      "texture": "finely shredded romaine lettuce nest"
+    },
+    "pieces": [
+      {
+        "ingredient": "cheese",
+        "shape": "crumble",
+        "size_cm": 1.2,
+        "placement": "scattered on romaine"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "thin rings",
+        "size_cm": 3.0,
+        "placement": "tucked into greens"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wedge",
+        "size_cm": 5.0,
+        "placement": "beside bowl"
+      }
+    ],
+    "finish": "abundant fresh dill fronds and lemon-olive oil gloss",
+    "never": [
+      "creamy white Caesar dressing",
+      "croutons",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "shredded crisp romaine salad",
+      "white cheese crumble",
+      "lemon"
+    ]
+  },
+  {
+    "id": "greek-saganaki",
+    "name": "Greek Saganaki",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "cheese",
+        "shape": "thick pan-seared golden slab",
+        "size_cm": 9.5,
+        "placement": "centred bubbling crust up"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wedges",
+        "size_cm": 5.0,
+        "placement": "beside seared cheese"
+      }
+    ],
+    "finish": "dried oregano dust and lemon juice gloss",
+    "never": [
+      "cold raw crumbled cheese",
+      "milk soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "golden crusted pan-seared cheese slab",
+      "lemon"
+    ]
+  },
+  {
+    "id": "greek-moustalevria",
+    "name": "Greek Moustalevria",
+    "vessel": "bowl",
+    "base": {
+      "colour": "deep glossy ruby-plum",
+      "texture": "thick set grape-must pudding"
+    },
+    "pieces": [
+      {
+        "ingredient": "grapes",
+        "shape": "whole",
+        "size_cm": 1.8,
+        "placement": "clustered lightly on top"
+      }
+    ],
+    "finish": "crushed walnuts, sesame seeds, ground cinnamon dust",
+    "never": [
+      "herbs",
+      "croutons",
+      "white yogurt",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "deep ruby-plum set pudding in bowl",
+      "grapes"
+    ]
+  },
+  {
+    "id": "watermelon-orange-feta",
+    "name": "Watermelon Orange Feta",
+    "vessel": "plate",
+    "base": {
+      "colour": "pale golden green",
+      "texture": "light olive oil drizzle"
+    },
+    "pieces": [
+      {
+        "ingredient": "watermelon",
+        "shape": "cubes",
+        "size_cm": 2.8,
+        "placement": "clustered tightly"
+      },
+      {
+        "ingredient": "orange",
+        "shape": "wheels",
+        "size_cm": 7.0,
+        "placement": "tucked beside watermelon"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "crumble",
+        "size_cm": 1.3,
+        "placement": "scattered over fruit"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "thin rings",
+        "size_cm": 3.5,
+        "placement": "tucked lightly"
+      }
+    ],
+    "finish": "fresh parsley or mint scatter",
+    "never": [
+      "melted cheese",
+      "thick soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "watermelon cubes",
+      "orange",
+      "white crumbled cheese"
+    ]
+  },
+  {
+    "id": "grape-yogurt-bowl",
+    "name": "Grape Honey Bowl",
+    "vessel": "bowl",
+    "base": {
+      "colour": "thick creamy snow white",
+      "texture": "strained Greek yogurt pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "grapes",
+        "shape": "whole",
+        "size_cm": 1.8,
+        "placement": "clustered on yogurt"
+      }
+    ],
+    "finish": "golden honey swirl and toasted walnut crumble",
+    "never": [
+      "herbs like parsley or thyme",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "thick white yogurt bowl",
+      "fresh grapes"
+    ]
+  },
+  {
+    "id": "adjaruli-khachapuri",
+    "name": "Adjaruli Khachapuri",
+    "vessel": "board",
+    "base": {
+      "colour": "warm ivory gold",
+      "texture": "molten melted cheese filling inside boat-shaped bread"
+    },
+    "pieces": [
+      {
+        "ingredient": "bread boat",
+        "shape": "pointed oval boat crust",
+        "size_cm": 22.0,
+        "placement": "centred on board"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "raw golden yolk",
+        "size_cm": 3.5,
+        "placement": "nestled intact in molten cheese centre"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "pat",
+        "size_cm": 2.2,
+        "placement": "melting beside yolk"
+      }
+    ],
+    "finish": "golden blistered bread boat tips and melted butter sheen",
+    "never": [
+      "flat baguette toast slices",
+      "raw red pepper strips",
+      "giant pink-yellow butter cubes",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "boat-shaped baked bread crust",
+      "molten cheese pool inside",
+      "sunny egg yolk in centre"
+    ]
+  },
+  {
+    "id": "georgian-churchkhela",
+    "name": "Georgian Churchkhela",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "grape walnut strand",
+        "shape": "candle-shaped glazed nut strands",
+        "size_cm": 22.0,
+        "placement": "arranged overlapping diagonally"
+      },
+      {
+        "ingredient": "grapes",
+        "shape": "whole",
+        "size_cm": 1.8,
+        "placement": "small cluster beside strands"
+      }
+    ],
+    "finish": "matte deep-purple thickened grape-must coating",
+    "never": [
+      "wooden meat skewer with raw grapes",
+      "soup",
+      "herbs"
+    ],
+    "minimum_to_claim_name": [
+      "candle-shaped deep purple grape-glazed walnut strands"
+    ]
+  },
+  {
+    "id": "finnish-lohikeitto",
+    "name": "Finnish Lohikeitto",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "creamy pale ivory",
+      "texture": "silky warm salmon-dill cream broth"
+    },
+    "pieces": [
+      {
+        "ingredient": "salmon",
+        "shape": "cubes",
+        "size_cm": 2.8,
+        "placement": "sunk one-third in broth"
+      },
+      {
+        "ingredient": "potato",
+        "shape": "cubes",
+        "size_cm": 2.2,
+        "placement": "sunk one-third in broth"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wedge",
+        "size_cm": 5.0,
+        "placement": "beside bowl"
+      }
+    ],
+    "finish": "fresh dill fronds and rye bread slice beside",
+    "never": [
+      "red tomato soup",
+      "croutons unless rye/baguette on table",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "creamy white dill broth in deep bowl",
+      "pink salmon chunks",
+      "potato cubes"
+    ]
+  },
+  {
+    "id": "nordic-gravlax",
+    "name": "Nordic Gravlax",
+    "vessel": "plate",
+    "base": {
+      "colour": "warm mustard gold",
+      "texture": "smooth dill-mustard hovmastarsas smear"
+    },
+    "pieces": [
+      {
+        "ingredient": "salmon",
+        "shape": "thin cured ribbons",
+        "size_cm": 7.5,
+        "placement": "shingled neatly at centre"
+      },
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 9.5,
+        "placement": "two crisp slices beside"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wedge",
+        "size_cm": 5.0,
+        "placement": "tucked beside salmon"
+      }
+    ],
+    "finish": "fresh dill fronds and cracked pepper",
+    "never": [
+      "thick seared cooked salmon fillet",
+      "giant block on toast",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "thin translucent cured salmon slices",
+      "mustard-dill smear",
+      "lemon"
+    ]
+  },
+  {
+    "id": "swedish-blabarssoppa",
+    "name": "Swedish Blabarssoppa",
+    "vessel": "glass",
+    "base": {
+      "colour": "deep velvety indigo-violet",
+      "texture": "smooth warm or chilled blueberry soup-drink"
+    },
+    "pieces": [
+      {
+        "ingredient": "blueberries",
+        "shape": "whole",
+        "size_cm": 1.3,
+        "placement": "floating lightly or beside"
+      }
+    ],
+    "finish": "swirl of white cream",
+    "never": [
+      "clear watery juice",
+      "savoury herbs",
+      "invented citrus"
+    ],
+    "minimum_to_claim_name": [
+      "deep violet velvety blueberry drink in glass",
+      "blueberries"
+    ]
+  },
+  {
+    "id": "danish-aeblekage",
+    "name": "Danish Aeblekage",
+    "vessel": "bowl",
+    "base": {
+      "colour": "warm golden amber",
+      "texture": "layered stewed spiced apple compote"
+    },
+    "pieces": [
+      {
+        "ingredient": "apple",
+        "shape": "stewed slices",
+        "size_cm": 4.0,
+        "placement": "layered under crumbs"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "crumble",
+        "size_cm": 1.0,
+        "placement": "toasted golden crumb layer"
+      },
+      {
+        "ingredient": "whipped cream",
+        "shape": "cloud",
+        "size_cm": 7.5,
+        "placement": "crowned on top"
+      }
+    ],
+    "finish": "red currant jelly dot on whipped cream",
+    "never": [
+      "herbs",
+      "croutons",
+      "raw green apple slices on dry plate",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "spiced apple compote",
+      "toasted golden butter crumbs",
+      "whipped cream crown"
+    ]
+  },
+  {
+    "id": "polish-zupa-grzybowa",
+    "name": "Polish Zupa Grzybowa",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "earthy creamy tan-brown",
+      "texture": "velvety wild mushroom cream broth"
+    },
+    "pieces": [
+      {
+        "ingredient": "mushroom",
+        "shape": "slices",
+        "size_cm": 3.5,
+        "placement": "sunk one-third in soup"
+      },
+      {
+        "ingredient": "potato",
+        "shape": "cubes",
+        "size_cm": 2.0,
+        "placement": "sunk one-third in soup"
+      }
+    ],
+    "finish": "sour cream swirl and fresh dill scatter",
+    "never": [
+      "red tomato soup",
+      "bright green soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "earthy creamy mushroom broth in deep bowl",
+      "mushrooms",
+      "potato"
+    ]
+  },
+  {
+    "id": "polish-golabki",
+    "name": "Polish Golabki",
+    "vessel": "plate",
+    "base": {
+      "colour": "rich rustic tomato red",
+      "texture": "simmered tomato sauce pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "cabbage",
+        "shape": "stuffed rolls",
+        "size_cm": 9.0,
+        "placement": "two plump rolls nestled in tomato sauce"
+      }
+    ],
+    "finish": "white sour cream swirl and fresh dill fronds",
+    "never": [
+      "raw crunchy cabbage salad",
+      "dry rice bowl",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "plump braised cabbage rolls",
+      "red tomato sauce pool"
+    ]
+  },
+  {
+    "id": "polish-bigos",
+    "name": "Polish Bigos",
+    "vessel": "bowl",
+    "base": {
+      "colour": "deep dark hunter brown",
+      "texture": "rich braised cabbage and meat jus"
+    },
+    "pieces": [
+      {
+        "ingredient": "cabbage",
+        "shape": "braised ribbons",
+        "size_cm": 5.0,
+        "placement": "mounded stewed in bowl"
+      },
+      {
+        "ingredient": "steak",
+        "shape": "cubes",
+        "size_cm": 2.8,
+        "placement": "tucked throughout cabbage"
+      },
+      {
+        "ingredient": "mushroom",
+        "shape": "slices",
+        "size_cm": 3.2,
+        "placement": "folded into stew"
+      }
+    ],
+    "finish": "caraway seed scatter and dark rye slice beside",
+    "never": [
+      "bright green fresh salad",
+      "creamy white soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "dark brown braised cabbage stew",
+      "beef chunks",
+      "mushrooms"
+    ]
+  },
+  {
+    "id": "austrian-kaiserschmarrn",
+    "name": "Austrian Kaiserschmarrn",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "pancake",
+        "shape": "torn irregular caramelized chunks",
+        "size_cm": 4.5,
+        "placement": "tumbled in a loose warm heap"
+      },
+      {
+        "ingredient": "apple",
+        "shape": "stewed compote slices",
+        "size_cm": 4.0,
+        "placement": "small dish or pool beside"
+      }
+    ],
+    "finish": "generous snowfall of white powdered icing sugar and caramelized edges",
+    "never": [
+      "neat tidy stack of 3 flat round American pancakes",
+      "herbs",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "torn irregular fluffy caramelized pancake pieces",
+      "powdered icing sugar dust"
+    ]
+  },
+  {
+    "id": "apple-cabbage-slaw",
+    "name": "Cabbage Apple Slaw",
+    "vessel": "bowl",
+    "base": {
+      "colour": "pale cider gold",
+      "texture": "light mustard-cider vinaigrette sheen"
+    },
+    "pieces": [
+      {
+        "ingredient": "cabbage",
+        "shape": "shredded ribbons",
+        "size_cm": 5.5,
+        "placement": "mounded crisp nest"
+      },
+      {
+        "ingredient": "apple",
+        "shape": "thin matchsticks or slices",
+        "size_cm": 4.5,
+        "placement": "tossed through cabbage"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "thin rings",
+        "size_cm": 3.5,
+        "placement": "tucked through slaw"
+      }
+    ],
+    "finish": "caraway scatter and fresh parsley leaves",
+    "never": [
+      "heavy hot brown gravy",
+      "melted cheese",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "crisp shredded cabbage nest",
+      "fresh apple"
+    ]
+  },
+  {
+    "id": "swiss-fondue",
+    "name": "Swiss Cheese Fondue",
+    "vessel": "bowl",
+    "base": {
+      "colour": "glossy pale ivory-gold",
+      "texture": "rich molten bubbling melted Gruyere cheese pot"
+    },
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "cubes",
+        "size_cm": 2.4,
+        "placement": "clustered beside cheese pot"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "infused in cheese"
+      }
+    ],
+    "finish": "fresh nutmeg dust and cracked black pepper",
+    "never": [
+      "cold raw cheese wedge",
+      "red tomato sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "molten melted cheese pool in pot/bowl",
+      "crusty bread cubes beside"
+    ]
+  },
+  {
+    "id": "swiss-raclette",
+    "name": "Swiss Raclette",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "halves",
+        "size_cm": 6.0,
+        "placement": "clustered golden skin-on at centre"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "molten browned blanket",
+        "size_cm": 10.0,
+        "placement": "draped melted across potatoes"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "rings",
+        "size_cm": 3.0,
+        "placement": "pickled beside potatoes"
+      }
+    ],
+    "finish": "blistered golden raclette melt and cracked black pepper",
+    "never": [
+      "cold raw cheese cubes",
+      "french fries",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "boiled halved potatoes",
+      "melted golden cheese blanket on top"
+    ]
+  },
+  {
+    "id": "irish-colcannon",
+    "name": "Irish Colcannon",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "mash",
+        "size_cm": 10.0,
+        "placement": "yellow-white dome with centre well"
+      },
+      {
+        "ingredient": "cabbage",
+        "shape": "torn",
+        "size_cm": 3.0,
+        "placement": "folded bright green flecks throughout mash"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "melting pool",
+        "size_cm": 3.0,
+        "placement": "pooled golden in centre well"
+      }
+    ],
+    "finish": "melting butter well and green scallion flecks",
+    "never": [
+      "grey-brown mash",
+      "french fries",
+      "red sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "vibrant yellow-white potato mash",
+      "green cabbage folded in",
+      "butter well"
+    ]
+  },
+  {
+    "id": "broccoli-stilton-soup",
+    "name": "Broccoli Stilton Soup",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "vibrant velvety sage-emerald green",
+      "texture": "smooth creamy pureed broccoli soup"
+    },
+    "pieces": [
+      {
+        "ingredient": "broccoli",
+        "shape": "chopped florets",
+        "size_cm": 2.5,
+        "placement": "sunk one-third as garnish"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "crumble",
+        "size_cm": 1.2,
+        "placement": "scattered on surface"
+      }
+    ],
+    "finish": "blue cheese crumble and cream swirl",
+    "never": [
+      "clear watery broth",
+      "red tomato soup",
+      "giant standing raw broccoli",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "smooth green broccoli soup in deep bowl",
+      "blue cheese crumble"
+    ]
+  },
+  {
+    "id": "broccoli-cheese-bake",
+    "name": "Broccoli Cheese Gratin",
+    "vessel": "skillet",
+    "base": {
+      "colour": "rich golden cheddar",
+      "texture": "bubbling creamy cheese sauce"
+    },
+    "pieces": [
+      {
+        "ingredient": "broccoli",
+        "shape": "halved florets",
+        "size_cm": 4.0,
+        "placement": "packed half sunk in cheese sauce"
+      }
+    ],
+    "finish": "golden toasted breadcrumb crust and fresh thyme",
+    "never": [
+      "raw dry broccoli on bare plate",
+      "clear soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "broccoli florets in bubbling golden cheese sauce",
+      "browned gratin top"
+    ]
+  },
+  {
+    "id": "british-apple-crumble",
+    "name": "British Apple Crumble",
+    "vessel": "bowl",
+    "base": {
+      "colour": "warm pale vanilla yellow",
+      "texture": "thick pouring vanilla custard pool"
+    },
+    "pieces": [
+      {
+        "ingredient": "apple",
+        "shape": "soft baked slices",
+        "size_cm": 4.5,
+        "placement": "stewed underneath crumble"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "crumble",
+        "size_cm": 1.5,
+        "placement": "golden crisp oat-butter topping across dish"
+      },
+      {
+        "ingredient": "quenelle",
+        "shape": "whipped cream quenelle",
+        "size_cm": 4.0,
+        "placement": "perched on crumble"
+      }
+    ],
+    "finish": "golden oat-butter crumble crust and vanilla custard",
+    "never": [
+      "raw green apple wedges on dry plate",
+      "herbs",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "baked apples under crisp golden butter crumble",
+      "vanilla custard or cream"
+    ]
+  },
+  {
+    "id": "british-eton-mess",
+    "name": "British Eton Mess",
+    "vessel": "bowl",
+    "base": {
+      "colour": "snow white with ruby streaks",
+      "texture": "billowy whipped cream swirled with strawberry coulis"
+    },
+    "pieces": [
+      {
+        "ingredient": "meringue",
+        "shape": "broken crisp white shards",
+        "size_cm": 3.5,
+        "placement": "tumbled throughout cream"
+      },
+      {
+        "ingredient": "strawberry",
+        "shape": "halves",
+        "size_cm": 2.8,
+        "placement": "tumbled in cream and on top"
+      }
+    ],
+    "finish": "ruby strawberry puree ribbon",
+    "never": [
+      "herbs",
+      "croutons",
+      "savoury oil",
+      "fried egg"
+    ],
+    "minimum_to_claim_name": [
+      "whipped cream",
+      "broken crisp meringue shards",
+      "strawberries"
+    ]
+  },
+  {
+    "id": "british-lemon-posset",
+    "name": "British Lemon Posset",
+    "vessel": "ramekin",
+    "base": {
+      "colour": "silky pale butter-lemon ivory",
+      "texture": "smooth glossy chilled set lemon cream"
+    },
+    "pieces": [],
+    "finish": "fine yellow lemon zest curls and crisp shortbread biscuit beside",
+    "never": [
+      "herbs",
+      "croutons",
+      "savory melted cheese",
+      "watery juice"
+    ],
+    "minimum_to_claim_name": [
+      "smooth silky pale-yellow set lemon cream in small bowl/ramekin"
+    ]
+  },
+  {
+    "id": "bubble-and-squeak",
+    "name": "Bubble and Squeak",
+    "vessel": "plate",
+    "base": {
+      "colour": "nutty amber brown",
+      "texture": "light brown-butter pan jus"
+    },
+    "pieces": [
+      {
+        "ingredient": "potato",
+        "shape": "pan-crisped cabbage-potato patty",
+        "size_cm": 12.0,
+        "placement": "centred golden browned cake"
+      },
+      {
+        "ingredient": "cabbage",
+        "shape": "shredded flecks",
+        "size_cm": 2.5,
+        "placement": "crisped inside potato cake"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "whole fried",
+        "size_cm": 7.5,
+        "placement": "perched on top of cake"
+      }
+    ],
+    "finish": "crispy browned potato-cabbage edges",
+    "never": [
+      "raw green salad",
+      "french fries",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "golden pan-crisped potato and cabbage patty",
+      "fried egg on top"
+    ]
+  },
+  {
+    "id": "mushroom-toast",
+    "name": "Garlic Mushroom Toast",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 11.0,
+        "placement": "two crisp slices laid flat"
+      },
+      {
+        "ingredient": "mushroom",
+        "shape": "slices",
+        "size_cm": 3.5,
+        "placement": "piled neatly across both toasts"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered on mushrooms"
+      }
+    ],
+    "finish": "thyme-butter gloss and chopped parsley",
+    "never": [
+      "raw pale unseared whole mushrooms",
+      "sweet syrup"
+    ],
+    "minimum_to_claim_name": [
+      "two crisp baguette toasts",
+      "seared mushrooms",
+      "garlic"
+    ]
+  },
+  {
+    "id": "pear-cider-cooler",
+    "name": "Spiced Pear Cooler",
+    "vessel": "glass",
+    "base": {
+      "colour": "translucent pale champagne gold",
+      "texture": "chilled pressed pear juice with subtle vertical gradient"
+    },
+    "pieces": [
+      {
+        "ingredient": "pear",
+        "shape": "slice",
+        "size_cm": 5.0,
+        "placement": "slit upright on rim or beside"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wheel",
+        "size_cm": 5.5,
+        "placement": "beside glass if on table"
+      }
+    ],
+    "finish": "whole cinnamon stick",
+    "never": [
+      "opaque pink milkshake",
+      "invented strawberry"
+    ],
+    "minimum_to_claim_name": [
+      "translucent pale-gold pear drink in glass",
+      "pear"
+    ]
+  },
+  {
+    "id": "tikil-gomen",
+    "name": "Ethiopian Tikil Gomen",
+    "vessel": "plate",
+    "base": {
+      "colour": "warm turmeric gold",
+      "texture": "light spiced oil sheen"
+    },
+    "pieces": [
+      {
+        "ingredient": "cabbage",
+        "shape": "braised strips",
+        "size_cm": 5.5,
+        "placement": "mounded tender at centre"
+      },
+      {
+        "ingredient": "potato",
+        "shape": "cubes",
+        "size_cm": 2.2,
+        "placement": "tossed evenly with cabbage"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "slices",
+        "size_cm": 3.5,
+        "placement": "folded through"
+      }
+    ],
+    "finish": "warm golden turmeric glaze and carrot ribbons",
+    "never": [
+      "raw crunchy pale coleslaw",
+      "tomato soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "turmeric-golden braised cabbage",
+      "potato cubes"
+    ]
+  },
+  {
+    "id": "ethiopian-tibs",
+    "name": "Ethiopian Beef Tibs",
+    "vessel": "plate",
+    "base": {
+      "colour": "rich spiced amber-red",
+      "texture": "niter kibbeh spiced butter glaze"
+    },
+    "pieces": [
+      {
+        "ingredient": "steak",
+        "shape": "seared cubes",
+        "size_cm": 2.8,
+        "placement": "clustered sizzling at centre"
+      },
+      {
+        "ingredient": "pepper",
+        "shape": "strips",
+        "size_cm": 5.0,
+        "placement": "charred with beef"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "slices",
+        "size_cm": 4.0,
+        "placement": "tossed with beef"
+      }
+    ],
+    "finish": "red berbere spice dust and injera beside",
+    "never": [
+      "creamy white sauce",
+      "mashed potato",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "seared beef pieces",
+      "peppers",
+      "onions in spiced glaze"
+    ]
+  },
+  {
+    "id": "poulet-yassa",
+    "name": "Senegalese Poulet Yassa",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "steamed white",
+      "texture": "fluffy white rice beside caramelized onion sauce"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "drumstick",
+        "size_cm": 11.0,
+        "placement": "nestled on rice"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "caramelized slices",
+        "size_cm": 4.5,
+        "placement": "piled glossy over chicken"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wheel",
+        "size_cm": 5.5,
+        "placement": "tucked beside chicken"
+      }
+    ],
+    "finish": "golden caramelized lemon-onion jus",
+    "never": [
+      "red tomato curry",
+      "raw purple onion rings",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "braised chicken",
+      "abundant caramelized golden onions",
+      "lemon",
+      "rice"
+    ]
+  },
+  {
+    "id": "nigerian-jollof-rice",
+    "name": "Nigerian Jollof Rice",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "vibrant smoky tomato-pepper red-orange",
+      "texture": "distinct long-grain spiced jollof rice"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "drumstick",
+        "size_cm": 11.0,
+        "placement": "crowned on top of jollof rice"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "slices",
+        "size_cm": 4.0,
+        "placement": "optional roast garnish beside"
+      }
+    ],
+    "finish": "fried plantain coins and fresh herb scatter",
+    "never": [
+      "plain white rice",
+      "wet creamy risotto",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "vibrant orange-red smoky spiced rice in bowl",
+      "roasted chicken"
+    ]
+  },
+  {
+    "id": "caesar-salad",
+    "name": "Tijuana Caesar Salad",
+    "vessel": "bowl",
+    "base": {
+      "colour": "crisp green coated in ivory emulsion",
+      "texture": "tossed whole or torn romaine leaves"
+    },
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "cubes",
+        "size_cm": 2.0,
+        "placement": "scattered crisp golden croutons on top"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "shavings",
+        "size_cm": 2.5,
+        "placement": "scattered generously over leaves"
+      }
+    ],
+    "finish": "creamy garlic parmesan dressing and cracked black pepper",
+    "never": [
+      "red tomato vinaigrette",
+      "sweet fruit",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "crisp romaine bed",
+      "creamy garlic parmesan coating",
+      "croutons"
+    ]
+  },
+  {
+    "id": "chicken-caesar-salad",
+    "name": "Chicken Caesar Salad",
+    "vessel": "bowl",
+    "base": {
+      "colour": "crisp green with ivory emulsion",
+      "texture": "tossed romaine leaf nest"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "slices",
+        "size_cm": 7.5,
+        "placement": "fanned over romaine"
+      },
+      {
+        "ingredient": "baguette",
+        "shape": "cubes",
+        "size_cm": 2.0,
+        "placement": "scattered crisp on salad"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "shavings",
+        "size_cm": 2.5,
+        "placement": "scattered on top"
+      }
+    ],
+    "finish": "parmesan shavings and cracked black pepper",
+    "never": [
+      "warm brown stew",
+      "sweet berries",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "romaine bed",
+      "sliced roast chicken",
+      "parmesan cheese"
+    ]
+  },
+  {
+    "id": "waldorf-salad",
+    "name": "Waldorf Salad",
+    "vessel": "bowl",
+    "base": {
+      "colour": "crisp green and creamy ivory",
+      "texture": "romaine leaf bed with creamy yogurt dressing"
+    },
+    "pieces": [
+      {
+        "ingredient": "apple",
+        "shape": "cubes",
+        "size_cm": 2.0,
+        "placement": "mounded on romaine"
+      },
+      {
+        "ingredient": "grapes",
+        "shape": "halves",
+        "size_cm": 1.8,
+        "placement": "scattered among apples"
+      }
+    ],
+    "finish": "toasted walnut halves and celery crescents",
+    "never": [
+      "heavy tomato sauce",
+      "melted yellow cheddar",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "romaine bed",
+      "crisp apple",
+      "grapes"
+    ]
+  },
+  {
+    "id": "chicken-grape-salad",
+    "name": "Chicken & Grape Salad",
+    "vessel": "bowl",
+    "base": {
+      "colour": "crisp fresh green",
+      "texture": "romaine leaf nest"
+    },
+    "pieces": [
+      {
+        "ingredient": "chicken",
+        "shape": "torn",
+        "size_cm": 3.5,
+        "placement": "mounded over romaine"
+      },
+      {
+        "ingredient": "grapes",
+        "shape": "halves",
+        "size_cm": 1.8,
+        "placement": "scattered among chicken"
+      }
+    ],
+    "finish": "creamy herb dressing and toasted almond flakes",
+    "never": [
+      "hot brown gravy",
+      "melted cheddar",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "romaine bed",
+      "roast chicken",
+      "grapes"
+    ]
+  },
+  {
+    "id": "peach-tomato-salad",
+    "name": "Peach & Tomato Salad",
+    "vessel": "plate",
+    "base": {
+      "colour": "pale golden green",
+      "texture": "cider vinaigrette olive oil dots"
+    },
+    "pieces": [
+      {
+        "ingredient": "tomato",
+        "shape": "wedges",
+        "size_cm": 4.2,
+        "placement": "clustered tightly"
+      },
+      {
+        "ingredient": "peach",
+        "shape": "slices",
+        "size_cm": 5.0,
+        "placement": "interleaved with tomato wedges"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "thin rings",
+        "size_cm": 3.5,
+        "placement": "draped lightly"
+      }
+    ],
+    "finish": "fresh mint leaves and flaky sea salt",
+    "never": [
+      "whipped cream",
+      "melted cheese",
+      "thick soup"
+    ],
+    "minimum_to_claim_name": [
+      "ripe tomato wedges",
+      "sweet peach slices"
+    ]
+  },
+  {
+    "id": "key-lime-pie",
+    "name": "Key Lime Pie",
+    "vessel": "tart",
+    "base": {
+      "colour": "creamy pale celadon lime",
+      "texture": "smooth set lime custard inside golden graham tart shell"
+    },
+    "pieces": [
+      {
+        "ingredient": "quenelle",
+        "shape": "whipped cream rosette",
+        "size_cm": 4.0,
+        "placement": "centred on pie"
+      },
+      {
+        "ingredient": "lime",
+        "shape": "thin half wheel",
+        "size_cm": 4.5,
+        "placement": "perched beside cream"
+      }
+    ],
+    "finish": "fine green lime zest scatter",
+    "never": [
+      "herbs",
+      "croutons",
+      "savoury oil",
+      "fried egg"
+    ],
+    "minimum_to_claim_name": [
+      "golden tart shell",
+      "smooth pale lime custard",
+      "whipped cream"
+    ]
+  },
+  {
+    "id": "blueberry-pancakes",
+    "name": "Blueberry Pancakes",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "pancake",
+        "shape": "three thick golden rounds",
+        "size_cm": 12.0,
+        "placement": "stacked neatly"
+      },
+      {
+        "ingredient": "blueberries",
+        "shape": "whole",
+        "size_cm": 1.3,
+        "placement": "studded in batter and scattered on top"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "pat",
+        "size_cm": 2.2,
+        "placement": "melting on top pancake"
+      }
+    ],
+    "finish": "warm amber maple syrup drizzle",
+    "never": [
+      "purple blueberry-coloured syrup",
+      "herbs",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "3-pancake golden stack",
+      "blueberries",
+      "contrasting amber maple syrup"
+    ]
+  },
+  {
+    "id": "peach-pancakes",
+    "name": "Grilled Peach Pancakes",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "pancake",
+        "shape": "three thick golden rounds",
+        "size_cm": 12.0,
+        "placement": "stacked neatly"
+      },
+      {
+        "ingredient": "peach",
+        "shape": "wedges",
+        "size_cm": 5.5,
+        "placement": "fanned on top pancake"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "pat",
+        "size_cm": 2.2,
+        "placement": "melting on top"
+      }
+    ],
+    "finish": "amber maple caramel syrup and whipped cream dollop",
+    "never": [
+      "herbs",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "3-pancake stack",
+      "caramelized peach wedges"
+    ]
+  },
+  {
+    "id": "strawberry-pancakes",
+    "name": "Strawberry Cream Pancakes",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "pancake",
+        "shape": "three thick golden rounds",
+        "size_cm": 12.0,
+        "placement": "stacked neatly"
+      },
+      {
+        "ingredient": "strawberry",
+        "shape": "halves",
+        "size_cm": 2.8,
+        "placement": "crowned on top"
+      },
+      {
+        "ingredient": "quenelle",
+        "shape": "whipped cream dollop",
+        "size_cm": 4.0,
+        "placement": "centred on top pancake"
+      }
+    ],
+    "finish": "warm amber maple syrup drizzle",
+    "never": [
+      "herbs",
+      "croutons",
+      "savoury oil",
+      "fried egg"
+    ],
+    "minimum_to_claim_name": [
+      "3-pancake stack",
+      "fresh strawberries",
+      "whipped cream"
+    ]
+  },
+  {
+    "id": "apple-pancakes",
+    "name": "Apple Cinnamon Pancakes",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "pancake",
+        "shape": "three thick golden rounds",
+        "size_cm": 12.0,
+        "placement": "stacked neatly"
+      },
+      {
+        "ingredient": "apple",
+        "shape": "slices",
+        "size_cm": 5.0,
+        "placement": "caramelized fanned on top"
+      },
+      {
+        "ingredient": "butter",
+        "shape": "pat",
+        "size_cm": 2.2,
+        "placement": "melting on top"
+      }
+    ],
+    "finish": "warm maple syrup and cinnamon dust",
+    "never": [
+      "herbs",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "3-pancake stack",
+      "caramelized apple slices"
+    ]
+  },
+  {
+    "id": "peach-cobbler",
+    "name": "Southern Peach Cobbler",
+    "vessel": "bowl",
+    "base": {
+      "colour": "deep amber peach syrup",
+      "texture": "bubbling stewed peach compote"
+    },
+    "pieces": [
+      {
+        "ingredient": "peach",
+        "shape": "wedges",
+        "size_cm": 5.0,
+        "placement": "half sunk under biscuit crust"
+      },
+      {
+        "ingredient": "biscuit",
+        "shape": "golden drop biscuits",
+        "size_cm": 5.5,
+        "placement": "baked cobbled across top"
+      },
+      {
+        "ingredient": "quenelle",
+        "shape": "vanilla ice cream scoop",
+        "size_cm": 4.5,
+        "placement": "melting on hot biscuit"
+      }
+    ],
+    "finish": "cinnamon sugar glaze",
+    "never": [
+      "raw pale peach on dry plate",
+      "herbs",
+      "croutons",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "stewed peach filling",
+      "golden baked biscuit topping",
+      "ice cream/cream"
+    ]
+  },
+  {
+    "id": "blueberry-grunt",
+    "name": "Maritime Blueberry Grunt",
+    "vessel": "bowl",
+    "base": {
+      "colour": "deep indigo purple",
+      "texture": "bubbling thick stewed wild blueberry compote"
+    },
+    "pieces": [
+      {
+        "ingredient": "blueberries",
+        "shape": "whole",
+        "size_cm": 1.3,
+        "placement": "simmered in compote"
+      },
+      {
+        "ingredient": "dumplings",
+        "shape": "steamed pale biscuit puffs",
+        "size_cm": 5.0,
+        "placement": "half sunk on purple compote"
+      },
+      {
+        "ingredient": "quenelle",
+        "shape": "vanilla cream quenelle",
+        "size_cm": 4.0,
+        "placement": "beside dumplings"
+      }
+    ],
+    "finish": "fine lemon zest",
+    "never": [
+      "herbs",
+      "croutons",
+      "raw berries on dry plate"
+    ],
+    "minimum_to_claim_name": [
+      "deep purple stewed blueberry compote",
+      "steamed pale biscuit dumplings"
+    ]
+  },
+  {
+    "id": "watermelon-gazpacho",
+    "name": "Watermelon Gazpacho",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "bright chilled ruby coral",
+      "texture": "smooth velvety watermelon-tomato cold soup"
+    },
+    "pieces": [
+      {
+        "ingredient": "watermelon",
+        "shape": "dice",
+        "size_cm": 1.4,
+        "placement": "sunk one-third as crisp garnish"
+      },
+      {
+        "ingredient": "pepper",
+        "shape": "dice",
+        "size_cm": 1.0,
+        "placement": "scattered lightly on top"
+      }
+    ],
+    "finish": "green herb oil dots and toasted bread beside if on table",
+    "never": [
+      "hot melted cheese",
+      "milkshake foam"
+    ],
+    "minimum_to_claim_name": [
+      "chilled ruby-coral smooth cold soup in deep bowl"
+    ]
+  },
+  {
+    "id": "tomato-soup-grilled-cheese",
+    "name": "Tomato Soup & Toast",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "rich velvety tomato orange-red",
+      "texture": "smooth creamy tomato bisque"
+    },
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 10.0,
+        "placement": "beside bowl with melted cheese"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "melted golden layer",
+        "size_cm": 8.0,
+        "placement": "melted on bread"
+      }
+    ],
+    "finish": "light white cream swirl on soup",
+    "never": [
+      "watery clear broth",
+      "croutons floating when toast is side",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "velvety tomato bisque in deep bowl",
+      "melted cheese toast beside"
+    ]
+  },
+  {
+    "id": "roasted-broccoli-lemon",
+    "name": "Garlic Lemon Broccoli",
+    "vessel": "plate",
+    "base": {
+      "colour": "pale golden green",
+      "texture": "light olive oil sheen"
+    },
+    "pieces": [
+      {
+        "ingredient": "broccoli",
+        "shape": "charred halved florets",
+        "size_cm": 4.2,
+        "placement": "clustered flat charred side up"
+      },
+      {
+        "ingredient": "garlic",
+        "shape": "chips",
+        "size_cm": 1.6,
+        "placement": "scattered crisp on florets"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wheels",
+        "size_cm": 5.5,
+        "placement": "tucked beside florets"
+      }
+    ],
+    "finish": "crispy garlic chips and parmesan dust if on table",
+    "never": [
+      "raw standing whole broccoli trees",
+      "soup",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "charred roasted broccoli florets",
+      "garlic",
+      "lemon"
+    ]
+  },
+  {
+    "id": "hot-apple-cider",
+    "name": "Spiced Apple Cider",
+    "vessel": "glass",
+    "base": {
+      "colour": "warm translucent amber gold",
+      "texture": "spiced pressed apple cider with subtle vertical gradient"
+    },
+    "pieces": [
+      {
+        "ingredient": "apple",
+        "shape": "slice",
+        "size_cm": 4.5,
+        "placement": "slit upright on rim or beside"
+      }
+    ],
+    "finish": "cinnamon stick and star anise",
+    "never": [
+      "opaque pink milkshake",
+      "invented orange or berry not on table"
+    ],
+    "minimum_to_claim_name": [
+      "translucent amber apple cider in glass",
+      "apple"
+    ]
+  },
+  {
+    "id": "orange-watermelon-cooler",
+    "name": "Orange Watermelon Juice",
+    "vessel": "glass",
+    "base": {
+      "colour": "vibrant coral-tangerine",
+      "texture": "chilled fresh blended juice with vertical gradient"
+    },
+    "pieces": [
+      {
+        "ingredient": "orange",
+        "shape": "wheel",
+        "size_cm": 7.0,
+        "placement": "slit upright on rim"
+      },
+      {
+        "ingredient": "watermelon",
+        "shape": "wedge",
+        "size_cm": 4.0,
+        "placement": "beside glass"
+      }
+    ],
+    "finish": "crushed ice and mint leaf",
+    "never": [
+      "opaque white milk",
+      "invented berry"
+    ],
+    "minimum_to_claim_name": [
+      "coral-orange chilled juice in glass",
+      "orange",
+      "watermelon"
+    ]
+  },
+  {
+    "id": "blueberry-berry-smoothie",
+    "name": "Blueberry Berry Smoothie",
+    "vessel": "glass",
+    "base": {
+      "colour": "deep velvety violet-magenta",
+      "texture": "thick chilled blended berry smoothie"
+    },
+    "pieces": [
+      {
+        "ingredient": "strawberry",
+        "shape": "half",
+        "size_cm": 2.8,
+        "placement": "slit upright on rim"
+      },
+      {
+        "ingredient": "blueberries",
+        "shape": "whole",
+        "size_cm": 1.3,
+        "placement": "beside glass"
+      }
+    ],
+    "finish": "berry foam cap",
+    "never": [
+      "clear watery juice",
+      "savoury herbs",
+      "invented citrus"
+    ],
+    "minimum_to_claim_name": [
+      "thick deep-purple berry smoothie in glass",
+      "blueberries or strawberry"
+    ]
+  },
+  {
+    "id": "spinach-green-juice",
+    "name": "Green Spinach Apple",
+    "vessel": "glass",
+    "base": {
+      "colour": "vibrant emerald jade green",
+      "texture": "smooth cold-pressed green juice with vertical depth"
+    },
+    "pieces": [
+      {
+        "ingredient": "apple",
+        "shape": "slice",
+        "size_cm": 4.5,
+        "placement": "beside glass"
+      },
+      {
+        "ingredient": "lemon",
+        "shape": "wheel",
+        "size_cm": 5.5,
+        "placement": "slit upright on rim if on table"
+      }
+    ],
+    "finish": "chilled glass condensation sheen",
+    "never": [
+      "opaque cream milkshake",
+      "red berry juice"
+    ],
+    "minimum_to_claim_name": [
+      "vibrant emerald green juice in glass"
+    ]
+  },
+  {
+    "id": "steak-cheese-toast",
+    "name": "Philly Cheese Tartine",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 11.5,
+        "placement": "two crisp slices laid flat"
+      },
+      {
+        "ingredient": "steak",
+        "shape": "thin seared strips",
+        "size_cm": 5.5,
+        "placement": "piled evenly across both toasts"
+      },
+      {
+        "ingredient": "pepper",
+        "shape": "strips",
+        "size_cm": 5.0,
+        "placement": "charred over steak"
+      },
+      {
+        "ingredient": "cheese",
+        "shape": "melted blanket",
+        "size_cm": 8.0,
+        "placement": "melted over steak and peppers"
+      }
+    ],
+    "finish": "melted provolone gloss",
+    "never": [
+      "cold raw cheese cube on side",
+      "sweet syrup"
+    ],
+    "minimum_to_claim_name": [
+      "toasted baguette slices",
+      "seared steak strips",
+      "melted cheese"
+    ]
+  },
+  {
+    "id": "salmon-grape-skewer",
+    "name": "Peach Salmon Skewers",
+    "vessel": "plate",
+    "base": {
+      "colour": "pale golden citrus",
+      "texture": "light honey-citrus glaze drizzle"
+    },
+    "pieces": [
+      {
+        "ingredient": "salmon",
+        "shape": "skewers",
+        "size_cm": 20.0,
+        "placement": "fanned overlapping"
+      },
+      {
+        "ingredient": "peach",
+        "shape": "cubes",
+        "size_cm": 2.8,
+        "placement": "threaded between salmon cubes"
+      }
+    ],
+    "finish": "herb scatter and citrus glaze",
+    "never": [
+      "raw fish on toast",
+      "soup"
+    ],
+    "minimum_to_claim_name": [
+      "glazed salmon and peach skewers"
+    ]
+  },
+  {
+    "id": "lomi-lomi-salmon",
+    "name": "Hawaiian Lomi-lomi Salmon",
+    "vessel": "shallow bowl",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "salmon",
+        "shape": "dice",
+        "size_cm": 1.6,
+        "placement": "tossed evenly in chilled mound"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "dice",
+        "size_cm": 1.5,
+        "placement": "tossed evenly with salmon"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "dice",
+        "size_cm": 1.2,
+        "placement": "tossed throughout"
+      }
+    ],
+    "finish": "scallion ribbons and flaky sea salt",
+    "never": [
+      "thick seared cooked salmon fillet",
+      "creamy mayonnaise",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "diced chilled cured salmon",
+      "diced red tomato",
+      "onion"
+    ]
+  },
+  {
+    "id": "hawaiian-salmon-poke",
+    "name": "Hawaiian Salmon Poke",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "steamed white",
+      "texture": "warm seasoned sushi rice bed"
+    },
+    "pieces": [
+      {
+        "ingredient": "salmon",
+        "shape": "cubes",
+        "size_cm": 2.2,
+        "placement": "clustered soy-glazed on rice"
+      },
+      {
+        "ingredient": "avocado",
+        "shape": "slices",
+        "size_cm": 7.0,
+        "placement": "fanned beside salmon"
+      },
+      {
+        "ingredient": "onion",
+        "shape": "thin rings",
+        "size_cm": 3.5,
+        "placement": "tucked beside"
+      }
+    ],
+    "finish": "nori strips and toasted sesame seeds",
+    "never": [
+      "avocado half with pit",
+      "seared hot fillet",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "rice bowl",
+      "soy-glazed raw salmon cubes",
+      "avocado"
+    ]
+  },
+  {
+    "id": "avocado-egg-toast",
+    "name": "Smashed Avocado Toast",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 11.0,
+        "placement": "two crisp slices laid flat"
+      },
+      {
+        "ingredient": "avocado",
+        "shape": "chunky smashed spread",
+        "size_cm": 9.0,
+        "placement": "spread evenly across both slices"
+      },
+      {
+        "ingredient": "eggs",
+        "shape": "whole fried or poached",
+        "size_cm": 7.5,
+        "placement": "set on top of avocado"
+      }
+    ],
+    "finish": "sesame chili flakes and chives",
+    "never": [
+      "avocado half with brown seed/pit",
+      "giant oversized toast",
+      "sweet syrup"
+    ],
+    "minimum_to_claim_name": [
+      "toasted bread slices",
+      "smashed green avocado",
+      "egg on top"
+    ]
+  },
+  {
+    "id": "salmon-avocado-toast",
+    "name": "Salmon Avocado Toast",
+    "vessel": "board",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "toast",
+        "size_cm": 11.0,
+        "placement": "two realistic slices laid flat"
+      },
+      {
+        "ingredient": "avocado",
+        "shape": "slices",
+        "size_cm": 6.5,
+        "placement": "fanned flat across bread"
+      },
+      {
+        "ingredient": "salmon",
+        "shape": "thin folded smoked ribbons",
+        "size_cm": 6.5,
+        "placement": "draped in loose waves over avocado across both slices"
+      }
+    ],
+    "finish": "dill cream smear, caper scatter, microherbs",
+    "never": [
+      "whole thick cooked salmon fillet block on toast",
+      "oversized giant bread slice",
+      "hovering droplets",
+      "green sweet syrup",
+      "avocado half with pit"
+    ],
+    "minimum_to_claim_name": [
+      "two crisp toast slices",
+      "fanned avocado slices",
+      "thin folded salmon ribbons or flaked chunks"
+    ]
+  },
+  {
+    "id": "salmon-avocado-tartare",
+    "name": "Salmon Avocado Tartare",
+    "vessel": "plate",
+    "base": {
+      "colour": "pale golden citrus-herb",
+      "texture": "light citrus oil dots around cylinder"
+    },
+    "pieces": [
+      {
+        "ingredient": "salmon",
+        "shape": "dice",
+        "size_cm": 1.2,
+        "placement": "top layer of neat molded cylinder"
+      },
+      {
+        "ingredient": "avocado",
+        "shape": "dice",
+        "size_cm": 1.2,
+        "placement": "bottom layer of neat cylinder"
+      }
+    ],
+    "finish": "microherbs and crisp crostini beside if bread on table",
+    "never": [
+      "avocado half with pit",
+      "seared hot salmon fillet",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "layered diced raw salmon and diced avocado cylinder"
+    ]
+  },
+  {
+    "id": "orange-salad-mint",
+    "name": "Moroccan Orange Salad",
+    "vessel": "plate",
+    "base": {
+      "colour": "pale golden amber",
+      "texture": "light orange-blossom syrup sheen"
+    },
+    "pieces": [
+      {
+        "ingredient": "orange",
+        "shape": "wheels",
+        "size_cm": 7.0,
+        "placement": "shingled overlapping at centre"
+      }
+    ],
+    "finish": "cinnamon sugar dust and fresh mint leaves",
+    "never": [
+      "herbs like parsley or thyme",
+      "croutons",
+      "red onion",
+      "savoury oil"
+    ],
+    "minimum_to_claim_name": [
+      "shingled bright orange wheels",
+      "cinnamon dust",
+      "mint"
+    ]
+  },
+  {
+    "id": "carne-asada-guacamole",
+    "name": "Carne Asada & Avocado",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "steak",
+        "shape": "diagonal charred slices",
+        "size_cm": 13.0,
+        "placement": "fanned on plate"
+      },
+      {
+        "ingredient": "avocado",
+        "shape": "slices",
+        "size_cm": 7.0,
+        "placement": "fanned beside steak"
+      },
+      {
+        "ingredient": "lime",
+        "shape": "wedge",
+        "size_cm": 4.5,
+        "placement": "beside steak"
+      }
+    ],
+    "finish": "cilantro microherbs and chili flakes",
+    "never": [
+      "avocado half with pit",
+      "creamy white sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "sliced charred steak",
+      "fanned avocado slices",
+      "lime"
+    ]
+  },
+  {
+    "id": "egyptian-fattah",
+    "name": "Egyptian Fattah",
+    "vessel": "deep bowl",
+    "base": {
+      "colour": "warm ivory",
+      "texture": "fluffy white rice layered over crisp toasted bread"
+    },
+    "pieces": [
+      {
+        "ingredient": "baguette",
+        "shape": "cubes",
+        "size_cm": 2.5,
+        "placement": "toasted layer beneath rice"
+      },
+      {
+        "ingredient": "steak",
+        "shape": "cubes",
+        "size_cm": 3.0,
+        "placement": "crowned seared on rice"
+      },
+      {
+        "ingredient": "tomato",
+        "shape": "garlic-vinegar sauce ladle",
+        "size_cm": 8.0,
+        "placement": "poured bright red over top"
+      }
+    ],
+    "finish": "vivid red garlic-vinegar tomato sauce and fresh herb scatter",
+    "never": [
+      "plain white rice with no red garlic sauce",
+      "syrup"
+    ],
+    "minimum_to_claim_name": [
+      "rice layered with crisp bread",
+      "seared beef",
+      "red garlic-tomato sauce"
+    ]
+  },
+  {
+    "id": "mulled-apple-cider",
+    "name": "Mulled Spiced Cider",
+    "vessel": "glass",
+    "base": {
+      "colour": "warm deep amber",
+      "texture": "steaming spiced apple-orange cider with vertical gradient"
+    },
+    "pieces": [
+      {
+        "ingredient": "orange",
+        "shape": "wheel",
+        "size_cm": 7.0,
+        "placement": "slit upright on rim"
+      },
+      {
+        "ingredient": "apple",
+        "shape": "slice",
+        "size_cm": 4.5,
+        "placement": "beside glass"
+      }
+    ],
+    "finish": "cinnamon quill and star anise",
+    "never": [
+      "opaque pink milkshake",
+      "savoury herbs"
+    ],
+    "minimum_to_claim_name": [
+      "warm amber spiced cider in glass",
+      "apple",
+      "orange"
+    ]
+  },
+  {
+    "id": "blueberry-lemon-cake",
+    "name": "Blueberry Lemon Cake",
+    "vessel": "plate",
+    "base": null,
+    "pieces": [
+      {
+        "ingredient": "sponge cake",
+        "shape": "tender lemon-cream cake wedge",
+        "size_cm": 10.0,
+        "placement": "centred upright on plate"
+      },
+      {
+        "ingredient": "whipped cream",
+        "shape": "mascarpone frosting crown",
+        "size_cm": 6.0,
+        "placement": "piped on top of wedge"
+      },
+      {
+        "ingredient": "blueberries",
+        "shape": "whole",
+        "size_cm": 1.3,
+        "placement": "clustered on frosting and plate"
+      }
+    ],
+    "finish": "fine yellow lemon zest curls",
+    "never": [
+      "herbs",
+      "croutons",
+      "savoury oil",
+      "raw cheese wedge"
+    ],
+    "minimum_to_claim_name": [
+      "lemon cake wedge",
+      "whipped frosting",
+      "blueberries"
+    ]
+  }
+]
