@@ -697,7 +697,7 @@ if (import.meta.env.DEV) {
         cook: async (ids: string[], course = 'Main', taste = 'Savoury', wild = 40, attempt = 0, world?: string) => {
           const [{ pickDish, cookSeed }, { composedDish, LAST_QA }] = await Promise.all([import('./dishes/compose/pick'), import('./dishes/compose/build')]);
           const choices = { course, taste, wild };
-          const idea = pickDish(ids, choices, cookSeed(ids, choices, attempt), { world });
+          const idea = pickDish(ids, choices, cookSeed(ids, choices, attempt), { world, attempt });
           const dish = composedDish(idea);
           showIngredient(dish.entry);
           setName(dish.title);

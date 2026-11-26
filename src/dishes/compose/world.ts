@@ -156,15 +156,20 @@ export function scoreWorldDish(dish: WorldDish, table: string[], choices: Choice
  * Classic takes the top scorer; Regional one of the top two; Unhinged one of the top four within
  * 1.5 points of the best, picked with the cook's seed (the same cook, the same dish).
  */
-export function pickWorldDish(table: string[], choices: Choices, seed: number): WorldDish | undefined {
+export function pickWorldDish(table: string[], choices: Choices, seed: number, attempt = 0): WorldDish | undefined {
   const scored = WORLD_DISHES.map((dish) => ({ dish, score: scoreWorldDish(dish, table, choices) }))
     .filter((d) => Number.isFinite(d.score))
     .sort((a, b) => b.score - a.score || a.dish.id.localeCompare(b.dish.id));
   if (!scored.length || scored[0].score < MATCH_THRESHOLD) return undefined;
   const random = seededRandom((seed ^ 0x3017d) >>> 0);
   const good = scored.filter((d) => d.score >= MATCH_THRESHOLD);
-  if (choices.wild <= 30) return good[0].dish;
-  if (choices.wild <= 70) return good[Math.floor(random() * Math.min(2, good.length))].dish;
+  // Pressing Cook again with the same table (R4: repeat cooks should differ more): Classic walks
+  // through the best few fitting dishes in turn; a step out picks among the top three.
+  if (choices.wild <= 30) {
+    const close = good.filter((d) => d.score >= good[0].score - 4).slice(0, 3);
+    return close[attempt % close.length].dish;
+  }
+  if (choices.wild <= 70) return good[Math.floor(random() * Math.min(attempt ? 3 : 2, good.length))].dish;
   // Unhinged: never the Classic pick when another dish is near (Wild has to show).
   const classic = [...scored].sort((a, b) => scoreWorldDish(b.dish, table, { ...choices, wild: 0 }) - scoreWorldDish(a.dish, table, { ...choices, wild: 0 }) || a.dish.id.localeCompare(b.dish.id))[0]?.dish;
   const others = good.filter((d) => d.dish !== classic);
@@ -204,7 +209,10 @@ export function worldComponents(dish: WorldDish, table: string[], sweet: boolean
     else if (/pancake|crepe|tart shell|pastry|crust/.test(text)) continue; // the layout's own vehicle
     else if (/sponge|biscuit|shortbread|\bcake\b|tuile|wafer|brittle/.test(text)) add(componentPiece('tuile', 'pastry', 1, 'beside'));
     else if (/smear|puree|purée|hummus|toum|labneh|yogurt|tahini/.test(text)) add(componentPiece('smear', 'cream-sauce', 1, 'beside'));
-    else if (/syrup|honey|caramel|maple|molasses/.test(text)) add(componentGarnish('gel', /maple|caramel|molasses/.test(text) ? 'caramel' : 'honey', 7));
+    else if (/syrup|honey|caramel|maple|molasses/.test(text)) {
+      // Syrups only on a sweet dish (R4: never syrup on a savoury plate).
+      if (sweet) add(componentGarnish('gel', /maple|caramel|molasses/.test(text) ? 'caramel' : 'honey', 7));
+    }
     else if (/pomegranate|barberr|cranberr/.test(text)) add(componentGarnish('gel', 'berry-sauce', 9));
     else if (/pistachio|pine nut|almond|walnut|hazelnut|sesame|seed|nut/.test(text)) add(componentGarnish('gel', /pistachio/.test(text) ? 'leaf' : 'pastry', 11));
     else if (/olive/.test(text) && !/oil/.test(text)) add(componentGarnish('gel', 'ink', 7));

@@ -125,6 +125,33 @@ describe('pickDish (the P0 list)', () => {
     expect(idea.title).not.toMatch(/salad/i);
   });
 
+  it('writes captions that never repeat a phrase, and no syrup on a savoury dish (R4 l)', () => {
+    for (const { ids, choices, seed } of everyCook()) {
+      const idea = pickDish(ids, choices, seed);
+      const words = idea.description.toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(Boolean);
+      const seen = new Set<string>();
+      for (let i = 0; i + 2 < words.length; i++) {
+        const phrase = words.slice(i, i + 3).join(' ');
+        expect(seen.has(phrase), `${ids.join('+')} ${choices.course} ${choices.taste} ${choices.wild}: "${idea.description}" repeats "${phrase}"`).toBe(false);
+        seen.add(phrase);
+      }
+      if (!idea.sweet && choices.taste === 'Savoury') expect(idea.description, `${ids.join('+')}: ${idea.description}`).not.toMatch(/syrup|caramel|honey/i);
+    }
+  });
+
+  it('cooks the same table differently on another press (R4 k)', () => {
+    let differ = 0;
+    let total = 0;
+    for (const ids of TABLES) for (const course of COURSES) {
+      const choices = { course, taste: 'Savoury', wild: 0 };
+      const a = pickDish(ids, choices, cookSeed(ids, choices, 0), { attempt: 0 });
+      const b = pickDish(ids, choices, cookSeed(ids, choices, 1), { attempt: 1 });
+      total++;
+      if (a.title !== b.title || a.big !== b.big || a.medium.join() !== b.medium.join() || a.layout !== b.layout) differ++;
+    }
+    expect(differ / total).toBeGreaterThan(0.6);
+  });
+
   it('renders only what is on the table, or a staple (Group 2)', () => {
     // Staples a kitchen always has: toast and pancake batter; and the library's components.
     const STAPLES = new Set(['baguette:toast', 'milk:pancake']);

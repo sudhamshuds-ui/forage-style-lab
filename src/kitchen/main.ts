@@ -854,7 +854,7 @@ function cook(choices: CookChoices): void {
     if (!made) {
       // Never a silent click (the fix list, P3.1): if plating fails, Cook is freed and says so.
       try {
-        const dish = composedDish(pickDish(ids, choices, seed));
+        const dish = composedDish(pickDish(ids, choices, seed, { attempt }));
         made = { dish, item: makeItemFrom(dish.entry) };
       } catch (error) {
         console.error('Cook failed', { ids, choices, seed }, error);

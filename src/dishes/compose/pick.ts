@@ -85,8 +85,11 @@ const SWEET_OK_TASTE = (id: string) => TRAITS[id]?.taste === 'sweet' || TRAITS[i
 const SWEET_LAYOUTS: LayoutId[] = ['tart', 'plated-dessert', 'dessert-bowl', 'pancake-stack'];
 
 /** A sweet dish: a dessert, a sweet layout, or toast chosen sweet (strawberry toast). */
-export function isSweetDish(layout: LayoutId, course: string, taste: string): boolean {
-  return course.toLowerCase() === 'dessert' || SWEET_LAYOUTS.includes(layout) || (taste === 'Sweet' && layout === 'toast-board');
+export function isSweetDish(layout: LayoutId, course: string, taste: string, ids: string[] = []): boolean {
+  // Toast is sweet only when what goes on it is sweet (strawberry toast); salmon on toast stays
+  // savoury whatever the taste chip says (it got "green syrup" beside it, R4).
+  const sweetToast = taste === 'Sweet' && layout === 'toast-board' && ids.every((id) => SWEET_OK_TASTE(id) || ['baguette', 'butter', 'milk'].includes(id));
+  return course.toLowerCase() === 'dessert' || SWEET_LAYOUTS.includes(layout) || sweetToast;
 }
 
 /** A piece a sweet dish may carry as it is. Citrus wheels, herbs, a fried egg, croutons do not. */
@@ -400,7 +403,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
   }
 
   // The table's sauce never becomes a piece: it is the pool (or the drizzle on a dry layout).
-  if (left.has('sauce') && !isSweetDish(layout.id, course, choices.taste)) {
+  if (left.has('sauce') && !isSweetDish(layout.id, course, choices.taste, ids)) {
     if (base === 'none') base = left.has('tomato') ? 'pool:tomato-sauce' : 'pool:chili';
     take('sauce');
     inBase.push('sauce');
@@ -584,8 +587,8 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
 
   // ---- The sauce ----
   const wantsPool = layout.wantsUnderPool || layout.id === 'circular-plate';
-  if (wantsPool && (base === 'none' || base === 'pool:chili') && !inBase.includes('sauce')) base = chooseSauce(layout, ids, star, choices.taste, wild, isSweetDish(layout.id, course, choices.taste));
-  if (base === 'none' && wantsPool) base = chooseSauce(layout, ids, star, choices.taste, wild, isSweetDish(layout.id, course, choices.taste));
+  if (wantsPool && (base === 'none' || base === 'pool:chili') && !inBase.includes('sauce')) base = chooseSauce(layout, ids, star, choices.taste, wild, isSweetDish(layout.id, course, choices.taste, ids));
+  if (base === 'none' && wantsPool) base = chooseSauce(layout, ids, star, choices.taste, wild, isSweetDish(layout.id, course, choices.taste, ids));
   // Milk or butter that went into the sauce is the sauce (it must be on the plate, as the caption says).
   // A toast board has no pool (a cream pool spread over the board, item 6): milk and butter are in the toast.
   const sauceable = (base === 'none' || base.startsWith('pool:')) && layout.id !== 'toast-board';
@@ -599,7 +602,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
   // A sweet dish carries only sweet-compatible pieces (Group 1). Classic and a step out: every
   // savoury piece is made sweet (an egg a custard, a lime a curd, a tomato a jam). Unhinged keeps one
   // savoury piece, a single one, on purpose (one fried egg by a tart), never a pile of leftovers.
-  const sweet = isSweetDish(layout.id, course, choices.taste);
+  const sweet = isSweetDish(layout.id, course, choices.taste, ids);
   const made: DishComponent[] = [];
   let twist: Piece | undefined;
   if (sweet) {
@@ -647,7 +650,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
     else inBase.push(id);
   }
   const dishCourse: Course = course === 'drink' ? 'snack' : course;
-  const sauce = base.startsWith('pool:') ? base : chooseSauce(layout, ids, star, choices.taste, wild, isSweetDish(layout.id, course, choices.taste));
+  const sauce = base.startsWith('pool:') ? base : chooseSauce(layout, ids, star, choices.taste, wild, isSweetDish(layout.id, course, choices.taste, ids));
   return { layout, hero, support, accent, base, inBase, ware, course: dishCourse, star, sauce, sweet, made, twist };
 }
 
@@ -905,9 +908,15 @@ function describeDish(slots: Slots, components: DishComponent[], random: () => n
   extras.sort((a, b) => Number(components.some((c) => c.label === b)) - Number(components.some((c) => c.label === a)));
   const twistAt = slots.twist ? sides.indexOf(piecePhrase(slots.twist)) : -1;
   if (twistAt >= 0) sides.splice(twistAt, 1);
+  // (No finish that repeats the lead or a side: "a scoop of custard ice cream ... a scoop of ice cream".)
+  const opening = (t: string) => t.toLowerCase().split(' ').slice(0, 3).join(' ');
+  const said = [lead, ...sides].map(opening);
+  for (let i = extras.length - 1; i >= 0; i--) if (said.includes(opening(extras[i]))) extras.splice(i, 1);
   const withSides = sides.length ? ` with ${listOf(sides.slice(0, 2))}` : '';
   const finish = extras.length ? pick([`, finished with ${extras[0]}`, `. ${cap(extras[0])} to finish`, `, ${extras[0]} on the side`]) : '';
   const twist = slots.twist ? `, and ${piecePhrase(slots.twist).replace(/^an? /, 'a single ')} for contrast` : '';
+  // (Never say the same thing twice: "a crisp pastry tart in a crisp pastry shell".)
+  if (where && lead.toLowerCase().includes(where.replace(/^(in|on|over) (a |an )?/, '').split(' ').slice(0, 2).join(' '))) where = '';
   const sentence = `${cap(lead)}${withSides}${twist}${where ? ` ${where}` : ''}${finish}.`;
   return sentence.replace(/\s+/g, ' ').replace(/ ,/g, ',');
 }
@@ -987,22 +996,28 @@ export function titleDish(slots: Slots, cooked: boolean, components: DishCompone
 }
 
 /** The table and the choices as one plated dish idea. Never throws, never the stand-in salmon. */
-export function pickDish(ids: string[], choices: CookChoices, seed: number, options: { world?: string } = {}): DishIdea {
+export function pickDish(ids: string[], choices: CookChoices, seed: number, options: { world?: string; attempt?: number } = {}): DishIdea {
   const table = [...new Set(ids)].filter((id) => TRAITS[id]).slice(0, 3);
   if (!table.length) table.push('apple');
   const random = seededRandom(seed);
   // A real world dish first (world-dishes-brief.md): it lends the name, the layout and its finishing
   // touches; the table's ingredients still fill the plate. Otherwise the templates cook.
   // (Tests may name the world dish, to check it renders as its looks note says.)
-  const world = options.world ? WORLD_DISHES.find((d) => d.id === options.world) : pickWorldDish(table, choices, seed);
-  const archetype = pickArchetype(table, choices, random);
+  const attempt = options.attempt ?? 0;
+  const world = options.world ? WORLD_DISHES.find((d) => d.id === options.world) : pickWorldDish(table, choices, seed, attempt);
+  // Another press of Cook at Classic varies like a step out (other cuts, another layout), still
+  // within the sweet rules (they follow the Wild band, which this never raises to Unhinged).
+  const varied = attempt % 2 === 1 && choices.wild < 30 ? { ...choices, wild: 45 } : choices;
+  // A second press at Classic takes the next archetype in line when there is one.
+  const candidates = layoutCandidates(table, choices.course.toLowerCase() as Course, choices.taste);
+  const archetype = attempt > 0 && choices.wild < 30 && candidates.length > 1 ? layoutById(candidates[attempt % candidates.length])! : pickArchetype(table, varied, random);
   const layout = (world && layoutById(world.layout)) || archetype;
-  const slots = assignSlots(table, choices, layout, random);
+  const slots = assignSlots(table, varied, layout, random);
   // A world dish is rendered from its looks note: the shapes, the base and its colour.
   const look = world ? applyLooks(slots, world, table) : {};
   const GENERIC_TEXTURES = ['a glossy sauce pool', 'a smooth drink', 'a smooth soup', 'a sparkling drink', 'mixed rice with herb and vegetable flecks', 'a clear broth'];
   if (look.texture && !GENERIC_TEXTURES.includes(look.texture)) slots.texture = look.texture;
-  const components = chooseComponents(slots, choices.wild, random);
+  const components = chooseComponents(slots, varied.wild, random);
   if (world) for (const c of worldComponents(world, table, !!slots.sweet)) if (!components.some((o) => o.kind === c.kind && o.family === c.family)) components.push(c);
   const part = (p: Piece) => `${p.id}:${p.form}${p.count > 1 ? `*${p.count}` : ''}`;
   const raw = ['tartare-crudo', 'leaf-salad', 'glass-drink'].includes(layout.id) || slots.course === 'dessert';
