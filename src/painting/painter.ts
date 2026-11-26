@@ -34,6 +34,12 @@ export interface PaintFrame {
   /** The ingredient's base colour, reflected into its cast shadow. */
   objectBase: string;
   /**
+   * How big a typical piece of food is on screen (its size, as a fraction of the screen height):
+   * a solo ingredient filling the view about 0.5, a full plate's pieces about 0.1 (R8). The food's
+   * strokes follow it. Left out, the strokes take the full plate's size.
+   */
+  foodScreen?: number;
+  /**
    * Where the room's wall meets its table, as a height on the card (0..1), found from the room
    * itself (`roomHorizonUv`). Null when it is off the card: the hidden Horizon setting is used.
    */
@@ -110,6 +116,7 @@ export class Painter {
         tFlow: { value: this.flowTarget.texture },
         uResolution: { value: new Vector2() },
         uCell: { value: 20 },
+        uFoodCell: { value: 10 },
         uBackdropCell: { value: 60 },
         uLength: { value: 1.5 },
         uLoose: { value: 0.6 },
@@ -240,6 +247,7 @@ void main() {
         const paint = this.paintMaterial.uniforms;
         paint.uResolution.value.set(w, h);
         paint.uCell.value *= w / this.size.x;
+        paint.uFoodCell.value *= w / this.size.x;
         paint.uBackdropCell.value *= w / this.size.x;
         renderer.setRenderTarget(this.strokeTarget);
         renderer.render(this.paintScene, camera);
@@ -257,6 +265,24 @@ void main() {
     const scene = new Scene();
     for (const material of [this.paintMaterial, this.glazeMaterial, this.flowMaterial, this.blitMaterial]) scene.add(fullScreenTriangle(material));
     return renderer.compileAsync(scene, camera).catch(() => undefined);
+  }
+
+  /**
+   * The owner's Brush size for the food (0 fine to 100 bold, 50 the tuned middle, R8): halves or
+   * doubles the food's strokes at the ends.
+   */
+  foodBrush = 50;
+
+  /**
+   * The food's stroke cell (R8): near the main cell for food that fills the view, about half of it
+   * for a full plate's small pieces, between the two as the food's size on screen grows; then the
+   * Brush size. (The finest strokes at edges and highlights are half of this, in the shader.)
+   */
+  foodCell(cell: number, foodScreen = 0.1): number {
+    const t = Math.min(1, Math.max(0, (foodScreen - 0.1) / (0.45 - 0.1)));
+    const grow = t * t * (3 - 2 * t);
+    const share = 0.5 + 0.42 * grow;
+    return cell * share * Math.pow(2, (this.foodBrush - 50) / 50);
   }
 
   /** The size of one stroke cell in device pixels (the Shuffle transition borrows it). */
@@ -278,6 +304,7 @@ void main() {
     const paint = this.paintMaterial.uniforms;
     paint.uResolution.value.copy(this.size);
     paint.uCell.value = cell;
+    paint.uFoodCell.value = this.foodCell(cell, frame.foodScreen);
     paint.uBackdropCell.value = backdropCell;
     paint.uLength.value = 0.9 + (settings.brush.length / 100) * 1.1;
     // The painter sets looseness and broken colour. The hidden Painterly and Colour

@@ -670,3 +670,28 @@
     animation: none;
   }
 }
+
+/* The food's Brush size (R8): under the painters, fine to bold. */
+.sb-size {
+  margin: 4px 0 0;
+  padding: 8px 10px 4px;
+  border-top: 1px solid rgba(31, 30, 28, 0.08);
+}
+.sb-size-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+.sb-size-range {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+.sb-size-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  color: var(--ink-3);
+  font-size: 11px;
+}

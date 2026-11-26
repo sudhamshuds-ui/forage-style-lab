@@ -129,6 +129,11 @@ export interface IngredientEntry {
    */
   lightLift?: number;
   /**
+   * A composed dish's typical food piece against the dish's width (R8): the painter sizes the food's
+   * strokes by the food's size on screen. A single ingredient is one piece (1).
+   */
+  pieceShare?: number;
+  /**
    * Pieces left out in Playful strokes (the strokes pass repaints small dark parts as hard blocks
    * that read as errors: the watermelon's seeds, the user 2026-11-11). They still show in the
    * soft look.

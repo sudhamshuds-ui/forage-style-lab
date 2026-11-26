@@ -58,13 +58,9 @@ const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 await loadPhysics();
 
 const stage = new Stage(canvas, card);
-// The view turns round the table but never tips over it (R4: a drag on the table tipped it to
-// straight overhead and every later dish was painted from above).
-{
-  const polar = stage.controls.getPolarAngle();
-  stage.controls.minPolarAngle = polar;
-  stage.controls.maxPolarAngle = polar;
-}
+// The table turns freely all round and tilts, as on main (R8). The R4 bug, a dish painted from
+// straight overhead after a drag, is fixed where it happened: Cook puts the view back to the
+// normal dish angle as the dish comes in (cook, below), instead of locking the tilt.
 const look = new StylizedLook(EFFECT_STACK);
 const background = new Background();
 const ground = new Ground();
@@ -791,6 +787,14 @@ function changed(): void {
  * The brush on the card (the Style Lab's own control, ui/styleBar.tsx): it switches the painterly
  * look, and its arrow opens the painters. Cook lives in the side panel.
  */
+/** Where the food's Brush size is kept (R8). */
+const BRUSH_SIZE_KEY = 'forage.brushSize';
+try {
+  const saved = Number(localStorage.getItem(BRUSH_SIZE_KEY));
+  if (localStorage.getItem(BRUSH_SIZE_KEY) !== null && Number.isFinite(saved)) painter.foodBrush = Math.max(0, Math.min(100, saved));
+} catch {
+  // Storage blocked: the middle size.
+}
 /** The painter last picked from the brush's menu (kept while the brush is off). */
 let lastPainter: string | null = null;
 mountStyleBar(document.getElementById('bar-root') as HTMLElement, {
@@ -817,6 +821,17 @@ mountStyleBar(document.getElementById('bar-root') as HTMLElement, {
   // The brush alone, at the card's top right; its painters open downward.
   brushOnly: true,
   menuSide: 'bottom',
+  // The food's Brush size (R8), kept in this browser across visits and painters.
+  brushSize: () => painter.foodBrush,
+  setBrushSize: (value) => {
+    painter.foodBrush = value;
+    try {
+      localStorage.setItem(BRUSH_SIZE_KEY, String(value));
+    } catch {
+      // Storage blocked: the size holds for this visit only.
+    }
+    stage.invalidate();
+  },
 });
 
 /* ---------- Cooking: from the table to the dish, and back ---------- */
@@ -1013,7 +1028,16 @@ function cook(choices: CookChoices, fixedAttempt?: number): void {
     // clearly visible (the user, 2026-11-16), not the moment the reveal starts.
     playSwap(
       [item],
-      () => undefined,
+      // (R8: the dish is always shown from the normal dish angle, whatever the table was turned to.)
+      () => {
+        stage.resetView();
+        // Shot mode (R8): closer in, so the dish fills the frame.
+        if (SHOT) {
+          stage.camera.position.sub(stage.controls.target).multiplyScalar(0.68).add(stage.controls.target);
+          stage.controls.update();
+          stage.invalidate();
+        }
+      },
       () => setMode('dish'),
       () => setWords(dish),
     );
@@ -1152,6 +1176,12 @@ function update(): void {
   paintFrame.objectUv.set(projected.x * 0.5 + 0.5, projected.y * 0.5 + 0.5);
   paintFrame.objectRadius = Math.abs(projectedTop.y - projected.y) * 0.5;
   paintFrame.objectBase = context.objectColours.base;
+  // How big the food is on screen (R8): each item's typical piece (a dish's own share of its width,
+  // a whole ingredient itself), from world size to screen height at the group's middle.
+  const perUnit = context.objectRadius > 0 ? paintFrame.objectRadius / context.objectRadius : 0;
+  paintFrame.foodScreen = list.length
+    ? list.reduce((sum, item) => sum + 2 * item.subject.radius * view.scale * Math.max(item.pop, 0.001) * (item.subject.entry.pieceShare ?? 1) * perUnit, 0) / list.length
+    : 0.1;
   paintFrame.horizonUv = roomHorizonUv(stage.camera, centre, radius, context.groundY);
   paintFrame.pieces = context.contacts.map((spot) => {
     const floor = new Vector3(spot.x, context.groundY, spot.y).project(stage.camera);
@@ -1232,6 +1262,16 @@ Object.assign(window, {
     /** How many ready-made ingredients are waiting, and how many paint programs exist (for checks). */
     ready: () => [...ready.keys()],
     programs: () => stage.renderer.info.programs?.length ?? 0,
+    /** Paint like a painter, the brush on (as the brush's menu does), or the brush off with null (for render checks). */
+    paintLike: (id: string | null) => {
+      if (id) Object.assign(settings.brush, paintLike(id), { classic: true });
+      else Object.assign(settings.brush, structuredClone(DEFAULTS.brush));
+      stage.invalidate();
+    },
+    brushSize: (value: number) => {
+      painter.foodBrush = value;
+      stage.invalidate();
+    },
     snapshot: () => {
       update();
       draw();

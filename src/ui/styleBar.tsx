@@ -47,6 +47,40 @@ export interface StyleBarApi {
   brushOnly?: boolean;
   /** Which way the painters open from the arrow: up (the default) or down (the brush at the card's top). */
   menuSide?: 'top' | 'bottom';
+  /** The food's Brush size (0 fine to 100 bold), shown under the painters when given (R8). */
+  brushSize?: () => number;
+  setBrushSize?: (value: number) => void;
+}
+
+/** Brush size (R8): under the painter styles, fine to bold, the middle by default. */
+function BrushSize({ api }: { api: StyleBarApi }) {
+  const [value, setValue] = useState(() => api.brushSize?.() ?? 50);
+  if (!api.setBrushSize) return null;
+  return (
+    <div className="sb-size" onKeyDown={(event) => event.stopPropagation()}>
+      <label className="sb-size-label" htmlFor="sb-size-range">
+        Brush size
+      </label>
+      <input
+        id="sb-size-range"
+        className="sb-size-range"
+        type="range"
+        min={0}
+        max={100}
+        step={1}
+        value={value}
+        onChange={(event) => {
+          const next = Number(event.currentTarget.value);
+          setValue(next);
+          api.setBrushSize?.(next);
+        }}
+      />
+      <div className="sb-size-ends" aria-hidden="true">
+        <span>Fine</span>
+        <span>Bold</span>
+      </div>
+    </div>
+  );
 }
 
 /** The painters in the menu, calmest first; Sargent is today's default. */
@@ -228,6 +262,7 @@ function StyleBar({ api }: { api: StyleBarApi }) {
                         </Menu.RadioItem>
                       ))}
                     </Menu.RadioGroup>
+                    <BrushSize api={api} />
                   </Menu.Popup>
                 </Menu.Positioner>
               </Menu.Portal>

@@ -36,6 +36,7 @@ uniform sampler2D tColour;
 uniform sampler2D tFlow;
 uniform vec2 uResolution;
 uniform float uCell;
+uniform float uFoodCell;
 uniform float uBackdropCell;
 uniform float uLength;
 uniform float uLoose;
@@ -446,9 +447,11 @@ void main() {
   colour = paintLayer(colour, px, uBackdropCell, 1.0, region, 1.0, 1.0);
   colour = paintLayer(colour, px, uBackdropCell * 0.8, 2.0, region, 1.0, 0.55);
 
-  // 2. The object (the food): two passes of strokes about a quarter of the main size (R4: food
-  // strokes read far too coarse; the table and backdrop above stay loose).
-  float food = max(uCell * 0.25, 3.0);
+  // 2. The object (the food): two passes of strokes. R8: their size follows the food's size on
+  // screen (the painter sets uFoodCell): a single ingredient filling the view near the main size,
+  // a full plate's small pieces about half of it, scaled by the Brush size slider. (R4's fixed
+  // quarter size made the strokes all but vanish on a solo ingredient.)
+  float food = max(uFoodCell, 3.0);
   colour = paintLayer(colour, px, food, 3.0, region, 2.0, 1.0);
   colour = paintLayer(colour, px, food * 0.8, 4.0, region, 2.0, 0.85);
 
