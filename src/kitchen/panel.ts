@@ -34,6 +34,8 @@ export interface CookPanel {
   setBusy(busy: boolean): void;
   /** A short line under Cook when a cook failed (never a silent click); empty clears it. */
   showError(text: string): void;
+  /** Set the choices from outside (the test links: ?course=main&taste=savoury&wild=0). */
+  setChoices(next: Partial<CookChoices>): void;
 }
 
 /** Two dice (Randomise): the user's icon from Figma (Forage file, node 283:229), in the button's ink. */
@@ -151,5 +153,9 @@ export function mountCookPanel(root: HTMLElement, options: { onCook: (choices: C
       error.hidden = !text;
     },
     setBusy: (on) => ((busy = on), refresh()),
+    setChoices: (next) => {
+      Object.assign(choices, next);
+      paint();
+    },
   };
 }

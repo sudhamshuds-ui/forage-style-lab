@@ -1,4 +1,5 @@
 import { EASE, gsap, prefersReducedMotion } from '../motion';
+import { TEST_CHECKS, type TestCheck } from './testSheet';
 
 /**
  * The ingredient tray: a row of small paintings under the card. Drag one onto the card to put
@@ -42,6 +43,8 @@ export interface TrayOptions {
   replaceTable: (ids: string[]) => void;
   /** Just before a shuffle changes anything (for Undo). */
   beforeShuffle?: () => void;
+  /** A test-sheet check picked in the ingredients panel: set its table and controls and cook it. */
+  onTestCheck?: (check: TestCheck) => void;
 }
 
 export interface Tray {
@@ -55,6 +58,7 @@ export interface Tray {
   element: HTMLElement;
 }
 
+const MORE_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>`;
 const SHUFFLE_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>`;
 
 export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
@@ -77,7 +81,89 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
   shuffle.setAttribute('aria-label', 'New ingredients');
   shuffle.title = 'New ingredients';
   shuffle.innerHTML = SHUFFLE_ICON;
-  root.append(list, shuffle);
+  // Every pantry ingredient, not only the five dealt (R7: a test table like spinach and cheese
+  // rarely turns up together in five random tiles): a search box over all of them.
+  const more = document.createElement('button');
+  more.type = 'button';
+  more.className = 'tray-more';
+  more.setAttribute('aria-label', 'All ingredients');
+  more.setAttribute('aria-expanded', 'false');
+  more.title = 'All ingredients';
+  more.innerHTML = MORE_ICON;
+  const panel = document.createElement('div');
+  panel.className = 'tray-panel';
+  panel.hidden = true;
+  const search = document.createElement('input');
+  search.type = 'search';
+  search.className = 'tray-search';
+  search.placeholder = 'Find an ingredient';
+  search.setAttribute('aria-label', 'Find an ingredient');
+  const grid = document.createElement('ul');
+  grid.className = 'tray-grid';
+  const choices = [...options.pantry].sort((a, b) => a.name.localeCompare(b.name));
+  const picks: HTMLButtonElement[] = [];
+  for (const entry of choices) {
+    const li = document.createElement('li');
+    const pick = document.createElement('button');
+    pick.type = 'button';
+    pick.className = 'tray-pick';
+    pick.dataset.id = entry.id;
+    const img = document.createElement('img');
+    img.src = thumb(entry.id);
+    img.alt = '';
+    img.draggable = false;
+    const label = document.createElement('span');
+    label.textContent = entry.name;
+    pick.append(img, label);
+    pick.addEventListener('click', () => {
+      if (options.isUsed(entry.id) || !options.add(entry.id)) {
+        gsap.fromTo(pick, { x: 0 }, { keyframes: { x: [0, -4, 4, -2, 0] }, duration: 0.28, ease: 'power1.out', clearProps: 'transform' });
+        return;
+      }
+      refresh();
+    });
+    li.append(pick);
+    grid.append(li);
+    picks.push(pick);
+  }
+  // The preview's test sheet (R7): pick a check to set its table and controls and cook it.
+  const checks = document.createElement('select');
+  checks.className = 'tray-checks';
+  checks.setAttribute('aria-label', 'Test sheet check');
+  checks.append(new Option('Test sheet: set up a check', ''));
+  for (const check of TEST_CHECKS) checks.append(new Option(`${check.n}. ${check.name}`, String(check.n)));
+  checks.addEventListener('change', () => {
+    const check = TEST_CHECKS.find((c) => String(c.n) === checks.value);
+    checks.value = '';
+    if (!check) return;
+    open(false);
+    options.onTestCheck?.(check);
+  });
+  panel.append(search, grid, checks);
+  const filter = () => {
+    const q = search.value.trim().toLowerCase();
+    for (const pick of picks) (pick.parentElement as HTMLElement).hidden = !!q && !`${pick.dataset.id} ${pick.textContent}`.toLowerCase().includes(q);
+  };
+  search.addEventListener('input', filter);
+  const open = (on: boolean) => {
+    panel.hidden = !on;
+    more.setAttribute('aria-expanded', String(on));
+    if (on) {
+      refresh();
+      search.value = '';
+      filter();
+      search.focus();
+    }
+  };
+  more.addEventListener('click', () => open(panel.hidden !== false));
+  search.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') open(false);
+    if (event.key === 'Enter') (picks.find((pick) => !(pick.parentElement as HTMLElement).hidden && !pick.disabled))?.click();
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (!panel.hidden && !panel.contains(event.target as Node) && !more.contains(event.target as Node)) open(false);
+  });
+  root.append(list, shuffle, more, panel);
 
   const tiles: HTMLButtonElement[] = [];
   const setTile = (tile: HTMLButtonElement, id: string) => {
@@ -104,6 +190,11 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
   }
 
   function refresh(): void {
+    for (const pick of picks) {
+      const id = pick.dataset.id ?? '';
+      pick.toggleAttribute('data-used', options.isUsed(id));
+      pick.disabled = !options.isUsed(id) && !options.canAdd(id);
+    }
     for (const tile of tiles) {
       const id = tile.dataset.id ?? '';
       tile.toggleAttribute('data-used', options.isUsed(id));

@@ -688,7 +688,22 @@ const tray = mountTray(document.getElementById('tray') as HTMLElement, {
   tableIds: () => staying().map((item) => item.id),
   replaceTable: (ids) => replaceTable(ids),
   beforeShuffle: () => remember(),
+  onTestCheck: (check) => loadTest(check.table, check.wild < 0 ? {} : { course: check.course, taste: check.taste, wild: check.wild }, check.wild < 0 ? undefined : 0),
 });
+
+/**
+ * A test check (R7): this table and these controls, then Cook (with `attempt` as the Cook press it
+ * stands for). One step for Undo.
+ */
+function loadTest(table: string[], choices: Partial<CookChoices>, attempt?: number): void {
+  if (mode !== 'table' || cooking) return;
+  remember();
+  restoring = true;
+  replaceTable(table.filter((id) => REGISTRY.some((entry) => entry.spec.id === id)).slice(0, MAX_ITEMS));
+  restoring = false;
+  cookPanel.setChoices(choices);
+  if (attempt !== undefined) window.setTimeout(() => cook(cookPanel.choices(), attempt), 900);
+}
 
 /**
  * Shuffle (Group 4) and Undo: the table's ingredients are swapped for others. R4: one after another
@@ -1001,11 +1016,12 @@ const cookAttempts = new Map<string, number>();
 const cooked = new Map<number, { dish: Dish; item: Item }>();
 let cooking = false;
 
-function cook(choices: CookChoices): void {
+function cook(choices: CookChoices, fixedAttempt?: number): void {
   if (mode !== 'table' || staying().length === 0 || cooking) return;
   const ids = staying().map((entry) => entry.id);
   const key = [...ids].sort().join('+') + `|${choices.course}|${choices.taste}|${choices.wild}`;
-  const attempt = cookAttempts.get(key) ?? 0;
+  // (A test link's seed is the Cook press it stands for: 0 the first, 1 the second, and so on.)
+  const attempt = fixedAttempt ?? cookAttempts.get(key) ?? 0;
   cookAttempts.set(key, attempt + 1);
   const seed = cookSeed(ids, choices, attempt);
   cooking = true;
@@ -1201,10 +1217,18 @@ changed();
 stage.start(update, draw);
 // The table starts with one ingredient on it, its tile greyed out in the tray (the user, 2026-11-16).
 // (Not a step to undo: the page simply opens with it.)
+// A test link (R7) sets the table and the controls instead, and can cook at once:
+// ?table=spinach,cheese&course=main&taste=savoury&wild=0&seed=3 (the same after a # works too).
+const testLink = readTestLink();
 restoring = true;
-addIngredient(tray.ids()[0], false);
+if (testLink) for (const id of testLink.table) addIngredient(id, false);
+else addIngredient(tray.ids()[0], false);
 restoring = false;
 syncUndo();
+if (testLink) {
+  cookPanel.setChoices(testLink.choices);
+  if (testLink.seed !== undefined || testLink.cook) window.setTimeout(() => cook(cookPanel.choices(), testLink.seed), 600);
+}
 // GSAP moves things between frames: keep painting while any tween is running.
 gsap.ticker.add(() => {
   if (items.some((item) => gsap.isTweening(item) || gsap.isTweening(item.position)) || gsap.isTweening(view)) stage.invalidate();
@@ -1234,6 +1258,26 @@ Object.assign(window, {
     },
   },
 });
+
+/** The test link's table and controls, if the page's address has one (names as in the pantry). */
+function readTestLink(): { table: string[]; choices: Partial<CookChoices>; seed?: number; cook: boolean } | null {
+  const raw = location.search.length > 1 ? location.search.slice(1) : location.hash.replace(/^#\??/, '');
+  const params = new URLSearchParams(raw);
+  if (!params.has('table')) return null;
+  const known = new Map(REGISTRY.filter((entry) => !entry.shelved).flatMap((entry) => [[entry.spec.id, entry.spec.id], [entry.spec.name.toLowerCase(), entry.spec.id]] as [string, string][]));
+  const ALIASES: Record<string, string> = { 'red onion': 'onion', 'red grapes': 'grapes', grape: 'grapes', egg: 'eggs', bread: 'baguette', blueberry: 'blueberries', strawberries: 'strawberry', tomatoes: 'tomato' };
+  const table = [...new Set((params.get('table') ?? '').split(',').map((word) => word.trim().toLowerCase()).filter(Boolean).map((word) => known.get(word) ?? ALIASES[word]).filter((id): id is string => !!id && known.has(id)))].slice(0, MAX_ITEMS);
+  const title = (word: string | null, options: string[]) => options.find((option) => option.toLowerCase() === (word ?? '').toLowerCase());
+  const choices: Partial<CookChoices> = {};
+  const course = title(params.get('course'), ['Starter', 'Main', 'Dessert', 'Snack', 'Drink']);
+  const taste = title(params.get('taste'), ['Savoury', 'Sweet', 'Both']);
+  if (course) choices.course = course;
+  if (taste) choices.taste = taste;
+  const wild = Number(params.get('wild'));
+  if (params.has('wild') && Number.isFinite(wild)) choices.wild = Math.max(0, Math.min(100, Math.round(wild)));
+  const seed = params.has('seed') ? Math.max(0, Math.floor(Number(params.get('seed')) || 0)) : undefined;
+  return { table, choices, seed, cook: params.get('cook') === '1' };
+}
 
 /** Dev only: drive the kitchen from the console or a test page (kitchenDev.add('rice'), kitchenDev.cook({...})). */
 if (import.meta.env.DEV) {
