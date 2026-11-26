@@ -446,16 +446,20 @@ void main() {
   colour = paintLayer(colour, px, uBackdropCell, 1.0, region, 1.0, 1.0);
   colour = paintLayer(colour, px, uBackdropCell * 0.8, 2.0, region, 1.0, 0.55);
 
-  // 2. The object: two passes of strokes at the main size.
-  colour = paintLayer(colour, px, uCell, 3.0, region, 2.0, 1.0);
-  colour = paintLayer(colour, px, uCell * 0.8, 4.0, region, 2.0, 0.85);
+  // 2. The object (the food): two passes of strokes about a quarter of the main size (R4: food
+  // strokes read far too coarse; the table and backdrop above stay loose).
+  float food = max(uCell * 0.25, 3.0);
+  colour = paintLayer(colour, px, food, 3.0, region, 2.0, 1.0);
+  colour = paintLayer(colour, px, food * 0.8, 4.0, region, 2.0, 0.85);
 
-  // 3. Small detail strokes where edges need defining, on the object only. (On the
+  // 3. Finer still where edges need defining and in the highlights, on the object only. (On the
   // backdrop they made a pale, speckled halo round the outline: small strokes pick up
   // a slightly different colour from the big slabs around them.)
   float edges = smoothstep(0.03, 0.1, texture2D(tFlow, vUv).b);
-  if (edges > 0.0) {
-    colour = mix(colour, paintLayer(colour, px, uCell * 0.5, 5.0, region, 2.0, 1.0), edges);
+  float bright = smoothstep(0.72, 0.92, dot(under.rgb, vec3(0.2126, 0.7152, 0.0722)));
+  float fine = max(edges, bright);
+  if (fine > 0.0) {
+    colour = mix(colour, paintLayer(colour, px, max(food * 0.5, 2.0), 5.0, region, 2.0, 1.0), fine);
   }
 
   // 4. Right on the object's outline, use the clean render so the silhouette stays smooth.
