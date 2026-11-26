@@ -911,7 +911,10 @@ const backButton = document.getElementById('btn-back') as HTMLButtonElement;
 function setMode(next: Mode): void {
   mode = next;
   document.body.dataset.mode = next;
+  // (The slow turn is the dish's alone: it stops the moment the page leaves it.)
+  if (next !== 'dish') stage.setIdleSpin(false, settings.scene.spinSpeed);
   changed();
+  stage.invalidate();
 }
 
 /** The words that go with the picture: the page's title becomes the dish's name. */
@@ -975,9 +978,13 @@ function playSwap(next: Item[], atSwap: () => void, done: () => void, nearlyDone
     return;
   }
   update();
+  // Painterly off: a soft burn with no brush strokes, the plain look's own (R7: the big brush
+  // smudge still showed with the brush off). On: the dry brush that paints the card in.
+  transition.setStyle(settings.brush.classic ? 0 : 4);
   transition.begin(stage.renderer, painter.strokeCell(settings), settings.brush.type === 'round' ? 1 : 0, paintFrame.objectUv);
   let swapped = false;
   let told = false;
+  let painted: 'from' | 'to' | null = null;
   const tell = () => {
     if (told) return;
     told = true;
@@ -991,8 +998,14 @@ function playSwap(next: Item[], atSwap: () => void, done: () => void, nearlyDone
   stage.takeOver((delta) => {
     if (!swapped && transition.progress >= REVEAL_STARTS) swap();
     if (transition.progress >= NEARLY_PAINTED) tell();
-    update();
-    painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, swapped ? transition.stillTo : transition.stillFrom);
+    // Each still is painted once, and again only if the view turned (R7: strokes repainted every
+    // frame of the transition were the slow part of a cook).
+    const side = swapped ? 'to' : 'from';
+    if (painted !== side || stage.cameraMoved) {
+      update();
+      painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame, swapped ? transition.stillTo : transition.stillFrom);
+      painted = side;
+    }
     transition.setCentre(swapped ? 'to' : 'from', paintFrame.objectUv);
     if (transition.step(stage.renderer, delta)) {
       if (!swapped) swap();
@@ -1185,7 +1198,9 @@ function update(): void {
   stage.keyLight.castShadow = settings.scene.castShadow;
   // The slow turn rests while you point at, pick or drag an ingredient, so the outline holds still.
   const busy = !!hovered || !!selected || trayDragging;
-  stage.setIdleSpin(settings.scene.idleSpin && !reducedMotion.matches && !busy && list.length > 0, settings.scene.spinSpeed);
+  // The slow turn only on the dish, never on the table (R7: the table drifted by itself), and not
+  // with the brush on (every frame of strokes cost a slow machine dearly).
+  stage.setIdleSpin(settings.scene.idleSpin && !reducedMotion.matches && !busy && list.length > 0 && mode === 'dish' && !settings.brush.classic, settings.scene.spinSpeed);
 
   // Where the group sits on the card and which way the light comes from, for the paint pass.
   const centre = context.objectCentre;
@@ -1207,9 +1222,23 @@ function update(): void {
   });
 }
 
+/** Dev only: how long each frame's paint and outline took (ms), the last 30. */
+const perfLog: { paint: number; outline: number; classic: boolean }[] = [];
+/** Anything moving this frame: the view, a tween, a drag, a transition (the strokes paint rougher). */
+function moving(): boolean {
+  return stage.moving || !!itemDrag?.ghost || mode === 'cooking' || mode === 'returning' || items.some((item) => gsap.isTweening(item) || gsap.isTweening(item.position)) || gsap.isTweening(view);
+}
+
 function draw(): void {
+  painter.moving = moving();
+  const t0 = performance.now();
   painter.render(stage.renderer, stage.scene, stage.camera, settings, paintFrame);
+  const t1 = performance.now();
   drawOutline();
+  if (import.meta.env.DEV) {
+    perfLog.push({ paint: Math.round(t1 - t0), outline: Math.round(performance.now() - t1), classic: settings.brush.classic });
+    if (perfLog.length > 30) perfLog.shift();
+  }
 }
 
 applyRoom();
@@ -1229,8 +1258,12 @@ if (testLink) {
   cookPanel.setChoices(testLink.choices);
   if (testLink.seed !== undefined || testLink.cook) window.setTimeout(() => cook(cookPanel.choices(), testLink.seed), 600);
 }
+// The strokes ahead, in the background (R7: the first press of the brush waited on the compile).
+window.setTimeout(() => void painter.precompile(stage.renderer, stage.camera), 1200);
 // GSAP moves things between frames: keep painting while any tween is running.
 gsap.ticker.add(() => {
+  // Strokes painted rough while things moved: one full frame once everything has settled.
+  if (painter.roughLast && !moving()) stage.invalidate();
   if (items.some((item) => gsap.isTweening(item) || gsap.isTweening(item.position)) || gsap.isTweening(view)) stage.invalidate();
 });
 reducedMotion.addEventListener('change', () => stage.invalidate());
@@ -1287,5 +1320,6 @@ if (import.meta.env.DEV) {
     cook: (choices: CookChoices) => cook(choices),
     mode: () => mode,
     table: () => staying().map((item) => item.id),
+    perf: () => perfLog.splice(0),
   };
 }

@@ -62,6 +62,10 @@ export class Stage {
   /** Idle spin: switched on, and seconds left before it may come back after a drag. */
   private spinWanted = false;
   private dragging = false;
+  /** The view moved this frame (a drag, the spin) or a transition is drawing. */
+  moving = false;
+  /** The camera itself moved this frame. */
+  cameraMoved = false;
   private spinResumeIn = 0;
   /** 0..1: how far the idle spin has eased back up to its full speed. */
   private spinRamp = 1;
@@ -218,7 +222,8 @@ export class Stage {
     this.resize();
     let last = performance.now();
     this.renderer.setAnimationLoop((now) => {
-      const delta = Math.min((now - last) / 1000, 0.1);
+      const elapsed = (now - last) / 1000;
+      const delta = Math.min(elapsed, 0.1);
       last = now;
       // The idle spin turns only while switched on, not while you drag, and not until a
       // few seconds after you let go.
@@ -230,9 +235,13 @@ export class Stage {
       this.controls.autoRotate = spinning;
       this.controls.autoRotateSpeed = this.spinSpeed * ease;
       const cameraMoved = this.controls.update(delta);
+      this.moving = cameraMoved || !!this.frozenDraw;
+      this.cameraMoved = cameraMoved;
       if (this.frozenDraw) {
         // A transition paints every frame itself, while the camera keeps spinning.
-        this.frozenDraw(delta);
+        // (On the clock, up to half a second a frame: on a slow machine a 2.4 s transition at a
+        // tenth of a second per frame took a minute, R7.)
+        this.frozenDraw(Math.min(elapsed, 0.5));
         return;
       }
       if (!cameraMoved && !this.needsRender) return;

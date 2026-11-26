@@ -61,6 +61,14 @@ export class Painter {
   private readonly flowTarget: WebGLRenderTarget;
   /** The finished refined painting, kept so the playful strokes can repaint it. */
   private readonly glazeTarget: WebGLRenderTarget;
+  /** The strokes at a capped resolution (R7: full-screen strokes froze slower machines), then blown up. */
+  private readonly strokeTarget: WebGLRenderTarget;
+  private readonly blitScene = new Scene();
+  private readonly blitMaterial: ShaderMaterial;
+  /** Set by the page each frame: something is moving (a tween, a drag, a transition). */
+  moving = false;
+  /** The last strokes were painted at the moving (lower) budget: a settled frame should follow. */
+  roughLast = false;
   private readonly flowScene = new Scene();
   private readonly paintScene = new Scene();
   private readonly flowMaterial: ShaderMaterial;
@@ -152,6 +160,22 @@ export class Painter {
     this.flowScene.add(fullScreenTriangle(this.flowMaterial));
     this.paintMesh = fullScreenTriangle(this.glazeMaterial);
     this.paintScene.add(this.paintMesh);
+    this.strokeTarget = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false });
+    this.blitMaterial = new ShaderMaterial({
+      uniforms: { tMap: { value: this.strokeTarget.texture } },
+      vertexShader: paintVertexShader,
+      fragmentShader: /* glsl */ `
+uniform sampler2D tMap;
+varying vec2 vUv;
+void main() {
+  gl_FragColor = texture2D(tMap, vUv);
+  #include <colorspace_fragment>
+}
+`,
+      depthTest: false,
+      depthWrite: false,
+    });
+    this.blitScene.add(fullScreenTriangle(this.blitMaterial));
   }
 
   /** Match the hidden images to the canvas size, in real device pixels. */
@@ -197,12 +221,42 @@ export class Painter {
     renderer.setRenderTarget(playful ? this.glazeTarget : output);
     renderer.render(this.paintScene, camera);
 
-    // 4. Playful strokes on top of the finished painting.
+    // 4. Playful strokes on top of the finished painting. Their cost is per pixel (every pixel
+    // looks at its neighbouring strokes in five layers), so they are painted within a pixel budget,
+    // a smaller one while anything moves, and blown up to the screen (R7: the page froze on slower
+    // machines with full-screen strokes every frame).
     if (playful) {
+      const budget = this.moving ? 420_000 : 1_400_000;
+      const scale = Math.min(1, Math.sqrt(budget / Math.max(1, this.size.x * this.size.y)));
+      this.roughLast = this.moving && scale < 1;
+      const w = Math.max(1, Math.round(this.size.x * scale));
+      const h = Math.max(1, Math.round(this.size.y * scale));
       this.paintMesh.material = this.paintMaterial;
-      renderer.setRenderTarget(output);
-      renderer.render(this.paintScene, camera);
-    }
+      if (scale >= 0.999) {
+        renderer.setRenderTarget(output);
+        renderer.render(this.paintScene, camera);
+      } else {
+        if (this.strokeTarget.width !== w || this.strokeTarget.height !== h) this.strokeTarget.setSize(w, h);
+        const paint = this.paintMaterial.uniforms;
+        paint.uResolution.value.set(w, h);
+        paint.uCell.value *= w / this.size.x;
+        paint.uBackdropCell.value *= w / this.size.x;
+        renderer.setRenderTarget(this.strokeTarget);
+        renderer.render(this.paintScene, camera);
+        renderer.setRenderTarget(output);
+        renderer.render(this.blitScene, camera);
+      }
+    } else this.roughLast = false;
+  }
+
+  /**
+   * Compile the stroke and glaze shaders ahead, off the main thread where the browser can
+   * (R7: the first press of the brush or Cook waited on a long shader compile).
+   */
+  precompile(renderer: WebGLRenderer, camera: Camera): Promise<unknown> {
+    const scene = new Scene();
+    for (const material of [this.paintMaterial, this.glazeMaterial, this.flowMaterial, this.blitMaterial]) scene.add(fullScreenTriangle(material));
+    return renderer.compileAsync(scene, camera).catch(() => undefined);
   }
 
   /** The size of one stroke cell in device pixels (the Shuffle transition borrows it). */
