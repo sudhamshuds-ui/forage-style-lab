@@ -16,7 +16,7 @@ import { EASE, gsap, prefersReducedMotion } from '../motion';
 
 /** Every thumbnail, by ingredient id (small paintings made from the approved ones). */
 const THUMBS = import.meta.glob('./thumbs/*.webp', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
-const thumb = (id: string) => THUMBS[`./thumbs/${id}.webp`] ?? '';
+export const thumb = (id: string) => THUMBS[`./thumbs/${id}.webp`] ?? '';
 
 /** How many tiles the row shows. */
 const TILES = 5;
@@ -40,6 +40,8 @@ export interface TrayOptions {
   tableIds: () => string[];
   /** Shuffle replaces the table too (Group 4): put these on the table instead of what is there. */
   replaceTable: (ids: string[]) => void;
+  /** Just before a shuffle changes anything (for Undo). */
+  beforeShuffle?: () => void;
 }
 
 export interface Tray {
@@ -47,6 +49,10 @@ export interface Tray {
   refresh(): void;
   /** The ingredients showing in the tiles, left to right. */
   ids(): string[];
+  /** Deal exactly these into the tiles (Undo), with the shuffle's motion. */
+  setTiles(ids: string[]): void;
+  /** The tray's own box (a table item dragged back here is removed). */
+  element: HTMLElement;
 }
 
 const SHUFFLE_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>`;
@@ -108,35 +114,45 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
   const ids = () => tiles.map((tile) => tile.dataset.id ?? '');
 
   /**
-   * New ingredients in every tile that is not on the table. Each tile's picture dissolves into
-   * the next one (a soft blur and fade, rising a few pixels), one tile after another, like
-   * cards being re-dealt. The button only presses in; its icon does not spin (it "felt weird",
-   * the user, 2026-11-16).
+   * Deal these ids into the tiles: one after another, each picture lifts and fades out, then the
+   * new one drops in with a slight bounce (R4: about half a second in all, like cards re-dealt).
+   * The button only presses in; its icon does not spin (it "felt weird", the user, 2026-11-16).
    */
-  shuffle.addEventListener('click', () => {
-    // Every tile is dealt again, and what was on the table is replaced by the first new ones, so a
-    // shuffle changes the whole kitchen, not only the tray (Group 4).
-    const free = tiles;
-    const onTable = options.tableIds();
-    // Never deal one that is already showing or on the table.
-    const fresh = deal(free.length, new Set([...ids(), ...onTable]));
-    if (onTable.length) options.replaceTable(fresh.slice(0, onTable.length));
-    free.forEach((tile, index) => {
-      const id = fresh[index];
-      if (!id) return;
-      const image = tile.firstElementChild as HTMLElement;
-      if (prefersReducedMotion()) return setTile(tile, id);
+  const STAGGER = 0.035;
+  const dealInto = (next: string[]) => {
+    tiles.forEach((tile, index) => {
+      const id = next[index];
+      if (!id || id === tile.dataset.id) return;
+      const image = tile.firstElementChild as HTMLImageElement;
+      // The tile is the new ingredient straight away (Undo and the table read it); only its
+      // picture changes over at the turn of the motion.
+      const before = image.src;
+      setTile(tile, id);
+      if (prefersReducedMotion()) return;
+      const after = image.src;
+      image.src = before;
       gsap.killTweensOf(image);
       gsap
-        .timeline({ delay: index * 0.045 })
-        .to(image, { opacity: 0, filter: 'blur(4px)', y: 4, duration: 0.12, ease: EASE.out })
-        .call(() => setTile(tile, id))
-        .fromTo(image, { opacity: 0, filter: 'blur(4px)', y: -6 }, { opacity: 1, filter: 'blur(0px)', y: 0, duration: 0.26, ease: EASE.out, clearProps: 'transform,opacity,filter' });
+        .timeline({ delay: index * STAGGER })
+        .to(image, { opacity: 0, y: -7, scale: 0.94, duration: 0.13, ease: EASE.out })
+        .call(() => (image.src = after))
+        .fromTo(image, { opacity: 0, y: -10, scale: 1 }, { opacity: 1, y: 0, duration: 0.22, ease: 'back.out(2.2)', clearProps: 'transform,opacity' });
     });
     window.setTimeout(() => {
       refresh();
       options.onDeal(ids());
-    }, 120 + free.length * 45);
+    }, prefersReducedMotion() ? 0 : 140 + tiles.length * STAGGER * 1000);
+  };
+
+  shuffle.addEventListener('click', () => {
+    // Every tile is dealt again, and what was on the table is replaced by the first new ones, so a
+    // shuffle changes the whole kitchen, not only the tray (Group 4).
+    options.beforeShuffle?.();
+    const onTable = options.tableIds();
+    // Never deal one that is already showing or on the table.
+    const fresh = deal(tiles.length, new Set([...ids(), ...onTable]));
+    if (onTable.length) options.replaceTable(fresh.slice(0, onTable.length));
+    dealInto(fresh);
   });
 
   function wireDrag(tile: HTMLButtonElement): void {
@@ -294,5 +310,5 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
 
   refresh();
   options.onDeal(ids());
-  return { refresh, ids };
+  return { refresh, ids, setTiles: dealInto, element: root };
 }

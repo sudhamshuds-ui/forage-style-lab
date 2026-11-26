@@ -4,7 +4,7 @@ import '../style.css';
 import '../ui/styleBar.css';
 import './kitchen.css';
 import { Group, Mesh, Raycaster, Vector2, Vector3, type IUniform, type ShaderMaterial } from 'three';
-import { defaultSettings } from '../params';
+import { DEFAULTS, defaultSettings } from '../params';
 import { applyPalette, findPalette } from '../palettes';
 import { Stage } from '../scene/stage';
 import { Background, MAX_CONTACTS, roomHorizonUv } from '../scene/background';
@@ -24,7 +24,7 @@ import { PROPS } from '../ingredients/forms/kit/checks';
 import { cmToUnits } from '../ingredients/scale';
 import { Painter, type PaintFrame } from '../painting/painter';
 import { OutlineTracer } from './outline';
-import { mountTray } from './tray';
+import { mountTray, thumb } from './tray';
 import { mountCookPanel, type CookChoices } from './panel';
 import { mountStyleBar } from '../ui/styleBar';
 import { paintLike } from '../randomize';
@@ -58,6 +58,13 @@ const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 await loadPhysics();
 
 const stage = new Stage(canvas, card);
+// The view turns round the table but never tips over it (R4: a drag on the table tipped it to
+// straight overhead and every later dish was painted from above).
+{
+  const polar = stage.controls.getPolarAngle();
+  stage.controls.minPolarAngle = polar;
+  stage.controls.maxPolarAngle = polar;
+}
 const look = new StylizedLook(EFFECT_STACK);
 const background = new Background();
 const ground = new Ground();
@@ -431,6 +438,7 @@ function addIngredient(id: string, animate = true): boolean {
   if (!item) return false;
   // It fades in over the picture as it was (the crossfade) while it eases up from nine tenths
   // of its size, and the others slide over to make room. Nothing pops out of nowhere.
+  remember();
   const change = () => {
     items.push(item);
     framed.add(item.subject.group);
@@ -462,6 +470,7 @@ function removeIngredient(id: string): void {
   if (mode !== 'table') return;
   const item = staying().find((entry) => entry.id === id);
   if (!item) return;
+  remember();
   item.leaving = true;
   if (selected === item) select(null);
   if (hovered === item) hovered = null;
@@ -572,12 +581,80 @@ canvas.addEventListener('pointerleave', () => {
     stage.invalidate();
   }
 });
-canvas.addEventListener('pointerdown', (event) => (pressedAt = { x: event.clientX, y: event.clientY }));
+/*
+ * Dragging an ingredient on the table (R4): it never turns the view (that left later dishes seen
+ * from straight above). A copy of its tile lifts off under the pointer; let go over the tray (or off
+ * the card) and it leaves the table; let go on the card and it stays.
+ */
+let itemDrag: { item: Item; x: number; y: number; id: number; ghost: HTMLElement | null } | null = null;
+const overBox = (element: HTMLElement, x: number, y: number, pad = 0) => {
+  const r = element.getBoundingClientRect();
+  return x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
+};
+canvas.addEventListener('pointerdown', (event) => {
+  pressedAt = { x: event.clientX, y: event.clientY };
+  const item = mode === 'table' && event.button === 0 ? itemAt(event.clientX, event.clientY) : null;
+  if (!item) return;
+  itemDrag = { item, x: event.clientX, y: event.clientY, id: event.pointerId, ghost: null };
+  stage.controls.enabled = false;
+  try {
+    canvas.setPointerCapture(event.pointerId);
+  } catch {
+    /* no capture: fine */
+  }
+});
+canvas.addEventListener('pointermove', (event) => {
+  if (!itemDrag || event.pointerId !== itemDrag.id) return;
+  if (!itemDrag.ghost && Math.hypot(event.clientX - itemDrag.x, event.clientY - itemDrag.y) > 6) {
+    const ghost = document.createElement('div');
+    ghost.className = 'tile-ghost';
+    ghost.style.width = ghost.style.height = '56px';
+    const image = document.createElement('img');
+    image.src = thumb(itemDrag.item.id);
+    image.alt = '';
+    ghost.append(image);
+    document.body.append(ghost);
+    itemDrag.ghost = ghost;
+    // The ingredient lifts off the table: it is hidden there while its tile is in the air.
+    itemDrag.item.subject.group.visible = false;
+    select(null);
+    stage.invalidate();
+  }
+  if (itemDrag.ghost) {
+    itemDrag.ghost.style.translate = `${event.clientX - 28}px ${event.clientY - 28}px`;
+    const away = overBox(tray.element, event.clientX, event.clientY, 12) || !overBox(card, event.clientX, event.clientY);
+    itemDrag.ghost.toggleAttribute('data-ready', away);
+    tray.element.toggleAttribute('data-drop', away);
+  }
+});
+const endItemDrag = (event: PointerEvent) => {
+  if (!itemDrag || event.pointerId !== itemDrag.id) return;
+  const { item, ghost } = itemDrag;
+  itemDrag = null;
+  stage.controls.enabled = true;
+  tray.element.removeAttribute('data-drop');
+  if (!ghost) return;
+  const away = overBox(tray.element, event.clientX, event.clientY, 12) || !overBox(card, event.clientX, event.clientY);
+  item.subject.group.visible = true;
+  if (away) {
+    // Back to the tray: it leaves the table (one step Undo can take back).
+    ghost.setAttribute('data-dropped', '');
+    window.setTimeout(() => ghost.remove(), 200);
+    removeIngredient(item.id);
+  } else {
+    ghost.remove();
+    stage.invalidate();
+  }
+  // (No click-select after a drag.)
+  pressedAt = null;
+};
 canvas.addEventListener('pointerup', (event) => {
-  // A click, not a drag of the view: select what is under it, or clear the selection.
+  endItemDrag(event);
+  // A click, not a drag: select what is under it, or clear the selection.
   if (!pressedAt || Math.hypot(event.clientX - pressedAt.x, event.clientY - pressedAt.y) > 5) return;
   select(itemAt(event.clientX, event.clientY));
 });
+canvas.addEventListener('pointercancel', endItemDrag);
 removeButton.addEventListener('click', () => {
   if (selected) removeIngredient(selected.id);
 });
@@ -610,9 +687,14 @@ const tray = mountTray(document.getElementById('tray') as HTMLElement, {
   onDeal: keepReady,
   tableIds: () => staying().map((item) => item.id),
   replaceTable: (ids) => replaceTable(ids),
+  beforeShuffle: () => remember(),
 });
 
-/** Shuffle (Group 4): the table's ingredients are swapped for new ones in one short fade. */
+/**
+ * Shuffle (Group 4) and Undo: the table's ingredients are swapped for others. R4: one after another
+ * they lift and shrink away, then the new ones drop in with a slight bounce (about half a second
+ * in all, matching the tray's tiles).
+ */
 function replaceTable(nextIds: string[]): void {
   if (mode !== 'table' || cooking) return;
   const leaving = staying();
@@ -628,6 +710,8 @@ function replaceTable(nextIds: string[]): void {
     gsap.killTweensOf(item);
     gsap.killTweensOf(item.position);
   }
+  const still = prefersReducedMotion();
+  const STAGGER = 0.04;
   const change = () => {
     for (const item of leaving) detach(item);
     for (const item of incoming) {
@@ -640,11 +724,77 @@ function replaceTable(nextIds: string[]): void {
     for (const item of incoming) item.position.copy(item.target);
     applyRoom();
     relayout(false);
+    if (still) return;
+    // In: each drops from a little above with a slight bounce.
+    incoming.forEach((item, index) => {
+      gsap.killTweensOf(item.position);
+      gsap.fromTo(item.position, { y: 0.55 }, { y: 0, duration: 0.26, delay: index * STAGGER, ease: 'back.out(1.8)', onUpdate: () => stage.invalidate() });
+      gsap.fromTo(item, { pop: 0.88 }, { pop: 1, duration: 0.22, delay: index * STAGGER, ease: EASE.out });
+    });
   };
-  if (prefersReducedMotion()) change();
-  else crossfade(change, 0.24);
+  if (still || leaving.length === 0) {
+    if (still) change();
+    else crossfade(change, 0.16);
+  } else {
+    // Out: each lifts and shrinks, one after another; then the swap, under a quick dissolve.
+    leaving.forEach((item, index) => {
+      gsap.to(item.position, { y: 0.45, duration: 0.15, delay: index * STAGGER, ease: EASE.out, onUpdate: () => stage.invalidate() });
+      gsap.to(item, { pop: 0.72, duration: 0.15, delay: index * STAGGER, ease: EASE.out });
+    });
+    window.setTimeout(() => crossfade(change, 0.14), (0.15 + leaving.length * STAGGER) * 1000);
+  }
   changed();
 }
+
+/* ---------- Undo (R4): the table's last actions, one step at a time ---------- */
+
+interface Snapshot {
+  table: string[];
+  tiles: string[];
+}
+const history: Snapshot[] = [];
+const undoButton = document.getElementById('btn-undo') as HTMLButtonElement;
+/** True while Undo puts a table back (that is not a new step to undo). */
+let restoring = false;
+
+/** Keep the table and tray as they are now, before an action changes them (a drop, a removal, a shuffle, a reset). */
+function remember(): void {
+  if (restoring || mode !== 'table') return;
+  history.push({ table: staying().map((item) => item.id), tiles: tray.ids() });
+  if (history.length > 40) history.shift();
+  syncUndo();
+}
+
+function syncUndo(): void {
+  undoButton.disabled = history.length === 0 || mode !== 'table' || cooking;
+}
+
+function undo(): void {
+  if (mode !== 'table' || cooking) return;
+  const last = history.pop();
+  if (!last) return syncUndo();
+  restoring = true;
+  const tilesNow = tray.ids();
+  if (last.tiles.join() !== tilesNow.join()) tray.setTiles(last.tiles);
+  const tableNow = staying().map((item) => item.id);
+  if (last.table.join() !== tableNow.join()) {
+    const added = tableNow.filter((id) => !last.table.includes(id));
+    const back = last.table.filter((id) => !tableNow.includes(id));
+    // One drop undone: just that one leaves; one removal undone: it comes back. Else the whole table.
+    if (back.length === 0 && added.length === 1 && last.table.every((id) => tableNow.includes(id))) removeIngredient(added[0]);
+    else if (added.length === 0 && back.length === 1) addIngredient(back[0]);
+    else replaceTable(last.table);
+  }
+  restoring = false;
+  syncUndo();
+}
+undoButton.addEventListener('click', undo);
+window.addEventListener('keydown', (event) => {
+  if ((event.metaKey || event.ctrlKey) && !event.shiftKey && event.key.toLowerCase() === 'z') {
+    event.preventDefault();
+    undo();
+  }
+});
 
 const cookPanel = mountCookPanel(document.getElementById('cook-panel') as HTMLElement, {
   onCook: (choices) => cook(choices),
@@ -657,6 +807,7 @@ function clearTable(): void {
   // and three re-zooms back to back: a slow "shatter" that held the page for seconds, the P0 list).
   const leaving = staying();
   if (leaving.length) {
+    remember();
     select(null);
     hovered = null;
     for (const item of leaving) {
@@ -687,20 +838,32 @@ function changed(): void {
   emptyHint.dataset.show = String(count === 0);
   card.dataset.full = String(count >= MAX_ITEMS);
   tray.refresh();
+  syncUndo();
 }
 
 /*
  * The brush on the card (the Style Lab's own control, ui/styleBar.tsx): it switches the painterly
  * look, and its arrow opens the painters. Cook lives in the side panel.
  */
+/** The painter last picked from the brush's menu (kept while the brush is off). */
+let lastPainter: string | null = null;
 mountStyleBar(document.getElementById('bar-root') as HTMLElement, {
   shuffle: () => undefined,
   onBusy: () => () => undefined,
   painterly: () => settings.brush.classic,
   painter: () => settings.brush.painter,
-  setPainterly: (on) => crossfade(() => (settings.brush.classic = on), 0.22),
+  // Off puts every brush setting back as it was before any painter (R4: a painter's stroke size and
+  // brush stayed in the glaze's edges and the cook transition after switching back, and made later
+  // screens slow); on again brings back the painter last chosen.
+  setPainterly: (on) =>
+    crossfade(() => {
+      if (on) Object.assign(settings.brush, lastPainter ? paintLike(lastPainter) : {});
+      else Object.assign(settings.brush, structuredClone(DEFAULTS.brush));
+      settings.brush.classic = on;
+    }, 0.22),
   setPainter: (id) =>
     crossfade(() => {
+      lastPainter = id;
       Object.assign(settings.brush, paintLike(id));
       settings.brush.classic = true;
     }, 0.22),
@@ -1037,7 +1200,11 @@ applyRoom();
 changed();
 stage.start(update, draw);
 // The table starts with one ingredient on it, its tile greyed out in the tray (the user, 2026-11-16).
+// (Not a step to undo: the page simply opens with it.)
+restoring = true;
 addIngredient(tray.ids()[0], false);
+restoring = false;
+syncUndo();
 // GSAP moves things between frames: keep painting while any tween is running.
 gsap.ticker.add(() => {
   if (items.some((item) => gsap.isTweening(item) || gsap.isTweening(item.position)) || gsap.isTweening(view)) stage.invalidate();
