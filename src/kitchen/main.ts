@@ -606,6 +606,18 @@ window.addEventListener('keydown', (event) => {
 const emptyHint = document.getElementById('empty-hint') as HTMLElement;
 
 /** The preview's test tools (the ingredient search and the test sheet): only with ?test=1. */
+/** Shot mode (R8, ?shot=1): no side panel and no tray; the dish fills the frame, its title and caption as plain text under it. */
+const SHOT = new URLSearchParams(location.search.length > 1 ? location.search.slice(1) : location.hash.replace(/^#\??/, '')).get('shot') === '1';
+if (SHOT) document.body.classList.add('shot');
+const shotWords = document.createElement('div');
+shotWords.className = 'shot-words';
+shotWords.id = 'shot-words';
+const shotTitle = document.createElement('p');
+shotTitle.className = 'shot-title';
+const shotCaption = document.createElement('p');
+shotCaption.className = 'shot-caption';
+shotWords.append(shotTitle, shotCaption);
+document.querySelector('.kitchen-main')?.append(shotWords);
 const TEST_TOOLS = new URLSearchParams(location.search.length > 1 ? location.search.slice(1) : location.hash.replace(/^#\??/, '')).get('test') === '1';
 
 const tray = mountTray(document.getElementById('tray') as HTMLElement, {
@@ -769,6 +781,8 @@ function changed(): void {
   cookPanel.setCanCook(count > 0);
   emptyHint.dataset.show = String(count === 0);
   card.dataset.full = String(count >= MAX_ITEMS);
+  // (R8, for tests: the table's items on the table element.)
+  canvas.dataset.ingredients = (mode === 'table' ? staying() : parked).map((item) => item.id).join(',');
   tray.refresh();
   syncUndo();
 }
@@ -838,6 +852,13 @@ function setMode(next: Mode): void {
 function setWords(dish: Dish | null): void {
   // The description (it fades and rises in CSS, a beat behind the title).
   if (dish) dishText.textContent = dish.description;
+  // (R8, for tests: the result's title and caption as attributes, and as plain text in shot mode.)
+  for (const el of [dishText, shotWords]) {
+    if (dish) Object.assign(el.dataset, { title: dish.title, caption: dish.description });
+    else (delete el.dataset.title, delete el.dataset.caption);
+  }
+  shotTitle.textContent = dish ? dish.title : '';
+  shotCaption.textContent = dish ? dish.description : '';
   document.body.dataset.words = dish ? 'dish' : 'forage';
   const text = dish ? dish.title : 'Forage';
   if (prefersReducedMotion()) {
@@ -1173,7 +1194,17 @@ restoring = false;
 syncUndo();
 if (testLink) {
   cookPanel.setChoices(testLink.choices);
-  if (testLink.seed !== undefined || testLink.cook) window.setTimeout(() => cook(cookPanel.choices(), testLink.seed), 600);
+  // R8: every ?table= link cooks straight away (cook=0 only sets the table), and reliably: Cook is
+  // pressed as soon as the table can take it, again until it has, never once on a guess at 600 ms.
+  if (testLink.cook && testLink.table.length) {
+    const started = performance.now();
+    const tryCook = () => {
+      if (mode !== 'table' || cooking) return; // it took (or a dish is already on its way)
+      if (staying().length === testLink.table.length) cook(cookPanel.choices(), testLink.seed ?? 0);
+      if (mode === 'table' && !cooking && performance.now() - started < 20000) window.setTimeout(tryCook, 120);
+    };
+    window.setTimeout(tryCook, 60);
+  }
 }
 // The strokes ahead, in the background (R7: the first press of the brush waited on the compile).
 window.setTimeout(() => void painter.precompile(stage.renderer, stage.camera), 1200);
@@ -1226,7 +1257,7 @@ function readTestLink(): { table: string[]; choices: Partial<CookChoices>; seed?
   const wild = Number(params.get('wild'));
   if (params.has('wild') && Number.isFinite(wild)) choices.wild = Math.max(0, Math.min(100, Math.round(wild)));
   const seed = params.has('seed') ? Math.max(0, Math.floor(Number(params.get('seed')) || 0)) : undefined;
-  return { table, choices, seed, cook: params.get('cook') === '1' };
+  return { table, choices, seed, cook: params.get('cook') !== '0' };
 }
 
 /** Dev only: drive the kitchen from the console or a test page (kitchenDev.add('rice'), kitchenDev.cook({...})). */

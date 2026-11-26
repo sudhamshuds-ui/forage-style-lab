@@ -966,3 +966,47 @@ body[data-mode='returning'] .bar-root {
 .cook-error[hidden] {
   display: none;
 }
+
+/* ---------- Shot mode (R8, ?shot=1): the dish fills the frame, its words as plain text ---------- */
+
+.shot-words {
+  display: none;
+}
+body.shot {
+  --card-w: min(calc(100vw - 32px), calc((100svh - 150px) * 5 / 6));
+  --to-middle: 0px;
+}
+body.shot .kitchen-page {
+  padding: 16px;
+}
+body.shot .cook-side,
+body.shot .below-card,
+body.shot .lab-title,
+body.shot .bar-root,
+body.shot .result-bar,
+body.shot .undo-table,
+body.shot .empty-hint,
+body.shot .remove-item {
+  display: none !important;
+}
+body.shot .kitchen-main,
+body.shot .kitchen-main .card,
+body.shot .kitchen-main .below-card {
+  translate: none !important;
+  scale: none !important;
+  transition: none;
+}
+body.shot .shot-words {
+  display: block;
+  align-self: stretch;
+  color: #1f1e1c;
+  font: 400 14px / 1.45 'Geist', system-ui, sans-serif;
+}
+body.shot .shot-title {
+  margin: 0 0 2px;
+  font-weight: 600;
+  font-size: 16px;
+}
+body.shot .shot-caption {
+  margin: 0;
+}
