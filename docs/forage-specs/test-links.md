@@ -2,7 +2,7 @@
 
 Each link opens the Forage Kitchen preview with the check's table and controls set and cooks straight away (`seed=0` is the first press of Cook; `seed=1` the second, and so on). Leave `seed` off to set the table and controls without cooking.
 
-If the preview host drops the part after `?`, the same text works after `#` instead (the kitchen reads either). Locally the same query works on `http://localhost:5173/kitchen.html`. To build any other table by hand, use the search button in the tray: it lists all 31 ingredients.
+If the preview host drops the part after `?`, the same text works after `#` instead (the kitchen reads either). Locally the same query works on `http://localhost:5173/kitchen.html`. Add `&test=1` (or open the page with `?test=1`) to show the test tools: a search button in the tray that lists all 31 ingredients and a menu of all 32 test-sheet checks. Normal visitors never see them.
 
 | # | Check | Table | Course / Taste / Wild | Link |
 |---|---|---|---|---|

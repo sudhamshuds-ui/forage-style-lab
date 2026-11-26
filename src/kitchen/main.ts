@@ -24,7 +24,7 @@ import { PROPS } from '../ingredients/forms/kit/checks';
 import { cmToUnits } from '../ingredients/scale';
 import { Painter, type PaintFrame } from '../painting/painter';
 import { OutlineTracer } from './outline';
-import { mountTray, thumb } from './tray';
+import { mountTray } from './tray';
 import { mountCookPanel, type CookChoices } from './panel';
 import { mountStyleBar } from '../ui/styleBar';
 import { paintLike } from '../randomize';
@@ -581,80 +581,12 @@ canvas.addEventListener('pointerleave', () => {
     stage.invalidate();
   }
 });
-/*
- * Dragging an ingredient on the table (R4): it never turns the view (that left later dishes seen
- * from straight above). A copy of its tile lifts off under the pointer; let go over the tray (or off
- * the card) and it leaves the table; let go on the card and it stays.
- */
-let itemDrag: { item: Item; x: number; y: number; id: number; ghost: HTMLElement | null } | null = null;
-const overBox = (element: HTMLElement, x: number, y: number, pad = 0) => {
-  const r = element.getBoundingClientRect();
-  return x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
-};
-canvas.addEventListener('pointerdown', (event) => {
-  pressedAt = { x: event.clientX, y: event.clientY };
-  const item = mode === 'table' && event.button === 0 ? itemAt(event.clientX, event.clientY) : null;
-  if (!item) return;
-  itemDrag = { item, x: event.clientX, y: event.clientY, id: event.pointerId, ghost: null };
-  stage.controls.enabled = false;
-  try {
-    canvas.setPointerCapture(event.pointerId);
-  } catch {
-    /* no capture: fine */
-  }
-});
-canvas.addEventListener('pointermove', (event) => {
-  if (!itemDrag || event.pointerId !== itemDrag.id) return;
-  if (!itemDrag.ghost && Math.hypot(event.clientX - itemDrag.x, event.clientY - itemDrag.y) > 6) {
-    const ghost = document.createElement('div');
-    ghost.className = 'tile-ghost';
-    ghost.style.width = ghost.style.height = '56px';
-    const image = document.createElement('img');
-    image.src = thumb(itemDrag.item.id);
-    image.alt = '';
-    ghost.append(image);
-    document.body.append(ghost);
-    itemDrag.ghost = ghost;
-    // The ingredient lifts off the table: it is hidden there while its tile is in the air.
-    itemDrag.item.subject.group.visible = false;
-    select(null);
-    stage.invalidate();
-  }
-  if (itemDrag.ghost) {
-    itemDrag.ghost.style.translate = `${event.clientX - 28}px ${event.clientY - 28}px`;
-    const away = overBox(tray.element, event.clientX, event.clientY, 12) || !overBox(card, event.clientX, event.clientY);
-    itemDrag.ghost.toggleAttribute('data-ready', away);
-    tray.element.toggleAttribute('data-drop', away);
-  }
-});
-const endItemDrag = (event: PointerEvent) => {
-  if (!itemDrag || event.pointerId !== itemDrag.id) return;
-  const { item, ghost } = itemDrag;
-  itemDrag = null;
-  stage.controls.enabled = true;
-  tray.element.removeAttribute('data-drop');
-  if (!ghost) return;
-  const away = overBox(tray.element, event.clientX, event.clientY, 12) || !overBox(card, event.clientX, event.clientY);
-  item.subject.group.visible = true;
-  if (away) {
-    // Back to the tray: it leaves the table (one step Undo can take back).
-    ghost.setAttribute('data-dropped', '');
-    window.setTimeout(() => ghost.remove(), 200);
-    removeIngredient(item.id);
-  } else {
-    ghost.remove();
-    stage.invalidate();
-  }
-  // (No click-select after a drag.)
-  pressedAt = null;
-};
+canvas.addEventListener('pointerdown', (event) => (pressedAt = { x: event.clientX, y: event.clientY }));
 canvas.addEventListener('pointerup', (event) => {
-  endItemDrag(event);
-  // A click, not a drag: select what is under it, or clear the selection.
+  // A click, not a drag of the view: select what is under it, or clear the selection.
   if (!pressedAt || Math.hypot(event.clientX - pressedAt.x, event.clientY - pressedAt.y) > 5) return;
   select(itemAt(event.clientX, event.clientY));
 });
-canvas.addEventListener('pointercancel', endItemDrag);
 removeButton.addEventListener('click', () => {
   if (selected) removeIngredient(selected.id);
 });
@@ -673,7 +605,11 @@ window.addEventListener('keydown', (event) => {
 
 const emptyHint = document.getElementById('empty-hint') as HTMLElement;
 
+/** The preview's test tools (the ingredient search and the test sheet): only with ?test=1. */
+const TEST_TOOLS = new URLSearchParams(location.search.length > 1 ? location.search.slice(1) : location.hash.replace(/^#\??/, '')).get('test') === '1';
+
 const tray = mountTray(document.getElementById('tray') as HTMLElement, {
+  testTools: TEST_TOOLS,
   pantry: REGISTRY.filter((entry) => !entry.shelved).map((entry) => ({ id: entry.spec.id, name: entry.spec.name })),
   card,
   canAdd: (id) => !onStage(id) && staying().length < MAX_ITEMS,
@@ -684,7 +620,9 @@ const tray = mountTray(document.getElementById('tray') as HTMLElement, {
     stage.invalidate();
   },
   onUsedClick: (id) => select(staying().find((item) => item.id === id) ?? null),
-  onDeal: keepReady,
+  // The tiles showing and the next Shuffle's deal, both made ready ahead (R8: a Shuffle built its
+  // new table ingredients on the click and compiled them on the first frame, the lag).
+  onDeal: (showing, upcoming) => keepReady([...showing, ...upcoming]),
   tableIds: () => staying().map((item) => item.id),
   replaceTable: (ids) => replaceTable(ids),
   beforeShuffle: () => remember(),
@@ -1205,7 +1143,7 @@ function update(): void {
 const perfLog: { paint: number; outline: number; classic: boolean }[] = [];
 /** Anything moving this frame: the view, a tween, a drag, a transition (the strokes paint rougher). */
 function moving(): boolean {
-  return stage.moving || !!itemDrag?.ghost || mode === 'cooking' || mode === 'returning' || items.some((item) => gsap.isTweening(item) || gsap.isTweening(item.position)) || gsap.isTweening(view);
+  return stage.moving || mode === 'cooking' || mode === 'returning' || items.some((item) => gsap.isTweening(item) || gsap.isTweening(item.position)) || gsap.isTweening(view);
 }
 
 function draw(): void {

@@ -240,12 +240,6 @@ body[data-mode='returning'] .undo-table {
   opacity: 0;
   pointer-events: none;
 }
-/* A table item dragged over the tray: the tray shows it will take it back. */
-.tray[data-drop] {
-  outline: 2px dashed rgba(31, 30, 28, 0.28);
-  outline-offset: 6px;
-  border-radius: 10px;
-}
 
 /* ---------- The tray ---------- */
 

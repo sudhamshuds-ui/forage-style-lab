@@ -35,8 +35,11 @@ export interface TrayOptions {
   onDragState: (dragging: boolean) => void;
   /** A greyed tile was clicked: point at that ingredient on the table. */
   onUsedClick: (id: string) => void;
-  /** The tiles changed (at the start and after each shuffle): the ids now showing. */
-  onDeal: (ids: string[]) => void;
+  /** The tiles changed (at the start and after each shuffle): the ids now showing, and the next
+   * Shuffle's deal (to be made ready ahead). */
+  onDeal: (ids: string[], upcoming: string[]) => void;
+  /** The preview's test tools (an ingredient search, the test sheet): only with ?test=1. */
+  testTools?: boolean;
   /** The ingredients on the table now. */
   tableIds: () => string[];
   /** Shuffle replaces the table too (Group 4): put these on the table instead of what is there. */
@@ -163,7 +166,8 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
   document.addEventListener('pointerdown', (event) => {
     if (!panel.hidden && !panel.contains(event.target as Node) && !more.contains(event.target as Node)) open(false);
   });
-  root.append(list, shuffle, more, panel);
+  root.append(list, shuffle);
+  if (options.testTools) root.append(more, panel);
 
   const tiles: HTMLButtonElement[] = [];
   const setTile = (tile: HTMLButtonElement, id: string) => {
@@ -204,46 +208,48 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
 
   const ids = () => tiles.map((tile) => tile.dataset.id ?? '');
 
+  /** The next Shuffle's deal, picked ahead so its ingredients are ready before the click. */
+  let upcoming: string[] = [];
+  const dealAhead = (taken: string[]) => (upcoming = deal(TILES, new Set(taken)));
+
   /**
-   * Deal these ids into the tiles. Each tile's picture dissolves into the next one (a soft blur
-   * and fade, rising a few pixels), one tile after another, like cards being re-dealt (the
-   * owner's preferred Shuffle, restored in R7). The button only presses in; its icon does not spin.
+   * Deal these ids into the tiles: each tile's picture dissolves into the next one (a soft blur
+   * and fade, rising a few pixels), one tile after another, like cards being re-dealt. The live
+   * kitchen's Shuffle exactly (main). The button only presses in; its icon does not spin (it "felt
+   * weird", the user, 2026-11-16).
    */
-  const STAGGER = 0.045;
   const dealInto = (next: string[]) => {
-    tiles.forEach((tile, index) => {
-      const id = next[index];
-      if (!id || id === tile.dataset.id) return;
-      const image = tile.firstElementChild as HTMLImageElement;
-      // The tile is the new ingredient straight away (Undo and the table read it); only its
-      // picture changes over at the turn of the dissolve.
-      const before = image.src;
-      setTile(tile, id);
-      if (prefersReducedMotion()) return;
-      const after = image.src;
-      image.src = before;
+    const changing = tiles.filter((tile, index) => next[index] && next[index] !== tile.dataset.id);
+    changing.forEach((tile, index) => {
+      const id = next[tiles.indexOf(tile)];
+      // (The tile reads as the new ingredient at once, for Undo; its picture changes as on main.)
+      tile.dataset.id = id;
+      const image = tile.firstElementChild as HTMLElement;
+      if (prefersReducedMotion()) return setTile(tile, id);
       gsap.killTweensOf(image);
       gsap
-        .timeline({ delay: index * STAGGER })
+        .timeline({ delay: index * 0.045 })
         .to(image, { opacity: 0, filter: 'blur(4px)', y: 4, duration: 0.12, ease: EASE.out })
-        .call(() => (image.src = after))
+        .call(() => setTile(tile, id))
         .fromTo(image, { opacity: 0, filter: 'blur(4px)', y: -6 }, { opacity: 1, filter: 'blur(0px)', y: 0, duration: 0.26, ease: EASE.out, clearProps: 'transform,opacity,filter' });
     });
     window.setTimeout(() => {
       refresh();
-      options.onDeal(ids());
-    }, prefersReducedMotion() ? 0 : 120 + tiles.length * STAGGER * 1000);
+      dealAhead([...ids(), ...options.tableIds()]);
+      options.onDeal(ids(), upcoming);
+    }, 120 + changing.length * 45);
   };
 
   shuffle.addEventListener('click', () => {
     // Every tile is dealt again, and what was on the table is replaced by the first new ones, so a
-    // shuffle changes the whole kitchen, not only the tray (Group 4).
+    // shuffle changes the whole kitchen, not only the tray (Group 4). The deal was picked ahead.
     options.beforeShuffle?.();
     const onTable = options.tableIds();
-    // Never deal one that is already showing or on the table.
-    const fresh = deal(tiles.length, new Set([...ids(), ...onTable]));
+    const taken = new Set([...ids(), ...onTable]);
+    const fresh = upcoming.filter((id) => !taken.has(id));
+    fresh.push(...deal(TILES - fresh.length, new Set([...taken, ...fresh])));
     if (onTable.length) options.replaceTable(fresh.slice(0, onTable.length));
-    dealInto(fresh);
+    dealInto(fresh.slice(0, TILES));
   });
 
   function wireDrag(tile: HTMLButtonElement): void {
@@ -400,6 +406,7 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
   }
 
   refresh();
-  options.onDeal(ids());
+  dealAhead(ids());
+  options.onDeal(ids(), upcoming);
   return { refresh, ids, setTiles: dealInto, element: root };
 }
