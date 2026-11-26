@@ -29,6 +29,9 @@ export interface FormPiece {
   seeThrough?: number;
   /** Casts no shadow (a drink in a stemmed glass: its glass foot does, Group 3). */
   noShadow?: boolean;
+  /** Only its lowest share (0 to 1 of its own height) casts a shadow: a plate or bowl's foot, so
+   * its shadow is a soft contact tight under it, never an offset disc (R7). */
+  shadowBelow?: number;
 }
 
 /** Which state to build (`whole`, `half`, ...) and the seed from the ingredient id. */

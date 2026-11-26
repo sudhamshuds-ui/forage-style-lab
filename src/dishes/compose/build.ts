@@ -194,7 +194,7 @@ function makeWare(idea: DishIdea, seed: number, fit?: WareFit): { pieces: FormPi
         : [];
       return {
         pieces: [
-          { role: 'rice', geometry: rice.rice },
+          { role: 'rice', geometry: rice.rice, noShadow: true },
           ...flecks,
           { role: 'bowl', geometry: rice.bowl },
         ],
@@ -346,6 +346,8 @@ export interface Cohesion {
   maxFoodHeight?: number;
   /** The ingredients of every food piece that ended on the dish (after physics and replating). */
   served?: string[];
+  /** Pieces loose on the table outside the vessel, the planned side pieces aside (0 passes, R7). */
+  loose?: number;
 }
 
 /**
@@ -452,6 +454,14 @@ export function composedBuilder(original: DishIdea): FormBuilder {
     void seared;
     const fit = fitWare(idea, composed);
     const w = makeWare(idea, seed, fit);
+    // Plates and bowls cast from their foot only (R7: the whole ware's shadow fell offset and bigger
+    // than it under the high key light, a hard blue second plate).
+    w.pieces = w.pieces.map((piece) => {
+      if (!['plate', 'bowl'].includes(piece.role)) return piece;
+      piece.geometry.computeBoundingBox();
+      const b = piece.geometry.boundingBox!;
+      return { ...piece, shadowBelow: Math.min(1, 1.0 / Math.max(0.5, b.max.y - b.min.y)) };
+    });
     /** True when a spot (with a half size) lies on the ware's top. */
     const onTheWare = (c: [number, number], hx: number, hz: number, margin = 1.2): boolean => {
       // Beside a glass: on the table, clear of the glass (a broccoli head was laid on its rim).
@@ -475,7 +485,8 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       // The soup's surface: a level disc meeting the bowl's side, a soft meniscus at its edge.
       const { level, radius } = w.soup;
       const geometry = pool({ outline: () => radius + 0.05, at: [0, 0], depth: 0.35, edge: 0.12, floor: () => level - 0.35, rings: 36, segments: 110 });
-      late.push({ role: 'pool', geometry });
+      // (Inside the bowl it casts nothing: its disc fell through to the table as a second bowl, R7.)
+      late.push({ role: 'pool', geometry, noShadow: true });
     } else if (kind === 'pool' || kind === 'soup' || kind === 'mash') {
       const depth = kind === 'soup' ? 1.4 : kind === 'mash' ? 0.9 : 0.32;
       const geometry = pool({
@@ -520,7 +531,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       }
     } else if (kind === 'drink') {
       // The glass for this drink (item 12): picked by the drink, the drink inside it, ice when cold.
-      const kindOfGlass = glassFor(idea.base);
+      const kindOfGlass = glassFor(idea.base, idea.glass);
       served = glass(kindOfGlass, baseAt, random, takesIce(idea.base, kindOfGlass));
       table.add(served.pieces.filter((piece) => !['glassGlint', 'ice'].includes(piece.role)));
       late.push(...served.pieces);
@@ -648,7 +659,9 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         // A citrus wheel or wedge beside the drink goes on the rim too (R4: one lay flat by the glass),
         // a second garnish on the far side of the rim.
         const citrusRim = ['lemon', 'lime', 'orange'].includes(p.part.ingredient) && ['wheel', 'wedge'].includes(p.part.form) && rimServed.length < 2 && !rimServed.includes(p.part.ingredient);
-        if (kind === 'drink' && served && ((p.size === 'big' && p.index === 0 && (rimCut || isComponent(p.part.ingredient))) || (citrusRim && rimServed.length > 0))) {
+        // (A cap of cream or foam always sits on the drink, never on the table beside it: R7, the
+        // Limonada's cream lay by the glass like a crumpled paper.)
+        if (kind === 'drink' && served && ((p.size === 'big' && p.index === 0 && (rimCut || isComponent(p.part.ingredient))) || (citrusRim && rimServed.length > 0) || isComponent(p.part.ingredient))) {
           // Every garnish stands upright on the rim through a slit (Group 3): the rim runs two fifths
           // of the way into it, half of it hangs outside the glass, and it leans about 12 degrees out.
           // Only a leaf floats in the drink.
@@ -1002,6 +1015,14 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         ...cohesion(food, served ? [served.pieces.filter((piece) => piece.role === 'glass')] : []),
         ...support(food, groundOnly),
         lost,
+        // A piece loose on the table (R7): a component by a drink, off the glass (only the planned
+        // side pieces of table ingredients may stand beside it).
+        loose: served ? food.filter((f) => {
+          const part = placedOf.get(f)?.part;
+          if (!part || !isComponent(part.ingredient)) return false;
+          const b = boundsOf(f);
+          return Math.hypot((b.min.x + b.max.x) / 2 - baseAt[0], (b.min.z + b.max.z) / 2 - baseAt[1]) > served!.rim.r + 0.3;
+        }).length : 0,
         ...(idea.layout ? { offCentre: offCentre(food, heroFood), towering: food.filter(towers).length, maxFoodHeight: height } : {}),
         served: [...new Set([...food.map((f) => placedOf.get(f)?.part.ingredient), ...rimServed])].filter((id): id is string => !!id),
       });
@@ -1109,7 +1130,11 @@ export function composedBuilder(original: DishIdea): FormBuilder {
     // The hero's role first in the finished list (it takes the entry's skin and main highlight).
     const looks = dishLooks(idea);
     const order = new Map(looks.map((l, i) => [l.role, i]));
-    const all = [...parts, ...late].filter((p) => order.has(p.role));
+    // Plates and bowls: a soft contact shadow tight under the ware (R7: no hard, offset disc). Only
+    // the ware's lowest centimetre casts; what sits in a bowl casts nothing through it onto the table.
+    const inBowl = idea.ware === 'bowl' || idea.ware === 'deep';
+    const finished = [...parts, ...late].map((p) => (inBowl && !['plate', 'bowl'].includes(p.role) ? { ...p, noShadow: true } : p));
+    const all = finished.filter((p) => order.has(p.role));
     all.sort((a, b) => (order.get(a.role) ?? 99) - (order.get(b.role) ?? 99));
     return plate(all);
   };

@@ -28,6 +28,7 @@ describe('dish QA', () => {
       const problems = [
         qa.apart ? `${qa.apart} apart` : '',
         qa.floating ? `${qa.floating} floating` : '',
+        qa.loose ? `${qa.loose} loose on the table` : '',
         qa.deepest > 1 ? `overlap ${qa.deepest.toFixed(1)} cm` : '',
         qa.restless ? `${qa.restless} moving` : '',
         qa.lost ? `${qa.lost} lost` : '',

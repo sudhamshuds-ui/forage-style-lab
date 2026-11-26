@@ -46,8 +46,23 @@ const SHAPES: Record<GlassKind, GlassShape> = {
   'nick-and-nora': { outer: stemmed(3.1, 6.5, [[0.45, 0], [2.2, 0.7], [3.2, 2.4], [3.4, 4.2], [3.25, 5.6]]), floor: 7.1, wall: 0.13, fill: 0.68 },
 };
 
+/**
+ * The glass a world dish's looks note asks for, before the fruit mapping (R7: a tall, frothy
+ * Limonada Suica came in a nick-and-nora): frothy, milky, blended or yogurt drinks are tall
+ * highballs; a spritz or a bellini a wine glass. Undefined when the note does not say.
+ */
+export function glassFromNote(text: string): GlassKind | undefined {
+  const t = text.toLowerCase();
+  if (/\bhighball|\btall\b|froth|foam|lassi|yog|milk|smoothie|blended|shake|buttermilk|doogh|horchata/.test(t)) return 'highball';
+  if (/\bspritz|bellini|sparkling wine|wine glass/.test(t)) return 'wine';
+  if (/\bcoupe/.test(t)) return 'coupe';
+  if (/\btumbler|\brocks\b|on the rocks/.test(t)) return 'rocks';
+  return undefined;
+}
+
 /** The glass for each drink. */
-export function glassFor(base: string): GlassKind {
+export function glassFor(base: string, glass?: GlassKind): GlassKind {
+  if (glass) return glass;
   const drink = base.split(':')[1] ?? '';
   if (drink === 'grape') return 'wine';
   if (drink === 'apple') return 'coupe';

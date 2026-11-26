@@ -5,7 +5,7 @@ import type { DishIdea } from '../catalog';
 import { componentGarnish, componentPiece, isComponent, type DishComponent } from './components';
 import { SKEWERS } from './elements';
 import { BODY, elementInfo } from './layout';
-import { glassFor, takesIce } from '../kit/glass';
+import { glassFor, glassFromNote, takesIce, type GlassKind } from '../kit/glass';
 import { WORLD_DISHES, applyLooks, pickWorldDish, worldComponents } from './world';
 import { layoutById, type LayoutId, type LayoutSpec } from './layouts';
 
@@ -65,6 +65,8 @@ export interface Slots {
   twist?: Piece;
   /** A world dish's base in its own words ("smooth, fully green spinach gravy"), for the caption. */
   texture?: string;
+  /** A drink's glass, from its world dish's looks note (R7). */
+  glass?: GlassKind;
 }
 
 /** The longest a title may be: it must fit on one line on the result screen (the fix list). */
@@ -926,7 +928,7 @@ function describeDish(slots: Slots, components: DishComponent[], random: () => n
   if (layout.id === 'glass-drink') {
     const glass = slots.texture ? cap(slots.texture) : DRINK_WORDS[base] ?? 'A cold drink';
     // "Over ice" only when the glass has ice in it (Group 3).
-    const kind = glassFor(base);
+    const kind = glassFor(base, slots.glass);
     return takesIce(base, kind)
       ? pick([`${glass} over ice, ${lead} on the rim.`, `${glass}, poured over ice and finished with ${lead}.`])
       : pick([`${glass}, poured cold, ${lead} on the rim.`, `${glass}, served chilled with ${lead}.`]);
@@ -1071,6 +1073,10 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number, opti
   if (look.texture && !GENERIC_TEXTURES.includes(look.texture)) slots.texture = look.texture;
   // No scoop of ice cream where the note serves none (R7: a Muhallabieh of "custard ice cream").
   if (world?.looks && !world.looks.scoop && slots.hero.id === 'quenelle') slots.hero = { id: 'puree', form: slots.hero.form === 'custard' ? 'custard' : 'cream', count: 1 };
+  if (world?.looks && slots.layout.id === 'glass-drink') {
+    const l = world.looks;
+    slots.glass = glassFromNote([world.name, l.base?.texture ?? '', l.finish, ...(l.claim ?? [])].join(' '));
+  }
   capForTrueSize(slots);
   let components = chooseComponents(slots, varied.wild, random);
   if (world) for (const c of worldComponents(world, table, !!slots.sweet)) if (!components.some((o) => o.kind === c.kind && o.family === c.family)) components.push(c);
@@ -1117,6 +1123,7 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number, opti
     sauce: slots.sauce,
     sweet: slots.sweet,
     baseFamily: look.family,
+    glass: slots.glass,
     world: world ? { id: world.id, cuisine: world.cuisine, region: world.region } : undefined,
   };
 }

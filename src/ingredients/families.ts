@@ -764,7 +764,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // A lime's cut flesh: pale yellow-green, a sage shade.
   'lime-flesh': {
     name: 'Lime flesh',
-    colours: { lit: '#f3f5b8', base: '#d6e17e', shadow: '#7d9a6c', glow: '#e4ee6c', highlight: '#ffffff' },
+    colours: { lit: '#e3f2b2', base: '#b3d465', shadow: '#6f9466', glow: '#c4e65a', highlight: '#ffffff' },
     rooms: [],
   },
   'berry-flesh': {

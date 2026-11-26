@@ -60,7 +60,8 @@ const FLESH: Record<string, { family: FamilyId; core: string; skin: string; segm
   peach: { family: 'peach-flesh', core: '#e8783a', skin: '#c8384a' },
   orange: { family: 'orange-flesh', core: '#ffd27a', skin: '#f0821e', segments: 10 },
   lemon: { family: 'lemon-flesh', core: '#fff3a8', skin: '#f2c81e', segments: 9 },
-  lime: { family: 'lime-flesh', core: '#f4f1c4', skin: '#6ea42c', segments: 10 },
+  // (A greener core than a lemon's: on a glass's rim a pale core read yellow, R7.)
+  lime: { family: 'lime-flesh', core: '#cfe69a', skin: '#4f9a2a', segments: 10 },
   tomato: { family: 'tomato-flesh', core: '#f8c08a', skin: '#d8301e', segments: 4 },
   onion: { family: 'onion-flesh', core: '#fbeef4', skin: '#9a2a6a' },
   potato: { family: 'potato-flesh', core: '#ffe9a8', skin: '#b07a3c' },

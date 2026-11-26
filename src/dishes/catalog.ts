@@ -42,6 +42,8 @@ export interface DishIdea {
   world?: { id: string; cuisine: string; region: string };
   /** Generated dishes: the base's colour family from a world dish's looks note (a green gravy, red rice). */
   baseFamily?: import('../ingredients/families').FamilyId;
+  /** Generated drinks: the glass a world dish's looks note asks for (else the drink's fruit decides). */
+  glass?: import('./kit/glass').GlassKind;
 }
 
 const d = (id: string, title: string, heroes: [string, string, string], course: DishIdea['course'], ware: DishIdea['ware'], base: string, big: string, medium: string[], small: string[], description: string): DishIdea => ({ id, title, heroes, course, ware, base, big, medium, small, description });

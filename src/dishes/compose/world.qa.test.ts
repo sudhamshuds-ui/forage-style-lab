@@ -39,6 +39,7 @@ describe('world dish plating QA', () => {
         missing.length ? `missing ${missing.join(', ')}` : '',
         qa.apart ? `${qa.apart} apart` : '',
         qa.floating ? `${qa.floating} floating` : '',
+        qa.loose ? `${qa.loose} loose on the table` : '',
         qa.towering ? `${qa.towering} towering` : '',
         qa.lost ? `${qa.lost} lost` : '',
         qa.widestGap > 0.5 ? `gap ${qa.widestGap.toFixed(2)} cm` : '',

@@ -159,7 +159,7 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
     for (let k = 0; k < hero.count; k++) {
       const a = -0.5 + k * 0.75 + signed(random) * 0.15;
       // Clear of the glass's own bowl (a wide coupe caught fruit planned for a tumbler).
-      const d = glassRadius(glassFor(idea.base)) + r + 0.3;
+      const d = glassRadius(glassFor(idea.base, idea.glass)) + r + 0.3;
       const at: [number, number] = [glassAt[0] + Math.cos(a) * d, glassAt[1] + Math.sin(a) * d];
       placed.push({ part: hero, size: 'big', scale, at, angle: random() * 360, index: k, layer: 0 });
       heroDiscs.push({ c: at, r });
@@ -220,7 +220,7 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
   // Support then accents, each kind as one bunch touching the food already down.
   const mass: Disc[] = [...heroDiscs];
   // Beside a glass, the glass itself is in the way: nothing is planned inside its bowl.
-  if (layout.packing === 'beside-glass') mass.push({ c: glassAt, r: glassRadius(glassFor(idea.base)) + 0.2 });
+  if (layout.packing === 'beside-glass') mass.push({ c: glassAt, r: glassRadius(glassFor(idea.base, idea.glass)) + 0.2 });
   // Toppings on a platform touch each other, side by side across it (never stacked), and only as
   // many as fit inside its edge.
   const top: Disc[] = [];

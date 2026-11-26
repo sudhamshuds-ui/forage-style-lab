@@ -42,6 +42,7 @@ describe('the P0 list, built', () => {
         const problems = [
           missing.length ? `missing ${missing.join(', ')}` : '',
           qa.floating ? `${qa.floating} floating` : '',
+          qa.loose ? `${qa.loose} loose on the table` : '',
           vessel && qa.lost ? `${qa.lost} lost` : '',
           avocadoHalf ? 'avocado half' : '',
         ].filter(Boolean);

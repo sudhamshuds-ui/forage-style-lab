@@ -139,7 +139,7 @@ export function plate(parts: FormPiece[]): FormPiece[] {
       const list = byRole.get(role)!;
       // Every part gets its own frame (a missing one read as zero in the shader: black faces).
       for (const p of list) withFrame(p.geometry, false);
-      return { role, geometry: joinGeometries(list.map((p) => p.geometry)), doubleSided: list.some((p) => p.doubleSided), keepNormals: list.every((p) => p.keepNormals), seeThrough: list.find((p) => p.seeThrough)?.seeThrough, noShadow: list.every((p) => p.noShadow) || undefined };
+      return { role, geometry: joinGeometries(list.map((p) => p.geometry)), doubleSided: list.some((p) => p.doubleSided), keepNormals: list.every((p) => p.keepNormals), seeThrough: list.find((p) => p.seeThrough)?.seeThrough, noShadow: list.every((p) => p.noShadow) || undefined, shadowBelow: list.find((p) => p.shadowBelow !== undefined)?.shadowBelow };
     }),
   );
 }

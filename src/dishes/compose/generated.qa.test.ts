@@ -66,6 +66,7 @@ describe('generated dish QA', () => {
         qa.apart ? `${qa.apart} apart` : '',
         qa.widestGap > 0.5 ? `gap ${qa.widestGap.toFixed(1)} cm` : '',
         qa.floating ? `${qa.floating} floating` : '',
+        qa.loose ? `${qa.loose} loose on the table` : '',
         qa.deepest > 1 ? `overlap ${qa.deepest.toFixed(1)} cm` : '',
         qa.restless ? `${qa.restless} moving` : '',
         qa.lost ? `${qa.lost} lost` : '',

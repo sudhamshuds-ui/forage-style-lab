@@ -1,4 +1,4 @@
-import { AddEquation, Box3, Color, ConstantAlphaFactor, CustomBlending, Group, Mesh, OneFactor, OneMinusConstantAlphaFactor, Sphere, Vector3, ZeroFactor, type BufferAttribute, type ShaderMaterial } from 'three';
+import { AddEquation, Box3, Color, ConstantAlphaFactor, CustomBlending, Group, Mesh, MeshDepthMaterial, OneFactor, RGBADepthPacking, OneMinusConstantAlphaFactor, Sphere, Vector3, ZeroFactor, type BufferAttribute, type ShaderMaterial } from 'three';
 import type { Settings } from '../params';
 import { setPalette, softenPalette, type Palette, type StylizedLook } from '../shading/stylizedMaterial';
 import { Apple } from './apple/apple';
@@ -236,6 +236,12 @@ class FormSubject implements Subject {
         mesh.castShadow = !piece.noShadow && !piece.seeThrough && piece.role !== 'glassRim' && piece.role !== 'glassGlint';
         // Catch shadows too: sepals on their berry, berries on each other.
         mesh.receiveShadow = true;
+        // Only its foot casts (a plate or bowl): the depth pass drops everything higher up.
+        if (piece.shadowBelow !== undefined) {
+          piece.geometry.computeBoundingBox();
+          const box = piece.geometry.boundingBox!;
+          mesh.customDepthMaterial = footDepthMaterial(box.min.y + (box.max.y - box.min.y) * piece.shadowBelow);
+        }
         member.add(mesh);
       });
       members.push(member);
@@ -428,4 +434,15 @@ export function feetSpots(member: Group, most: number): { centre: Vector3; radiu
   groups.sort((a, b) => b.length - a.length);
   const kept = groups.slice(0, most);
   return [...spots, ...kept.flatMap((g, i) => footprintSpots(g, i === 0 ? most - kept.length + 1 : 1))];
+}
+
+/** A shadow-map depth material that keeps only what lies below `height` in the mesh's own space. */
+function footDepthMaterial(height: number): MeshDepthMaterial {
+  const material = new MeshDepthMaterial({ depthPacking: RGBADepthPacking });
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader.replace('void main() {', 'varying float vFootY;\nvoid main() {\n  vFootY = position.y;');
+    shader.fragmentShader = shader.fragmentShader.replace('void main() {', `varying float vFootY;\nvoid main() {\n  if (vFootY > ${height.toFixed(3)}) discard;`);
+  };
+  material.customProgramCacheKey = () => `foot-${height.toFixed(3)}`;
+  return material;
 }
