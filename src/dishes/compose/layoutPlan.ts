@@ -325,7 +325,7 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
   if (baseKind === 'soup') (baseAt = [0, 0]), (baseR = R * 0.98);
   if (baseKind === 'leaves') baseR = Math.min(R * 0.85, Math.max(5, extent + 1.5));
   if (idea.ware === 'glass') (baseAt = glassAt), (baseR = 3.6);
-  if (idea.ware === 'deep') (baseAt = [0, 0]), (baseR = 4.6);
+  if (idea.ware === 'deep') (baseAt = [0, 0]), (baseR = 4.6 * 1.36);
 
   // Herbs from the idea (the builder adds its own garnish layer over and round the food too).
   const herbs: [number, number][] = [];

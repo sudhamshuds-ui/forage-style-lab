@@ -317,6 +317,12 @@ export function servedBy(slots: Pick<Slots, 'hero' | 'support' | 'accent' | 'inB
  * wheel is 7 cm) comes in threes at most, a middling one in fours; a rice bowl holds five of anything.
  */
 function capForTrueSize(slots: Slots): void {
+  // A fried or poached egg is 9 cm of white: two at most (a Cilbir's pair), one on a toast board.
+  for (const p of [slots.hero, ...slots.support, ...slots.accent]) if (p.id === 'eggs' && p.form === 'egg') p.count = Math.min(p.count, slots.layout.id === 'toast-board' ? 1 : 2);
+  // A mound of leaves as a dish's lead (Goma-ae): five, so none is left draped over air.
+  if (slots.hero.form === 'leaf' && slots.layout.id !== 'leaf-salad') slots.hero.count = Math.min(slots.hero.count, 5);
+  // In a soup, a few pieces gathered in the middle, never a field of them drifting apart.
+  if (slots.layout.id === 'soup-bowl') for (const p of [slots.hero, ...slots.support, ...slots.accent]) if (['torn', 'cube', 'slice', 'strip'].includes(p.form)) p.count = Math.min(p.count, 4);
   const many = ['wheel', 'half', 'wedge', 'slice', 'cube', 'berry', 'strip'];
   for (const p of [slots.hero, ...slots.support, ...slots.accent]) {
     if (!many.includes(p.form) || p.id === 'baguette') continue;
@@ -327,7 +333,7 @@ function capForTrueSize(slots: Slots): void {
   }
   // An area budget (cm², seen from above): what the vessel holds at true size without piling. The
   // biggest group gives up a piece at a time, never below one, so every ingredient still shows.
-  const budget: Partial<Record<LayoutId, number>> = { 'rice-bowl': 50, 'soup-bowl': 110, 'skillet-bake': 170, 'dessert-bowl': 150 };
+  const budget: Partial<Record<LayoutId, number>> = { 'rice-bowl': 92, 'soup-bowl': 110, 'skillet-bake': 170, 'dessert-bowl': 150 };
   const limit = budget[slots.layout.id] ?? (['toast-board', 'tart', 'pancake-stack', 'glass-drink', 'mash-plate'].includes(slots.layout.id) ? Infinity : 300);
   const area = (p: Piece) => {
     if (isComponent(p.id)) return 0;
@@ -1081,6 +1087,8 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number, opti
   let components = chooseComponents(slots, varied.wild, random);
   if (world) for (const c of worldComponents(world, table, !!slots.sweet)) if (!components.some((o) => o.kind === c.kind && o.family === c.family)) components.push(c);
   if (world?.looks && !world.looks.scoop) components = components.filter((c) => c.kind !== 'quenelle');
+  // A swipe of sauce belongs on a flat plate; in a bowl it slid away from everything (R7 QA).
+  if (['dessert-bowl', 'soup-bowl', 'rice-bowl'].includes(slots.layout.id) || slots.ware === 'bowl' || slots.ware === 'deep') components = components.filter((c) => c.kind !== 'smear');
   if (world?.looks && !world.looks.whip) {
     components = components.filter((c) => c.kind !== 'whipped-cream');
     if (slots.hero.id === 'whip') slots.hero = { id: 'puree', form: 'cream', count: 1 };

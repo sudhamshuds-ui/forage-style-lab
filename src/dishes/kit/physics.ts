@@ -235,8 +235,19 @@ export class PhysicsPlate {
       });
       still = calm ? still + 1 : 0;
       // Still for a quarter of a second: truly at rest, not pausing at the top of a tip.
-      if (still >= 3) break;
+      if (still >= 3) return;
     }
+    // Still sliding when the time is up (a thin wheel on a slope of sauce, R7): it is steadied as a
+    // cook's hand would, heavier damping on what still moves, and given a moment more to come to rest.
+    const moving = this.bodies.filter((b) => {
+      if (b.baked) return false;
+      const v = b.body.linvel();
+      return Math.hypot(v.x, v.y, v.z) >= 0.3 || Math.hypot(b.body.angvel().x, b.body.angvel().y, b.body.angvel().z) >= 0.03;
+    });
+    if (!moving.length) return;
+    for (const b of moving) b.body.setLinearDamping(14), b.body.setAngularDamping(10);
+    for (let i = 0; i < Math.round(1.5 / this.world.timestep); i++) this.world.step();
+    for (const b of moving) b.body.setLinearDamping(4), b.body.setAngularDamping(2);
   }
 
   /**

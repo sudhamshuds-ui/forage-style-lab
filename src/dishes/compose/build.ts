@@ -100,6 +100,15 @@ export function dishLooks(original: DishIdea): RoleLook[] {
 /** How high the soup stands in its bowl (cm). */
 const SOUP_LEVEL = 5;
 
+/** A dish's rice bowl against the Style Lab's (13.2 cm to about 18 cm across). */
+export const RICE_BOWL_SCALE = 1.36;
+
+function scaledRiceBowl(parts: ReturnType<typeof riceBowlParts>, k: number): ReturnType<typeof riceBowlParts> {
+  for (const g of [parts.rice, parts.bowl, ...(parts.flecks ? [parts.flecks.green, parts.flecks.orange, parts.flecks.yellow] : [])]) g.scale(k, k, k);
+  const surface = parts.surfaceAt;
+  return { ...parts, radius: parts.radius * k, surfaceAt: (x, z) => surface(x / k, z / k) * k };
+}
+
 /**
  * The ware fitted to the food (item 10: plates were sparse, the food tiny in the middle): a plate a
  * rim's width wider than the food and centred on it; a board a hand's width round it. Generated
@@ -182,7 +191,9 @@ function makeWare(idea: DishIdea, seed: number, fit?: WareFit): { pieces: FormPi
       // A generated rice bowl is mixed rice, nearly level, so its toppings sit in the bowl rather
       // than perched on a peak (the fix list, 2026-11-25).
       const mixed = !!idea.layout;
-      const rice = riceBowlParts(seed, mixed ? 0.18 : 0.45, mixed);
+      // At a donburi's true size (real-world-sizes.json: 16 to 18 cm; the Style Lab's bowl is a 13 cm
+      // chawan), so a loaded bowl's toppings have room (R7).
+      const rice = scaledRiceBowl(riceBowlParts(seed, mixed ? 0.18 : 0.45, mixed), RICE_BOWL_SCALE);
       const wall = new Table(() => 0);
       wall.add([{ role: 'bowl', geometry: rice.bowl }]);
       const flecks: FormPiece[] = rice.flecks
@@ -1063,7 +1074,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         return p.geometry.boundingBox!.clone();
       });
       const inside = (x: number, z: number) =>
-        fit ? onTheWare([x, z], 0, 0) : idea.ware === 'board' ? Math.abs(x) < 13.5 && Math.abs(z) < 9.5 : Math.hypot(x, z) < (idea.ware === 'deep' ? 4.8 : idea.ware === 'round' ? 12.5 : 10.5);
+        fit ? onTheWare([x, z], 0, 0) : idea.ware === 'board' ? Math.abs(x) < 13.5 && Math.abs(z) < 9.5 : Math.hypot(x, z) < (idea.ware === 'deep' ? 4.8 * RICE_BOWL_SCALE : idea.ware === 'round' ? 12.5 : 10.5);
       // Over food or its sauce: a bounding box round a thin skewer or a round pancake covers bare
       // plate too, so a spot is kept only where something lies under it (any spot, if none is found).
       const { kind: poolKind, at: poolCentre, r: poolRadius } = composed.base;

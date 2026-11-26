@@ -25,7 +25,8 @@ describe('world dish plating QA', () => {
     const rows: string[] = [];
     const failing: string[] = [];
     let built = 0;
-    for (let tries = 0; built < 50 && tries < 400; tries++) {
+    // (R7: a world dish only where every table ingredient has its place in it, so more draws.)
+    for (let tries = 0; built < 50 && tries < 4000; tries++) {
       const n = 1 + Math.floor(random() * 3);
       const table = [...new Set(Array.from({ length: n }, () => ids[Math.floor(random() * ids.length)]))];
       const choices = { course: ['Starter', 'Main', 'Dessert', 'Snack', 'Drink'][Math.floor(random() * 5)], taste: ['Savoury', 'Sweet', 'Both'][Math.floor(random() * 3)], wild: Math.floor(random() * 101) };
