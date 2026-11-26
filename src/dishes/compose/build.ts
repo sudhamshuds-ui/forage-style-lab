@@ -18,8 +18,10 @@ import { planFor, effectiveIdea, tracedParts, TRACES } from './traces';
 import { refFamilies, refRoom } from './refLook';
 import { layoutById } from './layouts';
 import { PLATFORM_FORMS } from './layoutPlan';
-import { GARNISH_KINDS, dot, garnishLook, isComponent, microherb } from './components';
+import { GARNISH_KINDS, chive, dot, garnishLook, isComponent, microherb } from './components';
+import { WORLD_DISHES } from './world';
 import { FAMILIES } from '../../ingredients/families';
+import { TRAITS } from '../../ingredients/traits';
 import { hexToOklch } from '../../utils/colour';
 import { BASE_FAMILY, PLATE_LOOK, elementLooks, herbLeaf, makeElement, shaving, type Look, type RoleLook } from './elements';
 
@@ -154,7 +156,9 @@ function fitWare(idea: DishIdea, composed: ComposedPlan): WareFit | undefined {
   // A rim's width round the food, and a little room for a piece laid again beside the bunch.
   // (Skewers need room to be laid again whole, if one rolls.)
   // (A dinner plate is up to a 32 cm platter: true-size food needs the room.)
-  const R = Math.min(16, Math.max(9.5, reach * 1.12 + (idea.layout === 'skewer-platter' ? 5 : 3.6)));
+  // (R8: a solo ingredient gets a small plate, a narrower rim's width round it, 15 cm at the least.)
+  const solo = (idea.table?.length ?? 0) === 1;
+  const R = solo ? Math.min(16, Math.max(7.5, reach * 1.08 + 2.4)) : Math.min(16, Math.max(9.5, reach * 1.12 + (idea.layout === 'skewer-platter' ? 5 : 3.6)));
   return { at: c, r: R, hx: R, hz: R };
 }
 
@@ -660,9 +664,14 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         const elementSeed = (seed + p.index * 7919 + p.part.ingredient.length * 104729) >>> 0;
         const element = makeElement(p.part, random, elementSeed);
         // A traced piece is cut to its real size in the reference (its longest side, seen from above).
-        const scale = p.target ? p.target / Math.max(0.1, footprintOf(element)) : p.scale;
-        const turned = posed(element, { scale, turn: (-p.angle * Math.PI) / 180 });
-        const lifted = posed(turned, { at: [p.at[0], 20, p.at[1]] });
+        // (R8: a drumstick is 12 cm long whatever the ware, never stretched to fill a rice bowl.)
+        const scale = p.part.form === 'drumstick' ? 12 / Math.max(0.1, footprintOf(element)) : p.target ? p.target / Math.max(0.1, footprintOf(element)) : p.scale;
+        // (R8: a sliced steak's cut faces, pink inside the crust, look toward the camera at +z.)
+        const angle = p.part.form === 'steak' ? signed(random) * 18 : p.angle;
+        const turned = posed(element, { scale, turn: (-angle * Math.PI) / 180 });
+        // (R8: a piece by a glass stands in front of it, toward the camera at +z, never hidden behind it.)
+        const z = served && kind === 'drink' && p.at[1] < baseAt[1] ? 2 * baseAt[1] - p.at[1] : p.at[1];
+        const lifted = posed(turned, { at: [p.at[0], 20, z] });
         // On a drink, the hero garnish sits on the glass's rim.
         // (Only the first: an Unhinged heap of fruit sits on the table round the glass's foot.)
         // (Only a cut of fruit or vegetable goes on the rim; a piece of meat or bread sits beside.)
@@ -905,7 +914,8 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       // piled, never off the ware); otherwise it goes back where it was.
       // In a soup the pieces float on its surface: they slide on it, never onto each other.
       const inSoup = idea.base.startsWith('soup:');
-      if (idea.layout && food.length > 1) {
+      // (R8: a single piece by a glass slides up to the glass too.)
+      if (idea.layout && (food.length > 1 || (served && food.length > 0))) {
         const outline = (pieces: FormPiece[]): [number, number][] => {
           const pts: [number, number][] = [];
           for (const piece of pieces) {
@@ -1006,11 +1016,19 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       // way, so some break the surface and none sit on top like toys on a table.
       if (idea.base.startsWith('soup:') || idea.ware === 'deep') {
         for (const pieces of food) {
+          // (R8: onion rings float flat on the surface, never tipped in to show as arcs and rods.)
+          if (placedOf.get(pieces)?.part.ingredient === 'onion' && placedOf.get(pieces)?.part.form === 'wheel') {
+            const box = boundsOf(pieces);
+            for (const piece of pieces) piece.geometry.translate(0, -(box.max.y - box.min.y) * 0.35, 0);
+            continue;
+          }
           const box = boundsOf(pieces);
           const h = box.max.y - box.min.y;
           const centre = new Vector3((box.min.x + box.max.x) / 2, (box.min.y + box.max.y) / 2, (box.min.z + box.max.z) / 2);
+          // (R8: a drumstick sinks a third into the rice, never perched on it.)
+          const sink = placedOf.get(pieces)?.part.form === 'drumstick' ? 0.34 : 0.22 + random() * 0.2;
           const tilt = new Matrix4()
-            .makeTranslation(centre.x, centre.y - h * (0.22 + random() * 0.2), centre.z)
+            .makeTranslation(centre.x, centre.y - h * sink, centre.z)
             .multiply(new Matrix4().makeRotationFromEuler(new Euler(signed(random) * 0.24, random() * 0.6, signed(random) * 0.24)))
             .multiply(new Matrix4().makeTranslation(-centre.x, -centre.y, -centre.z));
           for (const piece of pieces) piece.geometry.applyMatrix4(tilt);
@@ -1030,7 +1048,9 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         // side pieces of table ingredients may stand beside it).
         loose: served ? food.filter((f) => {
           const part = placedOf.get(f)?.part;
-          if (!part || !isComponent(part.ingredient)) return false;
+          // (R8: only produce may stand by a glass; a bread cube there is loose. Before, every table
+          // ingredient counted as a planned side piece, so the check never saw it.)
+          if (!part || (!isComponent(part.ingredient) && TRAITS[part.ingredient]?.category === 'produce')) return false;
           const b = boundsOf(f);
           return Math.hypot((b.min.x + b.max.x) / 2 - baseAt[0], (b.min.z + b.max.z) / 2 - baseAt[1]) > served!.rim.r + 0.3;
         }).length : 0,
@@ -1113,12 +1133,14 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         count1(at[0], at[1]);
         placeOn([shaving(kinds[i % kinds.length], random)], at[0], at[1], { turn: random() * Math.PI * 2 });
       }
+      // (R8: a dish its looks note finishes with chives, a Vichyssoise, gets snipped chives instead.)
+      const chives = !!idea.world && /chive/.test(WORLD_DISHES.find((d) => d.id === idea.world!.id)?.looks?.finish ?? '');
       // Chopped herbs, big enough to read as herbs from the starting view (about 1 cm).
       for (let i = 0; i < (savoury ? 18 : idea.sweet ? 0 : 5); i++) {
         const at = pick();
         if (!at) break;
         count1(at[0], at[1]);
-        placeOn([herbLeaf(random)], at[0], at[1], { scale: 1.9, turn: random() * Math.PI * 2 });
+        placeOn([chives ? chive(random) : herbLeaf(random)], at[0], at[1], chives ? { turn: random() * Math.PI * 2 } : { scale: 1.9, turn: random() * Math.PI * 2 });
       }
       // The library's garnish (the fix list, P1): oil dots and gel beads on the sauce and round the
       // food, microherbs over it.

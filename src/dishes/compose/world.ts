@@ -264,6 +264,7 @@ export function worldComponents(dish: WorldDish, table: string[], sweet: boolean
     else if (/olive/.test(text) && !/oil/.test(text)) add(componentGarnish('gel', 'ink', 7));
     else if (/sumac|chili flake|paprika|berbere|chili lime salt/.test(text)) add(componentGarnish('gel', 'chili-oil', 13));
     else if (/cinnamon|sugar dust|cocoa|nutmeg/.test(text)) add(componentGarnish('gel', 'caramel', 13));
+    else if (/chive/.test(text)) add({ ...componentGarnish('oil-dot', 'herb-oil', 7), label: 'snipped chives and a few drops of oil' });
     else if (/chili oil|chili dot|harissa/.test(text)) add(componentGarnish('oil-dot', 'chili-oil', 9));
     else if (/lemon oil|citrus oil|lime oil/.test(text)) add(componentGarnish('oil-dot', 'citrus-oil', 9));
     else if (/oil|gloss|dressing|vinaigrette/.test(text)) add(componentGarnish('oil-dot', 'herb-oil', 9));

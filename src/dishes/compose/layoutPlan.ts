@@ -252,7 +252,8 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
     let spots: { at: [number, number]; angle: number }[];
     // A quenelle, a smear, a tuile or a puree goes beside a platform on the plate, never on it
     // (a tart's ice cream sits next to the slice).
-    const besidePlatform = ['quenelle', 'smear', 'tuile', 'puree'].includes(part.ingredient);
+    // (R8: a sliced steak is fanned over the sauce beside the mash, never perched on top of it.)
+    const besidePlatform = ['quenelle', 'smear', 'tuile', 'puree'].includes(part.ingredient) || part.form === 'steak';
     if (platform && idea.ware !== 'glass' && !besidePlatform) {
       // Toppings on the platform: support spread over it, accents round its edge, all on top.
       const edge = heroR * 0.86;

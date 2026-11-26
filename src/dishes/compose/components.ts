@@ -297,3 +297,15 @@ export function microherb(role: string, random: () => number): FormPiece[] {
     { role, geometry: leaf(-1) },
   ];
 }
+
+/**
+ * Snipped chives (R8: a Vichyssoise is finished with chives): a thin green rod about 1 cm long and
+ * 0.2 cm across, lying flat.
+ */
+export function chive(random: () => number): FormPiece {
+  const g = new CylinderGeometry(0.022, 0.022, 0.2 + random() * 0.12, 6);
+  g.rotateZ(Math.PI / 2);
+  g.rotateY(random() * Math.PI);
+  g.translate(0, 0.022, 0);
+  return { role: 'herb', geometry: withFrame(g, false) };
+}

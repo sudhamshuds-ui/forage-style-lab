@@ -1,4 +1,4 @@
-import { BufferAttribute, CylinderGeometry, IcosahedronGeometry, Matrix4, Quaternion, SphereGeometry, Vector3, type BufferGeometry } from 'three';
+import { BufferAttribute, CylinderGeometry, IcosahedronGeometry, LatheGeometry, Matrix4, Vector2, Quaternion, SphereGeometry, Vector3, type BufferGeometry } from 'three';
 import { relaxOnSurface, surfaceNets } from '../../ingredients/forms/kit/surfaceNets';
 import { roundedIntersection } from '../../ingredients/forms/kit/wedge';
 import { leafPiece } from '../../ingredients/forms/kit/stemLeaf';
@@ -113,12 +113,14 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
       // Raw salmon cut small: the flesh skin in the salmon's own colours (its fillet skin needs a whole fillet's map).
       return [{ role: id, family: 'salmon', skin: { ...FLESH_SKIN, pale: '#ff8a5a', green: '#ff7448' }, glossy: true }];
     case 'steak:steak':
-      // Saturated pink inside, a thinner crust, so the slices read pink (the user, 2026-11-25).
-      return [{ role: id, family: 'rare', skin: { ...FLESH_SKIN, pale: '#f2587a', green: '#8a3a2a', seared: 0.55 } }];
+      // Pink inside (the user, 2026-11-25), R8: a medium-rare rose, not a raw hot pink, inside a
+      // browned seared crust.
+      return [{ role: id, family: 'rare', skin: { ...FLESH_SKIN, pale: '#e2667a', green: '#6a3420', seared: 0.72 } }];
     case 'chicken:drumstick':
       return [
-        { role: 'chicken_meat_glow', family: 'poultry', skin: { kind: 'poultry', size_mm: 3, amount: 0.5, seared: 0.97, pale: '#c8501e', green: '#e09040' } },
-        { role: 'knuckle', family: 'bone-roast' },
+        // R8: roast, browned skin (the pink poultry family read as raw).
+        { role: 'chicken_meat_glow', family: 'bone-roast', skin: { kind: 'poultry', size_mm: 3, amount: 0.5, seared: 1, pale: '#a8521e', green: '#d88a3a' } },
+        { role: 'knuckle', family: 'bone' },
       ];
     case 'potato:whole':
       return [{ role: id, family: 'potato', skin: { kind: 'potato', size_mm: 2.2, amount: 0.9, seared: 0.6 } }];
@@ -209,6 +211,14 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
       return [{ role: id, family: 'baked', skin: { ...FLESH_SKIN, pale: '#c98a3c', green: '#f2d8a0' } }];
     case 'cabbage:roll':
       return [{ role: id, family: 'cabbage', skin: { ...FLESH_SKIN, pale: '#e8f0b0', green: '#b8d070' } }];
+    // A tomato wedge (R8: it read as a strawberry): satin, not glossy, its seeds and a green stem
+    // end showing.
+    case 'tomato:wedge':
+      return [
+        { role: id, family: FLESH.tomato.family, skin: { ...FLESH_SKIN, pale: FLESH.tomato.core, green: FLESH.tomato.skin, seared: sear } },
+        { role: 'tomato_seed', family: 'pear-flesh' },
+        { role: 'tomato_calyx', family: 'leaf' },
+      ];
     // Skewers: the stick and the pieces threaded on it, each piece its own role.
     case 'chicken:skewer':
     case 'steak:skewer':
@@ -342,6 +352,92 @@ function bulgeToFront(pieces: FormPiece[]): FormPiece[] {
   }
   const a = Math.atan2(sx / n, sz / n);
   return posed(pieces, { turn: -a });
+}
+
+/**
+ * A slice of onion fallen apart into its rings (R8: a solid disc read as a slice of ham): two or
+ * three separate thin rings, the biggest about 7 cm across, each about 0.3 cm thick and 0.4 cm wide,
+ * the centres open, lying flat, one inside the other a little off centre. The map runs pale on top
+ * to the violet skin at each ring's outer edge.
+ */
+function onionRings(role: string, random: () => number): FormPiece[] {
+  const out: FormPiece[] = [];
+  const width = 0.42;
+  const t = 0.3;
+  const radii = [3.5 - width / 2, 2.65 - width / 2, 1.85 - width / 2].slice(0, random() < 0.5 ? 2 : 3);
+  let ox = 0;
+  let oz = 0;
+  radii.forEach((R, k) => {
+    const profile: Vector2[] = [];
+    for (let i = 0; i <= 14; i++) {
+      const a = (i / 14) * Math.PI * 2 - Math.PI / 2;
+      profile.push(new Vector2(R + (Math.cos(a) * width) / 2, (Math.sin(a) * t) / 2 + t / 2));
+    }
+    const g = new LatheGeometry(profile, 56);
+    if (k > 0) {
+      // Off centre inside the last ring, never touching it.
+      const room = radii[k - 1] - R - width - 0.08;
+      const a = random() * Math.PI * 2;
+      ox += Math.cos(a) * room * 0.6;
+      oz += Math.sin(a) * room * 0.6;
+    }
+    g.translate(ox, 0, oz);
+    const pos = g.getAttribute('position');
+    const uv = new Float32Array(pos.count * 2);
+    const own = new Float32Array(pos.count * 3);
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i) - ox;
+      const z = pos.getZ(i) - oz;
+      const across = (Math.hypot(x, z) - R) / (width / 2); // -1 inside edge, 1 outside edge
+      uv[2 * i] = across > 0.55 ? 1.3 : 0.55 + 0.35 * Math.max(0, across + 1) / 1.55;
+      own.set([pos.getX(i), pos.getY(i), pos.getZ(i)], 3 * i);
+    }
+    g.setAttribute('uv', new BufferAttribute(uv, 2));
+    g.setAttribute('ownPos', new BufferAttribute(own, 3));
+    out.push({ role, geometry: g });
+  });
+  return out;
+}
+
+/**
+ * A tomato wedge (R8: glossy and plain red it read as a strawberry): lying on one cut face with
+ * the other turned up to the camera, pale seeds set in that face, and a small green stem end at the
+ * wedge's tip.
+ */
+function tomatoWedge(role: string, random: () => number): FormPiece[] {
+  const b = BODY.tomato;
+  const body = bodyField('tomato', random);
+  const reach = Math.max(b.r, b.h) * 1.08;
+  const angle = 0.8 + random() * 0.25;
+  const a = random() * Math.PI * 2;
+  const n1 = new Vector3(Math.sin(a), 0, -Math.cos(a));
+  const n2 = new Vector3(-Math.sin(a + angle), 0, Math.cos(a + angle));
+  const geometry = cutBody(body, [[n1, 0], [n2, 0]], { reach, depth: Math.min(b.r, b.h) * 0.9, rounding: 0.3, segments: 4, turn: random() * 6 });
+  const pieces: FormPiece[] = [{ role, geometry }];
+  // Seeds in the face cut by n2: points on that plane, inside the flesh, a hair proud of it.
+  // (In the plane and away from the axis, toward the wedge's skin.)
+  const along = new Vector3(0, 1, 0).cross(n2).normalize();
+  const out = new Vector3(0, 0, 0).sub(n1).sub(n2).setY(0).normalize();
+  if (along.dot(out) < 0) along.negate();
+  for (let i = 0; i < 9; i++) {
+    const d = b.r * (0.35 + random() * 0.32);
+    const y = signed(random) * b.h * 0.42;
+    const seed = new SphereGeometry(0.16, 6, 4);
+    seed.scale(1, 0.55, 0.7);
+    seed.rotateY(random() * Math.PI);
+    const at = along.clone().multiplyScalar(d).addScaledVector(n2, 0.04);
+    seed.translate(at.x, y + at.y, at.z);
+    pieces.push({ role: 'tomato_seed', geometry: seed });
+  }
+  // The stem end: a small green star at the top of the axis.
+  const calyx = new SphereGeometry(0.6, 8, 4);
+  calyx.scale(1, 0.32, 1);
+  calyx.translate(out.x * 0.3, b.h * 0.99, out.z * 0.3);
+  pieces.push({ role: 'tomato_calyx', geometry: calyx });
+  // Lying on the n1 face, the bulk turned away so the seeded face looks toward the camera (+z).
+  let laid = posed(pieces, turnOnto(n1, new Vector3(0, -1, 0)));
+  laid = bulgeToFront(laid);
+  return posed(laid, { turn: Math.PI });
 }
 
 /** A cut piece of fruit or vegetable: wheel, half, wedge, slice or cube, by the recipe above. */
@@ -537,19 +633,25 @@ function tornChicken(random: () => number): BufferGeometry {
  * cut faces show: one rounded slab, cut five times across, each slice tipped a little.
  */
 function slicedSteak(role: string, random: () => number): FormPiece[] {
-  const slab = boxField(4, 1.4, 6.2, 1.0);
+  // R8: a stiff row of thick pink blocks read as raw cubes. Now six thinner slices (about 1.3 cm)
+  // from a 2.4 cm thick steak, each tipped back to show its pink middle inside a browned crust, and
+  // fanned in a gentle arc, each leaning toward the last, the way a carved steak is laid over its sauce.
+  const slab = boxField(4, 1.2, 6.2, 0.9);
   const body: Field = (x, y, z) => slab(x, y, z) + 0.08 * Math.sin(x * 1.3 + 1) * Math.sin(z * 0.8 + 2);
-  const n = 5;
+  const n = 6;
   const pieces: FormPiece[] = [];
   const width = 12.4 / n;
+  const fan = 0.1 + random() * 0.04;
   for (let k = 0; k < n; k++) {
     const z0 = -6.2 + k * width;
-    const z1 = z0 + width - 0.12;
-    const g = cutBody(body, [[new Vector3(0, 0, 1), z1], [new Vector3(0, 0, -1), -z0]], { reach: 7, depth: 1.3, rounding: 0.18 });
+    const z1 = z0 + width - 0.14;
+    const g = cutBody(body, [[new Vector3(0, 0, 1), z1], [new Vector3(0, 0, -1), -z0]], { reach: 7, depth: 1.1, rounding: 0.16 });
     g.translate(0, 0, -(z0 + z1) / 2);
-    // Each slice tipped back so its cut face looks up toward the camera, then set in a row.
-    g.rotateX(-0.85 + signed(random) * 0.08);
-    g.translate(signed(random) * 0.2, 0, -5 + k * (width + 0.25));
+    g.rotateX(-0.62 + signed(random) * 0.05);
+    // Along an arc: each slice a little further round, its face turned with the arc.
+    const t = k - (n - 1) / 2;
+    g.rotateY(t * fan);
+    g.translate(Math.sin(t * fan) * 1.6 + t * t * 0.12 + signed(random) * 0.1, 0, t * 1.75);
     pieces.push({ role, geometry: g });
   }
   return pieces;
@@ -682,9 +784,28 @@ export function makeElement(part: Part, random: () => number, seed: number): For
     }
     case 'broccoli:half': {
       // A halved floret lying on its cut side (R4: never a whole head standing up like a tree).
+      // R8: really halved. Laid on its side, everything below its middle is pressed onto the cut
+      // plane, so it lies flat on that face, half as tall, and can never stand up again.
       const floret = posed(pantry(buildBroccoli({ state: 'whole', seed }), { florets: 'broccoli_florets', stalk: 'broccoli_stalk', leaf: 'broccoli_leaf' }), { scale: 0.32 });
-      return settle(posed(floret.filter((p) => p.role !== 'broccoli_leaf'), new Matrix4().makeRotationX(Math.PI / 2)));
+      const lying = posed(floret.filter((p) => p.role !== 'broccoli_leaf'), new Matrix4().makeRotationX(Math.PI / 2));
+      let lo = Infinity;
+      let hi = -Infinity;
+      for (const p of lying) {
+        p.geometry.computeBoundingBox();
+        lo = Math.min(lo, p.geometry.boundingBox!.min.y);
+        hi = Math.max(hi, p.geometry.boundingBox!.max.y);
+      }
+      const cut = (lo + hi) / 2;
+      for (const p of lying) {
+        const pos = p.geometry.getAttribute('position');
+        for (let i = 0; i < pos.count; i++) if (pos.getY(i) < cut) pos.setY(i, cut);
+        pos.needsUpdate = true;
+        p.geometry.computeVertexNormals();
+      }
+      return settle(lying);
     }
+    case 'tomato:wedge':
+      return settle(tomatoWedge(role, random));
     case 'pepper:slice': {
       const field = boxField(0.65, 0.22, 3, 0.2);
       const bent: Field = (x, y, z) => field(x, y - 0.25 * Math.cos(x * 1.6) - 0.15 * Math.sin(z * 0.6), z);
@@ -740,21 +861,9 @@ export function makeElement(part: Part, random: () => number, seed: number): For
       const g = leafPiece({ base: new Vector3(0, 0.05, -3), turn: Math.PI / 2, length: big ? 7 : 6.2, width: big ? 5.5 : 3.4, lift: (d) => 0.5 * (d / (big ? 7 : 6.2)) ** 2 + 0.08, fold: big ? 0.5 : 0.35, twist: signed(random) * 0.2, rows: 10, cols: 6 });
       return settle([{ role, geometry: g, doubleSided: true }]);
     }
-    case 'onion:wheel': {
-      // A full slice of a 7 cm red onion, 0.4 cm thick (real-world-sizes.json: never a small inner
-      // ring): a flat disc, its rings drawn as fine magenta lines, magenta at its edge.
-      const R = 3.3 + random() * 0.3;
-      const field: Field = (x, y, z) => Math.max(Math.hypot(x, z) - R, Math.abs(y) - 0.2);
-      const g = cutBody(field, [], { reach: R + 0.3, depth: 0.2, rounding: 0.12 });
-      const pos = g.getAttribute('position');
-      const uv = g.getAttribute('uv') as BufferAttribute;
-      for (let i = 0; i < pos.count; i++) {
-        const rr = Math.hypot(pos.getX(i), pos.getZ(i));
-        const line = Math.pow(Math.abs(Math.sin((rr * Math.PI) / 0.6)), 8);
-        uv.setX(i, rr > R - 0.22 ? 1.15 : 0.5 + 0.42 * line * Math.min(1, rr / 1.2));
-      }
-      return settle([{ role, geometry: g }]);
-    }
+    case 'onion:wheel':
+      // A full slice of a 7 cm red onion fallen into its separate thin rings (R8, onionRings).
+      return settle(onionRings(role, random));
     case 'cheese:crumble':
     case 'butter:crumble':
       return settle(crumble(role, random));

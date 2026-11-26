@@ -285,6 +285,11 @@ const GLASS_CUT: Record<string, string> = {
   lime: 'wheel', lemon: 'wheel', tomato: 'wheel', pepper: 'strip', avocado: 'slice', spinach: 'leaf', onion: 'wheel',
 };
 
+/** What may stand by a glass as its garnish (R8): produce only, never bread, meat, cheese or garlic. */
+export function byGlassOk(id: string): boolean {
+  return TRAITS[id]?.category === 'produce';
+}
+
 /** Unhinged's other cut by the glass. */
 const GLASS_CUT_WILD: Record<string, string> = { orange: 'wedge', apple: 'wedge', pear: 'half', peach: 'wedge', lime: 'wedge', lemon: 'wedge', strawberry: 'slice', pepper: 'slice' };
 
@@ -426,7 +431,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
     else {
       // Nothing to cut: the table's other ingredient is the garnish beside the glass (a savoury
       // glass never gets a cap of cream); only a glass of nothing but its drink gets the cream.
-      const other = [...left].find((id) => !['milk', 'butter', 'cheese', 'sauce', 'rice'].includes(id) && GLASS_PIECE[id] !== 'blend' && (GLASS_PIECE[id] ?? formFor(id, 'support', 0, random) ?? formFor(id, 'accent', 0, random)));
+      const other = [...left].find((id) => byGlassOk(id) && GLASS_PIECE[id] !== 'blend' && (GLASS_PIECE[id] ?? formFor(id, 'support', 0, random) ?? formFor(id, 'accent', 0, random)));
       if (other) (hero = { id: other, form: GLASS_PIECE[other] ?? formFor(other, 'support', 0, random) ?? formFor(other, 'accent', 0, random)!, count: 1 }), take(other);
       else hero = heap ? { id: 'quenelle', form: 'ice-cream', count: 1 } : { id: 'whip', form: 'cream', count: 1 };
     }
@@ -434,10 +439,12 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
     if (heap && !isComponent(hero.id)) hero.count = 3;
     // Every other table ingredient shows: a cut by the glass, or a small piece beside it (a crisp of
     // bread, a slice of steak), never hidden in the glass where nobody sees it.
+    // (R8: only produce stands by a glass; bread, meat, cheese or garlic loose on the table beside a
+    // drink is litter, so it is blended in, as bread is in a salmorejo.)
     for (const id of [...left]) {
       const c = GLASS_CUT[id];
       const piece = c ?? GLASS_PIECE[id] ?? formFor(id, 'support', 0, random) ?? formFor(id, 'accent', 0, random) ?? formFor(id, 'hero', 0, random);
-      if (piece && !['mash', 'pancake', 'cake', 'pastry', 'blend'].includes(piece)) support.push({ id, form: piece, count: c === 'berry' || heap ? 3 : 1 });
+      if (piece && byGlassOk(id) && !['mash', 'pancake', 'cake', 'pastry', 'blend'].includes(piece)) support.push({ id, form: piece, count: c === 'berry' || heap ? 3 : 1 });
       else inBase.push(id);
       take(id);
     }
@@ -858,11 +865,11 @@ const SAUCE_WORDS: Record<string, string> = {
   'pool:caramel': 'caramel', 'pool:maple': 'maple syrup',
 };
 const DRINK_WORDS: Record<string, string> = {
-  'drink:apple': 'Apple cider cooler', 'drink:pear': 'Pear juice spritz', 'drink:peach': 'Peach iced tea', 'drink:lemon': 'Classic fresh lemonade', 'drink:lime': 'Fresh lime cooler',
+  'drink:apple': 'Apple cider cooler', 'drink:pear': 'Pear juice spritz', 'drink:peach': 'Fresh peach cooler', 'drink:lemon': 'Classic fresh lemonade', 'drink:lime': 'Fresh lime cooler',
   'drink:orange': 'Fresh orange juice', 'drink:strawberry': 'Fresh strawberry cooler', 'drink:watermelon': 'Fresh watermelon cooler', 'drink:grape': 'Sparkling grape cooler',
-  'drink:blueberry': 'Blueberry lemonade', 'drink:tomato': 'Tomato juice with celery', 'drink:pepper': 'Roast pepper cooler', 'drink:spinach': 'Green spinach juice',
-  'drink:avocado': 'Avocado lime smoothie', 'drink:green': 'Green garden juice', 'drink:milk': 'Thick vanilla milkshake', 'drink:horchata': 'Cinnamon rice milk',
-  'drink:bloody': 'Spiced tomato chili sip', 'drink:consomme': 'Clear golden consommé',
+  'drink:blueberry': 'Blueberry cooler', 'drink:tomato': 'Chilled tomato juice', 'drink:pepper': 'Roast pepper cooler', 'drink:spinach': 'Green spinach juice',
+  'drink:avocado': 'Avocado smoothie', 'drink:green': 'Green garden juice', 'drink:milk': 'Thick milkshake', 'drink:horchata': 'Cinnamon rice milk',
+  'drink:bloody': 'Spiced tomato sip', 'drink:consomme': 'Clear golden consommé',
 };
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -932,12 +939,15 @@ function describeDish(slots: Slots, components: DishComponent[], random: () => n
   const lead = platform ? piecePhrase(toppings[0]) : piecePhrase(hero);
   const sides = (platform ? toppings.slice(1) : toppings).map(piecePhrase);
   if (layout.id === 'glass-drink') {
+    // (R8: what is blended in, apart from the juice and the dairy, is named, so nothing on the table goes unsaid.)
+    const blendedIn = slots.inBase.filter((id) => id !== slots.star && !['milk', 'cheese', 'butter'].includes(id) && !(DRINK_OF[id] && DRINK_OF[id] === base));
     const glass = slots.texture ? cap(slots.texture) : DRINK_WORDS[base] ?? 'A cold drink';
+    const blendNote = blendedIn.length ? ` ${cap(blendedIn.map((id) => NOUN[id] ?? id).join(' and '))} ${blendedIn.length > 1 ? 'are' : 'is'} blended in.` : '';
     // "Over ice" only when the glass has ice in it (Group 3).
     const kind = glassFor(base, slots.glass);
-    return takesIce(base, kind)
+    return (takesIce(base, kind)
       ? pick([`${glass} over ice, ${lead} on the rim.`, `${glass}, poured over ice and finished with ${lead}.`])
-      : pick([`${glass}, poured cold, ${lead} on the rim.`, `${glass}, served chilled with ${lead}.`]);
+      : pick([`${glass}, poured cold, ${lead} on the rim.`, `${glass}, served chilled with ${lead}.`])) + (sides.length ? ` ${cap(listOf(sides.slice(0, 2)))} beside the glass.` : '') + blendNote;
   }
   // Where it sits: only what is really under it.
   let where = '';
@@ -966,7 +976,7 @@ function describeDish(slots: Slots, components: DishComponent[], random: () => n
   const said = [lead, ...sides].map(opening);
   for (let i = extras.length - 1; i >= 0; i--) if (said.includes(opening(extras[i]))) extras.splice(i, 1);
   const withSides = sides.length ? ` with ${listOf(sides.slice(0, 2))}` : '';
-  const finish = extras.length ? pick([`, finished with ${extras[0]}`, `. ${cap(extras[0])} to finish`, `, ${extras[0]} on the side`]) : '';
+  const finish = extras.length ? pick([`, finished with ${extras[0]}`, `. ${cap(extras[0])} to finish`, base.startsWith('soup:') ? `, finished with ${extras[0]}` : `, ${extras[0]} on the side`]) : '';
   const twist = slots.twist ? `, and ${piecePhrase(slots.twist).replace(/^an? /, 'a single ')} for contrast` : '';
   // (Never say the same thing twice: "a crisp pastry tart in a crisp pastry shell".)
   if (where && lead.toLowerCase().includes(where.replace(/^(in|on|over) (a |an )?/, '').split(' ').slice(0, 2).join(' '))) where = '';
@@ -1085,7 +1095,13 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number, opti
   }
   capForTrueSize(slots);
   let components = chooseComponents(slots, varied.wild, random);
-  if (world) for (const c of worldComponents(world, table, !!slots.sweet)) if (!components.some((o) => o.kind === c.kind && o.family === c.family)) components.push(c);
+  if (world)
+    for (const c of worldComponents(world, table, !!slots.sweet)) {
+      const same = components.find((o) => o.kind === c.kind && o.family === c.family);
+      // (The note's own words win: a Vichyssoise's oil dots come with its snipped chives, R8.)
+      if (same) same.label = c.label ?? same.label;
+      else components.push(c);
+    }
   if (world?.looks && !world.looks.scoop) components = components.filter((c) => c.kind !== 'quenelle');
   // A swipe of sauce belongs on a flat plate; in a bowl it slid away from everything (R7 QA).
   if (['dessert-bowl', 'soup-bowl', 'rice-bowl'].includes(slots.layout.id) || slots.ware === 'bowl' || slots.ware === 'deep') components = components.filter((c) => c.kind !== 'smear');
@@ -1101,6 +1117,13 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number, opti
       if (['lemon', 'lime', 'orange'].includes(p.id)) Object.assign(p, { form: 'wheel', count: 1 });
       if (p.id === 'pepper' && p.form === 'half') Object.assign(p, { form: 'strip', count: 3 });
     }
+  // A solo ingredient (R8: one toast slice sat lonely on a big plate): where it is natural, two or
+  // three pieces of it, and the ware is sized to the food (fitWare).
+  if (table.length === 1 && slots.hero.count === 1 && slots.ware !== 'glass' && !slots.support.length) {
+    const natural: Record<string, number> = { toast: 2, wedge: 3, half: 2, slice: 3, wheel: 3, egg: 2, fillet: 1, steak: 1 };
+    const n = natural[slots.hero.form];
+    if (n && n > 1 && !['bowl', 'deep'].includes(slots.ware)) slots.hero.count = n;
+  }
   const part = (p: Piece) => `${p.id}:${p.form}${p.count > 1 ? `*${p.count}` : ''}`;
   const raw = ['tartare-crudo', 'leaf-salad', 'glass-drink'].includes(layout.id) || slots.course === 'dessert';
   const made = titleDish(slots, !raw, components, seededRandom(seed ^ 0x7e57));
