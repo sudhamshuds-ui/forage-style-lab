@@ -1,0 +1,2822 @@
+{
+  "title": "Forage real-world size table",
+  "unit_scale": {
+    "units_per_cm": 0.261993,
+    "formula": "2.095944 / 8",
+    "source": "src/ingredients/scale.ts on origin/composable-dishes",
+    "note": "Style Lab ingredient forms are modelled in real centimetres and then multiplied by UNITS_PER_CM so the default 8 cm apple measures 2.095944 scene units (the size it has always had). The Kitchen composer works in centimetres throughout: pantry forms are converted back with inCm() (scale by 1/UNITS_PER_CM), and ware, glass, toast, fillets, pools and garnish are all authored in cm. There is no second hidden scale in the Kitchen — if a piece looks huge, its centimetre constants are wrong, not the unit mapping."
+  },
+  "clamp": {
+    "tolerance": 0.15,
+    "rule": "Clamp every rendered piece to within ±15% of true_cm. Do not scale a piece up to fill a plate, or down to make a 3-ingredient plate look sparse. Size boards and plates from their contents (a finger's width / a rim's width of ware around the food). A toast stays ~11 x 8 x 1.7 cm; a salmon fillet on that toast must shrink to ribbons or flakes that fit the bread, never the other way around."
+  },
+  "ingredients": [
+    {
+      "id": "apple",
+      "stage_cm": [
+        8,
+        8.6,
+        8
+      ],
+      "body_cm": {
+        "r": 4,
+        "h": 3.6
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 8.0,
+            "h_cm": 7.5
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 8.0,
+            "h_cm": 7.2
+          },
+          "note": "A medium eating apple. Registry and BODY agree."
+        },
+        {
+          "form": "half",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 4.0,
+            "h_cm": 7.2
+          },
+          "count_per_serving": 2,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 4.0,
+            "h_cm": 7.2
+          }
+        },
+        {
+          "form": "wedge",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 5.5,
+            "w_cm": 3.0,
+            "h_cm": 2.5
+          },
+          "count_per_serving": [
+            4,
+            8
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 5.5,
+            "w_cm": 3.0,
+            "h_cm": 2.5
+          },
+          "note": "An eighth-to-sixth of an 8 cm apple."
+        },
+        {
+          "form": "slice",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 7.5,
+            "w_cm": 5.5,
+            "h_cm": 0.4
+          },
+          "count_per_serving": [
+            5,
+            8
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 4.0,
+            "h_cm": 0.35
+          },
+          "note": "Cut 0.35 cm thick in cutElement."
+        },
+        {
+          "form": "cube",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 2.0,
+            "w_cm": 2.0,
+            "h_cm": 2.0
+          },
+          "count_per_serving": [
+            6,
+            10
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.0
+          },
+          "note": "Generic cube s=1.1 (2.2 cm)."
+        }
+      ]
+    },
+    {
+      "id": "pear",
+      "stage_cm": [
+        7.3,
+        9.9,
+        7.3
+      ],
+      "body_cm": {
+        "r": 3.3,
+        "h": 4.6
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.0,
+            "h_cm": 9.5
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 6.6,
+            "h_cm": 9.2
+          },
+          "note": "A medium Bartlett/Anjou."
+        },
+        {
+          "form": "half",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 9.5,
+            "w_cm": 7.0,
+            "h_cm": 3.5
+          },
+          "count_per_serving": 2,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 9.2,
+            "w_cm": 6.6,
+            "h_cm": 3.3
+          },
+          "note": "Halved lengthwise, cut-face up."
+        },
+        {
+          "form": "slice",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 6.0,
+            "w_cm": 4.0,
+            "h_cm": 0.4
+          },
+          "count_per_serving": [
+            5,
+            8
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 6.6,
+            "w_cm": 4.6,
+            "h_cm": 0.35
+          }
+        },
+        {
+          "form": "cube",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 2.0,
+            "w_cm": 2.0,
+            "h_cm": 2.0
+          },
+          "count_per_serving": [
+            6,
+            10
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "peach",
+      "stage_cm": [
+        7.1,
+        6.7,
+        7.0
+      ],
+      "body_cm": {
+        "r": 3.5,
+        "h": 3.4
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.0,
+            "h_cm": 6.8
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.0,
+            "h_cm": 6.8
+          }
+        },
+        {
+          "form": "half",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 7.0,
+            "w_cm": 3.5,
+            "h_cm": 6.8
+          },
+          "count_per_serving": 2,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 7.0,
+            "w_cm": 3.5,
+            "h_cm": 6.8
+          }
+        },
+        {
+          "form": "wedge",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 5.5,
+            "w_cm": 3.0,
+            "h_cm": 2.8
+          },
+          "count_per_serving": [
+            4,
+            6
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 5.5,
+            "w_cm": 3.0,
+            "h_cm": 2.8
+          }
+        },
+        {
+          "form": "slice",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 6.5,
+            "w_cm": 5.0,
+            "h_cm": 0.4
+          },
+          "count_per_serving": [
+            5,
+            8
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 7.0,
+            "w_cm": 3.4,
+            "h_cm": 0.35
+          }
+        },
+        {
+          "form": "cube",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.2
+          },
+          "count_per_serving": [
+            4,
+            8
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "orange",
+      "stage_cm": [
+        8,
+        7.5,
+        8
+      ],
+      "body_cm": {
+        "r": 3.8,
+        "h": 3.6
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.6,
+            "h_cm": 7.2
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.6,
+            "h_cm": 7.2
+          },
+          "note": "A medium navel. Wheels must be this diameter, not 5 cm."
+        },
+        {
+          "form": "wheel",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.5,
+            "h_cm": 0.6
+          },
+          "count_per_serving": [
+            4,
+            8
+          ],
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.6,
+            "h_cm": 0.6
+          },
+          "note": "cutElement uses t=0.6 cm for tomato/orange wheels."
+        }
+      ]
+    },
+    {
+      "id": "lemon",
+      "stage_cm": [
+        7,
+        5,
+        5
+      ],
+      "body_cm": {
+        "r": 2.8,
+        "h": 3.4
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 5.5,
+            "h_cm": 5.5
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 6.8,
+            "w_cm": 5.6,
+            "h_cm": 5.6
+          },
+          "note": "A real lemon is 7-9 cm long, 5-6 cm across. Registry [7,5,5] is a touch short."
+        },
+        {
+          "form": "wheel",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 5.5,
+            "h_cm": 0.3
+          },
+          "count_per_serving": [
+            2,
+            4
+          ],
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 5.6,
+            "h_cm": 0.3
+          },
+          "note": "Diameter must match the fruit, never a 4 cm lime-sized wheel."
+        },
+        {
+          "form": "wedge",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 5.5,
+            "w_cm": 2.8,
+            "h_cm": 2.8
+          },
+          "count_per_serving": [
+            2,
+            4
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 5.6,
+            "w_cm": 2.8,
+            "h_cm": 2.8
+          },
+          "note": "A sixth-to-eighth of the lemon."
+        }
+      ]
+    },
+    {
+      "id": "lime",
+      "stage_cm": [
+        10,
+        5.3,
+        9.5
+      ],
+      "body_cm": {
+        "r": 2.4,
+        "h": 2.5
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 4.8,
+            "h_cm": 5.0
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 4.8,
+            "h_cm": 5.0
+          },
+          "app_off": "Style Lab composition is roughly 2x too wide",
+          "note": "Registry size_cm [10, 5.3, 9.5] is the Style Lab cluster, not a single lime. BODY (4.8 cm) is correct."
+        },
+        {
+          "form": "wheel",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 4.5,
+            "h_cm": 0.3
+          },
+          "count_per_serving": [
+            1,
+            2
+          ],
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 4.8,
+            "h_cm": 0.3
+          }
+        },
+        {
+          "form": "wedge",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 4.5,
+            "w_cm": 2.4,
+            "h_cm": 2.4
+          },
+          "count_per_serving": [
+            1,
+            3
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 4.8,
+            "w_cm": 2.4,
+            "h_cm": 2.4
+          }
+        }
+      ]
+    },
+    {
+      "id": "strawberry",
+      "stage_cm": [
+        3.5,
+        3,
+        3
+      ],
+      "body_cm": {
+        "r": 1.7,
+        "h": 2.2
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 3.5,
+            "w_cm": 3.0,
+            "h_cm": 4.0
+          },
+          "count_per_serving": [
+            3,
+            6
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 3.4,
+            "w_cm": 3.4,
+            "h_cm": 4.4
+          },
+          "note": "A medium berry. BODY height 2.2 is half-height, so 4.4 cm tall is slightly tall (typical 3.5-4.5)."
+        },
+        {
+          "form": "half",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 3.5,
+            "w_cm": 1.7,
+            "h_cm": 4.0
+          },
+          "count_per_serving": [
+            4,
+            8
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 3.4,
+            "w_cm": 1.7,
+            "h_cm": 4.4
+          }
+        },
+        {
+          "form": "slice",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 3.2,
+            "w_cm": 2.5,
+            "h_cm": 0.4
+          },
+          "count_per_serving": [
+            5,
+            8
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 3.2,
+            "w_cm": 3.2,
+            "h_cm": 0.35
+          },
+          "note": "elementInfo r=1.6 (3.2 cm)."
+        }
+      ]
+    },
+    {
+      "id": "watermelon",
+      "stage_cm": [
+        18.9,
+        14.6,
+        11.4
+      ],
+      "body_cm": {
+        "r": 12,
+        "h": 12
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 25.0,
+            "h_cm": 22.0
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 24.0,
+            "h_cm": 24.0
+          },
+          "note": "A small personal melon. Never serve a whole melon on a plate."
+        },
+        {
+          "form": "wedge",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 4.0,
+            "h_cm": 3.5
+          },
+          "count_per_serving": [
+            4,
+            6
+          ],
+          "note": "A plated triangular slice, not a 12 cm-radius sector of the whole BODY."
+        },
+        {
+          "form": "cube",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 3.0,
+            "w_cm": 3.0,
+            "h_cm": 3.0
+          },
+          "count_per_serving": [
+            6,
+            10
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.0
+          },
+          "app_off": "app cube is 2.2 cm vs true 3.0 cm",
+          "note": "Generic cube (2.2 cm) is a little small for a watermelon cube; prefer 3 cm."
+        },
+        {
+          "form": "slice",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 5.0,
+            "h_cm": 1.0
+          },
+          "count_per_serving": [
+            3,
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tomato",
+      "stage_cm": [
+        7.8,
+        6.8,
+        7.6
+      ],
+      "body_cm": {
+        "r": 3.6,
+        "h": 3.0
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 6.5,
+            "h_cm": 6.0
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.2,
+            "h_cm": 6.0
+          },
+          "note": "A medium slicing tomato (not a 2.5 cm cherry). BODY is a touch large (7.2 cm)."
+        },
+        {
+          "form": "half",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 6.5,
+            "w_cm": 3.3,
+            "h_cm": 6.0
+          },
+          "count_per_serving": 2,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 7.2,
+            "w_cm": 3.6,
+            "h_cm": 6.0
+          }
+        },
+        {
+          "form": "wedge",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 4.0,
+            "w_cm": 3.0,
+            "h_cm": 3.0
+          },
+          "count_per_serving": [
+            4,
+            6
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 4.5,
+            "w_cm": 3.6,
+            "h_cm": 3.0
+          }
+        },
+        {
+          "form": "wheel",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 6.5,
+            "h_cm": 0.6
+          },
+          "count_per_serving": [
+            4,
+            6
+          ],
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.2,
+            "h_cm": 0.6
+          },
+          "note": "cutElement t=0.6 cm."
+        },
+        {
+          "form": "cube",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 1.5,
+            "w_cm": 1.5,
+            "h_cm": 1.5
+          },
+          "count_per_serving": [
+            8,
+            14
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.0
+          },
+          "app_off": "generic cube 2.2 cm is large for a dice",
+          "note": "Diced tomato for bruschetta is 1.2-1.5 cm, not a 2.2 cm generic cube."
+        }
+      ]
+    },
+    {
+      "id": "onion",
+      "stage_cm": [
+        8.1,
+        10.6,
+        7.9
+      ],
+      "body_cm": {
+        "r": 3.6,
+        "h": 3.3
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.2,
+            "h_cm": 6.6
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.2,
+            "h_cm": 6.6
+          },
+          "note": "A medium red onion."
+        },
+        {
+          "form": "wheel",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.0,
+            "h_cm": 0.4
+          },
+          "count_per_serving": [
+            4,
+            8
+          ],
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 4.3,
+            "h_cm": 0.32
+          },
+          "app_off": "app onion:wheel is 3.2-5.4 cm diameter vs true 7 cm",
+          "note": "A full outer ring is 6-8 cm across. The app builds a single band with R=1.6-2.7 cm (diameter 3.2-5.4 cm), which reads as a small inner ring."
+        }
+      ]
+    },
+    {
+      "id": "pepper",
+      "stage_cm": [
+        9,
+        8.1,
+        9
+      ],
+      "body_cm": {
+        "r": 4,
+        "h": 4.2
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 9.0,
+            "w_cm": 8.0,
+            "h_cm": 10.0
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 8.0,
+            "h_cm": 8.4
+          },
+          "note": "A medium bell pepper. Rarely plated whole."
+        },
+        {
+          "form": "half",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 9.0,
+            "w_cm": 4.5,
+            "h_cm": 5.0
+          },
+          "count_per_serving": 2,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 8.0,
+            "h_cm": 4.2
+          },
+          "note": "Roasted boat, cut-face up."
+        },
+        {
+          "form": "strip",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 7.0,
+            "w_cm": 1.6,
+            "h_cm": 0.4
+          },
+          "count_per_serving": [
+            6,
+            10
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 7.0,
+            "w_cm": 1.6,
+            "h_cm": 0.32
+          },
+          "note": "pepperStrip: 6-8 cm long, ~1.6 cm wide, 0.32 cm wall. Good."
+        },
+        {
+          "form": "slice",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 6.0,
+            "w_cm": 1.3,
+            "h_cm": 0.4
+          },
+          "count_per_serving": [
+            5,
+            8
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 6.0,
+            "w_cm": 1.3,
+            "h_cm": 0.44
+          },
+          "note": "elementInfo 1.3 x 6."
+        }
+      ]
+    },
+    {
+      "id": "avocado",
+      "stage_cm": [
+        12.1,
+        9.9,
+        14
+      ],
+      "body_cm": {
+        "r": 3.4,
+        "h": 3.2,
+        "long": 4.8
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 10.0,
+            "w_cm": 7.0,
+            "h_cm": 6.5
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 9.6,
+            "w_cm": 6.8,
+            "h_cm": 6.4
+          },
+          "note": "A Hass avocado. Registry [12.1, 9.9, 14] is the Style Lab whole-and-cut layout, not a single fruit."
+        },
+        {
+          "form": "half",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 10.0,
+            "w_cm": 7.0,
+            "h_cm": 3.2
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 9.6,
+            "w_cm": 6.8,
+            "h_cm": 3.2
+          },
+          "note": "Never render the brown pit/seed on a finished dish."
+        },
+        {
+          "form": "slice",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 3.0,
+            "h_cm": 0.6
+          },
+          "count_per_serving": [
+            5,
+            8
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 9.4,
+            "w_cm": 3.2,
+            "h_cm": 0.35
+          },
+          "app_off": "app slice 9.4 cm long vs true 8 cm",
+          "note": "A typical Hass slice is ~8 cm long. elementInfo is 3.2 x 9.4 (a little long and thin)."
+        },
+        {
+          "form": "cube",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 1.5,
+            "w_cm": 1.5,
+            "h_cm": 1.5
+          },
+          "count_per_serving": [
+            8,
+            12
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.0
+          }
+        },
+        {
+          "form": "smash",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 8.0,
+            "h_cm": 3.0
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.2,
+            "h_cm": 1.0
+          },
+          "app_off": "app smash is 7.2 cm across and only 1.0 cm tall",
+          "note": "Guacamole should be a chunky dome ~3 cm tall, not a 1 cm-flat puddle."
+        }
+      ]
+    },
+    {
+      "id": "grapes",
+      "stage_cm": [
+        12.2,
+        6.4,
+        8.6
+      ],
+      "forms": [
+        {
+          "form": "berry",
+          "true_cm": {
+            "profile": "sphere",
+            "d_cm": 1.8
+          },
+          "count_per_serving": [
+            6,
+            12
+          ],
+          "app_cm": {
+            "profile": "sphere",
+            "d_cm": 2.0
+          },
+          "note": "A table grape is 1.5-2.0 cm. App SphereGeometry(1) is 2.0 cm, at the large end."
+        },
+        {
+          "form": "half",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 1.8,
+            "w_cm": 0.9,
+            "h_cm": 1.8
+          },
+          "count_per_serving": [
+            8,
+            14
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 2.0,
+            "w_cm": 1.0,
+            "h_cm": 2.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "blueberries",
+      "stage_cm": [
+        6.2,
+        2.9,
+        5.9
+      ],
+      "forms": [
+        {
+          "form": "berry",
+          "true_cm": {
+            "profile": "sphere",
+            "d_cm": 1.2
+          },
+          "count_per_serving": [
+            8,
+            16
+          ],
+          "app_cm": {
+            "profile": "sphere",
+            "d_cm": 1.4
+          },
+          "note": "Real berries 1.0-1.5 cm. oneBlueberry is 0.72 r * 0.92-1.08 = 1.3-1.55 cm. Slightly large, still in range."
+        }
+      ]
+    },
+    {
+      "id": "mushroom",
+      "stage_cm": [
+        12.5,
+        4.7,
+        17.4
+      ],
+      "body_cm": {
+        "r": 2.5,
+        "h": 2.2
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 4.5,
+            "h_cm": 5.0
+          },
+          "count_per_serving": [
+            3,
+            5
+          ],
+          "note": "A chestnut/cremini cap 4-5 cm, stem 3-4 cm. Registry [12.5, 4.7, 17.4] is the Style Lab cluster of seven."
+        },
+        {
+          "form": "half",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 4.5,
+            "w_cm": 2.5,
+            "h_cm": 3.5
+          },
+          "count_per_serving": [
+            4,
+            6
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 4.0,
+            "w_cm": 2.5,
+            "h_cm": 3.2
+          },
+          "app_off": "app halved cap is ~3.5 cm vs true 4.5 cm",
+          "note": "mushroomUpright size 0.62-0.76: cap ~3.1-3.8 cm, stem length ~1.6-1.9 cm. A little small for a cremini."
+        },
+        {
+          "form": "slice",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 4.5,
+            "w_cm": 4.0,
+            "h_cm": 0.5
+          },
+          "count_per_serving": [
+            4,
+            6
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 4.4,
+            "w_cm": 4.4,
+            "h_cm": 0.5
+          },
+          "note": "elementInfo r=2.2."
+        }
+      ]
+    },
+    {
+      "id": "broccoli",
+      "stage_cm": [
+        15,
+        10,
+        10
+      ],
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 15.0,
+            "w_cm": 10.0,
+            "h_cm": 10.0
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 15.0,
+            "w_cm": 10.0,
+            "h_cm": 10.0
+          },
+          "app_off": "plated 'whole' is a 7.5 cm standing head; toast toppings must use halved florets instead",
+          "note": "Style Lab / pantry head. On a plate the Kitchen scales this 0.5x (7.5 x 5 x 5), still too big and too upright for a topping."
+        },
+        {
+          "form": "half",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 5.0,
+            "w_cm": 4.0,
+            "h_cm": 3.5
+          },
+          "count_per_serving": [
+            4,
+            8
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 7.5,
+            "w_cm": 5.0,
+            "h_cm": 5.0
+          },
+          "app_off": "app half is just the 0.5-scaled head, still ~5-7 cm and often upright",
+          "note": "A roasted floret, halved and laid flat, 3-5 cm. Never a standing tree."
+        }
+      ]
+    },
+    {
+      "id": "cabbage",
+      "stage_cm": [
+        15.4,
+        11.9,
+        15.4
+      ],
+      "body_cm": {
+        "r": 7,
+        "h": 6
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 14.0,
+            "h_cm": 12.0
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 14.0,
+            "h_cm": 12.0
+          },
+          "note": "A small head. Rarely plated whole."
+        },
+        {
+          "form": "wedge",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 11.0,
+            "w_cm": 7.0,
+            "h_cm": 6.0
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 14.0,
+            "w_cm": 7.0,
+            "h_cm": 6.0
+          },
+          "note": "A thick seared 'cabbage steak', about a sixth of the head. elementInfo half r=7."
+        },
+        {
+          "form": "leaf",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 12.0,
+            "w_cm": 8.0,
+            "h_cm": 0.3
+          },
+          "count_per_serving": [
+            3,
+            6
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 7.0,
+            "w_cm": 6.0,
+            "h_cm": 0.3
+          },
+          "app_off": "app cabbage leaf 7 x 5.5 cm is small",
+          "note": "A cooked cabbage leaf is 10-14 cm. App leafPiece is 7 x 5.5."
+        },
+        {
+          "form": "roll",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 9.0,
+            "w_cm": 4.0,
+            "h_cm": 3.5
+          },
+          "count_per_serving": [
+            2,
+            3
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 8.4,
+            "w_cm": 3.6,
+            "h_cm": 3.5
+          },
+          "note": "A stuffed golabki. elementInfo 3.6 x 8.4."
+        }
+      ]
+    },
+    {
+      "id": "spinach",
+      "stage_cm": [
+        19.6,
+        4.4,
+        16.1
+      ],
+      "forms": [
+        {
+          "form": "leaf",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 4.5,
+            "h_cm": 0.15
+          },
+          "count_per_serving": [
+            8,
+            16
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 6.2,
+            "w_cm": 3.4,
+            "h_cm": 0.15
+          },
+          "note": "A wilted cooked leaf shrinks to 6-8 cm. App leafPiece length 6.2, width 3.4. Close."
+        }
+      ]
+    },
+    {
+      "id": "romaine",
+      "stage_cm": [
+        26.8,
+        7.7,
+        8.9
+      ],
+      "forms": [
+        {
+          "form": "leaf",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 12.0,
+            "w_cm": 6.0,
+            "h_cm": 0.2
+          },
+          "count_per_serving": [
+            6,
+            12
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 7.0,
+            "w_cm": 5.5,
+            "h_cm": 0.2
+          },
+          "app_off": "app romaine leaf 7 x 5.5 cm is short",
+          "note": "A plated inner romaine leaf is 10-14 cm. App uses the cabbage-sized 7 x 5.5 leaf for romaine too."
+        }
+      ]
+    },
+    {
+      "id": "potato",
+      "stage_cm": [
+        9.6,
+        5.5,
+        7.6
+      ],
+      "body_cm": {
+        "r": 3,
+        "h": 2.8,
+        "long": 4.6
+      },
+      "forms": [
+        {
+          "form": "whole",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 5.5,
+            "h_cm": 5.0
+          },
+          "count_per_serving": [
+            2,
+            3
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 9.2,
+            "w_cm": 6.0,
+            "h_cm": 5.6
+          },
+          "note": "A medium roasting potato."
+        },
+        {
+          "form": "half",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 5.5,
+            "h_cm": 2.5
+          },
+          "count_per_serving": [
+            3,
+            5
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 9.2,
+            "w_cm": 6.0,
+            "h_cm": 2.8
+          }
+        },
+        {
+          "form": "wedge",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 6.0,
+            "w_cm": 3.0,
+            "h_cm": 3.0
+          },
+          "count_per_serving": [
+            4,
+            6
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 6.4,
+            "w_cm": 3.0,
+            "h_cm": 3.0
+          },
+          "app_off": "makeElement scales potato wedges 0.68x, making them ~4.4 cm — a bit small",
+          "note": "elementInfo 3 x 6.4, then scale 0.68 in makeElement (~4.4 x 2.0)."
+        },
+        {
+          "form": "cube",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.2
+          },
+          "count_per_serving": [
+            8,
+            14
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.0
+          },
+          "note": "Roast / batata harra / bravas cubes. Good."
+        },
+        {
+          "form": "wheel",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 5.5,
+            "h_cm": 0.5
+          },
+          "count_per_serving": [
+            6,
+            10
+          ],
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 6.0,
+            "h_cm": 0.45
+          },
+          "note": "cutElement t=0.45 cm for potato."
+        },
+        {
+          "form": "fries",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 7.5,
+            "w_cm": 1.2,
+            "h_cm": 1.2
+          },
+          "count_per_serving": [
+            8,
+            14
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 7.0,
+            "w_cm": 1.2,
+            "h_cm": 1.2
+          },
+          "note": "Thick-cut batons, 6-8 cm in code. Good (steak fries can be 8-10)."
+        },
+        {
+          "form": "mash",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 10.0,
+            "h_cm": 3.5
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 10.8,
+            "h_cm": 1.1
+          },
+          "app_off": "app mash 10.8 d x 1.1 h vs true 10 d x 3.5 h",
+          "note": "A serving is a spooned dome 9-11 cm across and 3-4 cm tall (use 10 cm). App mound is 10.8 cm wide and only 1.1 cm tall — a flat pancake of mash."
+        }
+      ]
+    },
+    {
+      "id": "rice",
+      "stage_cm": [
+        13.3,
+        10.6,
+        13.3
+      ],
+      "forms": [
+        {
+          "form": "bowl-mound",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 11.0,
+            "h_cm": 4.0
+          },
+          "count_per_serving": 1,
+          "note": "In a donburi the rice fills the bowl, nearly level, 3-5 cm deep. The Kitchen uses the rice-bowl form (rim 13.2 cm) with a low mixed mound (0.18) or a taller heap (0.45)."
+        },
+        {
+          "form": "grain",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 0.6,
+            "w_cm": 0.2,
+            "h_cm": 0.2
+          },
+          "count_per_serving": "many",
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 0.5,
+            "w_cm": 0.2,
+            "h_cm": 0.2
+          },
+          "note": "A cooked long-grain is ~0.6 cm. Only a garnish-scale fleck."
+        }
+      ]
+    },
+    {
+      "id": "baguette",
+      "stage_cm": [
+        32,
+        7.4,
+        9
+      ],
+      "body_cm": {
+        "r": 3,
+        "h": 2.6,
+        "long": 12
+      },
+      "forms": [
+        {
+          "form": "loaf",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 60.0,
+            "w_cm": 7.0,
+            "h_cm": 6.5
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 32.0,
+            "w_cm": 9.0,
+            "h_cm": 7.4
+          },
+          "note": "A real baguette is 50-70 cm. The Style Lab loaf is a 32 cm section. Not plated whole."
+        },
+        {
+          "form": "toast",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 11.0,
+            "w_cm": 8.0,
+            "h_cm": 1.7
+          },
+          "count_per_serving": 2,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 11.0,
+            "w_cm": 8.0,
+            "h_cm": 1.7
+          },
+          "note": "A tartine/slice ~11 x 8-10 x 1.5-2 cm. App toast is boxField(4, 2.5, 5.5) sliced at y=±0.85 → 8 x 11 x 1.7 cm. This is correct; do not grow it to match a 13 cm fillet."
+        },
+        {
+          "form": "cube",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.2
+          },
+          "count_per_serving": [
+            6,
+            12
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.0
+          },
+          "note": "Croutons. Good."
+        }
+      ]
+    },
+    {
+      "id": "salmon",
+      "stage_cm": [
+        11.5,
+        2.7,
+        8.3
+      ],
+      "body_cm": {
+        "r": 3,
+        "h": 1.6
+      },
+      "forms": [
+        {
+          "form": "fillet",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 12.0,
+            "w_cm": 5.0,
+            "h_cm": 2.5
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 13.0,
+            "w_cm": 6.2,
+            "h_cm": 3.4
+          },
+          "app_off": "app cooked fillet 13 x 6.2 x 3.4 vs true 12 x 5 x 2.5",
+          "note": "A plated cooked portion is ~12 x 4-5 x 2-2.5 cm. COOKED_PORTION is 13 x 6.2 x 3.4 — too wide and much too thick, so on an 11 x 8 cm toast it reads as a brick."
+        },
+        {
+          "form": "slice",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 7.5,
+            "w_cm": 3.5,
+            "h_cm": 0.3
+          },
+          "count_per_serving": [
+            4,
+            8
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 7.5,
+            "w_cm": 3.4,
+            "h_cm": 0.56
+          },
+          "note": "Smoked-salmon ribbon / gravlax / tiradito. App salmon:slice is 3.4 x 7.5 x 0.56. Close; keep thin and folded, never a block."
+        },
+        {
+          "form": "cube",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.2
+          },
+          "count_per_serving": [
+            8,
+            12
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.0
+          },
+          "note": "Poke / ceviche cubes."
+        },
+        {
+          "form": "skewer",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 20.0,
+            "w_cm": 3.0,
+            "h_cm": 3.0
+          },
+          "count_per_serving": [
+            2,
+            3
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 22.0,
+            "w_cm": 3.4,
+            "h_cm": 3.6
+          },
+          "note": "elementInfo 3.4 x 22."
+        }
+      ]
+    },
+    {
+      "id": "steak",
+      "stage_cm": [
+        37.2,
+        5.2,
+        14.1
+      ],
+      "body_cm": {
+        "r": 5,
+        "h": 2
+      },
+      "forms": [
+        {
+          "form": "steak",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 14.0,
+            "w_cm": 8.0,
+            "h_cm": 2.5
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 12.4,
+            "w_cm": 8.0,
+            "h_cm": 2.8
+          },
+          "app_off": "app steak 2.8 cm thick vs true 2.5; Style Lab tomahawk is 37 cm",
+          "note": "A plated steak portion (sirloin/flank slice) is 12-16 x 7-9 x 2-2.5 cm. App slicedSteak slab is 8 x 12.4 x 2.8 — slightly thick, otherwise good. Registry 37.2 cm is the Style Lab tomahawk, never a plated size."
+        },
+        {
+          "form": "cube",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 2.8,
+            "w_cm": 2.8,
+            "h_cm": 2.8
+          },
+          "count_per_serving": [
+            6,
+            10
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 2.8,
+            "w_cm": 2.8,
+            "h_cm": 2.6
+          },
+          "note": "s=1.4. Good for tibs / stews."
+        },
+        {
+          "form": "skewer",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 20.0,
+            "w_cm": 3.0,
+            "h_cm": 3.0
+          },
+          "count_per_serving": [
+            2,
+            3
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 22.0,
+            "w_cm": 3.4,
+            "h_cm": 3.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "chicken",
+      "stage_cm": [
+        15.5,
+        4.8,
+        5.4
+      ],
+      "body_cm": {
+        "r": 3,
+        "h": 3
+      },
+      "forms": [
+        {
+          "form": "drumstick",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 12.0,
+            "w_cm": 4.0,
+            "h_cm": 4.0
+          },
+          "count_per_serving": [
+            1,
+            2
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 15.0,
+            "w_cm": 5.5,
+            "h_cm": 4.8
+          },
+          "app_off": "app drumstick ~15 cm long x 5.5 cm thick vs true 12 x 4",
+          "note": "A cooked drumstick is 11-13 cm including the knuckle, 3.5-4.5 cm at the bulb. App MEAT_END=12.9, KNUCKLE_END=14.95, BULB_RADIUS=2.75 (5.5 cm across) — long and plump."
+        },
+        {
+          "form": "slice",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 5.0,
+            "h_cm": 1.2
+          },
+          "count_per_serving": [
+            5,
+            6
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 12.4,
+            "w_cm": 6.2,
+            "h_cm": 1.5
+          },
+          "app_off": "app sliced breast 12.4 cm vs true ~8-10 cm",
+          "note": "A carved breast fan. slicedBreast is L=6.2 (12.4 cm long) x 6.2 cm wide x 1.5 cm — a little long for a single breast portion."
+        },
+        {
+          "form": "torn",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 4.0,
+            "w_cm": 1.5,
+            "h_cm": 1.2
+          },
+          "count_per_serving": [
+            5,
+            8
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 4.4,
+            "w_cm": 1.4,
+            "h_cm": 1.1
+          },
+          "note": "tornChicken half=1.6-2.2 → 3.2-4.4 cm long. Good."
+        },
+        {
+          "form": "skewer",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 20.0,
+            "w_cm": 3.0,
+            "h_cm": 3.0
+          },
+          "count_per_serving": [
+            2,
+            3
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 22.0,
+            "w_cm": 3.4,
+            "h_cm": 3.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "eggs",
+      "stage_cm": [
+        15.9,
+        12.9,
+        15.7
+      ],
+      "body_cm": {
+        "r": 2.2,
+        "h": 2.9
+      },
+      "forms": [
+        {
+          "form": "whole-shell",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 6.0,
+            "w_cm": 4.4,
+            "h_cm": 4.4
+          },
+          "count_per_serving": 1,
+          "note": "A large hen's egg. Registry [15.9, 12.9, 15.7] is the Style Lab cluster, not a single egg."
+        },
+        {
+          "form": "egg",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 9.0,
+            "h_cm": 1.4
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 8.4,
+            "h_cm": 1.6
+          },
+          "note": "A fried egg: white 8-10 cm, yolk 3-3.5 cm, about 1.2-1.5 cm tall. App white r=4.2 (8.4 cm), yolk sphere 1.45 (2.9 cm) x 0.62 height. White is good; yolk is a touch small."
+        },
+        {
+          "form": "half",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 6.0,
+            "w_cm": 3.0,
+            "h_cm": 4.4
+          },
+          "count_per_serving": 2,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 5.8,
+            "w_cm": 2.2,
+            "h_cm": 2.9
+          },
+          "note": "A halved boiled egg."
+        },
+        {
+          "form": "omelette",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 16.0,
+            "w_cm": 9.0,
+            "h_cm": 2.5
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 12.0,
+            "w_cm": 12.0,
+            "h_cm": 2.6
+          },
+          "app_off": "app omelette is a 12 cm half-moon vs true 16 x 9",
+          "note": "A folded French omelette is 15-20 cm long and 8-10 cm wide. App eggs:omelette is a half-moon r=6 (12 cm). A bit short and round."
+        }
+      ]
+    },
+    {
+      "id": "cheese",
+      "stage_cm": [
+        12,
+        5.5,
+        7.1
+      ],
+      "body_cm": {
+        "r": 5,
+        "h": 3
+      },
+      "forms": [
+        {
+          "form": "wedge",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 8.0,
+            "w_cm": 6.0,
+            "h_cm": 4.0
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 9.0,
+            "w_cm": 5.3,
+            "h_cm": 4.1
+          },
+          "note": "Pantry wedge scaled 0.75 from registry 12 x 7.1 x 5.5. A plated table wedge is 6-8 cm. Slightly large but usable."
+        },
+        {
+          "form": "slice",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 5.0,
+            "w_cm": 4.0,
+            "h_cm": 0.5
+          },
+          "count_per_serving": [
+            3,
+            5
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 5.0,
+            "w_cm": 4.0,
+            "h_cm": 0.5
+          },
+          "note": "cheese:slice boxField(2, 0.25, 2.5). Good (mozzarella / raclette slice)."
+        },
+        {
+          "form": "cube",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 2.0,
+            "w_cm": 2.0,
+            "h_cm": 2.0
+          },
+          "count_per_serving": [
+            6,
+            10
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 2.2,
+            "w_cm": 2.2,
+            "h_cm": 2.0
+          },
+          "note": "Paneer / cheese cubes. Good."
+        },
+        {
+          "form": "crumble",
+          "true_cm": {
+            "profile": "sphere",
+            "d_cm": 1.3
+          },
+          "count_per_serving": [
+            6,
+            12
+          ],
+          "app_cm": {
+            "profile": "sphere",
+            "d_cm": 1.4
+          },
+          "note": "Icosahedron r=0.6-0.85. Good."
+        },
+        {
+          "form": "cake",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 10.0,
+            "w_cm": 5.0,
+            "h_cm": 4.8
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 14.0,
+            "w_cm": 7.0,
+            "h_cm": 4.8
+          },
+          "note": "A cheesecake wedge. App cheese:cake is a tall wedge of a r=7 cake (half r=7). A little wide."
+        }
+      ]
+    },
+    {
+      "id": "butter",
+      "stage_cm": [
+        12,
+        4,
+        6
+      ],
+      "body_cm": {
+        "r": 2,
+        "h": 1.5
+      },
+      "forms": [
+        {
+          "form": "stick",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 12.0,
+            "w_cm": 3.2,
+            "h_cm": 3.2
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 12.0,
+            "w_cm": 6.0,
+            "h_cm": 4.0
+          },
+          "note": "A Western butter stick is 12 x 3.2 x 3.2 cm. Registry [12, 4, 6] is a bit squat. Never drop a whole stick on a dish."
+        },
+        {
+          "form": "cube",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 2.5,
+            "w_cm": 2.0,
+            "h_cm": 0.6
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 2.6,
+            "w_cm": 2.6,
+            "h_cm": 1.6
+          },
+          "app_off": "app butter cube 2.6 x 2.6 x 1.6 vs true pat 2.5 x 2.0 x 0.6",
+          "note": "A butter pat is a thin pale tile, ~2-3 x 2 x 0.5-0.7 cm, or a melting smear. App butter:cube is boxField(1.3, 0.8, 1.3) — a 2.6 x 2.6 x 1.6 cm block, which is what reads as a cake slice."
+        },
+        {
+          "form": "crumble",
+          "true_cm": {
+            "profile": "sphere",
+            "d_cm": 1.2
+          },
+          "count_per_serving": [
+            4,
+            8
+          ],
+          "app_cm": {
+            "profile": "sphere",
+            "d_cm": 1.4
+          }
+        }
+      ]
+    },
+    {
+      "id": "milk",
+      "stage_cm": [
+        7.1,
+        20.4,
+        7.1
+      ],
+      "forms": [
+        {
+          "form": "glass",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 7.0,
+            "h_cm": 12.0
+          },
+          "count_per_serving": 1,
+          "note": "Milk itself is a liquid. Registry [7.1, 20.4, 7.1] is the Style Lab bottle. On a dish it becomes a drink, a cream pool, pancakes or a mash/ice-cream mound."
+        },
+        {
+          "form": "pancake",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 11.0,
+            "h_cm": 1.0
+          },
+          "count_per_serving": 3,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 12.0,
+            "h_cm": 0.8
+          },
+          "note": "American pancakes 10-12 cm across, 0.8-1.2 cm thick. App r=6, hy=0.4 (12 x 0.8). Good. Stack of 3."
+        },
+        {
+          "form": "mash",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 8.0,
+            "h_cm": 3.5
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 8.4,
+            "h_cm": 2.4
+          },
+          "note": "A cream or ice-cream mound (milk:mash r=4.2, h=2.4). A little low for a scoop (true ~5 cm tall) but usable."
+        }
+      ]
+    },
+    {
+      "id": "sauce",
+      "stage_cm": [
+        6.5,
+        15,
+        6.5
+      ],
+      "forms": [
+        {
+          "form": "pool",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 8.0,
+            "h_cm": 0.4
+          },
+          "count_per_serving": 1,
+          "note": "A sauce pool under the food, about 6-10 cm across and 0.3-0.6 cm deep, following the ware well. Registry [6.5, 15, 6.5] is the Style Lab bottle, never plated."
+        }
+      ]
+    },
+    {
+      "id": "garlic",
+      "stage_cm": [
+        6.9,
+        6.1,
+        7.7
+      ],
+      "body_cm": {
+        "r": 2.6,
+        "h": 2.4
+      },
+      "forms": [
+        {
+          "form": "bulb",
+          "true_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 6.0,
+            "h_cm": 5.5
+          },
+          "count_per_serving": 1,
+          "app_cm": {
+            "profile": "diameter_x_height",
+            "d_cm": 5.2,
+            "h_cm": 4.8
+          },
+          "note": "A whole bulb, Style Lab only. Forbidden on dishes (never a bulb)."
+        },
+        {
+          "form": "chip",
+          "true_cm": {
+            "profile": "box",
+            "l_cm": 1.6,
+            "w_cm": 1.2,
+            "h_cm": 0.12
+          },
+          "count_per_serving": [
+            6,
+            12
+          ],
+          "app_cm": {
+            "profile": "box",
+            "l_cm": 1.8,
+            "w_cm": 1.3,
+            "h_cm": 0.14
+          },
+          "note": "A thin crisp clove slice, 1.5-2 cm. App a2=0.75-0.95 (1.5-1.9 cm). Good."
+        }
+      ]
+    }
+  ],
+  "vessels": [
+    {
+      "id": "dinner-plate",
+      "code_id": "plate / DINNER_PLATE / WARE_PLAN.plate",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 27.0,
+        "h_cm": 2.5,
+        "well_d_cm": 16.5
+      },
+      "app_cm": {
+        "d_cm": 27.0,
+        "h_cm": 2.1,
+        "well_d_cm": 16.4,
+        "source": "ware.ts DINNER_PLATE radius 13.5, rim 2.1, well 8.2"
+      },
+      "note": "A standard dinner plate is 25-28 cm. Good. Generated dishes may scale it down to the food (min radius 9 cm / 18 cm), which is a side or dessert plate — also realistic. Size plates from contents: a rim's width (about 3 cm) around the food, never a huge empty plate."
+    },
+    {
+      "id": "slate",
+      "code_id": "slate",
+      "true_cm": {
+        "profile": "box",
+        "l_cm": 30.0,
+        "w_cm": 20.0,
+        "h_cm": 1.2
+      },
+      "app_cm": {
+        "d_cm": 27.0,
+        "h_cm": 2.1,
+        "source": "build.ts uses DINNER_PLATE for slate too"
+      },
+      "app_off": "slate is visually a round dinner plate, not a rectangular stone slab",
+      "note": "A serving slate is typically a 25-32 x 15-20 x 1 cm rectangle. The app reuses the 27 cm dinner plate."
+    },
+    {
+      "id": "shallow-bowl",
+      "code_id": "bowl / PASTA_BOWL / WARE_PLAN.bowl",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 24.0,
+        "h_cm": 5.0,
+        "well_d_cm": 9.0
+      },
+      "app_cm": {
+        "d_cm": 25.0,
+        "h_cm": 4.6,
+        "well_d_cm": 9.0,
+        "source": "ware.ts PASTA_BOWL radius 12.5, rim 4.6, well 4.5"
+      },
+      "note": "A wide pasta / salad bowl. Good."
+    },
+    {
+      "id": "soup-bowl",
+      "code_id": "bowl + soup: / SOUP_BOWL",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 18.0,
+        "h_cm": 7.0,
+        "well_d_cm": 7.0
+      },
+      "app_cm": {
+        "d_cm": 19.0,
+        "h_cm": 6.8,
+        "well_d_cm": 7.2,
+        "soup_level_cm": 5.0,
+        "source": "ware.ts SOUP_BOWL radius 9.5, rim 6.8; build.ts SOUP_LEVEL=5"
+      },
+      "note": "A deep soup bowl is 16-20 cm x 6-8 cm, liquid sitting at ~5 cm. Good for pho-style and bisques."
+    },
+    {
+      "id": "rice-bowl",
+      "code_id": "deep / rice.ts BOWL / WARE_PLAN.deep",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 16.0,
+        "h_cm": 7.5
+      },
+      "app_cm": {
+        "d_cm": 13.2,
+        "h_cm": 6.4,
+        "foot_d_cm": 5.8,
+        "source": "rice.ts BOWL rim 6.6, height 6.4, foot 2.9; WARE_PLAN.deep plate 6.6, reach 4.6"
+      },
+      "app_off": "13.2 cm is a small individual chawan; donburi, bibimbap and biryani want 16-18 cm",
+      "note": "A Japanese rice bowl (chawan) is 11-13 cm; a donburi / bibimbap bowl is 16-18 cm. The app's 13.2 cm bowl is tight for a loaded rice bowl, and WARE_PLAN.deep reach (4.6 cm) is tighter still."
+    },
+    {
+      "id": "board-rectangular",
+      "code_id": "board",
+      "true_cm": {
+        "profile": "box",
+        "l_cm": "fit to contents + 2.5",
+        "w_cm": "fit to contents + 2.5",
+        "h_cm": 1.6
+      },
+      "app_cm": {
+        "default_l_cm": 30.0,
+        "default_w_cm": 22.0,
+        "h_cm": 1.6,
+        "margin_cm": 1.3,
+        "min_l_cm": 11.0,
+        "min_w_cm": 9.0,
+        "max_l_cm": 30.0,
+        "max_w_cm": 22.0,
+        "source": "build.ts boardGeometry, fit hx/hz = food half-extent + 1.3 (a finger's width)"
+      },
+      "note": "Correct approach: size the board from the bread/food plus a finger's width (~1.3-1.5 cm) all round, 1.5-2 cm thick. Default 30 x 22 is a small serving board if left unfitted. Never a huge empty board around one toast."
+    },
+    {
+      "id": "board-round",
+      "code_id": "round",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 28.0,
+        "h_cm": 1.6
+      },
+      "app_cm": {
+        "d_cm": 28.0,
+        "h_cm": 1.6,
+        "source": "build.ts CylinderGeometry R=14, thickness 1.6"
+      },
+      "note": "A 28 cm round serving board. Good. May shrink to the food when fitted."
+    },
+    {
+      "id": "glass-highball",
+      "code_id": "glass.ts highball",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 6.5,
+        "h_cm": 15.0,
+        "foot_d_cm": 6.0
+      },
+      "app_cm": {
+        "d_cm": 6.2,
+        "h_cm": 13.5,
+        "foot_d_cm": 5.5,
+        "wall_cm": 0.18,
+        "fill": 0.78,
+        "source": "SHAPES.highball rim r=3.1, height 13.5, foot r=2.75"
+      },
+      "note": "A highball is typically 6-7 x 14-16 cm. App is a little short (13.5) but usable."
+    },
+    {
+      "id": "glass-rocks",
+      "code_id": "glass.ts rocks",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 8.5,
+        "h_cm": 9.0,
+        "foot_d_cm": 8.0
+      },
+      "app_cm": {
+        "d_cm": 8.3,
+        "h_cm": 8.5,
+        "foot_d_cm": 7.8,
+        "wall_cm": 0.2,
+        "fill": 0.72,
+        "source": "SHAPES.rocks rim r=4.15, height 8.5, foot r=3.9"
+      },
+      "note": "A rocks / tumbler is 8-9 x 8-10 cm. Good."
+    },
+    {
+      "id": "glass-coupe",
+      "code_id": "glass.ts coupe",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 10.5,
+        "h_cm": 13.0,
+        "bowl_h_cm": 4.5,
+        "foot_d_cm": 7.5
+      },
+      "app_cm": {
+        "d_cm": 10.4,
+        "h_cm": 11.7,
+        "stem_h_cm": 7.5,
+        "foot_d_cm": 7.2,
+        "wall_cm": 0.14,
+        "fill": 0.7,
+        "source": "stemmed(3.6, 7.5, bowl to 4.2), rim r=5.2"
+      },
+      "note": "A coupe bowl is 10-12 cm across, glass 12-15 cm tall. App is slightly short, bowl diameter is good."
+    },
+    {
+      "id": "glass-wine",
+      "code_id": "glass.ts wine",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 8.5,
+        "h_cm": 22.0,
+        "bowl_h_cm": 10.0,
+        "foot_d_cm": 7.5
+      },
+      "app_cm": {
+        "d_cm": 8.2,
+        "h_cm": 16.0,
+        "stem_h_cm": 8.0,
+        "foot_d_cm": 7.6,
+        "wall_cm": 0.14,
+        "fill": 0.45,
+        "source": "stemmed(3.8, 8, bowl to 8), max r=4.1, rim r=3.7"
+      },
+      "app_off": "16 cm tall vs a typical wine glass of 20-24 cm",
+      "note": "The bowl diameter is fine; the glass is a short tasting-glass height, not a dinner wine glass."
+    },
+    {
+      "id": "glass-nick-and-nora",
+      "code_id": "glass.ts nick-and-nora",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 7.5,
+        "h_cm": 14.0,
+        "foot_d_cm": 6.5
+      },
+      "app_cm": {
+        "d_cm": 6.8,
+        "h_cm": 12.1,
+        "stem_h_cm": 6.5,
+        "foot_d_cm": 6.2,
+        "wall_cm": 0.13,
+        "fill": 0.68,
+        "source": "stemmed(3.1, 6.5, bowl to 5.6), rim r=3.25"
+      },
+      "note": "A Nick & Nora is 12-15 cm tall, bowl 7-8 cm. App is slightly small but close."
+    },
+    {
+      "id": "tart-shell",
+      "code_id": "components.ts tart / butter:pastry",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 11.0,
+        "h_cm": 2.0
+      },
+      "app_cm": {
+        "d_cm": 11.0,
+        "h_cm": 1.4,
+        "source": "tartShell R=5.5, rim ~1.4 cm; componentInfo r=5.6; butter:pastry r=7.5 (15 cm) is a larger shell"
+      },
+      "note": "An individual tart is 8-12 cm. The 11 cm library tart is correct. butter:pastry at 15 cm is a sharing tart — use on purpose, not by accident."
+    },
+    {
+      "id": "ramekin",
+      "code_id": "(not in ware.ts)",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 10.0,
+        "h_cm": 4.5
+      },
+      "app_cm": null,
+      "app_off": "no ramekin vessel; crème brûlée and lemon posset cannot be claimed until one is built",
+      "note": "A crème-brûlée ramekin is 9-11 cm across and 4-5 cm tall. Do not fake it with a flat plate or a pasta bowl."
+    },
+    {
+      "id": "kadai",
+      "code_id": "(not in ware.ts)",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 18.0,
+        "h_cm": 7.0
+      },
+      "app_cm": null,
+      "app_off": "no kadai; palak paneer / butter chicken should use a deep rounded bowl of this size until a kadai is built",
+      "note": "A small serving kadai / karahi is 16-20 cm, 6-8 cm tall, with two handles and a rounded bottom."
+    },
+    {
+      "id": "skillet",
+      "code_id": "(not in ware.ts; skillet-bake uses PASTA_BOWL or SOUP_BOWL)",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 20.0,
+        "h_cm": 4.5
+      },
+      "app_cm": {
+        "d_cm": 25.0,
+        "h_cm": 4.6,
+        "source": "skillet-bake layouts use ware 'bowl' → PASTA_BOWL"
+      },
+      "app_off": "a 25 cm pasta bowl stands in for a 18-20 cm individual skillet",
+      "note": "Shakshuka, tartiflette, menemen and queso fundido are served in an 18-20 cm skillet or cazuela, 4-5 cm tall, not a deep soup bowl."
+    },
+    {
+      "id": "lidded-cup",
+      "code_id": "(not in ware.ts)",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 7.5,
+        "h_cm": 6.5
+      },
+      "app_cm": null,
+      "app_off": "no chawanmushi cup; chawanmushi cannot be claimed until one is built",
+      "note": "A chawanmushi cup is 7-8 cm across and 6-7 cm tall, usually lidded."
+    },
+    {
+      "id": "clay-pot",
+      "code_id": "(not in ware.ts)",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 13.0,
+        "h_cm": 9.0
+      },
+      "app_cm": null,
+      "app_off": "no ttukbaegi; gyeran-jjim cannot be claimed until one is built",
+      "note": "A Korean earthen ttukbaegi is 12-14 cm across and 8-10 cm tall."
+    }
+  ],
+  "components_and_garnish": [
+    {
+      "form": "quenelle",
+      "true_cm": {
+        "profile": "box",
+        "l_cm": 4.5,
+        "w_cm": 3.2,
+        "h_cm": 3.5
+      },
+      "count_per_serving": 1,
+      "app_cm": {
+        "profile": "box",
+        "l_cm": 3.8,
+        "w_cm": 3.8,
+        "h_cm": 3.1
+      },
+      "app_off": "app quenelle ~3.8 cm vs true 4.5",
+      "note": "A scooped ice-cream / cream quenelle is 4-5 cm. App R=1.7-1.9 (about 3.6-4 cm across, ~3 cm tall). A little small."
+    },
+    {
+      "form": "whipped-cream",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 3.5,
+        "h_cm": 3.5
+      },
+      "count_per_serving": 1,
+      "app_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 2.5,
+        "h_cm": 2.1
+      },
+      "app_off": "app whip 2.5 x 2.1 vs true 3.5 x 3.5",
+      "note": "A piped rosette is 3-4 cm across and tall. App base r=1.25, H=1.9-2.3. Small for a crown, fine as a small dollop."
+    },
+    {
+      "form": "tuile",
+      "true_cm": {
+        "profile": "box",
+        "l_cm": 7.0,
+        "w_cm": 2.6,
+        "h_cm": 0.2
+      },
+      "count_per_serving": 1,
+      "app_cm": {
+        "profile": "box",
+        "l_cm": 7.0,
+        "w_cm": 2.6,
+        "h_cm": 0.2
+      },
+      "note": "App ~6.4-7.2 cm long. Good."
+    },
+    {
+      "form": "smear",
+      "true_cm": {
+        "profile": "box",
+        "l_cm": 9.0,
+        "w_cm": 2.2,
+        "h_cm": 0.15
+      },
+      "count_per_serving": 1,
+      "app_cm": {
+        "profile": "box",
+        "l_cm": 9.5,
+        "w_cm": 2.4,
+        "h_cm": 0.12
+      },
+      "note": "A spoon swipe 8-10 cm long. Good."
+    },
+    {
+      "form": "puree",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 4.5,
+        "h_cm": 1.5
+      },
+      "count_per_serving": 1,
+      "app_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 4.2,
+        "h_cm": 0.9
+      },
+      "note": "A spooned mound 4-5 cm, about 1.5 cm tall. App R=1.9-2.2, depth 0.9. A little flat."
+    },
+    {
+      "form": "oil-dot",
+      "true_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 0.6,
+        "h_cm": 0.15
+      },
+      "count_per_serving": [
+        6,
+        12
+      ],
+      "app_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 0.6,
+        "h_cm": 0.08
+      },
+      "note": "0.4-0.8 cm across, sitting on the surface (never hovering). App r=0.22-0.42, very flat (y-scale 0.22). Diameter is fine; they must contact the food."
+    },
+    {
+      "form": "gel-bead",
+      "true_cm": {
+        "profile": "sphere",
+        "d_cm": 0.6
+      },
+      "count_per_serving": [
+        4,
+        8
+      ],
+      "app_cm": {
+        "profile": "diameter_x_height",
+        "d_cm": 0.7,
+        "h_cm": 0.26
+      },
+      "note": "App r=0.28-0.40, y-scale 0.75. Good."
+    },
+    {
+      "form": "herb-leaf",
+      "true_cm": {
+        "profile": "box",
+        "l_cm": 1.0,
+        "w_cm": 0.5,
+        "h_cm": 0.05
+      },
+      "count_per_serving": [
+        12,
+        20
+      ],
+      "app_cm": {
+        "profile": "box",
+        "l_cm": 1.0,
+        "w_cm": 0.4,
+        "h_cm": 0.05
+      },
+      "note": "Chopped herbs ~1 cm (build.ts scales herbLeaf 1.9x from 0.34-0.58 cm). Good."
+    },
+    {
+      "form": "microherb",
+      "true_cm": {
+        "profile": "box",
+        "l_cm": 0.8,
+        "w_cm": 0.5,
+        "h_cm": 0.4
+      },
+      "count_per_serving": [
+        6,
+        12
+      ],
+      "app_cm": {
+        "profile": "box",
+        "l_cm": 0.6,
+        "w_cm": 0.5,
+        "h_cm": 0.4
+      },
+      "note": "A tiny two-leaf sprig. App leaf 0.44 cm, stem 0.34 cm. Intentionally fine."
+    },
+    {
+      "form": "shaving",
+      "true_cm": {
+        "profile": "box",
+        "l_cm": 0.7,
+        "w_cm": 0.5,
+        "h_cm": 0.06
+      },
+      "count_per_serving": [
+        20,
+        40
+      ],
+      "app_cm": {
+        "profile": "box",
+        "l_cm": 0.6,
+        "w_cm": 0.4,
+        "h_cm": 0.05
+      },
+      "note": "3-9 mm flakes. Good."
+    },
+    {
+      "form": "ice-cube",
+      "true_cm": {
+        "profile": "box",
+        "l_cm": 2.5,
+        "w_cm": 2.5,
+        "h_cm": 2.5
+      },
+      "count_per_serving": 2,
+      "app_cm": {
+        "profile": "box",
+        "l_cm": 1.15,
+        "w_cm": 1.15,
+        "h_cm": 1.15
+      },
+      "app_off": "app ice 1.15 cm vs true 2.5 cm",
+      "note": "A drinks ice cube is 2.5-3 cm. App size = min(1.15, rimR*0.42) — half size, intentional 'two small cubes' but they read as crushed ice."
+    },
+    {
+      "form": "crouton",
+      "true_cm": {
+        "profile": "box",
+        "l_cm": 2.2,
+        "w_cm": 2.2,
+        "h_cm": 2.2
+      },
+      "count_per_serving": [
+        6,
+        10
+      ],
+      "app_cm": {
+        "profile": "box",
+        "l_cm": 2.2,
+        "w_cm": 2.2,
+        "h_cm": 2.0
+      },
+      "note": "Same as baguette:cube."
+    }
+  ],
+  "mismatches": [
+    {
+      "id": "salmon:fillet",
+      "severity": "high",
+      "app": "13 x 6.2 x 3.4 cm (COOKED_PORTION)",
+      "true": "12 x 5 x 2.5 cm",
+      "why": "Too wide and much too thick. On an 11 x 8 cm toast the fillet is longer than the bread and reads as a brick. Also thicker than a typical cooked portion (2-2.5 cm)."
+    },
+    {
+      "id": "butter:cube",
+      "severity": "high",
+      "app": "2.6 x 2.6 x 1.6 cm",
+      "true": "2.5 x 2.0 x 0.6 cm (or a melting smear)",
+      "why": "A tall pale block, which is what was reading as a cake slice. Pats must be thin."
+    },
+    {
+      "id": "potato:mash",
+      "severity": "high",
+      "app": "10.8 cm diameter x 1.1 cm tall",
+      "true": "10 cm diameter x 3.5 cm tall",
+      "why": "A flat pancake of mash instead of a spooned dome with a butter well."
+    },
+    {
+      "id": "broccoli:whole on toast",
+      "severity": "high",
+      "app": "7.5 cm standing head (0.5 x pantry 15 cm)",
+      "true": "3-5 cm halved florets, laid flat",
+      "why": "Standing trees on bruschetta. The form, not just the scale, is wrong for a toast topping."
+    },
+    {
+      "id": "onion:wheel",
+      "severity": "medium",
+      "app": "3.2-5.4 cm diameter (R=1.6-2.7)",
+      "true": "7 cm diameter, 0.4 cm thick",
+      "why": "Reads as a small inner ring of a large onion, not a full slice."
+    },
+    {
+      "id": "glass-wine",
+      "severity": "medium",
+      "app": "16 cm tall",
+      "true": "20-24 cm tall",
+      "why": "Bowl diameter is fine; the glass is a short tasting glass."
+    },
+    {
+      "id": "ice-cube",
+      "severity": "medium",
+      "app": "1.15 cm",
+      "true": "2.5-3 cm",
+      "why": "Looks like crushed ice rather than two cubes."
+    },
+    {
+      "id": "rice-bowl / ware deep",
+      "severity": "medium",
+      "app": "13.2 cm diameter, plan reach 4.6 cm",
+      "true": "16-18 cm donburi",
+      "why": "Tight for bibimbap, biryani, oyakodon. A regular chawan is fine at 13 cm; loaded bowls are not."
+    },
+    {
+      "id": "avocado:smash",
+      "severity": "medium",
+      "app": "7.2 cm x 1.0 cm tall",
+      "true": "8 cm x 3.0 cm tall dome",
+      "why": "Guacamole is a flat puddle instead of a chunky dome."
+    },
+    {
+      "id": "avocado:slice",
+      "severity": "low",
+      "app": "9.4 x 3.2 cm",
+      "true": "8 x 3 x 0.6 cm",
+      "why": "A little long for a Hass slice."
+    },
+    {
+      "id": "chicken:drumstick",
+      "severity": "medium",
+      "app": "~15 cm long, 5.5 cm at the bulb",
+      "true": "12 cm long, 4 cm at the bulb",
+      "why": "A plump, long drumstick next to a 13 cm rice bowl or 27 cm plate still works, but it dominates smaller ware."
+    },
+    {
+      "id": "eggs:omelette",
+      "severity": "low",
+      "app": "12 cm half-moon",
+      "true": "16 x 9 cm folded omelette",
+      "why": "A bit short and round for a French omelette."
+    },
+    {
+      "id": "lime registry",
+      "severity": "low (Style Lab only)",
+      "app": "size_cm [10, 5.3, 9.5]",
+      "true": "4.8 x 5.0 cm single lime",
+      "why": "The Kitchen already uses BODY 4.8 cm. Do not copy the registry cluster size onto the plate."
+    },
+    {
+      "id": "steak Style Lab",
+      "severity": "low (Style Lab only)",
+      "app": "size_cm [37.2, 5.2, 14.1]",
+      "true": "14 x 8 x 2.5 cm plated steak",
+      "why": "The tomahawk is a stage hero. Plated slicedSteak (12.4 x 8 x 2.8) is close to true."
+    },
+    {
+      "id": "missing vessels",
+      "severity": "high (honest-names)",
+      "app": "none",
+      "true": "ramekin 10 x 4.5, kadai 18 x 7, skillet 20 x 4.5, chawanmushi cup 7.5 x 6.5, ttukbaegi 13 x 9",
+      "why": "These vessels are named in world-dish-looks.json but do not exist in ware.ts. Refuse the dish name until they are built; do not stand a pasta bowl in for a ramekin."
+    }
+  ]
+}
