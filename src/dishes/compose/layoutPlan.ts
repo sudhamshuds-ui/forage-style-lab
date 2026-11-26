@@ -87,7 +87,7 @@ function discsAt(shape: Shape, c: [number, number], angle: number, flat = false)
  * it can be. Long pieces try lying along the bunch and pointing out from it. `limit` keeps a piece
  * inside the ware; `sep` is how close two coins may come (1: just touching, below 1: a light shingle).
  */
-function grow(mass: Disc[], n: number, shape: Shape, anchor: [number, number], limit: (c: [number, number], r: number) => boolean, flat: boolean, random: () => number): { at: [number, number]; angle: number }[] {
+function grow(mass: Disc[], n: number, shape: Shape, anchor: [number, number], limit: (c: [number, number], r: number) => boolean, flat: boolean, random: () => number, byCoins = false): { at: [number, number]; angle: number }[] {
   const out: { at: [number, number]; angle: number }[] = [];
   const extent = shape.r + shape.half;
   for (let k = 0; k < n; k++) {
@@ -111,8 +111,10 @@ function grow(mass: Disc[], n: number, shape: Shape, anchor: [number, number], l
         for (const t of tries) {
           const c: [number, number] = [d.c[0] + dir[0] * t.dist, d.c[1] + dir[1] * t.dist];
           const score = Math.hypot(c[0] - anchor[0], c[1] - anchor[1]) + random() * 0.35;
-          if (!limit(c, extent)) continue;
+          // (R8: in a rice bowl a long piece is held to the ware by its own coins, not by a circle
+          // its length wide; that circle never fit beside the fillet, and the avocado was lost.)
           const coins = discsAt(shape, c, t.angle, flat);
+          if (byCoins && shape.half > 0 ? !coins.every((q) => limit(q.c, q.r)) : !limit(c, extent)) continue;
           const clear = coins.every((q) => mass.every((e) => Math.hypot(q.c[0] - e.c[0], q.c[1] - e.c[1]) >= (e.r + q.r) * 0.98));
           if (clear && score < bestScore) (best = { at: c, angle: t.angle }), (bestScore = score);
           if (score < fallbackScore) (fallback = { at: c, angle: t.angle }), (fallbackScore = score);
@@ -132,7 +134,9 @@ function grow(mass: Disc[], n: number, shape: Shape, anchor: [number, number], l
 export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutById(idea.layout)!, seed = idea.seed ?? 1): ComposedPlan {
   const random = seededRandom((seed ^ 0x51ab) >>> 0);
   const ware = WARE_PLAN[idea.ware];
-  const R = ware.reach;
+  // (R8: the rice bowl is a donburi's 18 cm since R7, 1.36 times the plan's old bowl; planned at
+  // the old size, a 12 cm fillet left no room for the avocado beside it.)
+  const R = ware.reach * (idea.ware === 'deep' ? 1.36 : 1);
   const placed: Placed[] = [];
   const wareLimit = (c: [number, number], r: number) =>
     idea.ware === 'board' ? Math.abs(c[0]) + r <= 13.5 && Math.abs(c[1]) + r <= 9.5 : idea.ware === 'glass' ? Math.hypot(c[0], c[1]) + r <= R : Math.hypot(c[0], c[1]) + r <= R;
@@ -146,7 +150,7 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
   const golden = R / (PHI * PHI);
   const glassAt: [number, number] = [-1.5, -1];
   const heroAt: [number, number] =
-    idea.ware === 'glass' ? glassAt : idea.ware === 'deep' ? [-0.9, 0.2] : [-golden * 0.32, golden * 0.12];
+    idea.ware === 'glass' ? glassAt : idea.ware === 'deep' ? [-1.5, 0.2] : [-golden * 0.32, golden * 0.12];
 
   const heroDiscs: Disc[] = [];
   /** Each hero piece's own coins (each slice of toast), to spread toppings across them. */
@@ -231,6 +235,15 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
     ...idea.medium.map((text) => ({ text, size: 'medium' as const, layer: 1 })),
     ...idea.small.filter((text) => readPart(text).form !== 'herb').map((text) => ({ text, size: 'small' as const, layer: 2 })),
   ];
+  // (R8: on toast, the longest pieces are laid first, while each slice still has room for them;
+  // ribbons laid first left no slice a 9 cm avocado slice could lie on.)
+  if (platform && hero.form === 'toast') {
+    const longest = (text: string) => {
+      const info = elementInfo(readPart(text).ingredient, readPart(text).form);
+      return info.shape === 'rect' ? Math.max(info.w!, info.h!) : 2 * (info.r ?? 1);
+    };
+    groups.sort((a, b) => a.layer - b.layer || longest(b.text) - longest(a.text));
+  }
   groups.forEach((g, gi) => {
     const part = readPart(g.text);
     const info = elementInfo(part.ingredient, part.form);
@@ -265,7 +278,8 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
         // each kept inside its own slice.
         spots = [];
         for (let k = 0; k < part.count; k++) {
-          const order = [k % heroPieces.length, (k + 1) % heroPieces.length];
+          // (R8: every slice in turn, a third toast included, before a piece is left off.)
+          const order = heroPieces.map((_, j) => (k + j) % heroPieces.length);
           for (const t of order) {
             const own = heroPieces[t];
             const insideOwn = (c: [number, number], rr: number) => own.some((d) => Math.hypot(c[0] - d.c[0], c[1] - d.c[1]) + rr * 0.55 <= d.r * 0.92) && wareLimit(c, rr);
@@ -307,7 +321,7 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
       const a = away + turn;
       const d = heroR + r * 1.5;
       const anchor: [number, number] = [heroCentre[0] + Math.cos(a) * d, heroCentre[1] + Math.sin(a) * d];
-      spots = grow(mass, part.count, shape, anchor, wareLimit, isFlat(part), random);
+      spots = grow(mass, part.count, shape, anchor, wareLimit, isFlat(part), random, idea.ware === 'deep');
     }
     spots.forEach(({ at, angle }, k) => {
       placed.push({ part, size: g.size, scale, at, angle, index: gi * 20 + k, layer: g.layer });

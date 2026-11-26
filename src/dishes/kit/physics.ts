@@ -116,6 +116,10 @@ export class PhysicsPlate {
     if (!RAPIER) throw new Error('Physics is not loaded: call loadPhysics() first.');
     this.world = new RAPIER.World({ x: 0, y: -981, z: 0 });
     this.world.timestep = 1 / 120;
+    // (R8: the world is in centimetres, so the engine's tolerances are too: its contact margin was
+    // set for metres, 0.002 cm here, and thin pieces slipped through the plate between two steps,
+    // and pieces resting on others buzzed.)
+    this.world.lengthUnit = 100;
   }
 
   /** A fixed surface (the plate, a sauce pool, the board), as its exact triangles. */
@@ -237,6 +241,20 @@ export class PhysicsPlate {
       // Still for a quarter of a second: truly at rest, not pausing at the top of a tip.
       if (still >= 3) return;
     }
+    // (R8: still falling when the time is up, off a toast's edge or the plate's rim: up to three
+    // seconds more to land, before any steadying.)
+    for (let i = 0, quiet = 0; i < Math.round(3 / this.world.timestep); i++) {
+      this.world.step();
+      if (i % 10 !== 0) continue;
+      const calm = this.bodies.every((b) => {
+        if (b.baked) return true;
+        const v = b.body.linvel();
+        const w = b.body.angvel();
+        return Math.hypot(v.x, v.y, v.z) < 0.3 && Math.hypot(w.x, w.y, w.z) < 0.03;
+      });
+      quiet = calm ? quiet + 1 : 0;
+      if (quiet >= 3) return;
+    }
     // Still sliding when the time is up (a thin wheel on a slope of sauce, R7): it is steadied as a
     // cook's hand would, heavier damping on what still moves, and given a moment more to come to rest.
     const moving = this.bodies.filter((b) => {
@@ -245,8 +263,19 @@ export class PhysicsPlate {
       return Math.hypot(v.x, v.y, v.z) >= 0.3 || Math.hypot(b.body.angvel().x, b.body.angvel().y, b.body.angvel().z) >= 0.03;
     });
     if (!moving.length) return;
-    for (const b of moving) b.body.setLinearDamping(14), b.body.setAngularDamping(10);
-    for (let i = 0; i < Math.round(1.5 / this.world.timestep); i++) this.world.step();
+    // (R8: on a crowded plate a piece wedged between others can buzz on: the hold firms up, round
+    // by round, until it is still, the way a cook presses a jittery piece down.)
+    const atRest = (b: (typeof moving)[number]) => {
+      const v = b.body.linvel();
+      const w = b.body.angvel();
+      return Math.hypot(v.x, v.y, v.z) < 0.3 && Math.hypot(w.x, w.y, w.z) < 0.03;
+    };
+    for (const [lin, ang] of [[14, 10], [40, 30], [120, 90]]) {
+      const left = moving.filter((b) => !atRest(b));
+      if (!left.length) break;
+      for (const b of left) b.body.setLinearDamping(lin), b.body.setAngularDamping(ang);
+      for (let i = 0; i < Math.round(1.5 / this.world.timestep); i++) this.world.step();
+    }
     for (const b of moving) b.body.setLinearDamping(4), b.body.setAngularDamping(2);
   }
 
@@ -260,6 +289,7 @@ export class PhysicsPlate {
       this.measure(b);
       const v0 = b.body.linvel();
       if (Math.hypot(v0.x, v0.y, v0.z) > 2) this.restless++;
+      if ((globalThis as { DEBUG_REST?: boolean }).DEBUG_REST && Math.hypot(v0.x, v0.y, v0.z) > 2) { const t0 = b.body.translation(); console.log('restless', b.pieces[0]?.role, v0.x.toFixed(1), v0.y.toFixed(1), v0.z.toFixed(1), 'at', (t0.x / M).toFixed(1), (t0.y / M).toFixed(1), (t0.z / M).toFixed(1)); }
       const t = b.body.translation();
       const r = b.body.rotation();
       const m = new Matrix4()
@@ -280,6 +310,25 @@ export class PhysicsPlate {
       for (const p of b.pieces) this.world.createCollider(heldShape(p.geometry).setFriction(1.6), fixed);
       this.held.set(b.pieces, fixed);
     }
+  }
+
+  /** The pieces dropped since the last bake that are still moving (faster than 2 cm/s). */
+  unsettled(): FormPiece[][] {
+    return this.bodies
+      .filter((b) => {
+        if (b.baked) return false;
+        const v = b.body.linvel();
+        return Math.hypot(v.x, v.y, v.z) / M > 2;
+      })
+      .map((b) => b.pieces);
+  }
+
+  /** Take a dropped piece that has not been baked back out of the world (it is laid again). */
+  retract(pieces: FormPiece[]): void {
+    const i = this.bodies.findIndex((b) => b.pieces === pieces && !b.baked);
+    if (i < 0) return;
+    this.world.removeRigidBody(this.bodies[i].body);
+    this.bodies.splice(i, 1);
   }
 
   /** How far a settled piece turned from the way it was laid (degrees; 0 when it was never dropped). */
@@ -318,6 +367,7 @@ export class PhysicsPlate {
       });
     });
     if (!touching) this.floating++;
+    if (!touching && (globalThis as { DEBUG_REST?: boolean }).DEBUG_REST) console.log('floating', b.pieces[0]?.role, b.body.linvel().y.toFixed(2), b.body.translation().y.toFixed(2));
   }
 
   private floating = 0;

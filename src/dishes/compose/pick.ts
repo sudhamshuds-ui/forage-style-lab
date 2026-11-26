@@ -285,9 +285,9 @@ const GLASS_CUT: Record<string, string> = {
   lime: 'wheel', lemon: 'wheel', tomato: 'wheel', pepper: 'strip', avocado: 'slice', spinach: 'leaf', onion: 'wheel',
 };
 
-/** What may stand by a glass as its garnish (R8): produce only, never bread, meat, cheese or garlic. */
+/** What may stand by a glass as its garnish (R8): produce or leaves, never bread, meat, cheese or garlic. */
 export function byGlassOk(id: string): boolean {
-  return TRAITS[id]?.category === 'produce';
+  return ['produce', 'leafy'].includes(TRAITS[id]?.category ?? '');
 }
 
 /** Unhinged's other cut by the glass. */
@@ -339,7 +339,7 @@ function capForTrueSize(slots: Slots): void {
   // An area budget (cm², seen from above): what the vessel holds at true size without piling. The
   // biggest group gives up a piece at a time, never below one, so every ingredient still shows.
   const budget: Partial<Record<LayoutId, number>> = { 'rice-bowl': 92, 'soup-bowl': 110, 'skillet-bake': 170, 'dessert-bowl': 150 };
-  const limit = budget[slots.layout.id] ?? (['toast-board', 'tart', 'pancake-stack', 'glass-drink', 'mash-plate'].includes(slots.layout.id) ? Infinity : 300);
+  const limit = budget[slots.layout.id] ?? (['toast-board', 'tart', 'pancake-stack', 'glass-drink', 'mash-plate'].includes(slots.layout.id) ? Infinity : 240);
   const area = (p: Piece) => {
     if (isComponent(p.id)) return 0;
     const info = elementInfo(p.id, p.form);
@@ -1116,7 +1116,28 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number, opti
     for (const p of [slots.hero, ...slots.support, ...slots.accent]) {
       if (['lemon', 'lime', 'orange'].includes(p.id)) Object.assign(p, { form: 'wheel', count: 1 });
       if (p.id === 'pepper' && p.form === 'half') Object.assign(p, { form: 'strip', count: 3 });
+      // (R8: an onion in a soup is one slice fallen into its rings.)
+      if (p.id === 'onion' && p.form === 'wheel') p.count = 1;
     }
+  // Toppings that fit their toasts (R8: salmon, avocado and pepper on two true-size toasts piled
+  // up and three were lost): a third toast when they need it, then the biggest group one fewer
+  // until what lies on the toasts covers at most about half of them (they lie side by side, never piled).
+  if (layout.id === 'toast-board' && slots.hero.form === 'toast') {
+    const area = (p: Piece) => {
+      const info = elementInfo(p.id, p.form);
+      return (info.shape === 'rect' ? info.w! * info.h! : Math.PI * (info.r ?? 2) ** 2) * p.count;
+    };
+    const tops = [...slots.support, ...slots.accent].filter((p) => !isComponent(p.id));
+    const room = (n: number) => n * 8 * 11 * 0.5;
+    const need = () => tops.reduce((sum, p) => sum + area(p), 0);
+    if (need() > room(slots.hero.count) && slots.hero.count < 3) slots.hero.count = Math.min(3, Math.max(slots.hero.count, Math.ceil(need() / room(1))));
+    for (let guard = 0; guard < 12 && need() > room(slots.hero.count); guard++) {
+      // (Pepper stays two strips at least: one strip reads as a stray, the P2 fix list.)
+      const most = tops.filter((p) => p.count > (p.id === 'pepper' ? 2 : 1)).sort((a, b) => area(b) - area(a))[0];
+      if (!most) break;
+      most.count--;
+    }
+  }
   // A solo ingredient (R8: one toast slice sat lonely on a big plate): where it is natural, two or
   // three pieces of it, and the ware is sized to the food (fitWare).
   if (table.length === 1 && slots.hero.count === 1 && slots.ware !== 'glass' && !slots.support.length) {

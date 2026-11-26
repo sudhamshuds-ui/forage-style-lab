@@ -59,7 +59,7 @@ const HEIGHT_SHARE: Record<string, number> = {
  * pair is pushed apart until their footprints just touch. Flat pieces (slices, leaves, wheels) may
  * still overlap, as shingles.
  */
-function spreadLayer(layer: Placed[], shapes: PlanShape[], ware: DishIdea['ware']): void {
+function spreadLayer(layer: Placed[], shapes: PlanShape[], ware: DishIdea['ware'], under: { at: [number, number]; r: number }[] = []): void {
   const chunky = layer.filter((q) => (HEIGHT_SHARE[q.part.form] ?? 0.3) >= 0.25);
   const radius = (q: Placed) => {
     const shape = shapes.find((s) => s.at === q.at);
@@ -67,6 +67,9 @@ function spreadLayer(layer: Placed[], shapes: PlanShape[], ware: DishIdea['ware'
     return ((shape as { r?: number } | undefined)?.r ?? (q.target ?? 3) / 2) * 0.9;
   };
   const radii = chunky.map(radius);
+  // (R8: a topping traced over a toast or a tart stays over it while the bunch is spread: at true
+  // size, pushed apart, mushrooms went over the toast's edge and slid off.)
+  const seat = chunky.map((q) => under.find((d) => Math.hypot(q.at[0] - d.at[0], q.at[1] - d.at[1]) < d.r));
   for (let pass = 0; pass < 40; pass++) {
     let moved = false;
     for (let i = 0; i < chunky.length; i++) {
@@ -87,6 +90,13 @@ function spreadLayer(layer: Placed[], shapes: PlanShape[], ware: DishIdea['ware'
         moved = true;
       }
     }
+    chunky.forEach((q, i) => {
+      const d = seat[i];
+      if (!d) return;
+      const room = Math.max(0, d.r - radii[i] * 0.6);
+      const dist = Math.hypot(q.at[0] - d.at[0], q.at[1] - d.at[1]);
+      if (dist > room && dist > 1e-6) (q.at[0] = d.at[0] + ((q.at[0] - d.at[0]) * room) / dist), (q.at[1] = d.at[1] + ((q.at[1] - d.at[1]) * room) / dist);
+    });
     if (ware === 'deep') {
       for (let i = 0; i < chunky.length; i++) {
         const at = chunky[i].at;
@@ -158,8 +168,9 @@ export function tracedPlan(idea: DishIdea, trace: Trace): ComposedPlan {
         } else shapes.push({ kind: info.shape, label, size: SIZE[s], at, angle, r: cm / 2 } as PlanShape);
       }
     }
+    const lower = below.slice();
     below.push(...thisLayer);
-    spreadLayer(placed.filter((q) => q.layer === layerIndex), shapes, ware);
+    spreadLayer(placed.filter((q) => q.layer === layerIndex), shapes, ware, lower);
   });
   let base = trace.base ? { kind: trace.base[0].split(':')[0], what: trace.base[0].split(':')[1] ?? '', at: toCm(trace.base[1], trace.base[2]), r: trace.base[3] } : { kind: 'none', what: '', at: [0, 0] as [number, number], r: 0 };
   // No sauce in the reference but a pool chosen for the dish: it lies under the first layer, a
