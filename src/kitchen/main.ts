@@ -931,9 +931,9 @@ function playSwap(next: Item[], atSwap: () => void, done: () => void, nearlyDone
     return;
   }
   update();
-  // Painterly off: a soft burn with no brush strokes, the plain look's own (R7: the big brush
-  // smudge still showed with the brush off). On: the dry brush that paints the card in.
-  transition.setStyle(settings.brush.classic ? 0 : 4);
+  // The painted dry-brush strokes, brush on or off, exactly as on main (R8: R7's feather burn with
+  // the brush off is undone, the owner wants the painted transition).
+  transition.setStyle(0);
   transition.begin(stage.renderer, painter.strokeCell(settings), settings.brush.type === 'round' ? 1 : 0, paintFrame.objectUv);
   let swapped = false;
   let told = false;
