@@ -47,7 +47,7 @@ const t = (row: IngredientTraits): IngredientTraits => row;
 
 export const TRAITS: Record<string, IngredientTraits> = {
   steak: t({ id: 'steak', category: 'protein', taste: 'savoury', slots: ['hero', 'support'], forms: { hero: ['steak'], support: ['cube', 'skewer'] }, family: 'beef', cookedFamily: 'rare', sear: 0.9 }),
-  salmon: t({ id: 'salmon', category: 'protein', taste: 'savoury', slots: ['hero', 'support', 'accent'], forms: { hero: ['fillet'], support: ['slice', 'cube', 'skewer'], accent: ['slice'] }, family: 'salmon', cookedFamily: 'cooked-salmon', sear: 0.95 }),
+  salmon: t({ id: 'salmon', category: 'protein', taste: 'savoury', slots: ['hero', 'support', 'accent'], forms: { hero: ['fillet'], support: ['slice', 'cube', 'skewer', 'ribbon', 'flake'], accent: ['slice'] }, family: 'salmon', cookedFamily: 'cooked-salmon', sear: 0.95 }),
   chicken: t({ id: 'chicken', category: 'protein', taste: 'savoury', slots: ['hero', 'support'], forms: { hero: ['slice', 'drumstick', 'torn'], support: ['torn', 'slice', 'skewer'], stew: ['torn'] }, family: 'poultry', cookedFamily: 'poultry', sear: 0.5 }),
   eggs: t({ id: 'eggs', category: 'protein', taste: 'savoury', slots: ['hero', 'support'], forms: { hero: ['egg', 'omelette'], support: ['egg', 'half'] }, family: 'eggshell', cookedFamily: 'albumen', sear: 0 }),
   potato: t({ id: 'potato', category: 'starch', taste: 'savoury', slots: ['support', 'hero', 'base'], forms: { hero: ['mash', 'whole'], support: ['fries', 'wedge', 'cube', 'wheel'], base: ['mash:potato', 'soup:potato'] }, family: 'potato', cookedFamily: 'fries', sear: 0.45 }),
@@ -108,5 +108,5 @@ export function heroPriority(id: string): number {
 /** Every form any trait may use as a piece (makeElement special cases plus the plain cuts). */
 export const BUILDABLE_FORMS = [
   'whole', 'half', 'wedge', 'wheel', 'slice', 'cube', 'fillet', 'steak', 'drumstick', 'egg', 'berry', 'leaf', 'crumble',
-  'toast', 'mash', 'skewer', 'roll', 'omelette', 'cake', 'pancake', 'pastry', 'fries', 'chip', 'strip', 'torn',
+  'toast', 'mash', 'skewer', 'roll', 'omelette', 'cake', 'pancake', 'pastry', 'fries', 'chip', 'strip', 'torn', 'ribbon', 'flake', 'smash',
 ];

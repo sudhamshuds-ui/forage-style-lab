@@ -147,7 +147,9 @@ describe('pickDish (the P0 list)', () => {
       const a = pickDish(ids, choices, cookSeed(ids, choices, 0), { attempt: 0 });
       const b = pickDish(ids, choices, cookSeed(ids, choices, 1), { attempt: 1 });
       total++;
-      if (a.title !== b.title || a.big !== b.big || a.medium.join() !== b.medium.join() || a.layout !== b.layout) differ++;
+      // Another dish, other pieces or cuts, or another garnish (the arrangement always moves: new seed).
+      const garnish = (i: typeof a) => (i.components ?? []).map((c) => `${c.kind}:${c.family}`).sort().join();
+      if (a.title !== b.title || a.big !== b.big || a.medium.join() !== b.medium.join() || a.small.join() !== b.small.join() || a.layout !== b.layout || garnish(a) !== garnish(b)) differ++;
     }
     expect(differ / total).toBeGreaterThan(0.6);
   });

@@ -1,4 +1,4 @@
-import { Box3, BufferAttribute, BufferGeometry, CylinderGeometry, Matrix4, Vector3 } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, CylinderGeometry, Euler, Matrix4, Vector3 } from 'three';
 import { seededRandom, signed } from '../../ingredients/forms/kit/random';
 import { leafPiece } from '../../ingredients/forms/kit/stemLeaf';
 import type { FormBuilder, FormPiece } from '../../ingredients/forms/kit/piece';
@@ -138,13 +138,14 @@ function fitWare(idea: DishIdea, composed: ComposedPlan): WareFit | undefined {
   const reach = Math.max(...discs.map((d) => Math.hypot(d.c[0] - c[0], d.c[1] - c[1]) + d.r));
   if (idea.ware === 'board') {
     // Tight to the bread: a finger's width of board round it.
-    const hx = Math.min(15, Math.max(5.5, (maxX - minX) / 2 + 1.3));
-    const hz = Math.min(11, Math.max(4.5, (maxZ - minZ) / 2 + 1.3));
+    const hx = Math.min(16, Math.max(5.5, (maxX - minX) / 2 + 1.5));
+    const hz = Math.min(12, Math.max(4.5, (maxZ - minZ) / 2 + 1.5));
     return { at: c, r: Math.max(hx, hz), hx, hz };
   }
   // A rim's width round the food, and a little room for a piece laid again beside the bunch.
   // (Skewers need room to be laid again whole, if one rolls.)
-  const R = Math.min(idea.ware === 'round' ? 14 : 13.5, Math.max(9, reach * 1.08 + (idea.layout === 'skewer-platter' ? 5 : 3.2)));
+  // (A dinner plate is up to a 32 cm platter: true-size food needs the room.)
+  const R = Math.min(16, Math.max(9.5, reach * 1.12 + (idea.layout === 'skewer-platter' ? 5 : 3.6)));
   return { at: c, r: R, hx: R, hz: R };
 }
 
@@ -577,7 +578,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       const from = centreOf(now);
       const planned: [number, number] = [(box.min.x + box.max.x) / 2, (box.min.z + box.max.z) / 2];
       const dbgCount = [0, 0, 0, 0, 0, 0, 0, 0];
-      for (let r = 0; r <= 7; r += 0.35) {
+      for (let r = 0; r <= 10; r += 0.35) {
         for (let k = 0; k < 16; k++) {
           const a = (k / 16) * Math.PI * 2;
           const c: [number, number] = [from[0] + Math.cos(a) * r, from[1] + Math.sin(a) * r];
@@ -713,6 +714,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         settled.push(...pieces);
       }
       if (physics && dropped.length) {
+        if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('settle-layer');
         physics.settle();
         physics.bakeNew();
         // A piece that slipped over the rim (traced near the edge) is plated again where the
@@ -741,6 +743,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         }
         const offPlate: FormPiece[][] = [];
         if (again.length) {
+          if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('settle-again');
           physics.settle();
           physics.bakeNew();
           for (const copy of again) {
@@ -780,8 +783,10 @@ export function composedBuilder(original: DishIdea): FormBuilder {
               const spot = freeSpot(copy, pieces, here, p);
               if (!spot) break;
               const tried = here.rest(posed(copy, { at: [spot[0], 0, spot[1]] }), { tilt: 0, add: false });
-              physics.drop(tried, { lift: 0.25, straightDown: true, noTurn: true });
+              // (Kept flat, free to slide a hair: locked straight down as well, the engine crashed.)
+              physics.drop(tried, { lift: 0.25, noTurn: true });
               placedOf.set(tried, p);
+              if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('settle-attempt');
               physics.settle();
               physics.bakeNew();
               if (towers(tried) || !onPlate(tried, rimFloor)) {
@@ -960,6 +965,20 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         const gap = clearance(pieces, (x, z) => under.height(x, z));
         if (gap > 0.05 && gap < 3) for (const piece of pieces) piece.geometry.translate(0, -gap, 0);
       });
+      // Into the soup or the rice (R4): each piece sinks about a third of its height, tilted its own
+      // way, so some break the surface and none sit on top like toys on a table.
+      if (idea.base.startsWith('soup:') || idea.ware === 'deep') {
+        for (const pieces of food) {
+          const box = boundsOf(pieces);
+          const h = box.max.y - box.min.y;
+          const centre = new Vector3((box.min.x + box.max.x) / 2, (box.min.y + box.max.y) / 2, (box.min.z + box.max.z) / 2);
+          const tilt = new Matrix4()
+            .makeTranslation(centre.x, centre.y - h * (0.22 + random() * 0.2), centre.z)
+            .multiply(new Matrix4().makeRotationFromEuler(new Euler(signed(random) * 0.24, random() * 0.6, signed(random) * 0.24)))
+            .multiply(new Matrix4().makeTranslation(-centre.x, -centre.y, -centre.z));
+          for (const piece of pieces) piece.geometry.applyMatrix4(tilt);
+        }
+      }
       const height = food.reduce((most, pieces) => {
         const b = boundsOf(pieces);
         return Math.max(most, b.max.y - w.floor((b.min.x + b.max.x) / 2, (b.min.z + b.max.z) / 2));
@@ -976,11 +995,28 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       physics.free();
     }
 
-    // Herbs last, over everything (never round a glass: they lay on the table as stray dots).
-    for (const [x, z] of idea.ware === 'glass' ? [] : composed.herbs) {
-      const h = herbLeaf(random);
-      parts.push(...posed([h], { at: [x, table.height(x, z) + 0.02, z] }));
+    // A fresh map of every surface, after the gaps were closed and pieces settled: garnish set on the
+    // old heights hovered where a piece had moved away (R4). Each bit rests on the lowest point under
+    // its footprint, so it touches, never floats.
+    const surface = physics ? new Table(w.floor) : table;
+    if (physics) {
+      surface.add(groundList);
+      surface.add(food.flat());
     }
+    const restAt = (x: number, z: number, r = 0.3) => Math.min(...[[0, 0], [r, 0], [-r, 0], [0, r], [0, -r]].map(([dx, dz]) => surface.height(x + dx, z + dz))) - 0.03;
+    let garnishHover = 0;
+    const placeOn = (made: FormPiece[], x: number, z: number, options: { scale?: number; turn?: number } = {}) => {
+      const at = posed(made, { ...options, at: [x, 0, z] });
+      // Its lowest point onto the surface under it.
+      const bottom = boundsOf(at).min.y;
+      const y = restAt(x, z) - bottom;
+      const out = posed(at, { at: [0, y, 0] });
+      if (bottom + y > surface.height(x, z) + 0.1) garnishHover++;
+      parts.push(...out);
+    };
+
+    // Herbs last, over everything (never round a glass: they lay on the table as stray dots).
+    for (const [x, z] of idea.ware === 'glass' ? [] : composed.herbs) placeOn([herbLeaf(random)], x, z);
 
     // The garnish layer, the last step of every dish (the user, 2026-11-25: "approach dishes in
     // terms of layers ... sprinkle some bits of yellow, golden and white shavings as garnish, then
@@ -998,7 +1034,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       // plate too, so a spot is kept only where something lies under it (any spot, if none is found).
       const { kind: poolKind, at: poolCentre, r: poolRadius } = composed.base;
       const onSomething = (x: number, z: number) =>
-        idea.ware === 'deep' || table.height(x, z) > groundOnly.height(x, z) + 0.05 || (['pool', 'soup', 'leaves', 'mash'].includes(poolKind) && Math.hypot(x - poolCentre[0], z - poolCentre[1]) < poolRadius * 0.92);
+        idea.ware === 'deep' || surface.height(x, z) > groundOnly.height(x, z) + 0.05 || (['pool', 'soup', 'leaves', 'mash'].includes(poolKind) && Math.hypot(x - poolCentre[0], z - poolCentre[1]) < poolRadius * 0.92);
       const pick = (): [number, number] | null => {
         let fallback: [number, number] | null = null;
         for (let tries = 0; tries < 40 && boxes.length; tries++) {
@@ -1024,20 +1060,20 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       const count1 = (x: number, z: number) => {
         dropped++;
         const overPool = ['pool', 'soup', 'leaves', 'mash'].includes(baseKind) && Math.hypot(x - poolAt[0], z - poolAt[1]) < poolR;
-        if (overPool || table.height(x, z) > groundOnly.height(x, z) + 0.05 || idea.ware === 'deep') onFood++;
+        if (overPool || surface.height(x, z) > groundOnly.height(x, z) + 0.05 || idea.ware === 'deep') onFood++;
       };
       for (let i = 0; i < count; i++) {
         const at = pick();
         if (!at) break;
         count1(at[0], at[1]);
-        parts.push(...posed([shaving(kinds[i % kinds.length], random)], { at: [at[0], table.height(at[0], at[1]), at[1]], turn: random() * Math.PI * 2 }));
+        placeOn([shaving(kinds[i % kinds.length], random)], at[0], at[1], { turn: random() * Math.PI * 2 });
       }
       // Chopped herbs, big enough to read as herbs from the starting view (about 1 cm).
       for (let i = 0; i < (savoury ? 18 : idea.sweet ? 0 : 5); i++) {
         const at = pick();
         if (!at) break;
         count1(at[0], at[1]);
-        parts.push(...posed([herbLeaf(random)], { scale: 1.9, turn: random() * Math.PI * 2, at: [at[0], table.height(at[0], at[1]) + 0.03, at[1]] }));
+        placeOn([herbLeaf(random)], at[0], at[1], { scale: 1.9, turn: random() * Math.PI * 2 });
       }
       // The library's garnish (the fix list, P1): oil dots and gel beads on the sauce and round the
       // food, microherbs over it.
@@ -1047,13 +1083,14 @@ export function composedBuilder(original: DishIdea): FormBuilder {
           const at = pick();
           if (!at) break;
           count1(at[0], at[1]);
-          const y = table.height(at[0], at[1]);
           const made = c.kind === 'microherb' ? microherb(c.role, random) : [dot(c.kind as 'oil-dot' | 'gel', c.role, random)];
-          parts.push(...posed(made, { at: [at[0], y, at[1]], turn: random() * Math.PI * 2 }));
+          placeOn(made, at[0], at[1], { turn: random() * Math.PI * 2 });
         }
       }
       const qa = LAST_QA.get(idea.id);
       if (qa && idea.layout && dropped) qa.garnishOnFood = onFood / dropped;
+      // Garnish over air counts as floating (R4).
+      if (qa) qa.floating += garnishHover;
     }
 
     // The hero's role first in the finished list (it takes the entry's skin and main highlight).

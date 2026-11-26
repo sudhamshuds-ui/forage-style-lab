@@ -135,6 +135,10 @@ export function elementInfo(ingredient: string, form: string): ElementInfo {
       if (ingredient === 'avocado') return { shape: 'rect', w: 3.2, h: 9.4, group: 'fan', shrinks: false };
       if (ingredient === 'strawberry') return { shape: 'circle', r: 1.6, group: 'fan', shrinks: false };
       return { shape: 'half', r: body.r, group: 'fan', shrinks: true };
+    case 'ribbon':
+      return { shape: 'rect', w: 2.2, h: 6.2, group: 'scatter', shrinks: false };
+    case 'flake':
+      return { shape: 'circle', r: 1.0, group: 'scatter', shrinks: false };
     case 'cube':
       if (ingredient === 'rice') return { shape: 'rect', w: 4.2, h: 6, group: 'pair', shrinks: false };
       if (ingredient === 'steak' || ingredient === 'chicken') return { shape: 'rect', w: 2.8, h: 2.8, group: 'heap', shrinks: false };

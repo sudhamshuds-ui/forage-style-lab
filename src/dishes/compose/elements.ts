@@ -95,6 +95,15 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
   switch (`${ingredient}:${form}`) {
     case 'salmon:fillet':
       return [{ role: id, family: 'cooked-salmon', skin: { kind: 'salmon', size_mm: 4, amount: 0.9, seared: 0.95, pale: '#fffaf6', green: '#efc0b0' } }];
+    case 'salmon:ribbon':
+      // Smoked salmon folded in thin ribbons (R4: on toast, never a whole fillet block).
+      return [{ role: id, family: 'salmon', skin: { ...FLESH_SKIN, pale: '#ffa07a', green: '#ff6a40', amount: 0.6 }, glossy: true }];
+    case 'salmon:flake':
+      // Seared salmon flaked into chunks: pale pink inside, golden where the pan caught it.
+      return [{ role: id, family: 'cooked-salmon', skin: { ...FLESH_SKIN, pale: '#ffc8b0', green: '#d8803c', seared: 0.6 } }];
+    case 'potato:cube':
+      // Diced roast potato (R4: golden and irregular, never a pale crouton).
+      return [{ role: id, family: 'fries', skin: { ...FLESH_SKIN, pale: '#fbd77e', green: '#c66d24', seared: 0.6 } }];
     case 'salmon:slice':
     case 'salmon:cube':
       // Raw salmon cut small: the flesh skin in the salmon's own colours (its fillet skin needs a whole fillet's map).
@@ -110,6 +119,7 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
     case 'potato:whole':
       return [{ role: id, family: 'potato', skin: { kind: 'potato', size_mm: 2.2, amount: 0.9, seared: 0.6 } }];
     case 'broccoli:whole':
+    case 'broccoli:half':
       return [
         { role: 'broccoli_florets', family: 'green', skin: { kind: 'florets', size_mm: 4, amount: 0.9, seared: 0.35 } },
         { role: 'broccoli_stalk', family: 'pale-green' },
@@ -164,7 +174,8 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
       return [{ role: id, family: 'garlic-chip' }];
     case 'butter:cube':
     case 'butter:crumble':
-      return [{ role: id, family: 'butter', skin: { kind: 'pores', size_mm: 1.1, amount: 0.18 }, glossy: true }];
+      // Small pale pats (R4: never big yellow or pink blocks), never seared.
+      return [{ role: id, family: 'butter', skin: { kind: 'pores', size_mm: 1.1, amount: 0.12 }, glossy: true }];
     case 'avocado:smash':
       // Smashed avocado (guacamole): a rough green dome, paler where it is pressed (never a half or seed).
       return [{ role: id, family: 'avocado-flesh', skin: { ...SAUCE_SKIN, amount: 0.5 } }];
@@ -393,7 +404,10 @@ function cutElement(part: Part, role: string, random: () => number): FormPiece[]
       // A cube cut from the flesh: a rounded box, its edges softly caught by the sear or the skin's colour.
       const s = ['steak', 'chicken'].includes(ingredient) ? 1.4 : ingredient === 'rice' ? 0 : 1.1;
       const field = ingredient === 'rice' ? boxField(2.1, 0.7, 3, 0.45) : boxField(s, s * 0.92, s, s * 0.28);
-      const lumpy: Field = (x, y, z) => field(x, y, z) + 0.04 * Math.sin(x * 4.1 + y * 2.3) * Math.sin(z * 3.7 - y);
+      // (Roast potato dice are irregular, their corners knocked off: never a neat crouton.)
+      const rough = ingredient === 'potato' ? 0.16 : 0.04;
+      const ph = random() * 6;
+      const lumpy: Field = (x, y, z) => field(x, y, z) + rough * Math.sin(x * 4.1 + y * 2.3 + ph) * Math.sin(z * 3.7 - y) + (ingredient === 'potato' ? 0.08 * Math.sin(x * 2.3 - z * 1.7 + ph) : 0);
       geometry = cutBody(lumpy, [], { reach: ingredient === 'rice' ? 3.4 : s * 1.3, depth: ingredient === 'rice' ? 0.7 : s, rounding: 0 });
       // A cube's map from its own middle: the edges and corners reach the skin's band.
       const pos = geometry.getAttribute('position');
@@ -645,6 +659,25 @@ export function makeElement(part: Part, random: () => number, seed: number): For
       const g = cutBody(wavy, [], { reach: 4.2, depth: 1, rounding: 0 });
       return settle([{ role, geometry: g }]);
     }
+    case 'salmon:ribbon': {
+      // A thin ribbon folded over itself in soft waves, lying flat (about 6 x 2 cm).
+      const phase = random() * 6;
+      const field = boxField(1.05, 0.12, 3.1, 0.1);
+      const folded: Field = (x, y, z) => field(x, y - 0.42 * Math.max(0, Math.sin(z * 1.9 + phase)) - 0.08 * Math.sin(x * 2 + z), z);
+      return settle([{ role, geometry: cutBody(folded, [], { reach: 3.5, depth: 0.3, rounding: 0 }) }]);
+    }
+    case 'salmon:flake': {
+      // An irregular flaked chunk, about 2 cm, its layers showing as ridges.
+      const ax = 0.9 + random() * 0.3;
+      const ph = random() * 6;
+      const field: Field = (x, y, z) => Math.hypot(x / ax, y / 0.55, z / 0.75) - 1 + 0.12 * Math.sin(x * 5 + ph) * Math.sin(z * 4.3) + 0.06 * Math.sin(y * 9 + x * 2);
+      return settle([{ role, geometry: cutBody(field, [], { reach: 1.5, depth: 0.6, rounding: 0 }) }]);
+    }
+    case 'broccoli:half': {
+      // A halved floret lying on its cut side (R4: never a whole head standing up like a tree).
+      const floret = posed(pantry(buildBroccoli({ state: 'whole', seed }), { florets: 'broccoli_florets', stalk: 'broccoli_stalk', leaf: 'broccoli_leaf' }), { scale: 0.32 });
+      return settle(posed(floret.filter((p) => p.role !== 'broccoli_leaf'), new Matrix4().makeRotationX(Math.PI / 2)));
+    }
     case 'pepper:slice': {
       const field = boxField(0.65, 0.22, 3, 0.2);
       const bent: Field = (x, y, z) => field(x, y - 0.25 * Math.cos(x * 1.6) - 0.15 * Math.sin(z * 0.6), z);
@@ -728,7 +761,8 @@ export function makeElement(part: Part, random: () => number, seed: number): For
       return settle([{ role, geometry: cutBody(field, [], { reach: 1.1, depth: 0.1, rounding: 0 }) }]);
     }
     case 'butter:cube': {
-      const g = cutBody(boxField(1.3, 0.8, 1.3, 0.3), [], { reach: 1.7, depth: 1, rounding: 0 });
+      // A small pat, about 2 x 1.7 cm and half a centimetre thick, its edges soft.
+      const g = cutBody(boxField(1.0, 0.28, 0.85, 0.18), [], { reach: 1.3, depth: 0.4, rounding: 0 });
       return settle([{ role, geometry: g }]);
     }
     case 'baguette:toast':

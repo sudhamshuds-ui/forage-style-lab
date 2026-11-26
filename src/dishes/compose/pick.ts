@@ -4,6 +4,7 @@ import type { FamilyId } from '../../ingredients/families';
 import type { DishIdea } from '../catalog';
 import { componentGarnish, componentPiece, isComponent, type DishComponent } from './components';
 import { SKEWERS } from './elements';
+import { BODY, elementInfo } from './layout';
 import { glassFor, takesIce } from '../kit/glass';
 import { WORLD_DISHES, applyLooks, pickWorldDish, worldComponents } from './world';
 import { layoutById, type LayoutId, type LayoutSpec } from './layouts';
@@ -289,13 +290,16 @@ const GLASS_CUT_WILD: Record<string, string> = { orange: 'wedge', apple: 'wedge'
 const TOPPING_CUT: Record<string, string> = {
   apple: 'slice', pear: 'slice', peach: 'slice', strawberry: 'half', blueberries: 'berry', grapes: 'berry', lemon: 'wheel', lime: 'wheel', orange: 'wheel',
   cheese: 'crumble', watermelon: 'cube', tomato: 'wheel', avocado: 'slice', pepper: 'strip', mushroom: 'slice', onion: 'wheel', spinach: 'leaf', cabbage: 'leaf',
-  baguette: 'cube', potato: 'wheel', salmon: 'slice', eggs: 'egg', broccoli: 'whole', garlic: 'chip', chicken: 'slice', steak: 'steak',
+  baguette: 'cube', potato: 'wheel', salmon: 'ribbon', eggs: 'egg', broccoli: 'half', garlic: 'chip', chicken: 'slice', steak: 'steak',
 };
 /** How many of a topping, by its cut. */
 function toppingCount(form: string, random: () => number): number {
-  if (form === 'berry') return between(random, [11, 15]);
-  if (form === 'slice' || form === 'strip') return odd(between(random, [7, 9]));
-  if (form === 'crumble' || form === 'chip') return between(random, [7, 9]);
+  // (True-size pieces: fewer of them, so they fit their platform without piling.)
+  if (form === 'berry') return between(random, [7, 9]);
+  if (form === 'ribbon') return between(random, [4, 5]);
+  if (form === 'flake') return between(random, [7, 9]);
+  if (form === 'slice' || form === 'strip') return odd(between(random, [5, 7]));
+  if (form === 'crumble' || form === 'chip') return between(random, [5, 7]);
   if (form === 'whole' || form === 'egg') return 1;
   return odd(between(random, [5, 7]));
 }
@@ -304,6 +308,35 @@ function toppingCount(form: string, random: () => number): number {
 export function servedBy(slots: Pick<Slots, 'hero' | 'support' | 'accent' | 'inBase' | 'layout'>, id: string): boolean {
   if (slots.hero.id === id || slots.support.some((p) => p.id === id) || slots.accent.some((p) => p.id === id) || slots.inBase.includes(id)) return true;
   return id === 'baguette' && slots.layout.id === 'toast-board';
+}
+
+/**
+ * Counts that fit at true size (R4: pieces are never shrunk to fit): a cut of a big fruit (an orange
+ * wheel is 7 cm) comes in threes at most, a middling one in fours; a rice bowl holds five of anything.
+ */
+function capForTrueSize(slots: Slots): void {
+  const many = ['wheel', 'half', 'wedge', 'slice', 'cube', 'berry', 'strip'];
+  for (const p of [slots.hero, ...slots.support, ...slots.accent]) {
+    if (!many.includes(p.form) || p.id === 'baguette') continue;
+    const r = BODY[p.id]?.r ?? 2;
+    const cap = r >= 3.2 ? 3 : r >= 2.4 ? 4 : 99;
+    p.count = Math.min(p.count, cap, slots.layout.id === 'rice-bowl' ? 5 : 99);
+  }
+  // An area budget (cm², seen from above): what the vessel holds at true size without piling. The
+  // biggest group gives up a piece at a time, never below one, so every ingredient still shows.
+  const budget: Partial<Record<LayoutId, number>> = { 'rice-bowl': 50, 'soup-bowl': 110, 'skillet-bake': 170, 'dessert-bowl': 150 };
+  const limit = budget[slots.layout.id] ?? (['toast-board', 'tart', 'pancake-stack', 'glass-drink', 'mash-plate'].includes(slots.layout.id) ? Infinity : 300);
+  const area = (p: Piece) => {
+    if (isComponent(p.id)) return 0;
+    const info = elementInfo(p.id, p.form);
+    return (info.shape === 'rect' ? info.w! * info.h! : info.shape === 'half' ? (Math.PI * info.r! ** 2) / 2 : Math.PI * info.r! ** 2) * p.count;
+  };
+  const groups = [slots.hero, ...slots.support, ...slots.accent];
+  for (let guard = 0; guard < 40 && groups.reduce((sum, p) => sum + area(p), 0) > limit; guard++) {
+    const biggest = groups.filter((p) => p.count > 1).sort((a, b) => area(b) - area(a))[0];
+    if (!biggest) break;
+    biggest.count--;
+  }
 }
 
 /** Forms only an archetype may use: skewers, pancakes and mash. */
@@ -457,7 +490,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
       // Toast is the vehicle: the table's bread, or the library's.
       if (left.has('baguette')) take('baguette');
       // Two slices (item 6); one crostini under a whole seared salmon fillet (item D).
-      hero = { id: 'baguette', form: 'toast', count: left.has('salmon') ? 1 : 2 };
+      hero = { id: 'baguette', form: 'toast', count: 2 };
       break;
     }
     case 'mash-plate': {
@@ -508,7 +541,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
     case 'composed-plate': {
       // The hero cut properly: citrus in thin wheels (a carpaccio), the rest in its signature cut.
       const lead = byRank([...left])[0];
-      if (lead && ['lemon', 'lime', 'orange'].includes(lead)) heroFrom(lead, 'wheel', 5);
+      if (lead && ['lemon', 'lime', 'orange'].includes(lead)) heroFrom(lead, 'wheel', 3);
       break;
     }
     default:
@@ -562,8 +595,11 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
       let form = formFor(id, 'support', wild, random)!;
       if (platform && form === 'fries') form = 'wedge';
       if (platform && TOPPING_CUT[id]) form = TOPPING_CUT[id];
-      // Salmon on toast is one fillet with a seared top, not a pile of cubes (item D).
-      if (layout.id === 'toast-board' && id === 'salmon') form = 'fillet';
+      // Bread beside a plated dish is croutons (a whole slice found no room on the plate, R4).
+      if (!platform && id === 'baguette' && form === 'toast') form = 'cube';
+      // Salmon on toast lies flat and cut to size (R4): smoked-style ribbons, or seared flakes on a
+      // step out; never a whole fillet block.
+      if (layout.id === 'toast-board' && id === 'salmon') form = band(wild) >= 1 && random() < 0.5 ? 'flake' : 'ribbon';
       // A carved breast or a steak is one piece (sliced), never four of them.
       const single = ['steak', 'fillet', 'drumstick'].includes(form) || (id === 'chicken' && form === 'slice' && !platform);
       // Avocado slices fan in a short curve of five to seven (twelve read as a pile of cucumber).
@@ -572,7 +608,11 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
     } else if (traits.forms.accent?.length) {
       const form = formFor(id, 'accent', wild, random)!;
       // Never one lonely piece: strips and wheels come at least in threes.
-      accent.push({ id, form, count: id === 'garlic' ? 5 : Math.max(['strip', 'wheel', 'slice'].includes(form) ? 3 : 1, odd(between(random, layout.accent))) });
+      // Citrus as an accent is a couple of small wedges at true size (one in a bowl of rice): whole
+      // wheels at full size crowded the plate and fell off it (R4).
+      const citrus = ['lemon', 'lime', 'orange'].includes(id);
+      if (citrus) accent.push({ id, form: 'wedge', count: layout.id === 'rice-bowl' ? 1 : 2 });
+      else accent.push({ id, form, count: id === 'garlic' ? 5 : Math.max(['strip', 'wheel', 'slice'].includes(form) ? 3 : 1, odd(between(random, layout.accent))) });
     } else if (traits.forms.support?.length) {
       const form = formFor(id, 'support', wild, random)!;
       support.push({ id, form, count: supportCount(form) });
@@ -1017,6 +1057,7 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number, opti
   const look = world ? applyLooks(slots, world, table) : {};
   const GENERIC_TEXTURES = ['a glossy sauce pool', 'a smooth drink', 'a smooth soup', 'a sparkling drink', 'mixed rice with herb and vegetable flecks', 'a clear broth'];
   if (look.texture && !GENERIC_TEXTURES.includes(look.texture)) slots.texture = look.texture;
+  capForTrueSize(slots);
   const components = chooseComponents(slots, varied.wild, random);
   if (world) for (const c of worldComponents(world, table, !!slots.sweet)) if (!components.some((o) => o.kind === c.kind && o.family === c.family)) components.push(c);
   const part = (p: Piece) => `${p.id}:${p.form}${p.count > 1 ? `*${p.count}` : ''}`;

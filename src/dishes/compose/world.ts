@@ -103,7 +103,7 @@ function legalFor(dish: WorldDish, table: string[], course: string): boolean {
 /** Words a dish name uses for each pantry ingredient (a name that says "steak" needs the steak). */
 const NAME_WORDS: Record<string, RegExp> = {
   steak: /steak|beef|bistec|lomo|bulgogi|carne/, salmon: /salmon|lox|gravlax/, chicken: /chicken|pollo|poulet|joojeh|murgh|tikka/,
-  eggs: /\begg|omelet|frittata|tortilla|shakshuka|tamago|chawanmushi/, potato: /potato|aloo|batat|patata|rösti|rosti/, rice: /\brice|risotto|pilaf|polo|paella/,
+  eggs: /\begg|omelet|frittata|tortilla|shakshuka|tamago|chawanmushi/, potato: /potato|aloo|batat|patata|rösti|rosti|frites|fries|chips|hash|gratin|mash/, rice: /\brice|risotto|pilaf|polo|paella/,
   baguette: /bread|toast|bruschetta|crostini|tartine|banh mi|dakos/, milk: /\bmilk|latte|lassi/, cheese: /cheese|feta|parmesan|halloumi|gorgonzola|paneer|ricotta|gibna/,
   strawberry: /strawberr/, blueberries: /blueberr/, grapes: /grape/, watermelon: /watermelon|subak|tangmo|bateeikh/, apple: /apple|aeble/, pear: /\bpear/,
   peach: /peach|melba/, orange: /orange/, lemon: /lemon/, lime: /\blime/, tomato: /tomat|pomodoro/, avocado: /avocado|guacamole/, mushroom: /mushroom/,
@@ -250,9 +250,12 @@ export function applyLooks(slots: LooksSlots, dish: WorldDish, table: string[]):
     if (!table.includes(want.ingredient)) continue;
     for (const p of pieces()) {
       if (p.id !== want.ingredient || p.form === want.shape) continue;
+      // (A slice of toast is only ever the vehicle; beside the food, bread stays croutons.)
+      if (want.shape === 'toast' && p !== slots.hero) continue;
       p.form = want.shape;
       // (A carved chicken breast is one piece, already sliced.)
       if (SINGLE_SHAPES.includes(want.shape) || (want.ingredient === 'chicken' && want.shape === 'slice')) p.count = 1;
+      else if (['lemon', 'lime', 'orange'].includes(want.ingredient) && p !== slots.hero) p.count = Math.min(Math.max(1, p.count), 2);
       else if (p.count < 3) p.count = want.shape === 'egg' ? Math.max(1, p.count) : 3;
     }
   }

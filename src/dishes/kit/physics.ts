@@ -180,6 +180,8 @@ export class PhysicsPlate {
   drop(pieces: FormPiece[], options: { lift?: number; straightDown?: boolean; noTurn?: boolean } = {}): void {
     const R = RAPIER!;
     const points = samplePoints(pieces.map((p) => p.geometry), 120);
+    // A piece with a broken vertex would crash the engine deep inside its step: refuse it here.
+    if (!points.every(Number.isFinite)) throw new Error(`physics: a piece with a non-finite vertex (${pieces.map((p) => p.role).join(', ')})`);
     const centre = new Vector3();
     for (let i = 0; i < points.length; i += 3) centre.x += points[i], centre.y += points[i + 1], centre.z += points[i + 2];
     centre.multiplyScalar(3 / points.length);

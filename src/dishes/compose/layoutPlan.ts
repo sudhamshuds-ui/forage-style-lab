@@ -100,7 +100,9 @@ function grow(mass: Disc[], n: number, shape: Shape, anchor: [number, number], l
         const a = (s / 16) * Math.PI * 2 + random() * 0.2;
         const dir: [number, number] = [Math.cos(a), Math.sin(a)];
         // Flat on flat shingles a little (0.86); against anything with height, just touching (1.02).
-        const touch = (d.r + shape.r) * (flat && d.flat ? 0.86 : 1.02);
+        // Just touching, flat pieces too: a shingle stacks one on another, which the QA counts as piled
+        // (at true size the overlap is a whole wheel's thickness, R4).
+        const touch = (d.r + shape.r) * 1.02;
         // Plan turns whose long side lies along the bunch (tangent) or points out from it (radial).
         const radialTurn = (Math.atan2(-dir[0], dir[1]) * 180) / Math.PI;
         const tries: { dist: number; angle: number }[] = shape.half > 0
@@ -111,7 +113,7 @@ function grow(mass: Disc[], n: number, shape: Shape, anchor: [number, number], l
           const score = Math.hypot(c[0] - anchor[0], c[1] - anchor[1]) + random() * 0.35;
           if (!limit(c, extent)) continue;
           const coins = discsAt(shape, c, t.angle, flat);
-          const clear = coins.every((q) => mass.every((e) => Math.hypot(q.c[0] - e.c[0], q.c[1] - e.c[1]) >= (e.r + q.r) * (flat && e.flat ? 0.8 : 0.98)));
+          const clear = coins.every((q) => mass.every((e) => Math.hypot(q.c[0] - e.c[0], q.c[1] - e.c[1]) >= (e.r + q.r) * 0.98));
           if (clear && score < bestScore) (best = { at: c, angle: t.angle }), (bestScore = score);
           if (score < fallbackScore) (fallback = { at: c, angle: t.angle }), (fallbackScore = score);
         }
@@ -147,6 +149,8 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
     idea.ware === 'glass' ? glassAt : idea.ware === 'deep' ? [-0.9, 0.2] : [-golden * 0.32, golden * 0.12];
 
   const heroDiscs: Disc[] = [];
+  /** Each hero piece's own coins (each slice of toast), to spread toppings across them. */
+  const heroPieces: Disc[][] = [];
   const side = random() < 0.5 ? 1 : -1;
   if (layout.packing === 'beside-glass') {
     // The glass is the centre; the hero fruit leans against it, front right.
@@ -194,12 +198,17 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
     let reach = 0;
     group.forEach((p) => (reach = Math.max(reach, Math.hypot(p.at[0], p.at[1]) + footprint(heroInfo, heroScale))));
     // A hero group too big for the layout is cut down to fit, never below 0.6.
-    const k = reach > R * layout.heroShare ? Math.max(0.5, (R * layout.heroShare) / reach) : 1;
+    // True size (R4: pieces never render bigger or smaller than they are): the plate is fitted to
+    // the food instead (build.ts), so the hero group is never shrunk.
+    const k = 1;
+    void reach;
     heroScale *= k;
     group.forEach((p, index) => {
       const at: [number, number] = [heroAt[0] + p.at[0] * k, heroAt[1] + p.at[1] * k];
       placed.push({ part: hero, size: 'big', scale: heroScale, at, angle: p.angle, index, layer: 0 });
-      heroDiscs.push(...discsAt(shapeFor(heroInfo, heroScale), at, p.angle));
+      const discs = discsAt(shapeFor(heroInfo, heroScale), at, p.angle);
+      heroDiscs.push(...discs);
+      heroPieces.push(discs);
     });
   }
   const heroCentre: [number, number] = [
@@ -235,7 +244,9 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
       const each = Math.sqrt((Math.PI * (heroR * 0.82) ** 2 * (g.size === 'medium' ? 0.6 : 0.25)) / Math.max(1, part.count)) * 1.15;
       return Math.min(tier, (tier * Math.min(cap, each)) / Math.max(0.1, footprint(info, tier)));
     };
-    const scale = onTop ? fitTop() : fitWare(tier, info, cap);
+    // True size everywhere but by a glass (its garnish is cut small); a platform holds what fits.
+    const scale = idea.ware === 'glass' ? fitWare(tier, info, cap) : 1;
+    void fitTop;
     const shape = shapeFor(info, scale);
     const r = shape.r + shape.half;
     let spots: { at: [number, number]; angle: number }[];
@@ -248,7 +259,33 @@ export function composeLayoutPlan(idea: DishIdea, layout: LayoutSpec = layoutByI
       // On the platform itself, never in a gap between two slices of toast or over the board
       // (item 6): inside one of the hero's own coins (a toast is a row of them).
       const inside = (c: [number, number], rr: number) => heroDiscs.some((d) => Math.hypot(c[0] - d.c[0], c[1] - d.c[1]) + rr * 0.55 <= d.r * 0.92) && wareLimit(c, rr);
-      if (!top.length) {
+      if (hero.form === 'toast' && heroPieces.length > 1) {
+        // Two slices of toast: toppings dealt across both in turn (R4: spread across both slices),
+        // each kept inside its own slice.
+        spots = [];
+        for (let k = 0; k < part.count; k++) {
+          const order = [k % heroPieces.length, (k + 1) % heroPieces.length];
+          for (const t of order) {
+            const own = heroPieces[t];
+            const insideOwn = (c: [number, number], rr: number) => own.some((d) => Math.hypot(c[0] - d.c[0], c[1] - d.c[1]) + rr * 0.55 <= d.r * 0.92) && wareLimit(c, rr);
+            const centre: [number, number] = [own.reduce((a, d) => a + d.c[0], 0) / own.length, own.reduce((a, d) => a + d.c[1], 0) / own.length];
+            // The first piece on an empty slice goes near its middle; the rest grow from what is there
+            // (grow adds them to `top` itself).
+            const empty = !top.some((d) => own.some((o) => Math.hypot(d.c[0] - o.c[0], d.c[1] - o.c[1]) < o.r));
+            if (empty) {
+              const first = { at: [centre[0] + signed(random) * 0.5, centre[1] + signed(random) * 0.5] as [number, number], angle: random() * 360 };
+              top.push(...discsAt(shape, first.at, first.angle, isFlat(part)));
+              spots.push(first);
+              break;
+            }
+            const here = grow(top, 1, shape, centre, insideOwn, isFlat(part), random);
+            if (here.length && insideOwn(here[0].at, shape.r * 0.5)) {
+              spots.push(here[0]);
+              break;
+            }
+          }
+        }
+      } else if (!top.length) {
         // Starting on the platform itself (the middle of two toasts is the gap between them).
         const seat = heroDiscs.reduce((best, d) => (Math.hypot(d.c[0] - heroCentre[0], d.c[1] - heroCentre[1]) - d.r < Math.hypot(best.c[0] - heroCentre[0], best.c[1] - heroCentre[1]) - best.r ? d : best), heroDiscs[0]);
         const onSeat = inside(heroCentre, shape.r + shape.half) ? heroCentre : seat.c;

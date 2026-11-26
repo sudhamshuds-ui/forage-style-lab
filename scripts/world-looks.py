@@ -241,8 +241,9 @@ def looks_of(dish: dict) -> dict:
         if base and base['kind'] == 'soup' and ingredient in ('potato', 'tomato', 'pepper', 'spinach') and ingredient in text[:80]:
             base['from'] = ingredient
             continue
-        if ingredient == 'baguette' and dish['layout'] == 'toast-board':
-            shape = 'toast'
+        if ingredient == 'baguette':
+            # Toast is the vehicle on a toast board; anywhere else bread is croutons.
+            shape = 'toast' if dish['layout'] == 'toast-board' else 'cube'
         elif ingredient == 'potato' and dish['layout'] == 'mash-plate':
             shape = 'mash'
         elif ingredient == 'avocado' and re.search(r'smash|mashed avocado|guacamole', text):
