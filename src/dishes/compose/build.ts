@@ -641,18 +641,27 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         // (Only the first: an Unhinged heap of fruit sits on the table round the glass's foot.)
         // (Only a cut of fruit or vegetable goes on the rim; a piece of meat or bread sits beside.)
         const rimCut = ['wheel', 'slice', 'wedge', 'half', 'strip', 'berry', 'cube', 'leaf'].includes(p.part.form) && !['steak', 'salmon', 'chicken', 'eggs', 'baguette', 'potato', 'cheese', 'butter', 'garlic'].includes(p.part.ingredient);
-        if (kind === 'drink' && served && p.size === 'big' && p.index === 0 && (rimCut || isComponent(p.part.ingredient))) {
+        // A citrus wheel or wedge beside the drink goes on the rim too (R4: one lay flat by the glass),
+        // a second garnish on the far side of the rim.
+        const citrusRim = ['lemon', 'lime', 'orange'].includes(p.part.ingredient) && ['wheel', 'wedge'].includes(p.part.form) && rimServed.length < 2 && !rimServed.includes(p.part.ingredient);
+        if (kind === 'drink' && served && ((p.size === 'big' && p.index === 0 && (rimCut || isComponent(p.part.ingredient))) || (citrusRim && rimServed.length > 0))) {
           // Every garnish stands upright on the rim through a slit (Group 3): the rim runs two fifths
           // of the way into it, half of it hangs outside the glass, and it leans about 12 degrees out.
           // Only a leaf floats in the drink.
           // (Whipped cream, a staple cap on a drink with nothing to cut, sits on the drink, not the rim.)
           const onRim = p.part.form !== 'leaf' && !isComponent(p.part.ingredient);
-          const a = Math.PI * 1.15;
+          const a = Math.PI * (rimServed.length ? 1.82 : 1.15);
           const radial = new Vector3(Math.cos(a), 0, Math.sin(a));
           const tangent = new Vector3(-Math.sin(a), 0, Math.cos(a));
           // Flat cuts are stood up, their face to the side (turned a quarter round the radial line).
           const standUp = ['wheel', 'slice', 'wedge', 'half', 'strip'].includes(p.part.form);
-          const stood = onRim && standUp ? posed(turned, new Matrix4().makeRotationAxis(radial, Math.PI / 2)) : turned;
+          // At true size, never the ware's fit scale (R4: the strawberry on the rim read as a big
+          // wedge): a citrus wheel at most 5.5 cm, any other cut at most 3.2 cm (a small half berry).
+          const own = posed(element, { turn: (-p.angle * Math.PI) / 180 });
+          const most = Math.max(0.1, footprintOf(own), boundsOf(own).max.y - boundsOf(own).min.y);
+          const cap = ['lemon', 'lime', 'orange'].includes(p.part.ingredient) ? 5.5 : 3.2;
+          const sized = most > cap ? posed(own, { scale: cap / most }) : own;
+          const stood = onRim && standUp ? posed(sized, new Matrix4().makeRotationAxis(radial, Math.PI / 2)) : onRim ? sized : turned;
           // Then tipped outward (a turn about the tangent moves the top out for a negative angle).
           const upright = onRim ? posed(stood, new Matrix4().makeRotationAxis(tangent, (-12 * Math.PI) / 180)) : stood;
           const box = boundsOf(upright);

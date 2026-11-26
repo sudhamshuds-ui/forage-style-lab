@@ -1843,6 +1843,13 @@ if (kind > 0 && amount > 0.0) {
       // (light through it), slow swirls; a wet shine broken into glints.
       float rn = vSurfaceUv.x;
       lab = depthWash(lab, cm, vec3(0.03, 0.005, 0.03), vec3(-0.05, 0.02, -0.03), 0.0, 0.8 * amount);
+      // A drink in a glass (map y -1 at its floor, -2 at its surface): deeper and richer low, lighter
+      // and a touch clearer toward the top, a soft vertical gradient (R4).
+      if (vSurfaceUv.y < -0.5) {
+        float up = clamp(-vSurfaceUv.y - 1.0, 0.0, 1.0);
+        lab.x += (up - 0.55) * 0.11;
+        lab.yz *= mix(1.12, 0.9, up);
+      }
       lab.x -= (1.0 - smoothstep(0.2, 0.9, rn)) * 0.045 * amount;
       float thin = smoothstep(0.7, 1.0, rn);
       lab = mix(lab, linearToOklab(uGlowColour), thin * 0.35 * amount);

@@ -40,7 +40,8 @@ const SHAPES: Record<GlassKind, GlassShape> = {
   // A wide shallow bowl on a stem.
   coupe: { outer: stemmed(3.6, 7.5, [[0.5, 0], [2.6, 0.6], [4.2, 1.8], [5.0, 3.3], [5.2, 4.2]]), floor: 8.1, wall: 0.14, fill: 0.7 },
   // A tulip bowl on a tall stem.
-  wine: { outer: stemmed(3.8, 8, [[0.5, 0], [2.6, 0.9], [3.8, 2.8], [4.1, 5], [3.7, 8]]), floor: 8.7, wall: 0.14, fill: 0.45 },
+  // 21 cm tall (real-world-sizes.json: 20 to 24 cm), not a short tasting glass.
+  wine: { outer: stemmed(3.8, 11, [[0.5, 0], [2.6, 1.0], [3.8, 3.3], [4.1, 6], [3.7, 10]]), floor: 11.8, wall: 0.14, fill: 0.45 },
   // A small bell on a stem.
   'nick-and-nora': { outer: stemmed(3.1, 6.5, [[0.45, 0], [2.2, 0.7], [3.2, 2.4], [3.4, 4.2], [3.25, 5.6]]), floor: 7.1, wall: 0.13, fill: 0.68 },
 };
@@ -157,7 +158,18 @@ export function glass(kind: GlassKind, at: [number, number], random: () => numbe
   const lathe = (points: Vector2[]) => smoothLathe(points, at);
   // In a stemmed glass the drink casts no shadow of its own: the glass's foot and stem do, so the
   // shadow starts at the foot instead of a separate disc beside it (Group 3).
-  const pieces: FormPiece[] = [{ role: 'drink', geometry: lathe(drinkProfile), noShadow: STEMMED.includes(kind) || undefined }];
+  const drink = lathe(drinkProfile);
+  // A vertical gradient (R4: the liquid read flat): the map's y carries the height up the drink,
+  // marked negative (-1 at the floor, -2 at the surface) so the sauce skin paints it deeper low
+  // and lighter toward the top; x stays mid-pool, so no pale edge.
+  const dpos = drink.getAttribute('position');
+  const duv = new Float32Array(dpos.count * 2);
+  for (let i = 0; i < dpos.count; i++) {
+    duv[i * 2] = 0.45;
+    duv[i * 2 + 1] = -1 - Math.min(1, Math.max(0, (dpos.getY(i) - s.floor) / Math.max(0.1, level - s.floor)));
+  }
+  drink.setAttribute('uv', new BufferAttribute(duv, 2));
+  const pieces: FormPiece[] = [{ role: 'drink', geometry: drink, noShadow: STEMMED.includes(kind) || undefined }];
 
   // A thin rim line in the glass's own tint (never a white band).
   const rimLine = new TorusGeometry(rimR - s.wall / 2, 0.045, 8, 160);
@@ -175,24 +187,17 @@ export function glass(kind: GlassKind, at: [number, number], random: () => numbe
     pieces.push({ role: 'glassGlint', geometry: streak(outer, angle, y0, y1, 0.09 + 0.05 * (k === 0 ? 1 : 0), at) });
   }
 
-  // A faint etched band round a tumbler or highball, a third of the way up: a little more glass.
-  if (kind === 'highball' || kind === 'rocks') {
-    const y0 = s.floor + (top - s.floor) * 0.28;
-    const band: Vector2[] = [];
-    for (let i = 0; i <= 6; i++) {
-      const y = y0 + (0.55 * i) / 6;
-      band.push(new Vector2(radiusAt(outer, y) + 0.02, y));
-    }
-    pieces.push({ role: 'glassBand', geometry: lathe(band), doubleSided: true, seeThrough: 0.14 });
-  }
+  // (No etched band: on the painted glass it read as a pale stripe, R4.)
 
   // Ice: two small, clear cubes in the drink, their tops showing above it.
   if (ice) {
-    const n = 2;
+    // True-size cubes, 2.5 to 3 cm (real-world-sizes.json; smaller read as crushed ice): two in a wide
+    // glass, one in a narrow one.
+    const n = r0 >= 3.6 ? 2 : 1;
+    const size = n === 2 ? Math.min(2.6, r0 * 0.65) : Math.min(2.6, r0 * 0.8);
     for (let k = 0; k < n; k++) {
-      const size = Math.min(1.15, r0 * 0.42);
-      const a = (k / n) * Math.PI * 2 + random();
-      const d = (r0 - size * 0.75) * (0.35 + random() * 0.3);
+      const a = (k / n) * Math.PI * 2 + random() * 0.6;
+      const d = n === 2 ? Math.max(0, r0 - size * 0.8) : (r0 - size * 0.7) * random() * 0.4;
       const cube = iceCube(size);
       cube.rotateY(random() * Math.PI);
       cube.rotateX((random() - 0.5) * 0.5);
