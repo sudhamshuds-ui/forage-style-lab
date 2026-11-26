@@ -276,7 +276,7 @@ const JUICE_ORDER = ['watermelon', 'strawberry', 'orange', 'apple', 'pear', 'pea
 /** The cut that rests against the glass. */
 const GLASS_CUT: Record<string, string> = {
   watermelon: 'cube', strawberry: 'half', orange: 'wheel', apple: 'slice', pear: 'slice', peach: 'slice', grapes: 'berry', blueberries: 'berry',
-  lime: 'wheel', lemon: 'wheel', tomato: 'wedge', pepper: 'strip', avocado: 'slice', spinach: 'leaf',
+  lime: 'wheel', lemon: 'wheel', tomato: 'wheel', pepper: 'strip', avocado: 'slice', spinach: 'leaf', onion: 'wheel',
 };
 
 /** Unhinged's other cut by the glass. */
@@ -369,12 +369,30 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
     const cut = pour && GLASS_CUT[pour];
     const wildCut = pour && GLASS_CUT_WILD[pour] && Object.values(TRAITS[pour].forms).flat().includes(GLASS_CUT_WILD[pour]) ? GLASS_CUT_WILD[pour] : undefined;
     const heap = band(wild) === 2;
+    // Only what is on the table (Group 2: a lemon wheel appeared with no lemon). The rim garnish is
+    // the drink's own fruit, else another table ingredient with a cut; with nothing to cut, a cap of
+    // whipped cream (a staple), never an invented fruit.
+    // (By a glass, broccoli is a small halved floret, never a whole head.)
+    // Leaves beside a glass read as litter: cabbage and romaine are blended into the drink.
+    const GLASS_PIECE: Record<string, string> = { broccoli: 'half', cabbage: 'blend', romaine: 'blend' };
+    const garnishFrom = [...left].find((id) => GLASS_CUT[id]);
     if (cut) hero = { id: pour!, form: heap && wildCut ? wildCut : cut, count: heap ? 3 : 1 };
-    else hero = { id: heap ? 'lime' : 'lemon', form: 'wheel', count: heap ? 3 : 1 };
-    // What cannot go in or beside a drink (meat, bread, garlic) goes into the glass's flavour.
+    else if (garnishFrom) (hero = { id: garnishFrom, form: GLASS_CUT[garnishFrom], count: 1 }), take(garnishFrom);
+    else {
+      // Nothing to cut: the table's other ingredient is the garnish beside the glass (a savoury
+      // glass never gets a cap of cream); only a glass of nothing but its drink gets the cream.
+      const other = [...left].find((id) => !['milk', 'butter', 'cheese', 'sauce', 'rice'].includes(id) && GLASS_PIECE[id] !== 'blend' && (GLASS_PIECE[id] ?? formFor(id, 'support', 0, random) ?? formFor(id, 'accent', 0, random)));
+      if (other) (hero = { id: other, form: GLASS_PIECE[other] ?? formFor(other, 'support', 0, random) ?? formFor(other, 'accent', 0, random)!, count: 1 }), take(other);
+      else hero = heap ? { id: 'quenelle', form: 'ice-cream', count: 1 } : { id: 'whip', form: 'cream', count: 1 };
+    }
+    // Unhinged piles it on: three of the garnish (by the glass) instead of one.
+    if (heap && !isComponent(hero.id)) hero.count = 3;
+    // Every other table ingredient shows: a cut by the glass, or a small piece beside it (a crisp of
+    // bread, a slice of steak), never hidden in the glass where nobody sees it.
     for (const id of [...left]) {
       const c = GLASS_CUT[id];
-      if (c) support.push({ id, form: c, count: c === 'berry' ? 3 : 1 });
+      const piece = c ?? GLASS_PIECE[id] ?? formFor(id, 'support', 0, random) ?? formFor(id, 'accent', 0, random) ?? formFor(id, 'hero', 0, random);
+      if (piece && !['mash', 'pancake', 'cake', 'pastry', 'blend'].includes(piece)) support.push({ id, form: piece, count: c === 'berry' || heap ? 3 : 1 });
       else inBase.push(id);
       take(id);
     }
@@ -523,9 +541,10 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
       const form = (TRAITS[any].forms.accent ?? TRAITS[any].forms.support!)[0];
       heroFrom(any, form, any === 'garlic' ? 9 : 5);
     } else if (course === 'dessert') hero = { id: 'whip', form: 'cream', count: 3 };
-    else hero = { id: 'garlic', form: 'chip', count: 9 };
+    else hero = { id: 'whip', form: 'cream', count: 1 };
   }
-  hero ??= { id: 'garlic', form: 'chip', count: 9 };
+  // (Never invented garlic: the last resort is a staple, a little whipped cream.)
+  hero ??= { id: 'whip', form: 'cream', count: 1 };
   if (ids.includes(hero.id) && !['tart', 'pancake-stack', 'toast-board'].includes(layout.id)) star = hero.id;
 
   // ---- The support bunch, then accents: generous counts (volume, never one lonely piece) ----

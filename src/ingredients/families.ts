@@ -247,7 +247,8 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   },
   glass: {
     name: 'Glass',
-    colours: { lit: '#f4eff3', base: '#ddd3de', shadow: '#97849a', glow: '#f1e6ee', highlight: '#ffffff' },
+    // Clear and neutral, a breath of cool (a lilac glass turned every drink purple, R4).
+    colours: { lit: '#f8fbfc', base: '#e6edf0', shadow: '#a9b6c0', glow: '#f2f7f8', highlight: '#ffffff' },
     rooms: [],
   },
   // Not a board 04 family: only for parts (labels, wrappers). Warm cream paper, the shadow a
@@ -939,7 +940,8 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // A tomato juice: scarlet, a wine shade.
   'drink-red': {
     name: 'Red drink',
-    colours: { lit: '#ff8a6a', base: '#d8442e', shadow: '#7a1e3e', glow: '#ff5a34', highlight: '#ffe8e0' },
+    // (A tomato red, its shade a deep brick, never plum: through the glass it read purple.)
+    colours: { lit: '#ff7a52', base: '#d83a22', shadow: '#8e2a1c', glow: '#ff5a2a', highlight: '#ffe4d6' },
     rooms: [],
   },
   // A green juice: leaf green, a blue-green shade.

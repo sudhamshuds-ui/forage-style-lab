@@ -125,6 +125,26 @@ describe('pickDish (the P0 list)', () => {
     expect(idea.title).not.toMatch(/salad/i);
   });
 
+  it('renders only what is on the table, or a staple (Group 2)', () => {
+    // Staples a kitchen always has: toast and pancake batter; and the library's components.
+    const STAPLES = new Set(['baguette:toast', 'milk:pancake']);
+    for (const { ids, choices, seed } of everyCook()) {
+      const idea = pickDish(ids, choices, seed);
+      const where = `${ids.join('+')} ${choices.course} ${choices.taste} ${choices.wild}: ${idea.title} [${idea.big}; ${idea.medium}; ${idea.small}]`;
+      for (const p of piecesOf(idea)) {
+        if (ids.includes(p.ingredient) || isComponent(p.ingredient) || STAPLES.has(`${p.ingredient}:${p.form}`)) continue;
+        throw new Error(`${where}: ${p.ingredient}:${p.form} is not on the table`);
+      }
+    }
+    // The reported cases: a drink of bread, tomato and broccoli; milk and red onion as a drink.
+    const tomatoDrink = pickDish(['baguette', 'tomato', 'broccoli'], { course: 'Drink', taste: 'Savoury', wild: 60 }, 1);
+    expect(tomatoDrink.base === 'drink:tomato' || tomatoDrink.blended?.includes('tomato')).toBe(true);
+    expect(piecesOf(tomatoDrink).every((p) => ['baguette', 'tomato', 'broccoli'].includes(p.ingredient) || isComponent(p.ingredient))).toBe(true);
+    const onionDrink = pickDish(['milk', 'onion'], { course: 'Drink', taste: 'Savoury', wild: 60 }, 1);
+    expect(piecesOf(onionDrink).some((p) => p.ingredient === 'onion')).toBe(true);
+    expect(piecesOf(onionDrink).some((p) => p.ingredient === 'lemon')).toBe(false);
+  });
+
   it('never shows an avocado half or its seed', () => {
     for (const { ids, choices, seed } of everyCook()) {
       if (!ids.includes('avocado')) continue;

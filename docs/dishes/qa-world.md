@@ -4,13 +4,13 @@
 
 | Table | Dish | Cuisine | Layout | Widest gap | Result |
 |---|---|---|---|---|---|
-| onion + watermelon + eggs (Drink, Both, wild 88) | Subak Hwachae | Korean | glass-drink | 0.36 | pass |
+| onion + watermelon + eggs (Drink, Both, wild 88) | Subak Hwachae | Korean | glass-drink | 0.26 | pass |
 | sauce + steak + strawberry (Main, Sweet, wild 71) | Korean Beef Bulgogi | Korean | circular-plate | 0.33 | pass |
 | eggs + chicken + onion (Main, Sweet, wild 97) | Shakshouka | North African | skillet-bake | 0.04 | pass |
 | pepper (Snack, Savoury, wild 83) | Rajas con Crema | Mexican | skillet-bake | 0.07 | pass |
 | rice + spinach + milk (Dessert, Savoury, wild 21) | Indian Rice Kheer | Indian | dessert-bowl | 0.33 | pass |
 | rice + avocado (Main, Both, wild 99) | Zereshk Polo | Persian | rice-bowl | 0.29 | pass |
-| garlic + milk + cheese (Drink, Both, wild 44) | Persian Doogh | Persian | glass-drink | 0.00 | pass |
+| garlic + milk + cheese (Drink, Both, wild 44) | Persian Doogh | Persian | glass-drink | 0.47 | pass |
 | milk + salmon (Main, Savoury, wild 30) | Hawaiian Lomi-lomi Salmon | Hawaiian | tartare-crudo | 0.37 | pass |
 | salmon + milk + steak (Main, Both, wild 54) | Asado with Chimichurri | Argentine | circular-plate | 0.06 | pass |
 | eggs (Snack, Sweet, wild 26) | Chawanmushi | Japanese | dessert-bowl | 0.27 | pass |

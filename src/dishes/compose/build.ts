@@ -449,6 +449,8 @@ export function composedBuilder(original: DishIdea): FormBuilder {
     const w = makeWare(idea, seed, fit);
     /** True when a spot (with a half size) lies on the ware's top. */
     const onTheWare = (c: [number, number], hx: number, hz: number, margin = 1.2): boolean => {
+      // Beside a glass: on the table, clear of the glass (a broccoli head was laid on its rim).
+      if (served) return Math.hypot(c[0] - baseAt[0], c[1] - baseAt[1]) - Math.max(hx, hz) > glassRadius(served.kind) + 0.2 && Math.hypot(c[0] - baseAt[0], c[1] - baseAt[1]) < 14;
       if (fit && idea.ware === 'board') return Math.abs(c[0] - fit.at[0]) + hx < fit.hx - margin * 0.66 && Math.abs(c[1] - fit.at[1]) + hz < fit.hz - margin * 0.66;
       if (fit) return Math.hypot(c[0] - fit.at[0], c[1] - fit.at[1]) + Math.max(hx, hz) < fit.r - margin;
       return idea.ware === 'board' ? Math.abs(c[0]) + hx < 13.5 && Math.abs(c[1]) + hz < 9.5 : Math.hypot(c[0], c[1]) + Math.max(hx, hz) < Math.max(WARE_PLAN[idea.ware].reach + 0.5, WARE_PLAN[idea.ware].plate - 1.5);
@@ -584,7 +586,8 @@ export function composedBuilder(original: DishIdea): FormBuilder {
           const clear = probes.every(([x, z]) => here.height(x, z) - base.height(x, z) < 0.15);
           // Touching the bunch: food just past its edge on at least one side (never a lonely island).
           const reachOut = Math.max(hx, hz) + 0.6;
-          let touching = r === 0;
+          // (Beside a glass, leaning by the glass counts as touching: it is part of the dish.)
+          let touching = r === 0 || (!!served && Math.hypot(c[0] - baseAt[0], c[1] - baseAt[1]) - Math.max(hx, hz) < glassRadius(served.kind) + 0.6);
           for (let j = 0; j < 12 && !touching; j++) {
             const b = (j / 12) * Math.PI * 2;
             const [x, z] = [c[0] + Math.cos(b) * reachOut, c[1] + Math.sin(b) * reachOut];
@@ -598,6 +601,13 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       }
       if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('freeSpot', JSON.stringify(dbgCount), hx.toFixed(1), hz.toFixed(1));
       return null;
+    };
+    /** True when a piece rests over the glass's footprint (on its rim or in it). */
+    const p_overGlass = (pieces: FormPiece[]): boolean => {
+      if (!served) return false;
+      const box = boundsOf(pieces);
+      const c: [number, number] = [(box.min.x + box.max.x) / 2, (box.min.z + box.max.z) / 2];
+      return Math.hypot(c[0] - baseAt[0], c[1] - baseAt[1]) < glassRadius(served.kind) + 0.3 || box.min.y > 1.5;
     };
     let heroFood = -1;
     let syrupPoured = false;
@@ -628,11 +638,14 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         const lifted = posed(turned, { at: [p.at[0], 20, p.at[1]] });
         // On a drink, the hero garnish sits on the glass's rim.
         // (Only the first: an Unhinged heap of fruit sits on the table round the glass's foot.)
-        if (kind === 'drink' && served && p.size === 'big' && p.index === 0) {
+        // (Only a cut of fruit or vegetable goes on the rim; a piece of meat or bread sits beside.)
+        const rimCut = ['wheel', 'slice', 'wedge', 'half', 'strip', 'berry', 'cube', 'leaf'].includes(p.part.form) && !['steak', 'salmon', 'chicken', 'eggs', 'baguette', 'potato', 'cheese', 'butter', 'garlic'].includes(p.part.ingredient);
+        if (kind === 'drink' && served && p.size === 'big' && p.index === 0 && (rimCut || isComponent(p.part.ingredient))) {
           // Every garnish stands upright on the rim through a slit (Group 3): the rim runs two fifths
           // of the way into it, half of it hangs outside the glass, and it leans about 12 degrees out.
           // Only a leaf floats in the drink.
-          const onRim = p.part.form !== 'leaf';
+          // (Whipped cream, a staple cap on a drink with nothing to cut, sits on the drink, not the rim.)
+          const onRim = p.part.form !== 'leaf' && !isComponent(p.part.ingredient);
           const a = Math.PI * 1.15;
           const radial = new Vector3(Math.cos(a), 0, Math.sin(a));
           const tangent = new Vector3(-Math.sin(a), 0, Math.cos(a));
@@ -707,8 +720,10 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         // away even then leaves the dish: counted by the QA as lost, never left on the table.
         const rimFloor = idea.ware === 'glass' ? undefined : w.floor;
         const again: FormPiece[][] = [];
+        // (By a glass, a piece that came to rest on the glass is off the table too: it is laid again.)
+        const offGlass = (pieces: FormPiece[]) => !served || !p_overGlass(pieces);
         for (let i = dropped.length - 1; i >= 0; i--) {
-          if (onPlate(dropped[i], rimFloor)) continue;
+          if (onPlate(dropped[i], rimFloor) && offGlass(dropped[i])) continue;
           for (const piece of dropped[i]) parts.splice(parts.indexOf(piece), 1);
           food.splice(food.indexOf(dropped[i]), 1);
           const copy = copies.get(dropped[i]);
@@ -729,7 +744,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
           physics.settle();
           physics.bakeNew();
           for (const copy of again) {
-            if (!onPlate(copy, rimFloor)) {
+            if (!onPlate(copy, rimFloor) || !offGlass(copy)) {
               // Off the ware twice: laid again by hand below (generated dishes), else lost.
               if (idea.layout) offPlate.push(copy);
               else lost++;
