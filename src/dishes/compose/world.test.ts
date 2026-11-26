@@ -37,20 +37,23 @@ describe('world dish library', () => {
       expect(idea.title.toLowerCase(), id).not.toBe(id);
       expect(idea.title.split(/\s+/).length, idea.title).toBeGreaterThanOrEqual(idea.world ? 1 : 3);
     }
-    // (Fewer since the looks notes: a dish the renderer cannot paint as it looks is refused.)
-    expect(world).toBeGreaterThanOrEqual(15);
+    // (Fewer since the looks notes: a dish the renderer cannot paint as it looks is refused, and a
+    // single ingredient rarely shows everything a dish's minimum to claim its name asks for.)
+    expect(world).toBeGreaterThanOrEqual(10);
   });
 
   it('matches the key combinations (6.3)', () => {
     expect(cook(['watermelon', 'cheese'], { course: 'Starter', taste: 'Both', wild: 0 }).title).toBe('Gibna wa Bateeikh');
     // (At Classic the brief's scoring prefers the Italian omelette; the Persian dish leads at Unhinged.)
     expect([0, 50, 100].flatMap((wild) => [0, 1, 2].map((n) => cook(['spinach', 'eggs'], { course: 'Main', taste: 'Savoury', wild }, n).title))).toContain('Nargesi Esfenaj');
-    const guac = cook(['avocado', 'tomato'], { course: 'Starter', taste: 'Savoury', wild: 0 });
+    // (The hand-authored note's minimum to claim the name: smashed avocado, tomato and lime.)
+    const guac = cook(['avocado', 'tomato', 'lime'], { course: 'Starter', taste: 'Savoury', wild: 0 });
     expect(guac.title).toBe('Mexican Guacamole');
     expect(pieces(guac).some((p) => p.ingredient === 'avocado' && ['half', 'pit'].includes(p.form))).toBe(false);
     // Tomato and bread: Salmorejo ties for first (with two toasts); a step out reaches it within a few
     // presses, a soup in the deep bowl with the table's bread in it (bread only when chosen, rule A).
-    const soups = [0, 1, 2, 3, 4, 5].map((n) => cook(['tomato', 'baguette'], { course: 'Starter', taste: 'Savoury', wild: 50 }, n));
+    const soups = [0, 1, 2, 3, 4, 5].map((n) => cook(['tomato', 'baguette', 'eggs'], { course: 'Starter', taste: 'Savoury', wild: 50 }, n));
+    // (The note's minimum to claim the name includes its egg garnish.)
     const tomatoBread = soups.find((idea) => idea.layout === 'soup-bowl')!;
     expect(tomatoBread?.title).toBe('Cordoban Salmorejo');
     expect(pieces(tomatoBread).some((p) => p.ingredient === 'baguette')).toBe(true);

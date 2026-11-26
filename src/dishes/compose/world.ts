@@ -41,18 +41,20 @@ export interface WorldDish {
 export interface Looks {
   vessel: 'bowl' | 'deep-bowl' | 'kadai' | 'ramekin' | 'plate' | 'board' | 'glass' | 'tart';
   base: { colour: string; texture: string; family: FamilyId; from?: string } | null;
-  pieces: { ingredient: string; shape: string; sink: 'none' | 'third' | 'half' }[];
+  pieces: { ingredient: string; shape: string; sink: 'none' | 'third' | 'half'; size_cm?: number }[];
   finish: string;
   never: string[];
   needs: string[];
   savoury?: boolean;
+  /** The note's minimum to claim the name (docs/forage-specs/world-dish-looks.json). */
+  claim?: string[];
 }
 
 /** Vessels the renderer can paint, and the layouts each means. */
 export const VESSEL_LAYOUTS: Record<string, LayoutId[]> = {
   plate: ['circular-plate', 'tartare-crudo', 'composed-plate', 'mash-plate', 'skewer-platter', 'plated-dessert', 'pancake-stack', 'leaf-salad', 'dessert-bowl'],
-  bowl: ['skillet-bake', 'dessert-bowl', 'leaf-salad', 'soup-bowl', 'circular-plate', 'mash-plate', 'pancake-stack'],
-  'deep-bowl': ['rice-bowl', 'soup-bowl', 'skillet-bake'],
+  bowl: ['skillet-bake', 'dessert-bowl', 'leaf-salad', 'soup-bowl', 'circular-plate', 'mash-plate', 'pancake-stack', 'tartare-crudo', 'rice-bowl'],
+  'deep-bowl': ['rice-bowl', 'soup-bowl', 'skillet-bake', 'circular-plate'],
   board: ['toast-board', 'skewer-platter'],
   glass: ['glass-drink'],
   tart: ['tart'],
@@ -129,6 +131,15 @@ export function scoreWorldDish(dish: WorldDish, table: string[], choices: Choice
   // The dish's lead hero is on the table (a "Cilbir" is eggs), and the name never promises what the
   // pantry cannot plate (duck, lamb, prawns).
   if (!table.includes(dish.heroes[0])) return -Infinity;
+  // Every ingredient the note's minimum to claim the name shows has to be on the table (Colcannon
+  // is mash with cabbage; Palak Paneer needs the spinach and the paneer).
+  for (const need of dish.looks.claim ?? []) {
+    const text = need.toLowerCase();
+    if (/^(no|never|not)\b/.test(text)) continue;
+    const named = (Object.keys(NAME_WORDS) as string[]).filter((id) => NAME_WORDS[id].test(text));
+    // (One of several named is enough: "lemon or lime".)
+    if (named.length && !named.some((id) => table.includes(id))) return -Infinity;
+  }
   if (/duck|lamb|pork|shrimp|prawn|tuna|\bcod\b|crab|bacon|\bham\b|turkey|tofu|noodle|pasta|ramen|udon|spaghetti|coffee|ca phe/.test(name)) return -Infinity;
   let score = 0;
   for (const id of table) {
@@ -223,8 +234,16 @@ export function worldComponents(dish: WorldDish, table: string[], sweet: boolean
     else if (/oil|gloss|dressing|vinaigrette/.test(text)) add(componentGarnish('oil-dot', 'herb-oil', 9));
     else if (/herb|cilantro|parsley|mint|dill|basil|thyme|chive|scallion|microgreen|fronds|leaves|leaf|sprig|oregano|tarragon/.test(text)) add(componentGarnish('microherb', 'leaf', 9));
   }
+  // What the looks note forbids (herbs on a dessert, syrup on a savoury dish, whipped cream, oil).
+  const never = (dish.looks?.never ?? []).map((w) => w.toLowerCase());
+  const banned = (c: DishComponent) =>
+    (c.kind === 'microherb' && never.some((w) => /^(savoury )?herbs\b/.test(w))) ||
+    (['honey', 'caramel'].includes(c.family) && c.kind === 'gel' && never.some((w) => /^(sweet )?syrup/.test(w))) ||
+    (c.part?.startsWith('whip:') && never.some((w) => /^(sweet )?whipped cream/.test(w))) ||
+    (c.kind === 'oil-dot' && never.some((w) => /^savoury oil/.test(w)));
+  const kept = out.filter((c) => !banned(c));
   // Sweet dishes: no herbs or savoury oils, whatever the recipe garnishes with.
-  return sweet ? out.filter((c) => c.kind !== 'microherb' && !['herb-oil', 'chili-oil', 'citrus-oil'].includes(c.family)) : out;
+  return sweet ? kept.filter((c) => c.kind !== 'microherb' && !['herb-oil', 'chili-oil', 'citrus-oil'].includes(c.family)) : kept;
 }
 
 /** Shapes that are one piece (a steak, a fillet, a dome of mash or smashed avocado). */

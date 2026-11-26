@@ -324,6 +324,7 @@ describe('pickDish', () => {
       for (const p of pieces.filter((q) => q.ingredient === 'pepper' && idea.ware !== 'glass' && !idea.sweet)) expect(p.count, `${idea.title}`).toBeGreaterThanOrEqual(2);
     }
     const bowl = pickDish(['chicken', 'rice'], { course: 'Main', taste: 'Savoury', wild: 0 }, 1);
-    expect(bowl.big).toBe('chicken:slice');
+    // (Sliced, or a drumstick when the world dish's looks note says so: never cubes on a plate.)
+    expect(['chicken:slice', 'chicken:drumstick']).toContain(bowl.big);
   });
 });

@@ -319,7 +319,8 @@ function capForTrueSize(slots: Slots): void {
   for (const p of [slots.hero, ...slots.support, ...slots.accent]) {
     if (!many.includes(p.form) || p.id === 'baguette') continue;
     const r = BODY[p.id]?.r ?? 2;
-    const cap = r >= 3.2 ? 3 : r >= 2.4 ? 4 : 99;
+    // (A full 7 cm onion slice is a big flat piece: two at most.)
+    const cap = p.id === 'onion' && p.form === 'wheel' ? 2 : r >= 3.2 ? 3 : r >= 2.4 ? 4 : 99;
     p.count = Math.min(p.count, cap, slots.layout.id === 'rice-bowl' ? 5 : 99);
   }
   // An area budget (cm², seen from above): what the vessel holds at true size without piling. The
@@ -1055,6 +1056,13 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number, opti
   const slots = assignSlots(table, varied, layout, random);
   // A world dish is rendered from its looks note: the shapes, the base and its colour.
   const look = world ? applyLooks(slots, world, table) : {};
+  // The ware is the note's vessel (guacamole in a bowl, palak paneer deep), not the layout's default.
+  // ('deep' is the rice bowl; a soup or a gravy goes in the deep soup bowl, ware 'bowl' with a soup base.)
+  if (world?.looks) {
+    const v = world.looks.vessel;
+    const rice = layout.id === 'rice-bowl';
+    slots.ware = v === 'plate' ? (slots.ware === 'slate' ? 'slate' : 'plate') : v === 'bowl' || v === 'deep-bowl' ? (rice ? 'deep' : 'bowl') : v === 'board' ? 'board' : v === 'glass' ? 'glass' : slots.ware;
+  }
   const GENERIC_TEXTURES = ['a glossy sauce pool', 'a smooth drink', 'a smooth soup', 'a sparkling drink', 'mixed rice with herb and vegetable flecks', 'a clear broth'];
   if (look.texture && !GENERIC_TEXTURES.includes(look.texture)) slots.texture = look.texture;
   capForTrueSize(slots);

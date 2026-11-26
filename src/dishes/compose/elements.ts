@@ -17,6 +17,9 @@ import { cutPieces, knife, withFrame } from '../kit/cut';
 import { inCm, posed } from '../kit/place';
 import { pool, wobble } from '../kit/pool';
 import { COOKED_PORTION } from '../forms/salmonPeach';
+
+/** A plated salmon portion at its true size (real-world-sizes.json: 12 x 5 x 2.5 cm). */
+const PLATED_PORTION = { ...COOKED_PORTION, length: 12, width: 5, height: 2.5 };
 import { BODY, type Part } from './layout';
 import { componentLooks, isComponent, makeComponent } from './components';
 
@@ -166,6 +169,9 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
     case 'cheese:crumble':
     case 'cheese:slice':
       return [{ role: id, family: 'cheese', skin: { kind: 'pores', size_mm: 1.2, amount: 0.3 } }];
+    case 'cheese:cube':
+      // Cubes are a fresh white cheese (paneer in a palak, feta in a salad), never orange cheddar.
+      return [{ role: id, family: 'shaving-white', skin: { ...FLESH_SKIN, pale: '#fffaf0', green: '#f3dcb0', seared: 0.25 } }];
     case 'potato:fries':
       // Thick-cut fries, golden brown and bright (the user, 2026-11-25), toasted a little at the ends.
       return [{ role: id, family: 'fries', skin: { kind: 'potato', size_mm: 2, amount: 0.3, seared: 0.25 } }];
@@ -652,7 +658,7 @@ export function makeElement(part: Part, random: () => number, seed: number): For
   switch (`${ingredient}:${form}`) {
     case 'salmon:fillet':
       // The approved cooked portion, its long side along z.
-      return settle(posed([{ role, geometry: salmonFillet(seed, COOKED_PORTION) }], { turn: Math.PI / 2 }));
+      return settle(posed([{ role, geometry: salmonFillet(seed, PLATED_PORTION) }], { turn: Math.PI / 2 }));
     case 'salmon:slice': {
       const field = boxField(1.7, 0.28, 3.75, 0.25);
       const wavy: Field = (x, y, z) => field(x, y - 0.18 * Math.sin(z * 0.9 + x * 0.4), z);
@@ -700,7 +706,8 @@ export function makeElement(part: Part, random: () => number, seed: number): For
     case 'chicken:torn':
       return settle([{ role, geometry: tornChicken(random) }]);
     case 'chicken:drumstick':
-      return settle(pantry(buildChicken({ state: 'whole', seed }), { meat_glow: 'chicken_meat_glow', knuckle: 'knuckle' }));
+      // True size: 12 x 4 cm (real-world-sizes.json), not the pantry's long 15 cm leg.
+      return settle(posed(pantry(buildChicken({ state: 'whole', seed }), { meat_glow: 'chicken_meat_glow', knuckle: 'knuckle' }), { scale: 0.8 }));
     case 'potato:whole':
       return settle(pantry(buildPotato({ state: 'whole', seed }), { skin: role }));
     case 'broccoli:whole':
@@ -733,13 +740,18 @@ export function makeElement(part: Part, random: () => number, seed: number): For
       return settle([{ role, geometry: g, doubleSided: true }]);
     }
     case 'onion:wheel': {
-      // A single ring of red onion: a soft band, paler inside, magenta at its edge.
-      const R = 1.6 + random() * 1.1;
-      const field: Field = (x, y, z) => Math.hypot(Math.hypot(x, z) - R, y / 0.8) - 0.2;
-      const g = cutBody(field, [], { reach: R + 0.4, depth: 0.2, rounding: 0 });
+      // A full slice of a 7 cm red onion, 0.4 cm thick (real-world-sizes.json: never a small inner
+      // ring): a flat disc, its rings drawn as fine magenta lines, magenta at its edge.
+      const R = 3.3 + random() * 0.3;
+      const field: Field = (x, y, z) => Math.max(Math.hypot(x, z) - R, Math.abs(y) - 0.2);
+      const g = cutBody(field, [], { reach: R + 0.3, depth: 0.2, rounding: 0.12 });
       const pos = g.getAttribute('position');
       const uv = g.getAttribute('uv') as BufferAttribute;
-      for (let i = 0; i < pos.count; i++) uv.setX(i, Math.min(1.2, 0.5 + Math.max(0, Math.hypot(pos.getX(i), pos.getZ(i)) - R + 0.2) * 2));
+      for (let i = 0; i < pos.count; i++) {
+        const rr = Math.hypot(pos.getX(i), pos.getZ(i));
+        const line = Math.pow(Math.abs(Math.sin((rr * Math.PI) / 0.6)), 8);
+        uv.setX(i, rr > R - 0.22 ? 1.15 : 0.5 + 0.42 * line * Math.min(1, rr / 1.2));
+      }
       return settle([{ role, geometry: g }]);
     }
     case 'cheese:crumble':
@@ -768,10 +780,12 @@ export function makeElement(part: Part, random: () => number, seed: number): For
     case 'baguette:toast':
       return settle(toast(role, random, ingredient));
     case 'avocado:smash':
-      return mound(role, random, 3.6, 1.0, 1.1);
+      // A rough dome 8 cm across, 3 cm tall (real-world-sizes.json), never a puddle.
+      return mound(role, random, 4.0, 1.1, 1.9);
     case 'potato:mash':
       // A low, wide dome with spoon swirls (item 9), not a flat pancake of mash.
-      return mound(role, random, 5.4, 1.1, 0.9);
+      // 10 cm across, 3.5 cm tall (real-world-sizes.json).
+      return mound(role, random, 5.0, 1.4, 2.1);
     case 'milk:mash':
       return mound(role, random, 4.2, 2.4);
     case 'avocado:half': {

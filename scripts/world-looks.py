@@ -1,274 +1,216 @@
-"""Write a "looks" note into every world dish (src/dishes/worldDishes.json).
+"""
+Import the hand-authored looks notes (docs/forage-specs/world-dish-looks.json) into
+src/dishes/worldDishes.json as each dish's `looks`, in the shape the renderer reads.
 
-Run: python3 scripts/world-looks.py
-
-A looks note says what the dish must look like on the card, so the Kitchen can render it honestly
-(the user, 2026-11-26: "World dishes must look like the real dish"):
-
-  vessel   bowl, deep-bowl, kadai, ramekin, plate, board, glass or tart
-  base     the colour and texture of what the food sits in (a gravy, a soup, a sauce, the rice, the
-           drink) and the colour family the painting uses for it; `from` names the table
-           ingredient that becomes the base (spinach in a palak gravy)
-  pieces   the shape of each table ingredient on the plate (cube, slice, torn, whole...), and how
-           far it sinks into the base
-  finish   the signature finishing touch, in words
-  never    what the dish must never show
-  needs    features the renderer cannot paint yet (a boat of bread, a cracked caramel top, torn
-           pancake pieces): a dish with any need is refused and a template dish cooks instead
-
-Most notes are read from each dish's plating notes with simple word rules; the dishes the user
-named, and others the rules get wrong, are written by hand in OVERRIDES.
+The notes replace the old regex guesses. What the renderer cannot paint honestly yet (a vessel it
+has no mesh for, a non-pantry ingredient, a form the kit cannot build, a melted cheese cap, and the
+dishes the notes' README lists as refused) lands in `needs`, and a dish with needs is refused.
 """
 import json
 import re
 from pathlib import Path
 
-PATH = Path(__file__).resolve().parent.parent / 'src' / 'dishes' / 'worldDishes.json'
+ROOT = Path(__file__).resolve().parent.parent
+PATH = ROOT / 'src' / 'dishes' / 'worldDishes.json'
+NOTES = ROOT / 'docs' / 'forage-specs' / 'world-dish-looks.json'
 
-# What the renderer cannot paint yet: a dish whose name or plating notes need one is refused.
-UNSUPPORTED = [
-    (r'\bboat', 'a boat of bread'),
-    (r'brul[eé]e|cracked caramel|torched', 'a cracked caramel top in a ramekin'),
-    (r'ramekin|souffl', 'a ramekin'),
-    (r'kadai|karahi|wok', 'a kadai'),
-    (r'\btorn\b.*pancake|schmarrn', 'torn pancake pieces'),
-    (r'dumpling|wonton|gyoza|momo', 'dumplings'),
-    (r'noodle|pasta|spaghetti|linguine|ramen|udon|pho\b', 'noodles'),
-    (r'tortilla|taco|wrap\b|burrito|quesadilla|chilaquiles', 'tortillas'),
-    (r'flatbread|pita|naan|injera|lavash|roti|paratha|crepe|blini', 'flatbread or crepes'),
-    (r'sphere|arancini|croquette|fritter|kofta|meatball', 'fried balls'),
-    (r'phyllo|filo|strudel|pie crust|pastry parcel|samosa|empanada|puff pastry', 'a pastry case'),
-    (r'roll(ed|s)?\b(?!.*cabbage)', 'rolls'),
-    (r'skewered nut|nut strand|churchkhela', 'candle-shaped nut strands'),
-    (r'jelly|gelatin|panna cotta|flan\b|custard pot|pudding cup', 'a set custard or jelly'),
-    (r'scrambled', 'scrambled egg'),
-    (r'stuffed|filled (pepper|tomato)|mahshi', 'stuffed vegetables'),
-    (r'gratin|crusted', 'a baked gratin crust'),
-    (r'dough|bun\b|bao|pav\b|rolls', 'bread rolls or dough'),
-    (r'jeon|latke|r[oö]sti|potato pancake|savou?ry pancake', 'a pan-fried cake'),
-    (r'omelet|tamagoyaki|frittata|tortilla espa|egg wedge|herb-egg|kuku', 'an omelette'),
-    (r'\bcake\b|cheesecake|sponge|clafoutis|cobbler|crumble\b|grunt', 'a baked cake or crumble'),
-    (r'compote|jam\b|preserve', 'a compote'),
-    (r'curd\b|paneer|tofu', 'fresh curd cheese'),
-]
+# README section 3: refused until the missing ingredient, geometry or vessel exists.
+REFUSED = {
+    'ca-phe-trung', 'duck-a-lorange', 'aloo-gobi', 'broccoli-orecchiette', 'broccoli-aglio-olio', 'cacio-e-pepe',
+    'vietnamese-pho-ga', 'egyptian-koshari', 'sichuan-chili-wontons', 'georgian-churchkhela', 'adjaruli-khachapuri',
+    'creme-brulee', 'austrian-kaiserschmarrn', 'crepes-suzette', 'egyptian-hawawshi', 'aloo-paratha', 'mumbai-pav-bhaji',
+    'ichigo-sando', 'schiacciata-uva', 'chicken-pastilla', 'greek-spanakopita', 'om-ali', 'chilaquiles', 'huevos-rancheros',
+    'british-eton-mess', 'peach-cobbler', 'blueberry-grunt', 'okonomiyaki', 'gamja-jeon', 'bubble-and-squeak',
+    'batates-mahshia', 'sicilian-arancini', 'indian-rasmalai', 'chawanmushi', 'broccoli-chawanmushi', 'gyeran-jjim',
+    'tamagoyaki', 'tortilla-espanola', 'kuku-sabzi', 'steak-tartare',
+}
+PANTRY = {
+    'steak', 'salmon', 'chicken', 'eggs', 'potato', 'rice', 'baguette', 'broccoli', 'apple', 'pear', 'peach', 'orange',
+    'lemon', 'lime', 'strawberry', 'watermelon', 'tomato', 'onion', 'pepper', 'avocado', 'grapes', 'blueberries',
+    'mushroom', 'cabbage', 'spinach', 'romaine', 'cheese', 'butter', 'milk', 'sauce', 'garlic',
+}
+# Non-pantry pieces the kit paints from staples (a cream quenelle, milk pancakes).
+STAPLE_PIECES = {'quenelle', 'whipped cream', 'pancake'}
+VESSEL = {'plate': 'plate', 'shallow bowl': 'bowl', 'bowl': 'bowl', 'deep bowl': 'deep-bowl', 'board': 'board', 'glass': 'glass', 'tart': 'tart'}
 
 COLOURS = [
     (r'\b(emerald|jade|green|herb|basil|pesto|spinach|cilantro)\b', 'green'),
-    (r'\b(coral|red|tomato|chili|crimson|ruby|paprika)\b', 'red'),
+    (r'\b(coral|red|tomato|chili|crimson|ruby|paprika|brick)\b', 'red'),
     (r'\b(blush|pink|rose)\b', 'pink'),
     (r'\b(purple|violet|plum|grape|blueberry|berry)\b', 'purple'),
     (r'\b(amber|caramel|honey|maple|toffee)\b', 'amber'),
     (r'\b(golden|yellow|saffron|turmeric)\b', 'golden'),
     (r'\b(orange|apricot|peach|mango|carrot)\b', 'orange'),
     (r'\b(brown|jus|gravy|soy|teriyaki|dark)\b', 'brown'),
-    (r'\b(white|cream|creamy|ivory|pale|vanilla)\b', 'cream'),
+    (r'\b(white|cream|creamy|ivory|pale|vanilla|clear)\b', 'cream'),
 ]
-# The words that name a base: the colour that counts is the one just before one of these.
-BASE_NOUNS = r'rice|sauce|soup|broth|gravy|drink|smoothie|juice|shake|lassi|tea|cider|lemonade|cooler|spritz|puree|purée|pool|smear|oil|glaze|curry|stew|dressing|cream|custard'
-
 FAMILY = {
     'drink': {'green': 'drink-green', 'red': 'drink-red', 'pink': 'drink-pink', 'purple': 'drink-purple', 'amber': 'drink-gold', 'golden': 'drink-gold', 'orange': 'drink-orange', 'brown': 'drink-gold', 'cream': 'cream'},
     'soup': {'green': 'green-gravy', 'red': 'soup-tomato', 'pink': 'soup-tomato', 'purple': 'berry-sauce', 'amber': 'soup-potato', 'golden': 'soup-potato', 'orange': 'drink-orange', 'brown': 'jus', 'cream': 'cream-sauce'},
     'pool': {'green': 'herb-oil', 'red': 'tomato-sauce', 'pink': 'berry-sauce', 'purple': 'berry-sauce', 'amber': 'caramel', 'golden': 'cheese-sauce', 'orange': 'chili-oil', 'brown': 'jus', 'cream': 'cream-sauce'},
     'rice': {'green': 'cooked-rice', 'red': 'rice-red', 'pink': 'rice-red', 'orange': 'rice-red', 'golden': 'rice-gold', 'amber': 'rice-gold', 'brown': 'rice-gold', 'cream': 'cooked-rice', 'purple': 'cooked-rice'},
 }
-
-# The shape words in plating notes, and the form each means.
 SHAPES = [
-    (r'cube|cubed|diced|chunks?', 'cube'),
-    (r'wheels?|rings?|rounds', 'wheel'),
-    (r'wedges?', 'wedge'),
-    (r'halves|halved|half\b', 'half'),
-    (r'torn|pulled|shredded|flaked', 'torn'),
-    (r'strips?|ribbons?', 'strip'),
-    (r'crumbl', 'crumble'),
-    (r'fillet', 'fillet'),
+    (r'quenelle|dollop', 'quenelle'),
+    (r'mash', 'mash'),
+    (r'smash', 'smash'),
+    (r'fries', 'fries'),
     (r'drumstick', 'drumstick'),
     (r'skewer', 'skewer'),
-    (r'sunny|fried egg|poached|soft egg|eggs? (nestled|on top|crowned)|topped with (soft )?egg', 'egg'),
-    (r'mash', 'mash'),
-    (r'fries|chips\b(?! garlic)', 'fries'),
-    (r'leaves|wilted|nest of|greens', 'leaf'),
-    (r'garlic chips|crisp garlic', 'chip'),
-    (r'slice|sliced|fanned|shingled|carpaccio', 'slice'),
-    (r'whole|heads|florets?|berries|cluster', 'whole'),
+    (r'fillet', 'fillet'),
+    (r'ribbon', 'ribbon'),
+    (r'flake', 'flake'),
+    (r'toast', 'toast'),
+    (r'omelette', 'omelette'),
+    (r'yolk|poached|fried egg|egg\b', 'egg'),
+    (r'pat', 'cube'),
+    (r'cube|dice|chunk|bites', 'cube'),
+    (r'wheel|ring|round', 'wheel'),
+    (r'wedge', 'wedge'),
+    (r'halves|halved|half', 'half'),
+    (r'torn|shred|pulled', 'torn'),
+    (r'\broll', 'roll'),
+    (r'strip|segment', 'strip'),
+    (r'crumbl', 'crumble'),
+    (r'chip|shaving', 'chip'),
+    (r'leaf|leaves|wilted', 'leaf'),
+    (r'slice|sliced|fanned', 'slice'),
+    (r'whole|floret|berr|grain|cluster|mound', 'whole'),
 ]
-
-# The forms the renderer has for each ingredient (traits.ts forms plus the generic cuts).
 GENERIC_CUTS = {'wheel', 'half', 'wedge', 'slice', 'cube'}
 FORMS = {
-    'steak': {'steak', 'slice', 'cube', 'skewer'}, 'salmon': {'fillet', 'slice', 'cube', 'skewer', 'torn'}, 'chicken': {'slice', 'drumstick', 'torn', 'skewer'},
-    'eggs': {'egg', 'half', 'omelette'}, 'potato': {'mash', 'whole', 'fries', 'wedge', 'cube', 'wheel'}, 'rice': set(), 'baguette': {'toast', 'cube'},
-    'broccoli': {'whole', 'half'}, 'apple': GENERIC_CUTS, 'pear': GENERIC_CUTS, 'peach': GENERIC_CUTS, 'orange': GENERIC_CUTS, 'lemon': GENERIC_CUTS,
-    'lime': GENERIC_CUTS, 'strawberry': {'half', 'slice', 'whole'}, 'watermelon': {'cube', 'wedge', 'slice'}, 'tomato': {'wedge', 'half', 'wheel', 'cube'},
-    'onion': {'wheel'}, 'pepper': {'strip', 'half', 'slice'}, 'avocado': {'slice', 'cube', 'smash'}, 'grapes': {'berry', 'half'}, 'blueberries': {'berry'},
-    'mushroom': {'half', 'slice', 'whole'}, 'cabbage': {'leaf', 'wedge', 'roll'}, 'spinach': {'leaf'}, 'romaine': {'leaf'}, 'cheese': {'wedge', 'slice', 'crumble', 'cube'},
-    'butter': {'cube', 'crumble'}, 'milk': set(), 'sauce': set(), 'garlic': {'chip'},
+    'steak': {'steak', 'slice', 'cube', 'skewer'}, 'salmon': {'fillet', 'slice', 'cube', 'skewer', 'torn', 'ribbon', 'flake'},
+    'chicken': {'slice', 'drumstick', 'torn', 'skewer'}, 'eggs': {'egg', 'half', 'omelette'},
+    'potato': {'mash', 'whole', 'fries', 'wedge', 'cube', 'wheel'}, 'baguette': {'toast', 'cube'},
+    'broccoli': {'whole', 'half'}, 'apple': GENERIC_CUTS, 'pear': GENERIC_CUTS, 'peach': GENERIC_CUTS, 'orange': GENERIC_CUTS,
+    'lemon': GENERIC_CUTS, 'lime': GENERIC_CUTS, 'strawberry': {'half', 'slice', 'whole'}, 'watermelon': {'cube', 'wedge', 'slice'},
+    'tomato': {'wedge', 'half', 'wheel', 'cube'}, 'onion': {'wheel'}, 'pepper': {'strip', 'half', 'slice'},
+    'avocado': {'slice', 'cube', 'smash'}, 'grapes': {'berry', 'half'}, 'blueberries': {'berry'}, 'mushroom': {'half', 'slice', 'whole'},
+    'cabbage': {'leaf', 'wedge', 'roll'}, 'spinach': {'leaf'}, 'romaine': {'leaf'}, 'cheese': {'wedge', 'slice', 'crumble', 'cube'},
+    'butter': {'cube', 'crumble'}, 'garlic': {'chip'},
 }
-DEFAULT_SHAPE = {
-    'steak': 'steak', 'salmon': 'fillet', 'chicken': 'slice', 'eggs': 'egg', 'potato': 'wedge', 'baguette': 'toast', 'broccoli': 'half', 'apple': 'slice',
-    'pear': 'slice', 'peach': 'slice', 'orange': 'wheel', 'lemon': 'wheel', 'lime': 'wheel', 'strawberry': 'half', 'watermelon': 'cube', 'tomato': 'wedge',
-    'onion': 'wheel', 'pepper': 'strip', 'avocado': 'slice', 'grapes': 'berry', 'blueberries': 'berry', 'mushroom': 'half', 'cabbage': 'leaf',
-    'spinach': 'leaf', 'romaine': 'leaf', 'cheese': 'crumble', 'butter': 'cube', 'garlic': 'chip',
+# A shape word the kit has under another name for this ingredient.
+ALIAS = {
+    ('broccoli', 'whole'): 'half', ('grapes', 'whole'): 'berry', ('blueberries', 'whole'): 'berry', ('steak', 'slice'): 'steak',
+    ('potato', 'slice'): 'wheel', ('onion', 'slice'): 'wheel', ('baguette', 'slice'): 'toast', ('strawberry', 'cube'): 'half',
+    ('cheese', 'chip'): 'crumble', ('cheese', 'torn'): 'crumble', ('chicken', 'strip'): 'slice', ('chicken', 'cube'): 'torn',
+    ('chicken', 'whole'): 'drumstick', ('spinach', 'whole'): 'leaf', ('steak', 'strip'): 'slice', ('salmon', 'strip'): 'slice',
+    ('mushroom', 'cube'): 'half', ('pepper', 'wheel'): 'slice', ('pepper', 'cube'): 'strip', ('avocado', 'half'): 'slice',
+    ('avocado', 'wedge'): 'slice', ('tomato', 'whole'): 'half', ('tomato', 'slice'): 'wheel', ('apple', 'whole'): 'half',
+    ('butter', 'slice'): 'cube', ('garlic', 'slice'): 'chip', ('cabbage', 'strip'): 'leaf', ('cabbage', 'torn'): 'leaf', ('cabbage', 'ribbon'): 'leaf', ('spinach', 'torn'): 'leaf', ('spinach', 'ribbon'): 'leaf',
 }
-# Ingredients that are a base, not pieces, when the dish has one (milk in a drink, rice in a bowl).
 BASE_ONLY = {'milk', 'sauce', 'rice'}
-VESSEL = {'plate': 'plate', 'slate': 'plate', 'bowl': 'bowl', 'deep-bowl': 'deep-bowl', 'board': 'board', 'glass': 'glass', 'tart': 'tart'}
-
-OVERRIDES = {
-    'palak-paneer': {
-        'vessel': 'deep-bowl',
-        'base': {'colour': 'green', 'texture': 'smooth, fully green spinach gravy', 'family': 'green-gravy', 'from': 'spinach'},
-        'pieces': [{'ingredient': 'cheese', 'shape': 'cube', 'sink': 'half'}],
-        'finish': 'a swirl of cream',
-        'never': ['chicken', 'a yellow sauce', 'cheese slices on a flat plate'],
-        'needs': [],
-    },
-    'adjaruli-khachapuri': {
-        'vessel': 'board',
-        'base': {'colour': 'golden', 'texture': 'a boat of crisp bread holding molten cheese', 'family': 'cheese-sauce', 'from': 'cheese'},
-        'pieces': [{'ingredient': 'eggs', 'shape': 'yolk', 'sink': 'half'}, {'ingredient': 'butter', 'shape': 'cube', 'sink': 'half'}],
-        'finish': 'an egg yolk and a pat of butter in the middle of the cheese',
-        'never': ['toast slices', 'a fried egg on a plate'],
-        'needs': ['a boat of bread'],
-    },
-    'austrian-kaiserschmarrn': {
-        'vessel': 'plate',
-        'base': None,
-        'pieces': [{'ingredient': 'milk', 'shape': 'torn pancake', 'sink': 'none'}],
-        'finish': 'caramelised edges and a snow of icing sugar, fruit compote beside',
-        'never': ['a neat pancake stack'],
-        'needs': ['torn pancake pieces'],
-    },
-    'creme-brulee': {
-        'vessel': 'ramekin',
-        'base': {'colour': 'cream', 'texture': 'set vanilla custard', 'family': 'custard', 'from': 'eggs'},
-        'pieces': [],
-        'finish': 'a cracked, glassy caramel top',
-        'never': ['ice cream on a plate'],
-        'needs': ['a cracked caramel top in a ramekin'],
-    },
-    'persian-doogh': {
-        'vessel': 'glass',
-        'base': {'colour': 'cream', 'texture': 'thin, savoury yoghurt drink, lightly fizzy', 'family': 'cream', 'from': 'milk'},
-        'pieces': [],
-        'finish': 'torn mint leaves floating on top',
-        'never': ['a vanilla milkshake', 'syrup'],
-        'needs': [],
-        'savoury': True,
-    },
-}
+KIND = {'glass-drink': 'drink', 'soup-bowl': 'soup', 'rice-bowl': 'rice'}
+NO_BASE = {'tart', 'toast-board', 'pancake-stack', 'leaf-salad'}
+MEAT = ['steak', 'chicken']
 
 
-KIND_NOUNS = {
-    'drink': r'drink|smoothie|juice|shake|lassi|tea|cider|lemonade|cooler|spritz|agua|soda|punch',
-    'soup': r'soup|broth|puree|purée|gravy|curry|stew|bisque',
-    'rice': r'rice',
-    'pool': r'sauce|gravy|smear|pool|glaze|oil|jus|puree|purée|dressing',
-}
+def colour_of(text: str) -> str | None:
+    found = [(m.start(), colour) for pattern, colour in COLOURS for m in re.finditer(pattern, text)]
+    return min(found)[1] if found else None
 
 
-def colour_of(text: str, kind: str | None = None) -> str | None:
-    # The colour word nearest before the base's own noun ("coral-red tomato puree", "pale yogurt drink").
-    for noun in re.finditer(KIND_NOUNS.get(kind or '', BASE_NOUNS), text):
-        window = text[max(0, noun.start() - 45): noun.start()]
-        found = [(m.start(), colour) for pattern, colour in COLOURS for m in re.finditer(pattern, window)]
-        if found:
-            return max(found)[1]
-    for pattern, colour in COLOURS:
-        if re.search(pattern, text):
-            return colour
+def form_of(ingredient: str, shape: str, layout: str) -> str | None:
+    if ingredient == 'baguette':
+        return 'toast' if layout == 'toast-board' else 'cube'
+    allowed = FORMS.get(ingredient, set())
+    for pattern, form in SHAPES:
+        if re.search(pattern, shape):
+            form = ALIAS.get((ingredient, form), form)
+            if form in allowed:
+                return form
     return None
 
 
-def base_of(dish: dict, text: str) -> dict | None:
+def looks_of(dish: dict, note: dict) -> dict:
     layout = dish['layout']
-    # Read from the plating notes only (a dish's name, "teriyaki", must not tint its rice).
-    text = dish['platingNotes'].lower()
-    if layout == 'glass-drink':
-        kind = 'drink'
-        texture = 'a smooth drink' if not re.search(r'fizz|spritz|soda|sparkl', text) else 'a sparkling drink'
-    elif layout == 'soup-bowl':
-        kind = 'soup'
-        texture = 'a smooth soup' if not re.search(r'broth|clear', text) else 'a clear broth'
-    elif layout == 'rice-bowl':
-        kind = 'rice'
-        texture = 'mixed rice with herb and vegetable flecks'
-    elif layout in ('tart', 'toast-board', 'pancake-stack', 'leaf-salad'):
-        # The vehicle (pastry, toast, pancakes) is the base: any sauce is on top, not a pool.
-        return None
-    elif re.search(r'pool|sauce|gravy|smear|glaze|oil|jus|puree|purée|cream', text):
-        kind = 'pool'
-        texture = 'a glossy sauce pool'
+    needs: list[str] = []
+    if note['id'] in REFUSED:
+        needs.append('a form the kit cannot build yet')
+    vessel = note['vessel']
+    claim = ' '.join(note['minimum_to_claim_name']).lower()
+    if vessel in ('skillet', 'kadai'):
+        # A skillet or kadai is painted as a bowl only when the note's claim does not need the pan itself.
+        if re.search(rf'(?<!or ){vessel}', claim) and not re.search(rf'bowl or {vessel}|{vessel} or bowl', claim):
+            needs.append(f'a {vessel}')
+        vessel = 'deep-bowl' if vessel == 'kadai' or layout in ('rice-bowl', 'soup-bowl') else 'bowl'
+    elif vessel in VESSEL:
+        vessel = VESSEL[vessel]
     else:
-        return None
-    colour = 'brown' if kind == 'pool' and re.search(r'\bjus\b|gravy|soy|teriyaki', text) else colour_of(text, kind)
-    # Rice is white unless the notes colour the rice itself ("vibrant red ... rice").
-    if kind == 'rice' and not re.search(r'(red|golden|yellow|saffron|turmeric)[\w\s-]{0,30}rice', text):
-        colour = 'cream'
-    colour = colour or ('cream' if kind in ('rice', 'soup') else 'brown' if kind == 'pool' else 'golden')
-    return {'colour': colour, 'texture': texture, 'family': FAMILY[kind][colour], 'kind': kind}
-
-
-def shape_near(ingredient: str, text: str) -> str:
-    # The shape word closest to the ingredient's name in the notes, else its default.
-    words = {'eggs': r'eggs?', 'baguette': r'bread|toast|crouton', 'grapes': r'grapes?', 'blueberries': r'blueberr', 'potato': r'potato|fries|mash|hash', 'onion': r'onion|scallion|shallot'}
-    name = words.get(ingredient, re.escape(ingredient.rstrip('s')))
-    match = re.search(name, text)
-    allowed = FORMS.get(ingredient, set())
-    if match:
-        window = text[max(0, match.start() - 40): match.end() + 40]
-        for pattern, shape in SHAPES:
-            if re.search(pattern, window):
-                # (A sliced potato or a sliced steak is cut in wheels or carved: the forms we have.)
-                shape = {('potato', 'slice'): 'wheel', ('steak', 'slice'): 'steak', ('baguette', 'slice'): 'toast'}.get((ingredient, shape), shape)
-                if shape in allowed:
-                    return shape
-    shape = DEFAULT_SHAPE.get(ingredient, 'slice')
-    return shape if shape in allowed or not allowed else sorted(allowed)[0]
-
-
-def looks_of(dish: dict) -> dict:
-    if dish['id'] in OVERRIDES:
-        return OVERRIDES[dish['id']]
-    text = (dish['name'] + ' ' + dish['platingNotes']).lower()
-    needs = sorted({why for pattern, why in UNSUPPORTED if re.search(pattern, text)})
-    base = base_of(dish, text)
-    pieces = []
-    for ingredient in dict.fromkeys(dish['heroes'] + [i for i in dish['coreIngredients'] if i in dish['heroes']]):
-        if ingredient in BASE_ONLY:
-            continue
-        if base and base['kind'] == 'soup' and ingredient in ('potato', 'tomato', 'pepper', 'spinach') and ingredient in text[:80]:
-            base['from'] = ingredient
-            continue
-        if ingredient == 'baguette':
-            # Toast is the vehicle on a toast board; anywhere else bread is croutons.
-            shape = 'toast' if dish['layout'] == 'toast-board' else 'cube'
-        elif ingredient == 'potato' and dish['layout'] == 'mash-plate':
-            shape = 'mash'
-        elif ingredient == 'avocado' and re.search(r'smash|mashed avocado|guacamole', text):
-            shape = 'smash'
-        else:
-            shape = shape_near(ingredient, text)
-        sink = 'third' if dish['layout'] in ('soup-bowl', 'rice-bowl') else 'none'
-        pieces.append({'ingredient': ingredient, 'shape': shape, 'sink': sink})
-    vessel = VESSEL.get(dish['vessel'], 'plate')
-    if dish['layout'] == 'skillet-bake':
+        needs.append(f'a {vessel}')
         vessel = 'bowl'
-    finish = ', '.join(dish['supportingComponents'][:2]) or 'a few fresh herbs'
-    out = {'vessel': vessel, 'base': {k: v for k, v in base.items() if k != 'kind'} if base else None, 'pieces': pieces, 'finish': finish, 'never': [], 'needs': needs}
+    if re.search(r'melt|molten|gratin|bubbl|broil', claim) and re.search(r'cheese|cheddar|gruy|raclette|reblochon|queso', claim):
+        needs.append('a melted cheese cap')
+
+    base = None
+    lead = None
+    if note['base'] and layout not in NO_BASE:
+        text = (note['base']['colour'] + ' ' + note['base']['texture']).lower()
+        kind = KIND.get(layout) or ('soup' if re.search(r'gravy|curry|stew|soup|broth|puree|purée|dal', text) else 'pool')
+        if kind == 'pool' and re.search(r'smash|mash|dome', text):
+            # A smashed avocado or mash "base" is the hero piece itself, not a pool.
+            lead = next((i for i in ('avocado', 'potato') if i in text or (i == 'potato' and 'mash' in text)), None)
+        elif kind == 'pool' and not re.search(r'sauce|gravy|pool|puree|purée|smear|yog|cream|jus|glaze|labneh|hummus|tahini|custard|compote|coulis', text):
+            pass  # oil dots, a drizzle or a dusting: a garnish, not a base
+        else:
+            colour = colour_of(note['base']['colour'].lower()) or colour_of(text) or ('cream' if kind in ('rice', 'soup', 'drink') else 'brown')
+            if kind == 'rice' and not re.search(r'red|golden|yellow|saffron|turmeric|orange|brown', note['base']['colour'].lower()):
+                colour = 'cream'
+            base = {'colour': colour, 'texture': note['base']['texture'], 'family': FAMILY[kind][colour]}
+            # The table ingredient the base is made of (spinach in a palak gravy) goes into it.
+            makers = ('spinach', 'tomato', 'potato', 'pepper') if kind == 'soup' else \
+                ('milk',) if kind == 'drink' else ()
+            for ingredient in dish['heroes'] + dish['coreIngredients']:
+                if ingredient in makers and re.search(ingredient.rstrip('s')[:6], text):
+                    base['from'] = ingredient
+                    break
+
+    pieces = []
+    if lead:
+        pieces.append({'ingredient': lead, 'shape': 'smash' if lead == 'avocado' else 'mash', 'sink': 'none', 'size_cm': 8.0 if lead == 'avocado' else 10.0})
+    for piece in note['pieces']:
+        ingredient = piece['ingredient']
+        if ingredient not in PANTRY:
+            if ingredient not in STAPLE_PIECES:
+                needs.append(ingredient)
+            continue
+        if ingredient in BASE_ONLY or (base and base.get('from') == ingredient and kind == 'soup') or ingredient == lead:
+            continue
+        form = form_of(ingredient, piece['shape'].lower(), layout)
+        if form is None:
+            # Only a hero has to look exactly right; an accent the kit cannot cut keeps its default.
+            if ingredient in dish['heroes'][:1]:
+                needs.append(f'{ingredient} as {piece["shape"]}')
+            continue
+        place = piece['placement'].lower()
+        sink = 'half' if 'half' in place and 'sunk' in place else 'third' if 'sunk' in place or 'nestled' in place or layout in ('soup-bowl', 'rice-bowl') else 'none'
+        if any(p['ingredient'] == ingredient for p in pieces):
+            continue
+        pieces.append({'ingredient': ingredient, 'shape': form, 'sink': sink, 'size_cm': piece['size_cm']})
+
+    never = list(note['never'])
+    # Ingredient words the note forbids outright, as pantry ids (a "no meat" claim forbids steak and chicken).
+    for word in note['never'] + note['minimum_to_claim_name']:
+        w = word.lower().strip()
+        if re.fullmatch(r'(no |any )?meat', w):
+            never += MEAT
+    out = {'vessel': vessel, 'base': base, 'pieces': pieces, 'finish': note['finish'], 'never': never,
+           'needs': sorted(set(needs)), 'claim': note['minimum_to_claim_name']}
     if dish['taste'] == 'savoury':
-        out['never'].append('syrup or sweet sauces')
+        out['savoury'] = True
     return out
 
 
 def main() -> None:
     dishes = json.loads(PATH.read_text())
+    notes = {n['id']: n for n in json.loads(NOTES.read_text())}
     for dish in dishes:
-        dish['looks'] = looks_of(dish)
+        dish['looks'] = looks_of(dish, notes[dish['id']])
     PATH.write_text(json.dumps(dishes, ensure_ascii=False, indent=2) + '\n')
     refused = [d['id'] for d in dishes if d['looks']['needs']]
     print(f'{len(dishes)} dishes, {len(refused)} refused for now ({len(dishes) - len(refused)} renderable)')
+    extra = sorted(set(refused) - REFUSED)
+    print('refused beyond the README list:', ', '.join(f"{i} ({notes[i]['vessel']}: {[d for d in dishes if d['id']==i][0]['looks']['needs']})" for i in extra))
 
 
 if __name__ == '__main__':

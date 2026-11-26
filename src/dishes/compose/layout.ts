@@ -125,7 +125,7 @@ export function elementInfo(ingredient: string, form: string): ElementInfo {
       if (ingredient === 'potato') return { shape: 'rect', w: 3, h: 6.4, group: 'heap', shrinks: false };
       return { shape: 'half', r: body.r, group: 'heap', shrinks: true };
     case 'wheel':
-      if (ingredient === 'onion') return { shape: 'circle', r: 2.6, group: 'scatter', shrinks: false };
+      if (ingredient === 'onion') return { shape: 'circle', r: 3.5, group: 'scatter', shrinks: false };
       return { shape: 'circle', r: body.r, group: 'fan', shrinks: true };
     case 'slice':
       if (ingredient === 'salmon') return { shape: 'rect', w: 3.4, h: 7.5, group: 'fan', shrinks: false };
@@ -144,11 +144,11 @@ export function elementInfo(ingredient: string, form: string): ElementInfo {
       if (ingredient === 'steak' || ingredient === 'chicken') return { shape: 'rect', w: 2.8, h: 2.8, group: 'heap', shrinks: false };
       return { shape: 'rect', w: 2.2, h: 2.2, group: 'heap', shrinks: false };
     case 'fillet':
-      return { shape: 'rect', w: 6.2, h: 13, group: 'pair', shrinks: false };
+      return { shape: 'rect', w: 5, h: 12, group: 'pair', shrinks: false };
     case 'steak':
       return { shape: 'rect', w: 8, h: 14, group: 'pair', shrinks: false };
     case 'drumstick':
-      return { shape: 'rect', w: 6, h: 14, group: 'pair', shrinks: false };
+      return { shape: 'rect', w: 4.5, h: 12, group: 'pair', shrinks: false };
     case 'egg':
       return { shape: 'circle', r: 4.2, group: 'pair', shrinks: false };
     case 'berry':
@@ -162,9 +162,9 @@ export function elementInfo(ingredient: string, form: string): ElementInfo {
     case 'toast':
       return { shape: 'rect', w: 8, h: 11, group: 'pair', shrinks: false };
     case 'smash':
-      return { shape: 'circle', r: 3.6, group: 'pair', shrinks: false };
+      return { shape: 'circle', r: 4.0, group: 'pair', shrinks: false };
     case 'mash':
-      return { shape: 'circle', r: ingredient === 'milk' ? 4.2 : 5.4, group: 'pair', shrinks: false };
+      return { shape: 'circle', r: ingredient === 'milk' ? 4.2 : 5.0, group: 'pair', shrinks: false };
     default:
       return { shape: 'circle', r: 2, group: 'heap', shrinks: false };
   }
