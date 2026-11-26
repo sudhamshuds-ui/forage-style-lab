@@ -5,7 +5,7 @@ import type { DishIdea } from '../catalog';
 import { componentGarnish, componentPiece, isComponent, type DishComponent } from './components';
 import { SKEWERS } from './elements';
 import { glassFor, takesIce } from '../kit/glass';
-import { pickWorldDish, worldComponents } from './world';
+import { WORLD_DISHES, applyLooks, pickWorldDish, worldComponents } from './world';
 import { layoutById, type LayoutId, type LayoutSpec } from './layouts';
 
 /**
@@ -62,6 +62,8 @@ export interface Slots {
   made?: DishComponent[];
   /** The one savoury piece kept on purpose in an Unhinged sweet dish (one egg with a tart). */
   twist?: Piece;
+  /** A world dish's base in its own words ("smooth, fully green spinach gravy"), for the caption. */
+  texture?: string;
 }
 
 /** The longest a title may be: it must fit on one line on the result screen (the fix list). */
@@ -571,9 +573,7 @@ export function assignSlots(ids: string[], choices: CookChoices, layout: LayoutS
   if (inBase.includes('milk') && sauceable && !inBase.includes('sauce') && !['tart', 'pancake-stack'].includes(layout.id)) base = 'pool:cream';
   else if (inBase.includes('butter') && sauceable && !inBase.includes('sauce') && !['tart', 'pancake-stack'].includes(layout.id)) base = 'pool:brown-butter';
 
-  // A savoury seared main gets a small scatter of garlic chips (never a bulb), out of the classic;
-  // never on fruit (strawberries with crispy garlic, the first smoke test).
-  if (!ids.includes('garlic') && layout.id === 'circular-plate' && course === 'main' && b >= 1 && accent.length < 2 && TRAITS[hero.id]?.taste === 'savoury') accent.push({ id: 'garlic', form: 'chip', count: 5 });
+  // (No garlic chips unless the table brought garlic: never invent an ingredient, Group 2.)
 
   // The ware: Unhinged always takes the layout's alternative; a step out sometimes does.
   const ware = layout.wildWare && (b === 2 || (b === 1 && random() < 0.3)) ? layout.wildWare : layout.ware;
@@ -858,7 +858,7 @@ function describeDish(slots: Slots, components: DishComponent[], random: () => n
   const lead = platform ? piecePhrase(toppings[0]) : piecePhrase(hero);
   const sides = (platform ? toppings.slice(1) : toppings).map(piecePhrase);
   if (layout.id === 'glass-drink') {
-    const glass = DRINK_WORDS[base] ?? 'A cold drink';
+    const glass = slots.texture ? cap(slots.texture) : DRINK_WORDS[base] ?? 'A cold drink';
     // "Over ice" only when the glass has ice in it (Group 3).
     const kind = glassFor(base);
     return takesIce(base, kind)
@@ -867,7 +867,9 @@ function describeDish(slots: Slots, components: DishComponent[], random: () => n
   }
   // Where it sits: only what is really under it.
   let where = '';
-  if (base.startsWith('soup:')) where = pick([`in a velvety ${NOUN[base.split(':')[1]]} soup`, `floating in a creamy ${NOUN[base.split(':')[1]]} soup`]);
+  if (slots.texture && (base.startsWith('soup:') || base.startsWith('pool:'))) where = `in ${slots.texture.startsWith('a ') ? '' : 'a '}${slots.texture}`;
+  else if (slots.texture && base === 'rice') where = `over ${slots.texture}`;
+  else if (base.startsWith('soup:')) where = pick([`in a velvety ${NOUN[base.split(':')[1]]} soup`, `floating in a creamy ${NOUN[base.split(':')[1]]} soup`]);
   else if (base === 'rice') where = pick(['over warm mixed rice', 'on a bowl of herbed rice']);
   else if (base.startsWith('leaves:')) where = pick([`tossed with crisp ${NOUN[base.split(':')[1]]} leaves`, `on a mound of ${NOUN[base.split(':')[1]]} leaves`]);
   else if (base === 'mash:risotto') where = 'in a creamy rice pudding';
@@ -966,16 +968,21 @@ export function titleDish(slots: Slots, cooked: boolean, components: DishCompone
 }
 
 /** The table and the choices as one plated dish idea. Never throws, never the stand-in salmon. */
-export function pickDish(ids: string[], choices: CookChoices, seed: number): DishIdea {
+export function pickDish(ids: string[], choices: CookChoices, seed: number, options: { world?: string } = {}): DishIdea {
   const table = [...new Set(ids)].filter((id) => TRAITS[id]).slice(0, 3);
   if (!table.length) table.push('apple');
   const random = seededRandom(seed);
   // A real world dish first (world-dishes-brief.md): it lends the name, the layout and its finishing
   // touches; the table's ingredients still fill the plate. Otherwise the templates cook.
-  const world = pickWorldDish(table, choices, seed);
+  // (Tests may name the world dish, to check it renders as its looks note says.)
+  const world = options.world ? WORLD_DISHES.find((d) => d.id === options.world) : pickWorldDish(table, choices, seed);
   const archetype = pickArchetype(table, choices, random);
   const layout = (world && layoutById(world.layout)) || archetype;
   const slots = assignSlots(table, choices, layout, random);
+  // A world dish is rendered from its looks note: the shapes, the base and its colour.
+  const look = world ? applyLooks(slots, world, table) : {};
+  const GENERIC_TEXTURES = ['a glossy sauce pool', 'a smooth drink', 'a smooth soup', 'a sparkling drink', 'mixed rice with herb and vegetable flecks', 'a clear broth'];
+  if (look.texture && !GENERIC_TEXTURES.includes(look.texture)) slots.texture = look.texture;
   const components = chooseComponents(slots, choices.wild, random);
   if (world) for (const c of worldComponents(world, table, !!slots.sweet)) if (!components.some((o) => o.kind === c.kind && o.family === c.family)) components.push(c);
   const part = (p: Piece) => `${p.id}:${p.form}${p.count > 1 ? `*${p.count}` : ''}`;
@@ -1007,6 +1014,7 @@ export function pickDish(ids: string[], choices: CookChoices, seed: number): Dis
     blended: [...new Set(slots.inBase)],
     sauce: slots.sauce,
     sweet: slots.sweet,
+    baseFamily: look.family,
     world: world ? { id: world.id, cuisine: world.cuisine, region: world.region } : undefined,
   };
 }

@@ -52,10 +52,11 @@ export function dishLooks(original: DishIdea): RoleLook[] {
     else for (const look of elementLooks(part, seared)) add(look);
   }
   const [kind] = idea.base.split(':');
-  if (kind === 'pool' || kind === 'soup' || kind === 'mash') add({ role: 'pool', family: BASE_FAMILY[idea.base] ?? 'cream', skin: SAUCE_SKIN, glossy: kind !== 'mash' });
+  // A world dish's looks note may colour its base (a green gravy, red rice, a yoghurt drink).
+  if (kind === 'pool' || kind === 'soup' || kind === 'mash') add({ role: 'pool', family: idea.baseFamily ?? BASE_FAMILY[idea.base] ?? 'cream', skin: SAUCE_SKIN, glossy: kind !== 'mash' });
   if (kind === 'leaves') add({ role: 'bed', family: BASE_FAMILY[idea.base] ?? 'leaf' });
   if (kind === 'drink') {
-    add({ role: 'drink', family: BASE_FAMILY[idea.base] ?? 'drink-pale', skin: { ...SAUCE_SKIN, amount: 0.5 }, glossy: true });
+    add({ role: 'drink', family: idea.baseFamily ?? BASE_FAMILY[idea.base] ?? 'drink-pale', skin: { ...SAUCE_SKIN, amount: 0.5 }, glossy: true });
     add({ role: 'ice', family: 'ice', glossy: true });
     add({ role: 'glassRim', family: 'glass-rim' });
     add({ role: 'glassGlint', family: 'glass-glint' });
@@ -83,7 +84,7 @@ export function dishLooks(original: DishIdea): RoleLook[] {
     add({ role: 'herb', family: 'leaf' });
   }
   if (idea.ware === 'deep') {
-    add({ role: 'rice', family: 'cooked-rice', skin: { kind: 'rice', size_mm: 5.5, amount: 0.9 } });
+    add({ role: 'rice', family: idea.baseFamily && idea.baseFamily.includes('rice') ? idea.baseFamily : 'cooked-rice', skin: { kind: 'rice', size_mm: 5.5, amount: 0.9 } });
     if (idea.layout) {
       // Mixed rice: herbs, diced vegetables, corn.
       add({ role: 'riceFleckGreen', family: 'leaf' });
@@ -936,6 +937,14 @@ export function composedBuilder(original: DishIdea): FormBuilder {
           });
         }
       }
+      // Once more, after the gaps are closed: anything left over air (what it leaned on moved) is set
+      // down on what is under it now.
+      food.forEach((pieces, i) => {
+        const under = new Table(groundOnly.height.bind(groundOnly));
+        food.forEach((other, j) => j !== i && under.add(other));
+        const gap = clearance(pieces, (x, z) => under.height(x, z));
+        if (gap > 0.05 && gap < 3) for (const piece of pieces) piece.geometry.translate(0, -gap, 0);
+      });
       const height = food.reduce((most, pieces) => {
         const b = boundsOf(pieces);
         return Math.max(most, b.max.y - w.floor((b.min.x + b.max.x) / 2, (b.min.z + b.max.z) / 2));

@@ -126,6 +126,9 @@ export type FamilyId =
   | 'shaving-white'
   | 'porcelain'
   | 'caramel'
+  | 'green-gravy'
+  | 'rice-red'
+  | 'rice-gold'
   | 'custard'
   | 'roast-chicken'
   | 'ice'
@@ -695,6 +698,23 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   custard: {
     name: 'Custard',
     colours: { lit: '#fff4c4', base: '#f6d66e', shadow: '#b0806e', glow: '#ffc24a', highlight: '#fffbea' },
+    rooms: [],
+  },
+  // A smooth, fully green gravy (palak): deep spinach green, a cool blue-green shade, never yellow.
+  'green-gravy': {
+    name: 'Green gravy',
+    colours: { lit: '#9fcf6a', base: '#4f8f3a', shadow: '#24504a', glow: '#8fd060', highlight: '#e8f6d0' },
+    rooms: [],
+  },
+  // Rice cooked red with tomato and pepper (jollof), and golden with saffron or turmeric.
+  'rice-red': {
+    name: 'Red rice',
+    colours: { lit: '#ffb08a', base: '#e0603e', shadow: '#8a3448', glow: '#ff8a5a', highlight: '#fff0e4' },
+    rooms: [],
+  },
+  'rice-gold': {
+    name: 'Golden rice',
+    colours: { lit: '#fff0b0', base: '#f2c95a', shadow: '#a88066', glow: '#ffcf5a', highlight: '#fffbea' },
     rooms: [],
   },
   // Maple syrup over pancakes: a deep amber, redder than caramel, a wine shade.

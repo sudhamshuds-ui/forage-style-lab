@@ -694,10 +694,10 @@ if (import.meta.env.DEV) {
           return snapshot();
         },
         /** Cook a table the Kitchen's way and show it (dev): styleLab.cook(['steak','potato'], 'Main', 'Savoury', 40). */
-        cook: async (ids: string[], course = 'Main', taste = 'Savoury', wild = 40, attempt = 0) => {
+        cook: async (ids: string[], course = 'Main', taste = 'Savoury', wild = 40, attempt = 0, world?: string) => {
           const [{ pickDish, cookSeed }, { composedDish, LAST_QA }] = await Promise.all([import('./dishes/compose/pick'), import('./dishes/compose/build')]);
           const choices = { course, taste, wild };
-          const idea = pickDish(ids, choices, cookSeed(ids, choices, attempt));
+          const idea = pickDish(ids, choices, cookSeed(ids, choices, attempt), { world });
           const dish = composedDish(idea);
           showIngredient(dish.entry);
           setName(dish.title);

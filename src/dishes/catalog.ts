@@ -40,6 +40,8 @@ export interface DishIdea {
   sweet?: boolean;
   /** Generated dishes: the real world dish it is cooked as (world-dishes-brief.md), if one matched. */
   world?: { id: string; cuisine: string; region: string };
+  /** Generated dishes: the base's colour family from a world dish's looks note (a green gravy, red rice). */
+  baseFamily?: import('../ingredients/families').FamilyId;
 }
 
 const d = (id: string, title: string, heroes: [string, string, string], course: DishIdea['course'], ware: DishIdea['ware'], base: string, big: string, medium: string[], small: string[], description: string): DishIdea => ({ id, title, heroes, course, ware, base, big, medium, small, description });

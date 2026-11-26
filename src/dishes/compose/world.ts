@@ -1,5 +1,6 @@
 import WORLD from '../worldDishes.json';
 import { seededRandom } from '../../ingredients/forms/kit/random';
+import { FAMILIES, type FamilyId } from '../../ingredients/families';
 import { componentGarnish, componentPiece, type DishComponent } from './components';
 import type { LayoutId } from './layouts';
 import { SKEWERS } from './elements';
@@ -28,6 +29,42 @@ export interface WorldDish {
   platingNotes: string;
   blurb: string;
   sourceUrl: string;
+  /** What the dish must look like on the card (scripts/world-looks.py). */
+  looks: Looks;
+}
+
+/**
+ * A world dish's looks note (the user, 2026-11-26: "World dishes must look like the real dish"):
+ * its vessel, its base, the shape of each piece, its signature finish, what it must never show, and
+ * what the renderer cannot paint yet (`needs`: such a dish is refused, a template dish cooks).
+ */
+export interface Looks {
+  vessel: 'bowl' | 'deep-bowl' | 'kadai' | 'ramekin' | 'plate' | 'board' | 'glass' | 'tart';
+  base: { colour: string; texture: string; family: FamilyId; from?: string } | null;
+  pieces: { ingredient: string; shape: string; sink: 'none' | 'third' | 'half' }[];
+  finish: string;
+  never: string[];
+  needs: string[];
+  savoury?: boolean;
+}
+
+/** Vessels the renderer can paint, and the layouts each means. */
+export const VESSEL_LAYOUTS: Record<string, LayoutId[]> = {
+  plate: ['circular-plate', 'tartare-crudo', 'composed-plate', 'mash-plate', 'skewer-platter', 'plated-dessert', 'pancake-stack', 'leaf-salad', 'dessert-bowl'],
+  bowl: ['skillet-bake', 'dessert-bowl', 'leaf-salad', 'soup-bowl', 'circular-plate', 'mash-plate', 'pancake-stack'],
+  'deep-bowl': ['rice-bowl', 'soup-bowl', 'skillet-bake'],
+  board: ['toast-board', 'skewer-platter'],
+  glass: ['glass-drink'],
+  tart: ['tart'],
+};
+
+/** True when the renderer can paint this dish as its looks note says (honest-names rule). */
+export function renderable(dish: WorldDish): boolean {
+  const looks = dish.looks;
+  if (!looks || looks.needs.length) return false;
+  if (!VESSEL_LAYOUTS[looks.vessel]?.includes(dish.layout)) return false;
+  if (looks.base && !FAMILIES[looks.base.family]) return false;
+  return true;
 }
 
 export const WORLD_DISHES = WORLD as WorldDish[];
@@ -82,6 +119,10 @@ export function scoreWorldDish(dish: WorldDish, table: string[], choices: Choice
   const overlap = table.filter((id) => dish.coreIngredients.includes(id) || dish.heroes.includes(id));
   if (overlap.length === 0) return -Infinity;
   if (!legalFor(dish, table, course)) return -Infinity;
+  // Only a dish the renderer can paint as it really looks, and never with what it must not show
+  // (palak paneer never has chicken).
+  if (!renderable(dish)) return -Infinity;
+  if (table.some((id) => dish.looks.never.some((word) => word === id || word === `${id}s`))) return -Infinity;
   // Never a name that promises what is not on the plate ("Classic Steak Tartare" with no steak).
   const name = dish.name.toLowerCase();
   if (dish.heroes.some((id) => !table.includes(id) && NAME_WORDS[id]?.test(name))) return -Infinity;
@@ -176,4 +217,45 @@ export function worldComponents(dish: WorldDish, table: string[], sweet: boolean
   }
   // Sweet dishes: no herbs or savoury oils, whatever the recipe garnishes with.
   return sweet ? out.filter((c) => c.kind !== 'microherb' && !['herb-oil', 'chili-oil', 'citrus-oil'].includes(c.family)) : out;
+}
+
+/** Shapes that are one piece (a steak, a fillet, a dome of mash or smashed avocado). */
+const SINGLE_SHAPES = ['steak', 'fillet', 'mash', 'smash', 'toast', 'drumstick', 'roll'];
+
+interface LooksSlots {
+  hero: { id: string; form: string; count: number };
+  support: { id: string; form: string; count: number }[];
+  accent: { id: string; form: string; count: number }[];
+  inBase: string[];
+  base: string;
+}
+
+/**
+ * Render the dish from its looks note: each table ingredient takes the note's shape, the ingredient
+ * that makes the base (spinach in a palak gravy) goes into it, and the base takes the note's colour.
+ * Returns the base's colour family and its texture in words (for the caption).
+ */
+export function applyLooks(slots: LooksSlots, dish: WorldDish, table: string[]): { family?: FamilyId; texture?: string } {
+  const looks = dish.looks;
+  const pieces = () => [slots.hero, ...slots.support, ...slots.accent];
+  for (const want of looks.pieces) {
+    if (!table.includes(want.ingredient)) continue;
+    for (const p of pieces()) {
+      if (p.id !== want.ingredient || p.form === want.shape) continue;
+      p.form = want.shape;
+      // (A carved chicken breast is one piece, already sliced.)
+      if (SINGLE_SHAPES.includes(want.shape) || (want.ingredient === 'chicken' && want.shape === 'slice')) p.count = 1;
+      else if (p.count < 3) p.count = want.shape === 'egg' ? Math.max(1, p.count) : 3;
+    }
+  }
+  const from = looks.base?.from;
+  if (from && table.includes(from) && /gravy|soup|puree|broth|curry/.test(looks.base!.texture)) {
+    // The base's own ingredient is the gravy or soup: out of the pieces, into the bowl.
+    slots.support = slots.support.filter((p) => p.id !== from);
+    slots.accent = slots.accent.filter((p) => p.id !== from);
+    if (slots.hero.id === from) slots.hero = slots.support.shift() ?? slots.accent.shift() ?? slots.hero;
+    if (!slots.inBase.includes(from)) slots.inBase.push(from);
+    slots.base = `soup:${from}`;
+  }
+  return { family: looks.base?.family, texture: looks.base?.texture };
 }

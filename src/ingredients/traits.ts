@@ -54,7 +54,7 @@ export const TRAITS: Record<string, IngredientTraits> = {
   // Rice has no piece form: it is always the base (a rice bowl).
   rice: t({ id: 'rice', category: 'starch', taste: 'savoury', slots: ['base'], forms: { base: ['rice', 'mash:risotto'] }, family: 'rice', cookedFamily: 'cooked-rice', sear: 0.8, prefersBase: true }),
   baguette: t({ id: 'baguette', category: 'starch', taste: 'savoury', slots: ['hero', 'support'], forms: { hero: ['toast'], support: ['cube'] }, family: 'baked', cookedFamily: 'crumb', sear: 0.7 }),
-  broccoli: t({ id: 'broccoli', category: 'produce', taste: 'savoury', slots: ['support', 'hero'], forms: { hero: ['whole'], support: ['whole'] }, family: 'green', cookedFamily: 'green', sear: 0.35 }),
+  broccoli: t({ id: 'broccoli', category: 'produce', taste: 'savoury', slots: ['support', 'hero'], forms: { hero: ['whole'], support: ['whole', 'half'] }, family: 'green', cookedFamily: 'green', sear: 0.35 }),
   apple: t({ id: 'apple', category: 'produce', taste: 'both', slots: ['hero', 'support', 'accent'], forms: { hero: ['wedge', 'slice', 'half'], support: ['wedge', 'slice'], accent: ['cube', 'slice'] }, family: 'red', cookedFamily: 'apple-flesh', sear: 0 }),
   pear: t({ id: 'pear', category: 'produce', taste: 'sweet', slots: ['hero', 'support'], forms: { hero: ['half'], support: ['slice', 'cube'] }, family: 'pear', cookedFamily: 'pear-flesh', sear: 0.4 }),
   peach: t({ id: 'peach', category: 'produce', taste: 'sweet', slots: ['hero', 'support', 'accent'], forms: { hero: ['wedge', 'half'], support: ['wedge', 'half'], accent: ['cube', 'slice'] }, family: 'peach', cookedFamily: 'peach-flesh', sear: 0.5 }),

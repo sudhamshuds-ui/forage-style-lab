@@ -4,6 +4,7 @@ import { BASE_FAMILY, SKEWERS } from './elements';
 import { readPart } from './layout';
 import { TITLE_MAX, cookSeed, pickDish, sweetPiece, type CookChoices } from './pick';
 import { isComponent } from './components';
+import { WORLD_DISHES } from './world';
 
 const COURSES = ['Starter', 'Main', 'Dessert', 'Snack', 'Drink'];
 const TASTES = ['Savoury', 'Sweet', 'Both'];
@@ -141,7 +142,9 @@ describe('pickDish', () => {
       expect(idea.layout, where).toBeDefined();
       for (const p of piecesOf(idea)) {
         if (isComponent(p.ingredient)) continue;
-        const allowed = [...Object.values(TRAITS[p.ingredient]?.forms ?? {}).flat(), ...(isLibrary(p, ids) ? [p.form] : [])];
+        // (A world dish may also use the shapes its looks note asks for: an apple wheel by a cider.)
+        const looksShapes = idea.world ? (WORLD_DISHES.find((d) => d.id === idea.world!.id)?.looks.pieces ?? []).filter((q) => q.ingredient === p.ingredient).map((q) => q.shape) : [];
+        const allowed = [...Object.values(TRAITS[p.ingredient]?.forms ?? {}).flat(), ...looksShapes, ...(isLibrary(p, ids) ? [p.form] : [])];
         expect(allowed, `${where}: ${p.ingredient}:${p.form}`).toContain(p.form);
         expect(p.count, where).toBeGreaterThan(0);
       }

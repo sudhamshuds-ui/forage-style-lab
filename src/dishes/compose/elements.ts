@@ -165,6 +165,9 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
     case 'butter:cube':
     case 'butter:crumble':
       return [{ role: id, family: 'butter', skin: { kind: 'pores', size_mm: 1.1, amount: 0.18 }, glossy: true }];
+    case 'avocado:smash':
+      // Smashed avocado (guacamole): a rough green dome, paler where it is pressed (never a half or seed).
+      return [{ role: id, family: 'avocado-flesh', skin: { ...SAUCE_SKIN, amount: 0.5 } }];
     case 'potato:mash':
       // Never seared brown: mash stays vibrant yellow-white (item 9).
       return [{ role: id, family: 'mash', skin: { ...SAUCE_SKIN, amount: 0.4 } }];
@@ -730,6 +733,8 @@ export function makeElement(part: Part, random: () => number, seed: number): For
     }
     case 'baguette:toast':
       return settle(toast(role, random, ingredient));
+    case 'avocado:smash':
+      return mound(role, random, 3.6, 1.0, 1.1);
     case 'potato:mash':
       // A low, wide dome with spoon swirls (item 9), not a flat pancake of mash.
       return mound(role, random, 5.4, 1.1, 0.9);
@@ -870,6 +875,7 @@ export const BASE_FAMILY: Record<string, FamilyId> = {
   'soup:potato': 'soup-potato',
   'soup:tomato': 'soup-tomato',
   'soup:cream': 'cream-sauce',
+  'soup:spinach': 'green-gravy',
   'soup:pepper': 'drink-orange',
   'mash:potato': 'mash',
   'mash:risotto': 'cooked-rice',

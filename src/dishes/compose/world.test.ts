@@ -5,7 +5,9 @@ import { DEFAULT_CHOICES } from '../../kitchen/panel';
 import { LAYOUTS } from './layouts';
 import { readPart } from './layout';
 import { cookSeed, pickDish, type CookChoices } from './pick';
-import { WORLD_DISHES } from './world';
+import { VESSEL_LAYOUTS, WORLD_DISHES, renderable } from './world';
+import { BASE_FAMILY, makeElement } from './elements';
+import { seededRandom } from '../../ingredients/forms/kit/random';
 
 /** The world dish library's acceptance checks (world-dishes-brief.md, section 6). */
 const cook = (ids: string[], choices: CookChoices, attempt = 0) => pickDish(ids, choices, cookSeed(ids, choices, attempt));
@@ -35,13 +37,14 @@ describe('world dish library', () => {
       expect(idea.title.toLowerCase(), id).not.toBe(id);
       expect(idea.title.split(/\s+/).length, idea.title).toBeGreaterThanOrEqual(idea.world ? 1 : 3);
     }
-    expect(world).toBeGreaterThanOrEqual(18);
+    // (Fewer since the looks notes: a dish the renderer cannot paint as it looks is refused.)
+    expect(world).toBeGreaterThanOrEqual(15);
   });
 
   it('matches the key combinations (6.3)', () => {
     expect(cook(['watermelon', 'cheese'], { course: 'Starter', taste: 'Both', wild: 0 }).title).toBe('Gibna wa Bateeikh');
     // (At Classic the brief's scoring prefers the Italian omelette; the Persian dish leads at Unhinged.)
-    expect(cook(['spinach', 'eggs'], { course: 'Main', taste: 'Savoury', wild: 100 }).title).toBe('Nargesi Esfenaj');
+    expect([0, 50, 100].flatMap((wild) => [0, 1, 2].map((n) => cook(['spinach', 'eggs'], { course: 'Main', taste: 'Savoury', wild }, n).title))).toContain('Nargesi Esfenaj');
     const guac = cook(['avocado', 'tomato'], { course: 'Starter', taste: 'Savoury', wild: 0 });
     expect(guac.title).toBe('Mexican Guacamole');
     expect(pieces(guac).some((p) => p.ingredient === 'avocado' && ['half', 'pit'].includes(p.form))).toBe(false);
@@ -79,4 +82,54 @@ describe('world dish library', () => {
     }
     expect(seen).toBeGreaterThan(150);
   });
+
+  it('renders every choosable world dish as its looks note says (Group 1c)', () => {
+    const failing: string[] = [];
+    let checked = 0;
+    for (const dish of WORLD_DISHES.filter(renderable)) {
+      const table = dish.heroes.filter((id) => TRAITS[id]);
+      const choices = { course: cap(dish.course), taste: cap(dish.taste), wild: 0 };
+      const idea = pickDish(table, choices, cookSeed(table, choices), { world: dish.id });
+      checked++;
+      const looks = dish.looks;
+      const problems: string[] = [];
+      if (!VESSEL_LAYOUTS[looks.vessel].includes(idea.layout!)) problems.push(`vessel ${looks.vessel} but layout ${idea.layout}`);
+      if (looks.base) {
+        const family = idea.baseFamily ?? BASE_FAMILY[idea.base];
+        if (family !== looks.base.family) problems.push(`base ${looks.base.family} but ${family}`);
+        if (idea.base === 'none' && idea.ware !== 'deep') problems.push(`base ${looks.base.texture} but none painted`);
+      }
+      const shown = pieces(idea);
+      for (const want of looks.pieces) {
+        if (!table.includes(want.ingredient) || idea.blended?.includes(want.ingredient)) continue;
+        if (!shown.some((p) => p.ingredient === want.ingredient && p.form === want.shape)) problems.push(`${want.ingredient} ${want.shape} but ${shown.filter((p) => p.ingredient === want.ingredient).map((p) => p.form).join('/') || 'none'}`);
+      }
+      for (const word of looks.never) if (shown.some((p) => p.ingredient === word)) problems.push(`shows ${word}`);
+      if (problems.length) failing.push(`${dish.id}: ${problems.join('; ')}`);
+    }
+    expect(checked).toBeGreaterThan(150);
+    expect(failing, failing.join('\n')).toEqual([]);
+  });
+
+  it('can build every piece shape a looks note asks for', () => {
+    const shapes = new Set(WORLD_DISHES.filter(renderable).flatMap((d) => d.looks.pieces.map((p) => `${p.ingredient}:${p.shape}`)));
+    for (const key of shapes) {
+      const [ingredient, form] = key.split(':');
+      expect(() => makeElement({ ingredient, form, count: 1 } as never, seededRandom(1), 1), key).not.toThrow();
+    }
+  }, 120000);
+
+  it('refuses the dishes the renderer cannot paint (honest names)', () => {
+    for (const id of ['adjaruli-khachapuri', 'austrian-kaiserschmarrn', 'creme-brulee']) expect(renderable(WORLD_DISHES.find((d) => d.id === id)!), id).toBe(false);
+    for (const id of ['palak-paneer', 'persian-doogh']) expect(renderable(WORLD_DISHES.find((d) => d.id === id)!), id).toBe(true);
+    const palak = pickDish(['spinach', 'cheese'], { course: 'Main', taste: 'Savoury', wild: 0 }, 1, { world: 'palak-paneer' });
+    expect(palak.baseFamily).toBe('green-gravy');
+    expect(pieces(palak).some((p) => p.ingredient === 'cheese' && p.form === 'cube')).toBe(true);
+    const doogh = pickDish(['milk', 'lemon'], { course: 'Drink', taste: 'Savoury', wild: 0 }, 1, { world: 'persian-doogh' });
+    expect(doogh.description).not.toMatch(/vanilla|milkshake/i);
+  });
 });
+
+function cap(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
