@@ -705,11 +705,7 @@ function loadTest(table: string[], choices: Partial<CookChoices>, attempt?: numb
   if (attempt !== undefined) window.setTimeout(() => cook(cookPanel.choices(), attempt), 900);
 }
 
-/**
- * Shuffle (Group 4) and Undo: the table's ingredients are swapped for others. R4: one after another
- * they lift and shrink away, then the new ones drop in with a slight bounce (about half a second
- * in all, matching the tray's tiles).
- */
+/** Shuffle (Group 4) and Undo: the table's ingredients are swapped for others in one short fade. */
 function replaceTable(nextIds: string[]): void {
   if (mode !== 'table' || cooking) return;
   const leaving = staying();
@@ -725,8 +721,7 @@ function replaceTable(nextIds: string[]): void {
     gsap.killTweensOf(item);
     gsap.killTweensOf(item.position);
   }
-  const still = prefersReducedMotion();
-  const STAGGER = 0.04;
+  // One short fade swaps them (the owner's preferred Shuffle, restored in R7).
   const change = () => {
     for (const item of leaving) detach(item);
     for (const item of incoming) {
@@ -739,25 +734,9 @@ function replaceTable(nextIds: string[]): void {
     for (const item of incoming) item.position.copy(item.target);
     applyRoom();
     relayout(false);
-    if (still) return;
-    // In: each drops from a little above with a slight bounce.
-    incoming.forEach((item, index) => {
-      gsap.killTweensOf(item.position);
-      gsap.fromTo(item.position, { y: 0.55 }, { y: 0, duration: 0.26, delay: index * STAGGER, ease: 'back.out(1.8)', onUpdate: () => stage.invalidate() });
-      gsap.fromTo(item, { pop: 0.88 }, { pop: 1, duration: 0.22, delay: index * STAGGER, ease: EASE.out });
-    });
   };
-  if (still || leaving.length === 0) {
-    if (still) change();
-    else crossfade(change, 0.16);
-  } else {
-    // Out: each lifts and shrinks, one after another; then the swap, under a quick dissolve.
-    leaving.forEach((item, index) => {
-      gsap.to(item.position, { y: 0.45, duration: 0.15, delay: index * STAGGER, ease: EASE.out, onUpdate: () => stage.invalidate() });
-      gsap.to(item, { pop: 0.72, duration: 0.15, delay: index * STAGGER, ease: EASE.out });
-    });
-    window.setTimeout(() => crossfade(change, 0.14), (0.15 + leaving.length * STAGGER) * 1000);
-  }
+  if (prefersReducedMotion()) change();
+  else crossfade(change, 0.24);
   changed();
 }
 

@@ -205,18 +205,18 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
   const ids = () => tiles.map((tile) => tile.dataset.id ?? '');
 
   /**
-   * Deal these ids into the tiles: one after another, each picture lifts and fades out, then the
-   * new one drops in with a slight bounce (R4: about half a second in all, like cards re-dealt).
-   * The button only presses in; its icon does not spin (it "felt weird", the user, 2026-11-16).
+   * Deal these ids into the tiles. Each tile's picture dissolves into the next one (a soft blur
+   * and fade, rising a few pixels), one tile after another, like cards being re-dealt (the
+   * owner's preferred Shuffle, restored in R7). The button only presses in; its icon does not spin.
    */
-  const STAGGER = 0.035;
+  const STAGGER = 0.045;
   const dealInto = (next: string[]) => {
     tiles.forEach((tile, index) => {
       const id = next[index];
       if (!id || id === tile.dataset.id) return;
       const image = tile.firstElementChild as HTMLImageElement;
       // The tile is the new ingredient straight away (Undo and the table read it); only its
-      // picture changes over at the turn of the motion.
+      // picture changes over at the turn of the dissolve.
       const before = image.src;
       setTile(tile, id);
       if (prefersReducedMotion()) return;
@@ -225,14 +225,14 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
       gsap.killTweensOf(image);
       gsap
         .timeline({ delay: index * STAGGER })
-        .to(image, { opacity: 0, y: -7, scale: 0.94, duration: 0.13, ease: EASE.out })
+        .to(image, { opacity: 0, filter: 'blur(4px)', y: 4, duration: 0.12, ease: EASE.out })
         .call(() => (image.src = after))
-        .fromTo(image, { opacity: 0, y: -10, scale: 1 }, { opacity: 1, y: 0, duration: 0.22, ease: 'back.out(2.2)', clearProps: 'transform,opacity' });
+        .fromTo(image, { opacity: 0, filter: 'blur(4px)', y: -6 }, { opacity: 1, filter: 'blur(0px)', y: 0, duration: 0.26, ease: EASE.out, clearProps: 'transform,opacity,filter' });
     });
     window.setTimeout(() => {
       refresh();
       options.onDeal(ids());
-    }, prefersReducedMotion() ? 0 : 140 + tiles.length * STAGGER * 1000);
+    }, prefersReducedMotion() ? 0 : 120 + tiles.length * STAGGER * 1000);
   };
 
   shuffle.addEventListener('click', () => {
