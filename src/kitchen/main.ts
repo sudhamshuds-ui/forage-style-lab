@@ -632,7 +632,6 @@ const tray = mountTray(document.getElementById('tray') as HTMLElement, {
   // new table ingredients on the click and compiled them on the first frame, the lag).
   onDeal: (showing, upcoming) => keepReady([...showing, ...upcoming]),
   tableIds: () => staying().map((item) => item.id),
-  replaceTable: (ids) => replaceTable(ids),
   beforeShuffle: () => remember(),
   onTestCheck: (check) => loadTest(check.table, check.wild < 0 ? {} : { course: check.course, taste: check.taste, wild: check.wild }, check.wild < 0 ? undefined : 0),
 });
@@ -651,7 +650,7 @@ function loadTest(table: string[], choices: Partial<CookChoices>, attempt?: numb
   if (attempt !== undefined) window.setTimeout(() => cook(cookPanel.choices(), attempt), 900);
 }
 
-/** Shuffle (Group 4) and Undo: the table's ingredients are swapped for others in one short fade. */
+/** Undo and the test checks: the table's ingredients are swapped for others in one short fade. */
 function replaceTable(nextIds: string[]): void {
   if (mode !== 'table' || cooking) return;
   const leaving = staying();
@@ -857,8 +856,6 @@ const backButton = document.getElementById('btn-back') as HTMLButtonElement;
 function setMode(next: Mode): void {
   mode = next;
   document.body.dataset.mode = next;
-  // (The slow turn is the dish's alone: it stops the moment the page leaves it.)
-  if (next !== 'dish') stage.setIdleSpin(false, settings.scene.spinSpeed);
   changed();
   stage.invalidate();
 }
@@ -1160,9 +1157,8 @@ function update(): void {
   stage.keyLight.castShadow = settings.scene.castShadow;
   // The slow turn rests while you point at, pick or drag an ingredient, so the outline holds still.
   const busy = !!hovered || !!selected || trayDragging;
-  // The slow turn only on the dish, never on the table (R7: the table drifted by itself), and not
-  // with the brush on (every frame of strokes cost a slow machine dearly).
-  stage.setIdleSpin(settings.scene.idleSpin && !reducedMotion.matches && !busy && list.length > 0 && mode === 'dish' && !settings.brush.classic, settings.scene.spinSpeed);
+  // (R8: the slow turn as on main, on the table and the dish, brush on or off.)
+  stage.setIdleSpin(settings.scene.idleSpin && !reducedMotion.matches && !busy && list.length > 0, settings.scene.spinSpeed);
 
   // Where the group sits on the card and which way the light comes from, for the paint pass.
   const centre = context.objectCentre;

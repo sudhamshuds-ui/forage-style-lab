@@ -4,7 +4,7 @@ import { TEST_CHECKS, type TestCheck } from './testSheet';
 /**
  * The ingredient tray: a row of small paintings under the card. Drag one onto the card to put
  * it on the table (or just click it). While it is on the table its tile stays in the row,
- * greyed out. The shuffle button deals new ingredients into every tile and swaps the table's for new ones too.
+ * greyed out. The shuffle button deals new ingredients into every tile that is not in use (as on main).
  *
  * The drag, step by step (like dragging a layer out of a bin):
  *   1. Press a tile and move a few pixels: a copy of the tile (the "ghost") lifts off and
@@ -42,8 +42,6 @@ export interface TrayOptions {
   testTools?: boolean;
   /** The ingredients on the table now. */
   tableIds: () => string[];
-  /** Shuffle replaces the table too (Group 4): put these on the table instead of what is there. */
-  replaceTable: (ids: string[]) => void;
   /** Just before a shuffle changes anything (for Undo). */
   beforeShuffle?: () => void;
   /** A test-sheet check picked in the ingredients panel: set its table and controls and cook it. */
@@ -241,15 +239,17 @@ export function mountTray(root: HTMLElement, options: TrayOptions): Tray {
   };
 
   shuffle.addEventListener('click', () => {
-    // Every tile is dealt again, and what was on the table is replaced by the first new ones, so a
-    // shuffle changes the whole kitchen, not only the tray (Group 4). The deal was picked ahead.
+    // As on main: only the tiles not on the table are dealt again; the table and its greyed-out
+    // tiles stay as they are. (Group 4's whole-kitchen shuffle is undone, R8.) Never deal one that
+    // is already showing or on the table; the deal was picked ahead.
+    const free = tiles.filter((tile) => !options.isUsed(tile.dataset.id ?? ''));
+    if (free.length === 0) return;
     options.beforeShuffle?.();
-    const onTable = options.tableIds();
-    const taken = new Set([...ids(), ...onTable]);
-    const fresh = upcoming.filter((id) => !taken.has(id));
-    fresh.push(...deal(TILES - fresh.length, new Set([...taken, ...fresh])));
-    if (onTable.length) options.replaceTable(fresh.slice(0, onTable.length));
-    dealInto(fresh.slice(0, TILES));
+    const taken = new Set([...ids(), ...options.tableIds()]);
+    const fresh = upcoming.filter((id) => !taken.has(id)).slice(0, free.length);
+    fresh.push(...deal(free.length - fresh.length, new Set([...taken, ...fresh])));
+    const next = tiles.map((tile) => (free.includes(tile) ? fresh[free.indexOf(tile)] : tile.dataset.id ?? ''));
+    dealInto(next);
   });
 
   function wireDrag(tile: HTMLButtonElement): void {
