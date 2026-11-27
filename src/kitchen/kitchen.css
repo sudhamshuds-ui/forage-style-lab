@@ -8,7 +8,9 @@
 .kitchen {
   /* A little smaller than the Style Lab's card, so the tray fits under it on a laptop. */
   --card-w: min(calc(100vw - 32px), calc((100svh - 300px) * 5 / 6), 540px);
-  --tile-w: calc((var(--card-w) * 0.86 - 4 * 6px) / 5);
+  /* The tray row is as wide as the card: undo (32) and shuffle (32), two 8px gaps, five tiles with
+     four 6px gaps between them. */
+  --tile-w: calc((var(--card-w) - 2 * 32px - 2 * 8px - 4 * 6px) / 5);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   /* Moving across the page (the card's morph, both ways): eases in and out. */
   --ease-move: cubic-bezier(0.45, 0, 0.25, 1);
@@ -192,60 +194,12 @@
   }
 }
 
-/* Undo, on the table's left side (R4): greyed out when there is nothing to take back. */
-.undo-table {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  translate: 0 -50%;
-  z-index: 3;
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  color: var(--ink);
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.8);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  backdrop-filter: blur(16px) saturate(180%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 0 0 0.5px rgba(31, 30, 28, 0.1),
-    0 2px 8px rgba(40, 32, 20, 0.16);
-  transition: opacity 200ms ease, transform 120ms var(--ease-out), background-color 150ms ease, color 150ms ease;
-}
-.undo-table:disabled {
-  cursor: default;
-  color: rgba(31, 30, 28, 0.3);
-  background: rgba(255, 255, 255, 0.55);
-}
-.undo-table:not(:disabled):active {
-  transform: scale(0.94);
-}
-.undo-table:focus-visible {
-  outline: 2px solid rgba(31, 30, 28, 0.45);
-  outline-offset: 2px;
-}
-@media (hover: hover) and (pointer: fine) {
-  .undo-table:not(:disabled):hover {
-    background: #ffffff;
-  }
-}
-body[data-mode='cooking'] .undo-table,
-body[data-mode='dish'] .undo-table,
-body[data-mode='returning'] .undo-table {
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* ---------- The tray ---------- */
 
 .tray {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   margin-top: 4px;
 }
@@ -353,6 +307,7 @@ body[data-mode='returning'] .undo-table {
 .tray {
   position: relative;
 }
+.tray-undo,
 .tray-shuffle,
 .tray-more {
   display: grid;
@@ -368,19 +323,26 @@ body[data-mode='returning'] .undo-table {
   cursor: pointer;
   transition: background-color 150ms ease, transform 120ms var(--ease-out);
 }
+.tray-undo:not(:disabled):active,
 .tray-shuffle:active,
 .tray-more:active {
   transform: scale(0.94);
 }
+.tray-undo:disabled {
+  cursor: default;
+  color: rgba(31, 30, 28, 0.3);
+}
 .tray-more[aria-expanded='true'] {
   background: #e2ded6;
 }
+.tray-undo:focus-visible,
 .tray-shuffle:focus-visible,
 .tray-more:focus-visible {
   outline: 2px solid rgba(31, 30, 28, 0.45);
   outline-offset: 2px;
 }
 @media (hover: hover) and (pointer: fine) {
+  .tray-undo:not(:disabled):hover,
   .tray-shuffle:hover,
   .tray-more:hover {
     background: #e7e4de;
@@ -984,7 +946,6 @@ body.shot .below-card,
 body.shot .lab-title,
 body.shot .bar-root,
 body.shot .result-bar,
-body.shot .undo-table,
 body.shot .empty-hint,
 body.shot .remove-item {
   display: none !important;

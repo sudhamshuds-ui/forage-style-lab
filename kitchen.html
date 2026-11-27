@@ -29,10 +29,6 @@
           <button type="button" class="remove-item" id="remove-item" hidden>
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12" /></svg>
           </button>
-          <!-- Undo (R4): takes back the table's last action, one step at a time. -->
-          <button type="button" class="undo-table" id="btn-undo" aria-label="Undo" title="Undo" disabled>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" /></svg>
-          </button>
           <p class="empty-hint" id="empty-hint" data-show="true">Drag an ingredient onto the table</p>
           <!-- The result screen's buttons (shown once a dish is on the card). -->
           <div class="result-bar" id="result-bar">
@@ -47,7 +43,13 @@
         <!-- Under the card: the tray while choosing, the dish's description once cooked. -->
         <div class="below-card">
           <div class="tray-wrap">
-            <div class="tray" id="tray"></div>
+            <div class="tray" id="tray">
+              <!-- Undo (R4): takes back the table's last action, one step at a time. It leads the
+                   tray row (undo, tiles, shuffle), centred under the card; tray.ts adds the rest. -->
+              <button type="button" class="tray-undo" id="btn-undo" aria-label="Undo" title="Undo" disabled>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" /></svg>
+              </button>
+            </div>
             <p class="hint">Drag ingredients onto the table, up to three</p>
           </div>
           <p class="dish-text" id="dish-text"></p>
