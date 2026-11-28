@@ -911,9 +911,9 @@ body[data-mode='returning'] .bar-root {
   transition: opacity 150ms var(--ease-out);
 }
 
-/* While a dish is being plated (a few seconds of physics), Cook waits: no spinner, the button says so. */
+/* While a dish is being plated, Cook waits: no spinner and no busy pointer (R10: the pointer stays
+   as on main), the button only dims and says so. */
 .cook-go[data-busy='true'] {
-  cursor: progress;
   opacity: 0.8;
 }
 

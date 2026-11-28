@@ -25,6 +25,11 @@ export interface Dish {
   entry: IngredientEntry;
   title: string;
   description: string;
+  /**
+   * R10 (the Cook lag): build the dish's pieces ahead, in slices of `budgetMs`, pausing (yielding)
+   * between them; the entry's form then hands them over at once. Composed dishes only.
+   */
+  prebuild?: (budgetMs: number) => Generator<void, void>;
 }
 
 const HAND_BUILT: Dish[] = [

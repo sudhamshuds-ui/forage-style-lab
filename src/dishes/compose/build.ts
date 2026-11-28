@@ -8,6 +8,8 @@ import { SAUCE_SKIN, CERAMIC_SKIN } from '../../shading/effects/skinTexture';
 import { withFrame } from '../kit/cut';
 import { Table, clearance, plate, posed } from '../kit/place';
 import { PhysicsPlate, physicsReady, type PhysicsReport } from '../kit/physics';
+import { drain, sliced } from '../../ingredients/forms/kit/slices';
+import { seedFromId } from '../../ingredients/forms/kit/random';
 import { pool, wobble } from '../kit/pool';
 import { glass, glassFor, glassRadius, takesIce, type Glass } from '../kit/glass';
 import { DINNER_PLATE, PASTA_BOWL, PUDDING_BOWL, SOUP_BOWL, innerRadiusAt, ware } from '../kit/ware';
@@ -279,9 +281,11 @@ function onPlate(pieces: FormPiece[], floor?: (x: number, z: number) => number):
  * pieces resting on meshes): a piece floats when its lowest points stand more than 2 mm above
  * whatever lies under them; it overlaps when part of it sinks more than 3 mm into another piece.
  */
-function support(food: FormPiece[][], ground: Table): { floating: number; deepest: number; gaps: number[]; depths: number[] } {
+/** (As steps, R10: a pause after each piece is measured.) */
+function* supportSteps(food: FormPiece[][], ground: Table): Generator<void, { floating: number; deepest: number; gaps: number[]; depths: number[] }> {
   const cell = 0.3;
-  const key = (x: number, z: number) => `${Math.floor(x / cell)},${Math.floor(z / cell)}`;
+  // (R10: a number for each cell, not a string: the same cells, many times sooner.)
+  const key = (x: number, z: number) => (Math.floor(x / cell) + 32768) * 65536 + (Math.floor(z / cell) + 32768);
   const samples = food.map((pieces) => {
     const pts: [number, number, number][] = [];
     for (const p of pieces) {
@@ -295,12 +299,12 @@ function support(food: FormPiece[][], ground: Table): { floating: number; deepes
   });
   // Each piece's top and bottom over each cell.
   const tops = samples.map((pts) => {
-    const m = new Map<string, number>();
+    const m = new Map<number, number>();
     for (const [x, y, z] of pts) m.set(key(x, z), Math.max(m.get(key(x, z)) ?? -Infinity, y));
     return m;
   });
   const bottoms = samples.map((pts) => {
-    const m = new Map<string, number>();
+    const m = new Map<number, number>();
     for (const [x, y, z] of pts) m.set(key(x, z), Math.min(m.get(key(x, z)) ?? Infinity, y));
     return m;
   });
@@ -308,14 +312,17 @@ function support(food: FormPiece[][], ground: Table): { floating: number; deepes
   let deepest = 0;
   const gaps: number[] = [];
   const depths: number[] = food.map(() => 0);
-  samples.forEach((pts, i) => {
+  yield;
+  for (const [i, pts] of samples.entries()) {
+    yield;
     let lowestGap = Infinity;
     for (const [x, y, z] of pts) {
       let under = ground.height(x, z);
+      const here = key(x, z);
       for (let j = 0; j < tops.length; j++) {
         if (j === i) continue;
-        const t = tops[j].get(key(x, z));
-        const bt = bottoms[j].get(key(x, z));
+        const t = tops[j].get(here);
+        const bt = bottoms[j].get(here);
         if (t === undefined || bt === undefined) continue;
         if (t <= y + 0.3) under = Math.max(under, t);
         // Inside another piece: between its bottom and its top, well below its top.
@@ -328,7 +335,7 @@ function support(food: FormPiece[][], ground: Table): { floating: number; deepes
     gaps[i] = lowestGap;
     if (lowestGap > 0.2) floating++;
     if (lowestGap > 0.2 && (globalThis as { DEBUG_FLOAT?: boolean }).DEBUG_FLOAT) console.log('floating', food[i].map((p) => p.role).join('+'), lowestGap.toFixed(2));
-  });
+  }
   return { floating, deepest, gaps, depths };
 }
 
@@ -374,6 +381,44 @@ export interface Cohesion {
  * The cohesion QA (the user, 2026-11-22: "the elements are a lot of times too far apart"): for each
  * piece of food, seen from above, the gap to its nearest neighbour.
  */
+/** For each point of `a`, the distance to the nearest point of the `others` (Infinity if none). */
+function nearestEach(a: [number, number][], others: [number, number][][]): number[] {
+  const size = 0.5;
+  const grid = new Map<number, [number, number][]>();
+  const key = (x: number, z: number) => x * 73856093 + z * 19349663;
+  for (const pts of others)
+    for (const q of pts) {
+      const k = key(Math.floor(q[0] / size), Math.floor(q[1] / size));
+      const list = grid.get(k);
+      if (list) list.push(q);
+      else grid.set(k, [q]);
+    }
+  return a.map(([ax, az]) => {
+    if (!grid.size) return Infinity;
+    let best = Infinity;
+    const cx = Math.floor(ax / size);
+    const cz = Math.floor(az / size);
+    for (let r = 0; ; r++) {
+      // Every point in ring r is at least (r - 1) cells away.
+      if ((r - 1) * size >= best || r > 400) break;
+      for (let x = cx - r; x <= cx + r; x++)
+        for (let z = cz - r; z <= cz + r; z++) {
+          if (Math.max(Math.abs(x - cx), Math.abs(z - cz)) !== r) continue;
+          const list = grid.get(key(x, z));
+          if (list) for (const [bx, bz] of list) best = Math.min(best, Math.hypot(bx - ax, bz - az));
+        }
+    }
+    return best;
+  });
+}
+
+/** An outline's box seen from above: [min x, min z, max x, max z]. */
+function outlineBox(pts: [number, number][]): number[] {
+  const b = [Infinity, Infinity, -Infinity, -Infinity];
+  for (const [x, z] of pts) (b[0] = Math.min(b[0], x)), (b[1] = Math.min(b[1], z)), (b[2] = Math.max(b[2], x)), (b[3] = Math.max(b[3], z));
+  return b;
+}
+
 function cohesion(food: FormPiece[][], anchors: FormPiece[][] = []): Cohesion {
   // Anchors (a drink's glass) are neighbours the food may touch, but are not measured themselves.
   const anchorOutlines = anchors.map((pieces) => {
@@ -397,12 +442,19 @@ function cohesion(food: FormPiece[][], anchors: FormPiece[][] = []): Cohesion {
   let widestGap = 0;
   let apart = 0;
   if (outlines.length + anchorOutlines.length < 2) return { widestGap, apart };
+  // (R10: each outline's box first; a pair whose boxes are already farther apart than the nearest
+  // found so far cannot be nearer, so its points are not compared. The same answer, much sooner.)
+  const every = [...outlines, ...anchorOutlines];
+  const boxes = every.map(outlineBox);
+  const apartBoxes = (p: number[], q: number[]) => Math.hypot(Math.max(0, p[0] - q[2], q[0] - p[2]), Math.max(0, p[1] - q[3], q[1] - p[3]));
   outlines.forEach((a, i) => {
     let nearest = Infinity;
-    [...outlines, ...anchorOutlines].forEach((b, j) => {
-      if (i === j) return;
+    const order = every.map((_, j) => j).filter((j) => j !== i).sort((p, q) => apartBoxes(boxes[i], boxes[p]) - apartBoxes(boxes[i], boxes[q]));
+    for (const j of order) {
+      if (apartBoxes(boxes[i], boxes[j]) >= nearest) break;
+      const b = every[j];
       for (const [ax, az] of a) for (const [bx, bz] of b) nearest = Math.min(nearest, Math.hypot(ax - bx, az - bz));
-    });
+    }
     widestGap = Math.max(widestGap, nearest);
     if (nearest > 1) apart++;
   });
@@ -466,14 +518,27 @@ function offCentre(food: FormPiece[][], heroCount: number): number {
 
 /** Build a composed dish from its plan. */
 export function composedBuilder(original: DishIdea): FormBuilder {
-  return ({ seed }) => {
+  const steps = composedSteps(original);
+  return (options) => drain(steps(options.seed, Infinity));
+}
+
+/**
+ * The composer as steps (R10, the Cook lag): a pause after every piece is built (and inside the
+ * slow ones, slices.ts) and after every step of the physics, so the kitchen can build a dish while
+ * the painted transition keeps playing. `budgetMs` is how long each slice may run (Infinity: in one go).
+ */
+export function composedSteps(original: DishIdea): (seed: number, budgetMs: number) => Generator<void, FormPiece[]> {
+  return function* (seed, budgetMs) {
+    const inSlices = <T>(build: (random: () => number) => T, random: () => number): Generator<void, T> =>
+      sliced(build, random, () => budgetMs);
     const idea = effectiveIdea(original);
     const random = seededRandom(seed ^ 0xc0de);
     const composed: ComposedPlan = planFor(original);
     const seared = isCooked(idea);
     void seared;
     const fit = fitWare(idea, composed);
-    const w = makeWare(idea, seed, fit);
+    const w = budgetMs === Infinity ? makeWare(idea, seed, fit) : yield* inSlices(() => makeWare(idea, seed, fit), Math.random);
+    yield;
     // Plates and bowls cast from their foot only (R7: the whole ware's shadow fell offset and bigger
     // than it under the high key light, a hard blue second plate).
     w.pieces = w.pieces.map((piece) => {
@@ -669,7 +734,8 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       spawn.add(settled);
       for (const p of group) {
         const elementSeed = (seed + p.index * 7919 + p.part.ingredient.length * 104729) >>> 0;
-        const element = makeElement(p.part, random, elementSeed);
+        const element = budgetMs === Infinity ? makeElement(p.part, random, elementSeed) : yield* inSlices((replayed) => makeElement(p.part, replayed, elementSeed), random);
+        yield;
         // A traced piece is cut to its real size in the reference (its longest side, seen from above).
         // (R8: a drumstick is 12 cm long whatever the ware, never stretched to fill a rice bowl.)
         const scale = p.part.form === 'drumstick' ? 12 / Math.max(0.1, footprintOf(element)) : p.target ? p.target / Math.max(0.1, footprintOf(element)) : p.scale;
@@ -768,7 +834,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       }
       if (physics && dropped.length) {
         if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('settle-layer');
-        physics.settle();
+        yield* physics.settleSteps();
         // (R8: a piece still sliding when the layer has settled, off a cake's slope or wedged against
         // a neighbour, is lifted out and laid again where it was planned, straight down and flat,
         // like a cook re-placing it; the moving check still counts it if it will not rest.)
@@ -793,7 +859,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
             food.push(again);
             parts.push(...again);
           }
-          physics.settle();
+          yield* physics.settleSteps();
           // Sliding again from the same place: it is laid by hand at a free spot, below.
           for (const pieces of physics.unsettled()) {
             if (!copies.has(pieces) || !placedOf.has(pieces)) continue;
@@ -833,7 +899,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         const offPlate: FormPiece[][] = [...stillSliding];
         if (again.length) {
           if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('settle-again');
-          physics.settle();
+          yield* physics.settleSteps();
           physics.bakeNew();
           for (const copy of again) {
             if (!onPlate(copy, rimFloor) || !offGlass(copy)) {
@@ -875,7 +941,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
               physics.drop(tried, { lift: 0.25, noTurn: true });
               placedOf.set(tried, p);
               if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('settle-attempt');
-              physics.settle();
+              yield* physics.settleSteps();
               physics.bakeNew();
               if (towers(tried) || !onPlate(tried, rimFloor)) {
                 if ((globalThis as { DEBUG_TOWER?: boolean }).DEBUG_TOWER) console.log('failed again', p.part.ingredient, p.part.form);
@@ -944,12 +1010,16 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       // A piece frozen while still sliding (the engine stops after a few seconds) can be held a few
       // millimetres in the air: each is set straight down onto what is under it, bottom layer first
       // (the P0 list: nothing floating).
-      food.forEach((pieces, i) => {
+      eachPiece1: for (const [i, pieces] of food.entries()) {
+        yield;
         const under = new Table(groundOnly.height.bind(groundOnly));
-        food.forEach((other, j) => j !== i && under.add(other));
+        for (const [j, other] of food.entries()) {
+          if (j !== i) under.add(other);
+          yield;
+        }
         const gap = clearance(pieces, (x, z) => under.height(x, z));
         if (gap > 0.1 && gap < 3) for (const piece of pieces) piece.geometry.translate(0, -gap, 0);
-      });
+      }
       // Close the gaps (Group 2: plated mains showed pieces standing apart). A piece more than 0.45 cm
       // from every other slides toward its nearest neighbour until about 0.2 cm off, then is set down
       // on what is under it. Kept only if it still lies flat on the plate, its sauce or its base (never
@@ -975,19 +1045,29 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         const anchorOutlines = served ? [outline(served.pieces.filter((piece) => piece.role === 'glass'))] : [];
         for (let pass = 0; pass < 6; pass++) {
           const outlines = food.map(outline);
-          food.forEach((pieces, i) => {
+          eachPiece2: for (const [i, pieces] of food.entries()) {
+            yield;
             let best = Infinity;
             let dx = 0;
             let dz = 0;
-            for (const [ax, az] of outlines[i])
-              [...outlines, ...anchorOutlines].forEach((other, j) => {
-                if (j === i) return;
-                for (const [bx, bz] of other) {
-                  const d = Math.hypot(bx - ax, bz - az);
-                  if (d < best) (best = d), (dx = bx - ax), (dz = bz - az);
-                }
-              });
-            if (best <= 0.42 || !Number.isFinite(best)) return;
+            // (R10: the nearest pair is found through a grid of the other outlines' points; then the
+            // first pair at that distance, in the order the full search went, so it is the same pair.)
+            const others = [...outlines, ...anchorOutlines];
+            const each = nearestEach(outlines[i], others.filter((_, j) => j !== i));
+            best = Math.min(Infinity, ...each);
+            const first = each.indexOf(best);
+            if (first >= 0) {
+              const [ax, az] = outlines[i][first];
+              found: for (let j = 0; j < others.length; j++) {
+                if (j === i) continue;
+                for (const [bx, bz] of others[j])
+                  if (Math.hypot(bx - ax, bz - az) === best) {
+                    (dx = bx - ax), (dz = bz - az);
+                    break found;
+                  }
+              }
+            }
+            if (best <= 0.42 || !Number.isFinite(best)) continue eachPiece2;
             // Nearer on later rounds, in case a full slide was refused.
             const k = (best - (pass < 3 ? 0.15 : 0.3)) / best;
             shift(pieces, dx * k, 0, dz * k);
@@ -996,9 +1076,13 @@ export function composedBuilder(original: DishIdea): FormBuilder {
             // A smear of sauce slides along the plate and goes under whatever it meets (it is sauce).
             const sauceLike = ['smear'].includes(placedOf.get(pieces)?.part.ingredient ?? '');
             const under = served || inSoup ? new Table(w.floor) : new Table(groundOnly.height.bind(groundOnly));
-            if (!inSoup && !sauceLike) food.forEach((other, j) => j !== i && under.add(other));
+            if (!inSoup && !sauceLike) for (const [j, other] of food.entries()) {
+              if (j !== i) under.add(other);
+              yield;
+            }
             const lift = clearance(pieces, (x, z) => under.height(x, z));
             shift(pieces, 0, -lift, 0);
+            yield;
             const clearOfGlass = (list: FormPiece[]) =>
               !served || outline(list).every(([x, z]) => Math.hypot(x - baseAt[0], z - baseAt[1]) > glassRadius(served!.kind) + 0.15);
             const p = placedOf.get(pieces);
@@ -1007,6 +1091,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
             // In a soup, still apart from every other piece by a hair (they float side by side).
             const apartInSoup = () => !inSoup || outlines.every((other, j) => j === i || outline(pieces).every(([x, z]) => other.every(([ox, oz]) => Math.hypot(x - ox, z - oz) > 0.08)));
             const ok = clearOfGlass(pieces) && apartInSoup() && onPlate(pieces, idea.ware === 'glass' ? undefined : w.floor) && (idea.ware === 'glass' || idea.ware === 'deep' || onTheWare(centre, 0, 0)) && (!p || liftAbove(pieces, baseUnder(p)) <= stackAllowance(p));
+            yield;
             // Nothing else may end up on it or hanging over it: every other piece still lies as before.
             const box2 = boundsOf(pieces);
             const near = food.filter((other, j) => {
@@ -1020,13 +1105,14 @@ export function composedBuilder(original: DishIdea): FormBuilder {
             });
             if (sauceLike && ok) {
               outlines[i] = outline(pieces);
-              return;
+              continue eachPiece2;
             }
             if ((globalThis as { DEBUG_TIGHT?: boolean }).DEBUG_TIGHT) console.log('tighten', placedOf.get(pieces)?.part.ingredient, placedOf.get(pieces)?.part.form, best.toFixed(2), 'ok', ok, 'disturbs', disturbs, 'glass', clearOfGlass(pieces), 'plate', onPlate(pieces, idea.ware === 'glass' ? undefined : w.floor), 'lift', p ? liftAbove(pieces, baseUnder(p)).toFixed(2) : '-');
             if (!ok || disturbs) {
               shift(pieces, -dx * k, lift, -dz * k);
               // (R8: refused, a shorter slide is tried first: the full one rode up a slope or an edge.)
               for (const frac of [0.6, 0.35]) {
+                yield;
                 shift(pieces, dx * k * frac, 0, dz * k * frac);
                 const lift3 = clearance(pieces, (x, z) => under.height(x, z));
                 shift(pieces, 0, -lift3, 0);
@@ -1041,40 +1127,47 @@ export function composedBuilder(original: DishIdea): FormBuilder {
                 });
                 if (fits && !crowds) {
                   outlines[i] = outline(pieces);
-                  return;
+                  continue eachPiece2;
                 }
                 shift(pieces, -dx * k * frac, lift3, -dz * k * frac);
               }
               // Refused: on the later rounds, try sliding toward the middle of the food instead.
-              if (pass < 3) return;
+              if (pass < 3) continue eachPiece2;
               const all = boundsOf(food.flat());
               const mid: [number, number] = [(all.min.x + all.max.x) / 2, (all.min.z + all.max.z) / 2];
               const [cx, cz] = centreOf(pieces);
               const len = Math.hypot(mid[0] - cx, mid[1] - cz);
-              if (len < 0.05) return;
+              if (len < 0.05) continue eachPiece2;
               const step = Math.min(len, best - 0.25);
               const mx = ((mid[0] - cx) / len) * step;
               const mz = ((mid[1] - cz) / len) * step;
               shift(pieces, mx, 0, mz);
               const under2 = served || inSoup ? new Table(w.floor) : new Table(groundOnly.height.bind(groundOnly));
-              if (!inSoup) food.forEach((other, j) => j !== i && under2.add(other));
+              if (!inSoup) for (const [j, other] of food.entries()) {
+                if (j !== i) under2.add(other);
+                yield;
+              }
               const lift2 = clearance(pieces, (x, z) => under2.height(x, z));
               shift(pieces, 0, -lift2, 0);
               const fine = clearOfGlass(pieces) && apartInSoup() && onPlate(pieces, idea.ware === 'glass' ? undefined : w.floor) && (!p || liftAbove(pieces, baseUnder(p)) <= stackAllowance(p));
               if (!fine) shift(pieces, -mx, lift2, -mz);
               else outlines[i] = outline(pieces);
             } else outlines[i] = outline(pieces);
-          });
+          }
         }
       }
       // Once more, after the gaps are closed: anything left over air (what it leaned on moved) is set
       // down on what is under it now.
-      food.forEach((pieces, i) => {
+      eachPiece3: for (const [i, pieces] of food.entries()) {
+        yield;
         const under = new Table(groundOnly.height.bind(groundOnly));
-        food.forEach((other, j) => j !== i && under.add(other));
+        for (const [j, other] of food.entries()) {
+          if (j !== i) under.add(other);
+          yield;
+        }
         const gap = clearance(pieces, (x, z) => under.height(x, z));
         if (gap > 0.05 && gap < 3) for (const piece of pieces) piece.geometry.translate(0, -gap, 0);
-      });
+      }
       // Into the soup or the rice (R4): each piece sinks about a third of its height, tilted its own
       // way, so some break the surface and none sit on top like toys on a table.
       if (idea.base.startsWith('soup:') || idea.ware === 'deep') {
@@ -1110,7 +1203,8 @@ export function composedBuilder(original: DishIdea): FormBuilder {
           };
           for (let pass = 0; pass < 4; pass++) {
             const rims = food.map(rim);
-            food.forEach((pieces, i) => {
+            eachPiece4: for (const [i, pieces] of food.entries()) {
+              yield;
               let best = Infinity;
               let dir: [number, number] = [0, 0];
               for (const [ax, az] of rims[i])
@@ -1121,11 +1215,11 @@ export function composedBuilder(original: DishIdea): FormBuilder {
                     if (d < best) (best = d), (dir = [bx - ax, bz - az]);
                   }
                 });
-              if (!Number.isFinite(best) || best <= 0.35) return;
+              if (!Number.isFinite(best) || best <= 0.35) continue eachPiece4;
               const k = (best - 0.2) / best;
               for (const piece of pieces) piece.geometry.translate(dir[0] * k, 0, dir[1] * k);
               rims[i] = rim(pieces);
-            });
+            }
           }
         }
       }
@@ -1138,7 +1232,8 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       // (The catalogue's own dishes only: a generated dish lays a piece again rather than stack it.)
       if (!idea.layout && !idea.base.startsWith('soup:')) {
         for (let round = 0; round < 40; round++) {
-          const { depths } = support(food, groundOnly);
+          yield;
+          const { depths } = yield* supportSteps(food, groundOnly);
           // One at a time, the deepest, highest first: lifting both of a pair kept them inside each other.
           let i = -1;
           food.forEach((pieces, k) => {
@@ -1150,7 +1245,8 @@ export function composedBuilder(original: DishIdea): FormBuilder {
       }
       // Set down, lowest first, a few rounds (a leaf on a leaf moves when the one under it does).
       for (let round = 0; round < 16; round++) {
-        const { gaps } = support(food, groundOnly);
+        yield;
+        const { gaps } = yield* supportSteps(food, groundOnly);
         const order = food.map((_, i) => i).filter((i) => gaps[i] > 0.15 && gaps[i] < 8).sort((a, b) => boundsOf(food[a]).min.y - boundsOf(food[b]).min.y);
         if (!order.length) break;
         const i = order[0];
@@ -1164,7 +1260,7 @@ export function composedBuilder(original: DishIdea): FormBuilder {
         ...physics.check(),
         // Fruit by a glass touches the glass: the glass is its neighbour.
         ...cohesion(food, served ? [served.pieces.filter((piece) => piece.role === 'glass')] : []),
-        ...(({ floating, deepest }) => ({ floating, deepest }))(support(food, groundOnly)),
+        ...(({ floating, deepest }) => ({ floating, deepest }))(yield* supportSteps(food, groundOnly)),
         lost,
         // A piece loose on the table (R7): a component by a drink, off the glass (only the planned
         // side pieces of table ingredients may stand beside it).
@@ -1359,6 +1455,8 @@ export function composedDish(idea: DishIdea): Dish {
   const partSkins: Record<string, Look> = {};
   for (const l of rest) if (l.skin) partSkins[l.role] = painterly(l.skin);
   const heroIngredient = readPart(idea.big).ingredient;
+  const steps = composedSteps(idea);
+  let built: { seed: number; pieces: FormPiece[] } | null = null;
   const dishEntry: Dish['entry'] = {
     spec: {
       id: `dish-${idea.id}`,
@@ -1374,11 +1472,13 @@ export function composedDish(idea: DishIdea): Dish {
       light_case: 'pale',
       notes: `Composed dish (batch 2, 2026-11-19) from the catalogue (src/dishes/catalog.ts): planned in 2D, built by the composer.`,
     },
-    form: ((builder: FormBuilder): FormBuilder => (options) => {
-      const out = builder(options);
+    form: (options) => {
+      // Built ahead (prebuild, below): handed over once, as it is.
+      const out = built && built.seed === options.seed ? built.pieces : drain(steps(options.seed, Infinity));
+      built = null;
       dishEntry.pieceShare = PIECE_SHARE.get(idea.id);
       return out;
-    })(composedBuilder(idea)),
+    },
     turn: 0,
     skin: painterly((hero.skin ?? { kind: 'none', size_mm: 1, amount: 0 }) as Look),
     partSkins,
@@ -1392,7 +1492,12 @@ export function composedDish(idea: DishIdea): Dish {
     lightLift: ['deep', 'bowl', 'glass'].includes(idea.ware) ? 0.75 : idea.ware === 'board' ? 0 : 0.3,
     room: refRoom(idea.id) ?? ROOM[heroIngredient] ?? 'lavender',
   };
-  return { title: idea.title, description: idea.description, entry: dishEntry };
+  // The seed the subject builds its one member with (subject.ts: the entry's id).
+  const seed = seedFromId(dishEntry.spec.id) >>> 0;
+  function* prebuild(budgetMs: number): Generator<void, void> {
+    built = { seed, pieces: yield* steps(seed, budgetMs) };
+  }
+  return { title: idea.title, description: idea.description, entry: dishEntry, prebuild };
 }
 
 export { CERAMIC_SKIN };

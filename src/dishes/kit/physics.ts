@@ -1,5 +1,6 @@
 import { BufferAttribute, Matrix4, Quaternion, Vector3, type BufferGeometry } from 'three';
 import type { FormPiece } from '../../ingredients/forms/kit/piece';
+import { drain } from '../../ingredients/forms/kit/slices';
 
 /**
  * Real physics for plating (the user, 2026-11-22: "the dish should obey real world physics and
@@ -224,12 +225,18 @@ export class PhysicsPlate {
 
   /** Let everything fall and come to rest (at most `seconds`). */
   settle(seconds = 4): void {
+    drain(this.settleSteps(seconds));
+  }
+
+  /** The same, as steps (R10: a cook builds in slices, a pause after every step of the engine). */
+  *settleSteps(seconds = 4): Generator<void, void> {
     const steps = Math.round(seconds / this.world.timestep);
     // At rest only when every piece the engine is moving has fallen asleep (a piece pausing at the
     // top of a bounce is slow for a moment, but not at rest).
     let still = 0;
     for (let i = 0; i < steps; i++) {
       this.world.step();
+      yield;
       if (i < 120 || i % 10 !== 0) continue;
       const calm = this.bodies.every((b) => {
         if (b.baked) return true;
@@ -245,6 +252,7 @@ export class PhysicsPlate {
     // seconds more to land, before any steadying.)
     for (let i = 0, quiet = 0; i < Math.round(3 / this.world.timestep); i++) {
       this.world.step();
+      yield;
       if (i % 10 !== 0) continue;
       const calm = this.bodies.every((b) => {
         if (b.baked) return true;
@@ -274,7 +282,11 @@ export class PhysicsPlate {
       const left = moving.filter((b) => !atRest(b));
       if (!left.length) break;
       for (const b of left) b.body.setLinearDamping(lin), b.body.setAngularDamping(ang);
-      for (let i = 0; i < Math.round(1.5 / this.world.timestep); i++) this.world.step();
+      for (let i = 0; i < Math.round(1.5 / this.world.timestep); i++) {
+        this.world.step();
+        yield;
+      }
+      yield;
     }
     for (const b of moving) b.body.setLinearDamping(4), b.body.setAngularDamping(2);
   }

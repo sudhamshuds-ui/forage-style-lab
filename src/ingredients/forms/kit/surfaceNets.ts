@@ -1,4 +1,5 @@
 import { BufferAttribute, BufferGeometry, type Vector3 } from 'three';
+import { copyOf, kernel } from './slices';
 
 /**
  * Surface nets: turn a distance field (a shape described as "how far am I from
@@ -10,24 +11,86 @@ import { BufferAttribute, BufferGeometry, type Vector3 } from 'three';
  * grid edge the surface cuts. The result is one closed, even mesh that follows
  * the shape exactly, however many lumps it has: no ledges, no stretched walls.
  */
+/** The coarse grid's block, in cells, and how much faster than distance a field may change. */
+const BLOCK = 4;
+const SLOPE = 3;
+/** (Tests turn the coarse pass off to check the mesh is the same either way.) */
+export const SURFACE_NETS = { narrowBand: true };
+
 export function surfaceNets(
   distance: (x: number, y: number, z: number) => number,
   min: Vector3,
   max: Vector3,
   cell: number,
+  /** How much faster than distance the field may change (1 for a true distance, like blended balls). */
+  slope = SLOPE,
 ): BufferGeometry {
+  return kernel(() => surfaceNetsSteps(distance, min, max, cell, slope), copyOf);
+}
+
+/** Surface nets as steps (slices.ts): a pause after every layer of the grid. */
+function* surfaceNetsSteps(
+  distance: (x: number, y: number, z: number) => number,
+  min: Vector3,
+  max: Vector3,
+  cell: number,
+  slope: number,
+): Generator<void, BufferGeometry> {
   const nx = Math.ceil((max.x - min.x) / cell);
   const ny = Math.ceil((max.y - min.y) / cell);
   const nz = Math.ceil((max.z - min.z) / cell);
   const px = nx + 1;
   const py = ny + 1;
 
-  // 1. The distance at every grid point.
+  // 1. The distance at every grid point. (R10, the Cook lag: far from the surface only the sign
+  // matters, so the field is first read on a coarse grid, and a block of the fine grid whose coarse
+  // corners are all well clear of the surface takes their sign without being read point by point.
+  // Every point next to the surface is still read exactly, so the mesh is the same, point for point.)
   const values = new Float32Array(px * py * (nz + 1));
   const at = (i: number, j: number, k: number) => i + px * (j + py * k);
-  for (let k = 0; k <= nz; k++)
-    for (let j = 0; j <= ny; j++)
-      for (let i = 0; i <= nx; i++) values[at(i, j, k)] = distance(min.x + i * cell, min.y + j * cell, min.z + k * cell);
+  const read = new Uint8Array(values.length);
+  const B = BLOCK;
+  const bx = Math.ceil(nx / B);
+  const by = Math.ceil(ny / B);
+  const bz = Math.ceil(nz / B);
+  const coarse = new Float32Array((bx + 1) * (by + 1) * (bz + 1));
+  const cAt = (i: number, j: number, k: number) => i + (bx + 1) * (j + (by + 1) * k);
+  for (let k = 0; k <= bz; k++, yield)
+    for (let j = 0; j <= by; j++)
+      for (let i = 0; i <= bx; i++) coarse[cAt(i, j, k)] = distance(min.x + i * B * cell, min.y + j * B * cell, min.z + k * B * cell);
+  // Clear of the surface: farther than the block's half diagonal plus a cell, with room for fields
+  // that change faster than their distance (squashed or rippled shapes).
+  const clear = slope * (Math.sqrt(3) * (B / 2 + 1)) * cell;
+  for (let K = 0; K < bz; K++, yield)
+    for (let J = 0; J < by; J++)
+      for (let I = 0; I < bx; I++) {
+        let lo = Infinity;
+        let neg = 0;
+        for (let c = 0; c < 8; c++) {
+          const d = coarse[cAt(I + (c & 1), J + ((c >> 1) & 1), K + ((c >> 2) & 1))];
+          lo = Math.min(lo, Math.abs(d));
+          if (d < 0) neg++;
+        }
+        const skip = SURFACE_NETS.narrowBand && lo > clear && (neg === 0 || neg === 8);
+        const fill = neg === 8 ? -clear : clear;
+        const k1 = Math.min(nz, (K + 1) * B);
+        const j1 = Math.min(ny, (J + 1) * B);
+        const i1 = Math.min(nx, (I + 1) * B);
+        for (let k = K * B; k <= k1; k++)
+          for (let j = J * B; j <= j1; j++)
+            for (let i = I * B; i <= i1; i++) {
+              const n = at(i, j, k);
+              // (Shared faces are visited twice: a point read exactly stays exact.)
+              if (read[n] === 2) continue;
+              if (skip) {
+                values[n] = fill;
+                read[n] = 1;
+              } else {
+                values[n] = distance(min.x + i * cell, min.y + j * cell, min.z + k * cell);
+                read[n] = 2;
+              }
+            }
+      }
 
   // 2. One point in every box the surface passes through.
   const cellIndex = new Int32Array(nx * ny * nz).fill(-1);
@@ -40,7 +103,7 @@ export function surfaceNets(
     [0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7],
   ];
   const v = new Float32Array(8);
-  for (let k = 0; k < nz; k++)
+  for (let k = 0; k < nz; k++, yield)
     for (let j = 0; j < ny; j++)
       for (let i = 0; i < nx; i++) {
         let inside = 0;
@@ -73,7 +136,7 @@ export function surfaceNets(
     if (outwardPositive) indices.push(a, b, c, a, c, d);
     else indices.push(a, c, b, a, d, c);
   };
-  for (let k = 0; k <= nz; k++)
+  for (let k = 0; k <= nz; k++, yield)
     for (let j = 0; j <= ny; j++)
       for (let i = 0; i <= nx; i++) {
         const here = values[at(i, j, k)] < 0;
@@ -113,6 +176,25 @@ export function relaxOnSurface(
   rounds = 3,
   amount = 0.5,
 ): BufferGeometry {
+  // (In slices, slices.ts: the steps smooth their own copy, which is then written into this mesh.)
+  return kernel(
+    () => relaxSteps(geometry.clone(), distance, cell, rounds, amount),
+    (done) => {
+      const position = geometry.getAttribute('position') as BufferAttribute;
+      (position.array as Float32Array).set(done.getAttribute('position').array as Float32Array);
+      position.needsUpdate = true;
+      return geometry;
+    },
+  );
+}
+
+function* relaxSteps(
+  geometry: BufferGeometry,
+  distance: (x: number, y: number, z: number) => number,
+  cell: number,
+  rounds: number,
+  amount: number,
+): Generator<void, BufferGeometry> {
   const position = geometry.getAttribute('position') as BufferAttribute;
   const index = geometry.index!;
   const count = position.count;
@@ -131,6 +213,7 @@ export function relaxOnSurface(
   const h = cell * 0.25;
   for (let round = 0; round < rounds; round++) {
     for (let i = 0; i < count; i++) {
+      if (i % 1500 === 1499) yield;
       // 1. Toward the neighbours' average.
       let ax = 0;
       let ay = 0;

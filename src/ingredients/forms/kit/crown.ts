@@ -52,5 +52,5 @@ export function crownGeometry(options: CrownOptions): BufferGeometry {
   min.subScalar(options.cell);
   max.addScalar(options.cell);
   const p = new Vector3();
-  return surfaceNets((x, y, z) => crownDistance(p.set(x, y, z), blobs, softness), min, max, options.cell);
+  return surfaceNets((x, y, z) => crownDistance(p.set(x, y, z), blobs, softness), min, max, options.cell, 1.2);
 }

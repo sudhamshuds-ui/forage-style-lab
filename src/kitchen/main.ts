@@ -220,6 +220,13 @@ function prepareNext(): void {
   if (ready.has(id) || items.some((item) => item.id === id)) return prepareNext();
   preparing = true;
   whenIdle(() => {
+    // (R10: not while a dish is cooking or the table is coming back: an ingredient built in one go
+    // froze the transition. The tray's next ingredients are made once the table is back.)
+    if (mode !== 'table') {
+      preparing = false;
+      queue.unshift(id);
+      return void window.setTimeout(prepareNext, 400);
+    }
     const item = makeItem(id);
     const done = () => {
       preparing = false;
@@ -917,15 +924,22 @@ function swapStage(next: Item[]): void {
  * 2026-11-16): the picture is smudged away by brush strokes, then the next one is painted in.
  * Halfway (as the reveal begins) what is on the card is swapped; the slow turn never stops.
  */
-function playSwap(next: Item[], atSwap: () => void, done: () => void, nearlyDone?: () => void): void {
+function playSwap(next: Item[] | (() => Item[] | null), atSwap: () => void, done: () => void, nearlyDone?: () => void): void {
   select(null);
   hovered = null;
+  // (R10: a dish still being built is asked for when the reveal is due; until then it is null.)
+  const ask = typeof next === 'function' ? next : () => next;
   if (prefersReducedMotion()) {
-    crossfade(() => swapStage(next), 0.3);
-    atSwap();
-    nearlyDone?.();
-    done();
-    return;
+    // Reduced motion: the fade waits for the dish, then swaps as before.
+    const wait = () => {
+      const ready = ask();
+      if (!ready) return void window.setTimeout(wait, 50);
+      crossfade(() => swapStage(ready), 0.3);
+      atSwap();
+      nearlyDone?.();
+      done();
+    };
+    return wait();
   }
   update();
   // The painted dry-brush strokes, brush on or off, exactly as on main (R8: R7's feather burn with
@@ -940,13 +954,21 @@ function playSwap(next: Item[], atSwap: () => void, done: () => void, nearlyDone
     told = true;
     nearlyDone?.();
   };
-  const swap = () => {
+  /** Swap now if the next things are ready; false while they are still being made. */
+  const swap = (): boolean => {
+    const ready = ask();
+    if (!ready) return false;
     swapped = true;
-    swapStage(next);
+    swapStage(ready);
     atSwap();
+    return true;
   };
   stage.takeOver((delta) => {
-    if (!swapped && transition.progress >= REVEAL_STARTS) swap();
+    // R10: the reveal waits for a dish still being built: the strokes hold where they are, covering
+    // the card, and carry on exactly as before once it is ready.
+    // (Held, nothing is painted: the last frame of strokes stays on the card, and the page has the
+    // time to finish the dish.)
+    if (!swapped && transition.progress >= REVEAL_STARTS && !swap()) return;
     if (transition.progress >= NEARLY_PAINTED) tell();
     // Each still is painted once, and again only if the view turned (R7: strokes repainted every
     // frame of the transition were the slow part of a cook).
@@ -957,8 +979,10 @@ function playSwap(next: Item[], atSwap: () => void, done: () => void, nearlyDone
       painted = side;
     }
     transition.setCentre(swapped ? 'to' : 'from', paintFrame.objectUv);
-    if (transition.step(stage.renderer, delta)) {
-      if (!swapped) swap();
+    // (R10: before the swap a frame never steps past the reveal's start: a frame that did showed the
+    // first reveal strokes with nothing painted under them yet, black dabs, and a held reveal kept them.)
+    if (transition.step(stage.renderer, swapped ? delta : Math.min(delta, transition.secondsUntil(REVEAL_STARTS)))) {
+      if (!swapped && !swap()) return;
       tell();
       stage.release();
       done();
@@ -990,55 +1014,188 @@ function cook(choices: CookChoices, fixedAttempt?: number): void {
   cooking = true;
   cookPanel.setBusy(true);
   cookPanel.showError('');
-  // Plating takes a moment (physics settles every layer): let the button show it first.
-  window.setTimeout(() => {
-    let made = cooked.get(seed);
-    if (!made) {
-      // Never a silent click (the fix list, P3.1): if plating fails, Cook is freed and says so.
-      try {
-        const dish = composedDish(pickDish(ids, choices, seed, { attempt }));
-        made = { dish, item: makeItemFrom(dish.entry) };
-      } catch (error) {
+  // R10 (the Cook lag): the painted transition starts at once, in this click, as on main, and the
+  // dish is built while it plays (in slices, never freezing the page); the reveal waits for it.
+  parked = staying();
+  hideTitle();
+  setMode('cooking');
+  let made: { dish: Dish; item: Item } | null = cooked.get(seed) ?? null;
+  let failed = false;
+  // (Already on its way, built ahead at idle: it is finished now at full speed.)
+  const ahead = building && building.seed === seed ? building : null;
+  if (ahead) ahead.urgent = true;
+  else cancelAhead();
+  if (!made)
+    (ahead ? ahead.made : makeDish(ids, choices, seed, attempt, { urgent: true, cancelled: false })).then(
+      (dish) => (made = dish),
+      (error) => {
+        // Never a silent click (the fix list, P3.1): if plating fails, the table is painted back in
+        // and Cook is freed and says so.
         console.error('Cook failed', { ids, choices, seed }, error);
-        cooking = false;
-        cookPanel.setBusy(false);
-        cookPanel.showError('That dish did not come together. Try Cook again.');
-        return;
-      }
-      cooked.set(seed, made);
-      // Keep a few: older ones are let go.
-      if (cooked.size > 4) {
-        const [oldest] = cooked.keys();
-        const old = cooked.get(oldest)!;
-        if (old.item !== dishItem) old.item.subject.dispose();
-        cooked.delete(oldest);
-      }
-    }
-    const { dish, item } = made;
-    dishItem = item;
-    cooking = false;
-    cookPanel.setBusy(false);
-    parked = staying();
-    hideTitle();
-    setMode('cooking');
-    // The name, the description and the buttons wait until the dish is almost painted in and
-    // clearly visible (the user, 2026-11-16), not the moment the reveal starts.
-    playSwap(
-      [item],
-      // (R8: the dish is always shown from the normal dish angle, whatever the table was turned to.)
-      () => {
-        stage.resetView();
-        // Shot mode (R8): closer in, so the dish fills the frame.
-        if (SHOT) {
-          stage.camera.position.sub(stage.controls.target).multiplyScalar(0.68).add(stage.controls.target);
-          stage.controls.update();
-          stage.invalidate();
-        }
+        failed = true;
       },
-      () => setMode('dish'),
-      () => setWords(dish),
     );
-  }, 60);
+  // The name, the description and the buttons wait until the dish is almost painted in and
+  // clearly visible (the user, 2026-11-16), not the moment the reveal starts.
+  let words: Dish | null = null;
+  playSwap(
+    () => {
+      if (failed) return parked;
+      if (!made) return null;
+      dishItem = made.item;
+      words = made.dish;
+      return [made.item];
+    },
+    // (R8: the dish is always shown from the normal dish angle, whatever the table was turned to.)
+    () => {
+      if (!words) return;
+      stage.resetView();
+      // Shot mode (R8): closer in, so the dish fills the frame.
+      if (SHOT) {
+        stage.camera.position.sub(stage.controls.target).multiplyScalar(0.68).add(stage.controls.target);
+        stage.controls.update();
+        stage.invalidate();
+      }
+    },
+    () => {
+      cooking = false;
+      cookPanel.setBusy(false);
+      if (words) return setMode('dish');
+      parked = [];
+      setMode('table');
+      cookPanel.showError('That dish did not come together. Try Cook again.');
+    },
+    () => {
+      if (words) return setWords(words);
+      setWords(null);
+      setMode('settling');
+    },
+  );
+}
+
+/**
+ * The next dish, built ahead (R10, item h): once the table and the choices have stayed the same for a
+ * moment, the dish the next Cook press would make is built in idle moments, a slice at a time, into
+ * `cooked`, so Cook only has the painted transition to play. Any change to the table or the choices
+ * lets it go.
+ */
+type AheadJob = { seed: number; key: string; urgent: boolean; cancelled: boolean; made: Promise<{ dish: Dish; item: Item }> };
+let building = null as AheadJob | null;
+let settledKey = '';
+let settledSince = 0;
+function cancelAhead(): void {
+  if (building && !building.urgent) building.cancelled = true;
+  building = null;
+}
+window.setInterval(() => {
+  // (Measurements can turn it off, to time a cold Cook: window.forageNoAhead = true.)
+  if (mode !== 'table' || cooking || staying().length === 0 || (window as { forageNoAhead?: boolean }).forageNoAhead) return;
+  const ids = staying().map((entry) => entry.id);
+  const choices = cookPanel.choices();
+  const key = [...ids].sort().join('+') + `|${choices.course}|${choices.taste}|${choices.wild}`;
+  const now = performance.now();
+  if (key !== settledKey) {
+    settledKey = key;
+    settledSince = now;
+    if (building && building.key !== key) cancelAhead();
+    return;
+  }
+  // Settled for a moment, and the tray's own ingredients made first.
+  if (now - settledSince < 1500 || building || queue.length || preparing) return;
+  const attempt = cookAttempts.get(key) ?? 0;
+  const seed = cookSeed(ids, choices, attempt);
+  if (cooked.has(seed)) return;
+  const flags = { urgent: false, cancelled: false };
+  const job: AheadJob = Object.assign(flags, { seed, key, made: makeDish(ids, choices, seed, attempt, flags) });
+  building = job;
+  const settle = () => {
+    if (building === job) building = null;
+  };
+  job.made.then(settle, settle);
+}, 500);
+
+/** Wait for the next frame's chance to paint (a task of its own, so the transition keeps playing). */
+const pause = (() => {
+  const channel = new MessageChannel();
+  const waiting: (() => void)[] = [];
+  channel.port1.onmessage = () => waiting.shift()?.();
+  return () =>
+    new Promise<void>((resolve) => {
+      waiting.push(resolve);
+      channel.port2.postMessage(0);
+    });
+})();
+
+/** How long the graphics chip is given to finish compiling a dish's paint (ms, see makeDish). */
+const COMPILE_GRACE_MS = 1000;
+
+/** How long each slice of a dish's build may run (ms): well inside a frame. */
+const SLICE_MS = 8;
+
+/**
+ * Build a dish in slices (R10): planned, its pieces built and settled a slice at a time (the
+ * composer's steps), then put together and its paint compiled for the hidden image the scene is
+ * painted into, without blocking the page, so its first frame on the card has nothing to wait for.
+ */
+async function makeDish(ids: string[], choices: CookChoices, seed: number, attempt: number, job: { urgent: boolean; cancelled: boolean }): Promise<{ dish: Dish; item: Item }> {
+  // A slice at a time: at full speed for a Cook (a task each, so the transition keeps playing), or
+  // only in idle moments when built ahead.
+  // (Built ahead: as much as the idle moment allows, or a short slice when it waited too long.)
+  let budget = SLICE_MS;
+  const next = async () => {
+    if (job.urgent) return void ((budget = SLICE_MS), await pause());
+    if (typeof window.requestIdleCallback !== 'function') return void ((budget = SLICE_MS), await new Promise((resolve) => window.setTimeout(resolve, 60)));
+    const idle = await new Promise<IdleDeadline>((resolve) => window.requestIdleCallback(resolve, { timeout: 600 }));
+    budget = idle.didTimeout ? 24 : Math.max(SLICE_MS, idle.timeRemaining() - 2);
+  };
+  const stop = () => {
+    if (job.cancelled) throw new Error('cancelled');
+  };
+  await next();
+  stop();
+  const dish = composedDish(pickDish(ids, choices, seed, { attempt }));
+  if (dish.prebuild) {
+    const steps = dish.prebuild(SLICE_MS);
+    for (let done = false; !done; ) {
+      const end = performance.now() + budget;
+      do done = !!steps.next().done;
+      while (!done && performance.now() < end);
+      await next();
+      stop();
+    }
+  }
+  const item = makeItemFrom(dish.entry);
+  await next();
+  if (job.cancelled) {
+    item.subject.dispose();
+    stop();
+  }
+  const before = stage.renderer.getRenderTarget();
+  stage.renderer.setRenderTarget(painter.underpainting);
+  const compiling = stage.renderer.compileAsync(item.subject.group, stage.camera, stage.scene);
+  stage.renderer.setRenderTarget(before);
+  await compiling.catch(() => undefined);
+  // Without parallel compiling (KHR_parallel_shader_compile), the first frame that draws a new paint
+  // waits for it to finish: the compile is sent off now, and the graphics chip is given a few quiet
+  // frames to finish it while the strokes cover the card, so the dish's first frame does not wait.
+  if (!stage.renderer.extensions.has('KHR_parallel_shader_compile')) {
+    stage.renderer.getContext().flush();
+    await new Promise((resolve) => window.setTimeout(resolve, COMPILE_GRACE_MS));
+  }
+  if (job.cancelled) {
+    item.subject.dispose();
+    stop();
+  }
+  const made = { dish, item };
+  cooked.set(seed, made);
+  // Keep a few: older ones are let go.
+  if (cooked.size > 4) {
+    const [oldest] = cooked.keys();
+    const old = cooked.get(oldest)!;
+    if (old.item !== dishItem) old.item.subject.dispose();
+    cooked.delete(oldest);
+  }
+  return made;
 }
 
 /** Back to the table, with the same ingredients as before. */

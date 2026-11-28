@@ -188,6 +188,11 @@ export class ShuffleTransition {
     return this.time;
   }
 
+  /** The seconds left until `progress` reaches `at` (0 once there). */
+  secondsUntil(at: number): number {
+    return Math.max(0, at * this.seconds - this.time);
+  }
+
   /** How far through the transition we are, 0..1. */
   get progress(): number {
     return Math.min(this.time / this.seconds, 1);
