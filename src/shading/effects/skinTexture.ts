@@ -1,6 +1,7 @@
 import { Color, Vector4, type ShaderMaterial, type Texture } from 'three';
 import type { ShaderEffect } from '../effect';
 import { UNITS_PER_CM } from '../../ingredients/scale';
+import { ROAST_GLSL } from '../roastRamp';
 
 /**
  * Skin texture: each ingredient's own peel, painted on its surface.
@@ -164,6 +165,7 @@ export const skinTexture: ShaderEffect = {
   uniforms: {},
   declarations: /* glsl */ `
 uniform vec4 uSkin; // x: kind (see SKIN_KINDS), y: cells per scene unit, z: amount, w: seared
+${ROAST_GLSL}
 uniform vec4 uSauce; // a drizzled sauce: rgb its colour (linear), w how much
 uniform sampler2D uLabelMap; // a label's artwork: white = ink, black = the ground
 uniform vec3 uLabelInk;      // the ink colour (cream)
@@ -1821,15 +1823,17 @@ if (kind > 0 && amount > 0.0) {
         float mark = (1.0 - smoothstep(0.14, 0.32, 1.0 - bar)) * broken;
         float halo = (1.0 - smoothstep(0.25, 0.55, 1.0 - bar)) * broken;
         lab = mix(lab, vec3(lab.x - 0.06, lab.y + 0.03, lab.z + 0.04), halo * 0.5 * amount);
-        lab = mix(lab, vec3(0.36 + tone * 0.5, 0.06, 0.03), mark * 0.85 * amount);
+        // (R10: the roast ramp's red-brown, a step darker; never plum.)
+        lab = searInto(lab, roastRamp(1.0) + vec3(tone * 0.5 - 0.08, 0.0, 0.0), mark * 0.85 * amount);
       }
       // Seared (a pan-seared peach wedge, a mushroom's cut face): a caramel-brown edge running
       // in from the rim in soft, uneven patches, deeper right at the edge; the middle stays fresh.
       if (uSkin.w > 0.0) {
         float edge = smoothstep(0.45, 0.98, r + (fbm3(cm * 1.6 + 2.0) - 0.5) * 0.35) * (1.0 - smoothstep(1.02, 1.2, r));
         // (Deepening to a mahogany right at the rim, like caramelised fruit: the user's photo.)
-        vec3 brown = mix(vec3(0.66 + tone * 0.6, 0.05, 0.11), vec3(0.42 + tone * 0.5, 0.07, 0.07), smoothstep(0.7, 1.0, r));
-        lab = mix(lab, brown, edge * uSkin.w * 0.85);
+        // (R10: along the roast ramp, golden-orange to red-brown, mixed without a grey band.)
+        vec3 brown = mix(roastRamp(0.42) + vec3(tone * 0.6, 0.0, 0.0), roastRamp(1.0) + vec3(tone * 0.5 - 0.03, 0.0, 0.0), smoothstep(0.7, 1.0, r));
+        lab = searInto(lab, brown, edge * uSkin.w * 0.85);
       }
       lab = mix(lab, linearToOklab(uGlowColour), clamp(turnBand * 0.35 + (1.0 - lit) * 0.22, 0.0, 0.45) * amount);
       float sparkle = smoothstep(0.72, 0.9, valueNoise3(cm * 6.0 + 1.0));
@@ -1876,13 +1880,17 @@ if (kind > 0 && amount > 0.0) {
     // shift in colour from the top to the body).
     float upward = mix(smoothstep(0.05, 0.85, N.y + (fbm3(cmS * 0.8 + 11.0) - 0.5) * 0.45), 1.0, step(0.995, uSkin.w));
     // Golden caramel on pale things (salmon, bread), a deep brown crust on dark ones (beef).
+    // (R10: both from the roast ramp, golden-orange on pale things and caramel to red-brown on dark
+    // ones: the dull, low-chroma browns read as a grey-brown mud.)
     float darkBase = smoothstep(0.7, 0.52, linearToOklab(uBaseColour).x);
-    vec3 golden = mix(vec3(0.7, 0.05, 0.12), vec3(0.46, 0.06, 0.07), darkBase);
-    vec3 deep = mix(vec3(0.5, 0.07, 0.08), vec3(0.32, 0.05, 0.04), darkBase);
+    float goldenAt = mix(0.33, 0.8, darkBase);
+    float deepAt = mix(0.86, 1.0, darkBase);
+    vec3 golden = roastRamp(goldenAt);
+    vec3 deep = roastRamp(deepAt) - vec3(0.06 * darkBase, 0.0, 0.0);
     vec3 searLab = mix(golden + vec3(toneS * 0.6, 0.0, 0.0), deep + vec3(toneS * 0.5, 0.0, 0.0), smoothstep(0.5, 0.78, fbm3(cmS * 1.8 + 3.0)));
     // Marked lines (a salmon's fat lines) cook to a deeper brown; the top's edge, where it turns
     // down, caramelises darker too.
-    vec3 marked = mix(golden, deep, 0.85) + vec3(toneS * 0.5 - 0.05, 0.01, -0.01);
+    vec3 marked = roastRamp(mix(goldenAt, deepAt, 0.85)) + vec3(toneS * 0.5 - 0.05, 0.0, 0.0);
     searLab = mix(searLab, marked, searMark * 0.8);
     float turnDown = (1.0 - smoothstep(0.45, 0.95, N.y)) * smoothstep(0.1, 0.5, N.y);
     searLab = mix(searLab, deep + vec3(toneS * 0.5, 0.0, 0.0), turnDown * 0.3);
@@ -1903,7 +1911,15 @@ if (kind > 0 && amount > 0.0) {
     // A full sear reaches further down the sides of the top, and clears what the skin asked the
     // highlight to pick out (the salmon's fat lines came back through it).
     upward = mix(upward, smoothstep(-0.05, 0.45, N.y + (fbm3(cmS * 0.8 + 11.0) - 0.5) * 0.3), full * step(uSkin.w, 0.995));
-    lab = mix(lab, searLab, upward * mix(broken * uSkin.w * 0.93, 1.0, full));
+    // (R10: a steeper edge, so the band between the raw colour and the crust is thin, and mixed
+    // keeping the crust's colour: half way from a pale pink or green to brown read grey-beige.)
+    // A real sear (a dish's seared strength, toned down for the painting, from about 0.45 up) browns
+    // what it covers fully; only a light toasting (fries, a broccoli tip) stays a thin wash. Half
+    // strength over the whole top was the muddy half-mix the user saw on every roast.
+    upward = smoothstep(0.35, 0.65, upward);
+    float strength = uSkin.w * 0.93;
+    strength = mix(strength, 1.0, smoothstep(0.2, 0.45, strength));
+    lab = searInto(lab, searLab, upward * mix(broken * strength, 1.0, full));
     highlightOwn = mix(highlightOwn, 0.0, upward * full);
     // The shine breaks up on the crust: a faint sheen skipping the pits, small glints on the lumps
     // facing the light, in the crust's own colour.

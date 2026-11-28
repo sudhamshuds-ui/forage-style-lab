@@ -1,3 +1,4 @@
+import { ROAST, roastHex } from '../../shading/roastRamp';
 import { BufferAttribute, CylinderGeometry, IcosahedronGeometry, LatheGeometry, Matrix4, Vector2, Quaternion, SphereGeometry, Vector3, type BufferGeometry } from 'three';
 import { relaxOnSurface, surfaceNets } from '../../ingredients/forms/kit/surfaceNets';
 import { roundedIntersection } from '../../ingredients/forms/kit/wedge';
@@ -104,10 +105,10 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
       return [{ role: id, family: 'salmon', skin: { ...FLESH_SKIN, pale: '#ffa07a', green: '#ff6a40', amount: 0.6 }, glossy: true }];
     case 'salmon:flake':
       // Seared salmon flaked into chunks: pale pink inside, golden where the pan caught it.
-      return [{ role: id, family: 'cooked-salmon', skin: { ...FLESH_SKIN, pale: '#ffc8b0', green: '#d8803c', seared: 0.6 } }];
+      return [{ role: id, family: 'cooked-salmon', skin: { ...FLESH_SKIN, pale: '#ffc8b0', green: roastHex(0.4), seared: 0.6 } }];
     case 'potato:cube':
       // Diced roast potato (R4: golden and irregular, never a pale crouton).
-      return [{ role: id, family: 'fries', skin: { ...FLESH_SKIN, pale: '#fbd77e', green: '#c66d24', seared: 0.6 } }];
+      return [{ role: id, family: 'fries', skin: { ...FLESH_SKIN, pale: '#fbd77e', green: roastHex(0.55), seared: 0.6 } }];
     case 'salmon:slice':
     case 'salmon:cube':
       // Raw salmon cut small: the flesh skin in the salmon's own colours (its fillet skin needs a whole fillet's map).
@@ -115,15 +116,16 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
     case 'steak:steak':
       // Pink inside (the user, 2026-11-25), R8: a medium-rare rose, not a raw hot pink, inside a
       // browned seared crust.
-      return [{ role: id, family: 'rare', skin: { ...FLESH_SKIN, pale: '#e2667a', green: '#6a3420', seared: 0.72 } }];
+      // (R10: the crust is the roast ramp's red-brown, never a dull brown.)
+      return [{ role: id, family: 'rare', skin: { ...FLESH_SKIN, pale: '#e2667a', green: roastHex(ROAST.redBrown), seared: 0.72 } }];
     case 'chicken:drumstick':
       return [
         // R8: roast, browned skin (the pink poultry family read as raw).
-        { role: 'chicken_meat_glow', family: 'bone-roast', skin: { kind: 'poultry', size_mm: 3, amount: 0.5, seared: 1, pale: '#a8521e', green: '#d88a3a' } },
+        { role: 'chicken_meat_glow', family: 'bone-roast', skin: { kind: 'poultry', size_mm: 3, amount: 0.5, seared: 1, pale: roastHex(0.72), green: roastHex(0.3) } },
         { role: 'knuckle', family: 'bone' },
       ];
     case 'potato:whole':
-      return [{ role: id, family: 'potato', skin: { kind: 'potato', size_mm: 2.2, amount: 0.9, seared: 0.6 } }];
+      return [{ role: id, family: 'roast-potato', skin: { kind: 'potato', size_mm: 2.2, amount: 0.9, seared: 0.6 } }];
     case 'broccoli:whole':
     case 'broccoli:half':
       return [
@@ -148,8 +150,9 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
     case 'mushroom:half':
     case 'mushroom:slice':
       return [
-        { role: 'mushroom', family: 'mushroom', skin: { kind: 'mushroom', size_mm: 2, amount: 0.9, seared: 0.6 } },
-        { role: 'mushroomCut', family: 'garlic', skin: { ...FLESH_SKIN, pale: '#f2e2c4', green: '#a87a5a', seared: 0.6 } },
+        { role: 'mushroom', family: 'roast-mushroom', skin: { kind: 'mushroom', size_mm: 2, amount: 0.9, seared: 0.6 } },
+        // (R10: its cut face cooked ivory with a warm roast shade, not the garlic's lilac.)
+        { role: 'mushroomCut', family: 'roast-chicken', skin: { ...FLESH_SKIN, pale: '#f2e2c4', green: roastHex(0.6), seared: 0.6 } },
       ];
     case 'spinach:leaf':
       return [{ role: id, family: 'spinach' }];
@@ -200,15 +203,15 @@ export function elementLooks(part: Part, seared: boolean): RoleLook[] {
       ];
     // Bakes and folds: one piece each, a pale inside (where cut or folded) and a golden outside.
     case 'butter:cake':
-      return [{ role: id, family: 'baked', skin: { ...FLESH_SKIN, pale: '#fff1cc', green: '#d9973e' } }];
+      return [{ role: id, family: 'oven-baked', skin: { ...FLESH_SKIN, pale: '#fff1cc', green: roastHex(0.2) } }];
     case 'butter:pastry':
-      return [{ role: id, family: 'baked', skin: { ...FLESH_SKIN, pale: '#f6d48c', green: '#c98a3c' } }];
+      return [{ role: id, family: 'oven-baked', skin: { ...FLESH_SKIN, pale: '#f6d48c', green: roastHex(0.45) } }];
     case 'cheese:cake':
       return [{ role: id, family: 'cheese', skin: { ...FLESH_SKIN, pale: '#fff8e0', green: '#c99a5a' } }];
     case 'eggs:omelette':
       return [{ role: id, family: 'yolk', skin: { ...FLESH_SKIN, pale: '#ffe58a', green: '#f0c040' } }];
     case 'milk:pancake':
-      return [{ role: id, family: 'baked', skin: { ...FLESH_SKIN, pale: '#c98a3c', green: '#f2d8a0' } }];
+      return [{ role: id, family: 'oven-baked', skin: { ...FLESH_SKIN, pale: roastHex(0.45), green: '#f2d8a0' } }];
     case 'cabbage:roll':
       return [{ role: id, family: 'cabbage', skin: { ...FLESH_SKIN, pale: '#e8f0b0', green: '#b8d070' } }];
     // A tomato wedge (R8: it read as a strawberry): satin, not glossy, its seeds and a green stem

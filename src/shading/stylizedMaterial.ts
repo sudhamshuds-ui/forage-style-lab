@@ -1,3 +1,4 @@
+import { roastUniform } from './roastRamp';
 import { Color, DoubleSide, FrontSide, ShaderMaterial, UniformsLib, UniformsUtils, Vector3, Vector4, type IUniform } from 'three';
 import type { Settings } from '../params';
 import { mixHex } from '../utils/colour';
@@ -201,6 +202,8 @@ export class StylizedLook {
         uGlowColour: { value: new Color() },
         // Each material's own peel texture (see effects/skinTexture.ts). Plain by default.
         uSkin: skinUniform(),
+        // The roast ramp every browning is made from (R10, roastRamp.ts).
+        uRoast: roastUniform(),
         // A sauce drizzled over it (dishes): its colour and how much (see effects/skinTexture.ts).
         uSauce: { value: new Vector4(0, 0, 0, 0) },
         // A printed label's artwork and ink (only label pieces use them).

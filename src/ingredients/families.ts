@@ -1,4 +1,5 @@
 import type { Palette } from '../shading/stylizedMaterial';
+import { ROAST, roastHex } from '../shading/roastRamp';
 
 /**
  * Colour families (board 04, "Warm subject, cool room").
@@ -82,6 +83,9 @@ export type FamilyId =
   | 'peach-flesh'
   | 'rare'
   | 'sear'
+  | 'roast-potato'
+  | 'roast-mushroom'
+  | 'oven-baked'
   | 'grape-flesh'
   | 'tomato-flesh'
   | 'garlic-roast'
@@ -617,10 +621,29 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
     colours: { lit: '#ffa0aa', base: '#e64a6a', shadow: '#7a1e4a', glow: '#ff5c74', highlight: '#ffe8ec' },
     rooms: [],
   },
-  // A seared crust (salmon, steak): golden caramel where lit, a russet-plum shade.
+  // R10, the roast ramp (shading/roastRamp.ts): cooked twins of families the pantry shares with
+  // raw ingredients. The same colours, the shaded side going to the ramp's red-brown instead of
+  // a dusty rose or plum (the raw potato, mushroom and baguette on the table keep theirs).
+  'roast-potato': {
+    name: 'Roast potato',
+    colours: { lit: '#f3cf8e', base: '#cf9450', shadow: roastHex(ROAST.redBrown), glow: '#e09640', highlight: '#fff0d0' },
+    rooms: [],
+  },
+  // (A roast mushroom's cap: golden caramel along the ramp, not the raw chestnut.)
+  'roast-mushroom': {
+    name: 'Roast mushroom',
+    colours: { lit: roastHex(0.3), base: roastHex(0.75), shadow: roastHex(ROAST.redBrown), glow: roastHex(0.45), highlight: '#fbefdd' },
+    rooms: [],
+  },
+  'oven-baked': {
+    name: 'Oven baked',
+    colours: { lit: '#f8c98c', base: '#df8a47', shadow: roastHex(ROAST.redBrown), glow: '#ee7b34', highlight: '#fff0d8' },
+    rooms: [],
+  },
+  // A seared crust (salmon, steak): golden caramel where lit, a red-brown shade (R10: the roast ramp).
   sear: {
     name: 'Sear',
-    colours: { lit: '#f0b06a', base: '#b9652f', shadow: '#5c2a3c', glow: '#e88038', highlight: '#fff0d8' },
+    colours: { lit: '#f0b06a', base: '#b9652f', shadow: roastHex(ROAST.redBrown), glow: '#e88038', highlight: '#fff0d8' },
     rooms: [],
   },
   // A grape's cut flesh: pale green-gold, a lilac shade.
@@ -638,7 +661,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // Roast garlic's cut face: golden, toasted at the edges, a rosy-brown shade.
   'garlic-roast': {
     name: 'Roast garlic',
-    colours: { lit: '#fbe0a0', base: '#e2ad58', shadow: '#965848', glow: '#f2b448', highlight: '#fff8e6' },
+    colours: { lit: '#fbe0a0', base: '#e2ad58', shadow: roastHex(0.9), glow: '#f2b448', highlight: '#fff8e6' },
     rooms: [],
   },
   // A strawberry's cut flesh: pale rose at the heart to red at the edge, a crimson shade.
@@ -672,7 +695,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   },
   'cooked-salmon': {
     name: 'Cooked salmon',
-    colours: { lit: '#fff2ec', base: '#f5cdbf', shadow: '#ae7a8c', glow: '#ffb6a2', highlight: '#fffaf6' },
+    colours: { lit: '#fff2ec', base: '#f5cdbf', shadow: roastHex(0.75), glow: '#ffb6a2', highlight: '#fffaf6' },
     rooms: [],
   },
   // A clean white porcelain plate: white where lit, a cool lilac shade, never grey or cream.
@@ -692,7 +715,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // ivory meat, a golden-brown roast at its edges, a rose-plum shade.
   'roast-chicken': {
     name: 'Roast chicken',
-    colours: { lit: '#fff3de', base: '#f1d2a2', shadow: '#a46a6a', glow: '#f2a454', highlight: '#fffaf0' },
+    colours: { lit: '#fff3de', base: '#f1d2a2', shadow: roastHex(0.8), glow: '#f2a454', highlight: '#fffaf0' },
     rooms: [],
   },
   // Egg custard in a dessert (Group 1: never a fried egg): a warm vanilla yellow, a rose shade.
@@ -752,7 +775,7 @@ export const FAMILIES: Record<FamilyId, ColourFamily> = {
   // A roasted bone: golden tan, browned, a rosy-brown shade (never a raw white).
   'bone-roast': {
     name: 'Roast bone',
-    colours: { lit: '#f2d4a2', base: '#cc9a62', shadow: '#6e4a48', glow: '#e4a25c', highlight: '#fff2dc' },
+    colours: { lit: '#f2d4a2', base: '#cc9a62', shadow: roastHex(ROAST.redBrown), glow: '#e4a25c', highlight: '#fff2dc' },
     rooms: [],
   },
   // Strawberry jam: a deep glossy red, ruby where lit, a dark wine-plum in shadow.
